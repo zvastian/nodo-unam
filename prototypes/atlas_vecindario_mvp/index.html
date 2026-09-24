@@ -226,7 +226,16 @@
   #search input::placeholder { color: #8f8f8f; }
   #search .s-results { max-height: 52vh; overflow-y: auto; padding: 4px 0; }
   #search .s-empty { padding: 16px 18px; font-size: 14px; color: var(--ink-2); line-height: 1.5; }
-  .sr-item { display: grid; grid-template-columns: 96px 1fr auto; gap: 12px; align-items: baseline; width: 100%; text-align: left; border: none; background: none; padding: 8px 18px; cursor: pointer; }
+  /* v4.2: barra de color = territorio (tono) y granularidad (intensidad) */
+  .sr-item { display: grid; grid-template-columns: 4px 1fr auto; gap: 12px; align-items: stretch; width: 100%; text-align: left; border: none; background: none; padding: 7px 18px; cursor: pointer; }
+  .sr-item .sr-bar { display: block; width: 4px; border-radius: 0; }
+  .sr-item .ct { align-self: baseline; padding-top: 1px; }
+  .s-sec { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; padding: 12px 18px 4px; font-size: 13px; font-weight: 600; color: var(--ink); }
+  .s-sec:first-child { padding-top: 6px; }
+  .s-sec span { font-weight: 400; color: var(--ink-3); }
+  .s-sec .s-all { margin-left: auto; border: none; background: none; padding: 0; font: inherit; font-weight: 400; color: var(--link); cursor: pointer; }
+  .s-sec .s-all:hover { text-decoration: underline; }
+  .s-load { color: var(--ink-3); }
   .sr-item.active, .sr-item:hover { background: var(--surface); }
   .sr-item .lv { font-size: 13px; color: var(--ink-3); }
   .sr-item .nm { font-size: 14px; color: var(--ink); line-height: 1.35; }
@@ -405,7 +414,7 @@
         </div>
         <button type="button" class="btn" id="debug-log-toggle">Log</button>
       </div>
-    <button type="button" class="navsearch" id="btn-search" aria-label="Buscar (Ctrl+K)"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5"/><path d="M10.4 10.4L14 14"/></svg><span>Buscar tema, disciplina o título</span></button>
+    <button type="button" class="navsearch" id="btn-search" aria-label="Buscar (Ctrl+K)"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5"/><path d="M10.4 10.4L14 14"/></svg><span>Buscar tema, título o asesor</span></button>
   </header>
   <!-- Barra general de filtros (v3.2). Hoy: color. Siguientes: programa, plantel,
        año, nivel -- cada filtro nuevo es otro .fb-group aqui. -->
@@ -489,14 +498,14 @@
 
   <footer>
     <span>Proyecto independiente, no oficial. Datos del catálogo público TESIUNAM.</span>
-    <span><button type="button" id="foot-metodo">Cómo se hizo el mapa</button> · versión <span id="app-version">4.1.0</span></span>
+    <span><button type="button" id="foot-metodo">Cómo se hizo el mapa</button> · versión <span id="app-version">4.2.0</span></span>
   </footer>
 </div>
 
 <div id="search" hidden role="dialog" aria-label="Buscar en el atlas">
   <div class="s-backdrop"></div>
   <div class="s-card">
-    <input id="search-input" type="search" placeholder="Busca un tema, disciplina o título… (ej. «amparo», «diabetes», «bach»)" autocomplete="off" spellcheck="false">
+    <input id="search-input" type="search" placeholder="Busca un tema, una palabra del título o un asesor (ej. «freud», «amparo»)" autocomplete="off" spellcheck="false">
     <div class="s-results" id="search-results"></div>
     <div class="s-foot"><span>Flechas para navegar</span><span>Enter para ir</span><span>Esc para cerrar</span><span id="search-scope"></span></div>
   </div>
@@ -545,6 +554,7 @@
       <dt>Representación</dt><dd>Cada título se convierte en un vector numérico con el modelo de lenguaje e5-large.</dd>
       <dt>Agrupamiento</dt><dd>HDBSCAN encuentra grupos densos de títulos parecidos; Ward los organiza en tres niveles: 130 territorios, unos 440 subtemas y 513 temas finos.</dd>
       <dt>Proyección</dt><dd>PaCMAP lleva los vectores a dos dimensiones para dibujarlos.</dd>
+      <dt>Asesores</dt><dd>El catálogo escribe a una misma persona de varias formas (con y sin acentos, «Ma.» por María, nombre incompleto, errores de captura). Las 117,482 formas se agruparon en 81,151 asesores con reglas conservadoras: ante la duda se dejan separadas, así que alguna persona puede aparecer con dos nombres.</dd>
       <dt>Vecindarios</dt><dd>Para una tesis, sus vecinas son las de título más parecido en todo el corpus. Dentro de un tema fino, cada tesis se une a sus tres más parecidas.</dd>
     </dl>
     <h3>Cómo leerlo</h3>
@@ -555,7 +565,7 @@
       <li>Las áreas administrativas vienen del catálogo, no del algoritmo; sirven para comparar, no son la estructura del mapa.</li>
     </ul>
     <h3>Sobre el proyecto</h3>
-    <p>Proyecto independiente de tesis (NODO UNAM). No es un sitio oficial de la UNAM ni de la Dirección General de Bibliotecas. Primera edición, versión <span id="metodo-version">4.1.0</span>.</p>
+    <p>Proyecto independiente de tesis (NODO UNAM). No es un sitio oficial de la UNAM ni de la Dirección General de Bibliotecas. Primera edición, versión <span id="metodo-version">4.2.0</span>.</p>
   </article>
 </section>
 
@@ -1348,8 +1358,12 @@
     $('ms-eyebrow').textContent = 'Tesis';
     $('ms-title').textContent = info ? info.t : 'Cargando título…';
     $('ms-meta').textContent = ((info && info.y) || '—') + ' · ' + tid;
+    var asd = row ? null : asesoresDe(idx); // v4.2: asesoria para toda tesis del catalogo, no solo las de un tema
+    if (!row && !ases.off) loadAsesores().then(function () { if (!$('map-selection').hidden && $('ms-title').getAttribute('data-idx') === String(idx)) showPointCard(idx); }).catch(function () {});
+    $('ms-title').setAttribute('data-idx', idx);
     $('ms-note').innerHTML = row ? escapeHtml(row.pr) + '<br>' + escapeHtml(row.pl) + '<br>Asesoría: ' + escapeHtml(fmtAsesores(row.as))
-      : (m ? 'Territorio: ' + escapeHtml(m.name) : 'Sin territorio: no quedó en ningún grupo claro (le pasa al 67% del corpus).') + '<br>' + escapeHtml(AREA_NAMES[state.areaCode[idx]] || '');
+      : (m ? 'Territorio: ' + escapeHtml(m.name) : 'Sin territorio: no quedó en ningún grupo claro (le pasa al 67% del corpus).') + '<br>' + escapeHtml(AREA_NAMES[state.areaCode[idx]] || '') +
+        (asd ? '<br>Asesoría: ' + (asd.length ? escapeHtml(fmtAsesores(asd)) : 'sin registro') : '');
     var go = $('ms-go-territory');
     go.hidden = !m || !!state.iso; go.onclick = function () { $('map-selection').hidden = true; selectNode(m, true); };
     var vb = $('ms-open-vecindario');
@@ -1476,7 +1490,9 @@
   // 513 archivos, sin autor). Territorio y subtema se arman juntando sus temas finos.
   var microThesesCache = {}, microMeso = {};
   function loadMicroTheses(cid) {
-    if (!microThesesCache[cid]) microThesesCache[cid] = fetchJson('./data/tesis_por_micro/' + cid + '.json').then(function (d) { microMeso[cid] = d.mesoId; return d; });
+    // espera a los asesores unificados para que listado, panorama y red usen el nombre canonico
+    if (!microThesesCache[cid]) microThesesCache[cid] = Promise.all([fetchJson('./data/tesis_por_micro/' + cid + '.json'), loadAsesores().catch(function () { return null; })])
+      .then(function (r) { microMeso[cid] = r[0].mesoId; return r[0]; });
     return microThesesCache[cid];
   }
   // El catalogo trae programas y planteles en minusculas sin acentos: se muestran con
@@ -1484,7 +1500,10 @@
   function pretty(t) {
     return capital(escribir(String(t || '').replace(/\s+unam$/, '')));
   }
-  function rowObj(r) { return { id: r[0], t: r[1], y: r[2], pl: pretty(r[3]), pr: pretty(r[4]), nv: r[5], as: r[6] || [], k: norm(r[1]).replace(/[^a-z0-9 ]/g, '') }; }
+  function rowObj(r) {
+    var can = asesoresDe(state.thesisIdToIndex.get(r[0])); // nombres unificados (v4.2)
+    return { id: r[0], t: r[1], y: r[2], pl: pretty(r[3]), pr: pretty(r[4]), nv: r[5], as: can || r[6] || [], k: norm(r[1]).replace(/[^a-z0-9 ]/g, '') };
+  }
   var nodeThesesCache = {};
   function loadThesesFor(n) {
     var lvl = n.level || 'macro', key = lvl + ':' + (lvl === 'macro' ? n.macroId : n.clusterId);
@@ -1900,63 +1919,279 @@
     }
     $('map-selection').hidden = false;
   }
-  $('map-selection-close').addEventListener('click', function () { flow.focus = -1; state.scatterplot.deselect({ preventEvent: true }); clearSpotlight(); });
+  $('map-selection-close').addEventListener('click', function () {
+    flow.focus = -1; state.scatterplot.deselect({ preventEvent: true });
+    if (state.searchPin) { state.searchPin = false; state.pin = null; } // quita el resaltado de busqueda/asesor
+    clearSpotlight();
+  });
 
-  // ==================== buscador (Ctrl/Cmd+K) ====================
-  var search = { index: null, results: [], active: 0, loadingAll: null };
-  function buildSearchIndex() {
-    var idx = [];
-    function add(c, level) { idx.push({ node: c, level: level, text: norm(c.label + ' ' + (c.programsTop || '')), nameN: norm(c.name), name: c.name, size: c.size }); }
-    state.macros.forEach(function (m) { add(m, 'macro'); });
-    Object.keys(state.mesoCache).forEach(function (k) { state.mesoCache[k].nodes.forEach(function (c) { add(c, 'meso'); }); });
-    Object.keys(state.microCache).forEach(function (k) { state.microCache[k].nodes.forEach(function (c) { add(c, 'micro'); }); });
-    if (state.vecindarioPreview) Object.keys(state.vecindarioPreview.theses).forEach(function (tid) {
-      var t = state.vecindarioPreview.theses[tid]; idx.push({ thesis: tid, level: 'tesis', text: norm(t.title), nameN: norm(t.title), name: t.title, size: 0, year: t.year });
+  // ==================== asesores unificados (v4.2) ====================
+  // pipeline/unificar_asesores.py (85,991 asesores a partir de 117k variantes) +
+  // generar_atlas_busqueda.py: por cada tesis del atlas, sus asesores (CSR alineado con el
+  // orden del mapa) y el anio. Cubre las 535,813 tesis con asesor en el catalogo, no solo
+  // las de los temas finos. Base de la busqueda y de las futuras vistas de asesores.
+  var ases = { p: null, nombres: null, n: null, norm: null, off: null, ids: null, anio: null, inv: null };
+  function loadAsesores() {
+    if (!ases.p) ases.p = Promise.all([
+      fetchJson('./data/asesores.v1.json'),
+      fetch('./data/asesores_por_tesis.v1.bin', { cache: 'no-store' }).then(function (r) { return r.arrayBuffer(); }),
+      fetch('./data/tesis_anio.v1.bin', { cache: 'no-store' }).then(function (r) { return r.arrayBuffer(); })
+    ]).then(function (r) {
+      var N = state.n;
+      ases.nombres = r[0].nombres; ases.n = r[0].n;
+      ases.off = new Uint32Array(r[1], 0, N + 1); ases.ids = new Uint32Array(r[1], (N + 1) * 4);
+      ases.anio = new Uint16Array(r[2]);
+      return ases;
+    }).catch(function (e) { dlog('asesores ' + e.message); ases.p = null; throw e; });
+    return ases.p;
+  }
+  function asesoresDe(idx) {
+    if (!ases.off || idx == null) return null;
+    var out = [];
+    for (var j = ases.off[idx]; j < ases.off[idx + 1]; j++) out.push(ases.nombres[ases.ids[j]]);
+    return out;
+  }
+  // tesis de un asesor: indice inverso, se arma una vez (~670k vinculos, ~30 ms)
+  function tesisDeAsesor(aid) {
+    if (!ases.inv) {
+      var A = ases.nombres.length, off = new Uint32Array(A + 1), lst = new Uint32Array(ases.ids.length), i, j;
+      for (j = 0; j < ases.ids.length; j++) off[ases.ids[j] + 1]++;
+      for (i = 1; i <= A; i++) off[i] += off[i - 1];
+      var pos = off.slice(0, A);
+      for (i = 0; i < state.n; i++) for (j = ases.off[i]; j < ases.off[i + 1]; j++) lst[pos[ases.ids[j]]++] = i;
+      ases.inv = { off: off, lst: lst };
+    }
+    return ases.inv.lst.subarray(ases.inv.off[aid], ases.inv.off[aid + 1]);
+  }
+
+  // ==================== buscador (v4.2) ====================
+  // Tres fuentes: temas (territorio, subtema, tema fino), asesores unificados y los
+  // 609,154 titulos (indice invertido por palabra; solo se descarga el reparto de lo que
+  // se escribe, busqueda/titulos/{xx}.json). Coincidencia por inicio de palabra, sin
+  // acentos; la ultima palabra puede estar a medias.
+  // Barra de color: TONO = territorio (el del mapa), INTENSIDAD = granularidad.
+  var NIVEL_ALFA = { macro: 1, meso: 0.7, micro: 0.45, asesor: 0.7, tesis: 0.3 };
+  var LEVEL_LABEL = { macro: 'Territorio', meso: 'Subtema', micro: 'Tema fino', tesis: 'Tesis', asesor: 'Asesor' };
+  var VACIAS = {};
+  ('a al ante bajo con contra de del desde durante e el ella ellos en entre es esta este esto estos estas hacia hasta la las le les lo los mas me mi mis muy ni no o os para pero por que se ser si sin sobre son su sus tal te tu un una unas uno unos y ya como cual cuales donde cuando the of and in on for to an at by with from is its')
+    .split(' ').forEach(function (w) { VACIAS[w] = 1; });
+  var search = { results: [], active: 0, seq: 0, timer: null, temas: null, temasP: null, shardIdx: null, shardIdxP: null, shards: {}, hits: null, q: '' };
+  function palabras(s) { return ' ' + norm(s).replace(/[^a-z0-9]+/g, ' ').trim() + ' '; }
+  function coincide(w, toks) { for (var i = 0; i < toks.length; i++) if (w.indexOf(' ' + toks[i]) < 0) return false; return true; }
+  function loadTemas() {
+    if (!search.temasP) search.temasP = fetchJson('./data/busqueda/temas.v1.json').then(function (rows) {
+      var out = state.macros.map(function (m) { return { level: 'macro', node: m, macroId: m.macroId, name: m.name, size: m.size, w: palabras(m.name + ' ' + m.label) }; });
+      rows.forEach(function (r) {
+        var name = displayName(r[3]);
+        out.push({ level: r[0], macroId: r[1], id: r[2], name: name, size: r[4], w: palabras(name + ' ' + r[3]) });
+      });
+      search.temas = out; return out;
     });
-    search.index = idx;
+    return search.temasP;
   }
-  function loadAllForSearch() {
-    if (search.loadingAll) return search.loadingAll;
-    search.loadingAll = Promise.all(state.macros.map(function (m) { return Promise.all([loadMeso(m.macroId), loadMicro(m.macroId)]).catch(function () {}); })).then(buildSearchIndex);
-    return search.loadingAll;
+  function colorTerritorio(macroId) { var m = macroId != null && macroId >= 0 ? state.macroById[macroId] : null; return (m && m.color) || '#9a9a9a'; }
+  // --- titulos: repartos del indice invertido ---
+  function shardKey(tok) {
+    var k2 = tok.slice(0, 2);
+    if (search.shardIdx && search.shardIdx[k2]) return tok.length >= 3 ? tok.slice(0, 3) : k2 + '_';
+    return k2;
   }
+  function loadShard(key) {
+    if (!search.shards[key]) search.shards[key] = fetchJson('./data/busqueda/titulos/t' + key + '.json') // prefijo t: «con», «aux»... son nombres reservados en Windows.catch(function () { return {}; });
+    return search.shards[key];
+  }
+  function decodePost(b64) {
+    var s = atob(b64), out = new Uint32Array(s.length), n = 0, v = 0, sh = 0, prev = 0;
+    for (var i = 0; i < s.length; i++) {
+      var c = s.charCodeAt(i); v |= (c & 127) << sh;
+      if (c & 128) sh += 7; else { prev += v; out[n++] = prev; v = 0; sh = 0; }
+    }
+    return out.subarray(0, n);
+  }
+  function unir(listas) {
+    if (listas.length === 1) return listas[0];
+    var tot = 0; listas.forEach(function (l) { tot += l.length; });
+    var all = new Uint32Array(tot), k = 0;
+    listas.forEach(function (l) { all.set(l, k); k += l.length; });
+    all.sort();
+    var n = 0; for (var i = 0; i < all.length; i++) if (!n || all[i] !== all[n - 1]) all[n++] = all[i];
+    return all.subarray(0, n);
+  }
+  function intersectar(a, b) {
+    var out = new Uint32Array(Math.min(a.length, b.length)), i = 0, j = 0, n = 0;
+    while (i < a.length && j < b.length) { if (a[i] === b[j]) { out[n++] = a[i]; i++; j++; } else if (a[i] < b[j]) i++; else j++; }
+    return out.subarray(0, n);
+  }
+  // postings de una palabra: exacta, o por prefijo (las 60 palabras mas frecuentes que empiezan asi)
+  function postings(tok, prefijo) {
+    return loadShard(shardKey(tok)).then(function (sh) {
+      if (!prefijo || tok.length < 3) return sh[tok] ? decodePost(sh[tok]) : new Uint32Array(0);
+      var ws = Object.keys(sh).filter(function (w) { return w.lastIndexOf(tok, 0) === 0; })
+        .sort(function (a, b) { return sh[b].length - sh[a].length; }).slice(0, 60);
+      return ws.length ? unir(ws.map(function (w) { return decodePost(sh[w]); })) : new Uint32Array(0);
+    });
+  }
+  function buscarTitulos(toks) {
+    var usar = toks.filter(function (t) { return t.length >= 2; });
+    if (!usar.length) return Promise.resolve(null);
+    var idxP = search.shardIdxP || (search.shardIdxP = fetchJson('./data/busqueda/titulos/_indice.json').then(function (d) {
+      search.shardIdx = {}; (d.partidos || []).forEach(function (k) { search.shardIdx[k] = 1; });
+    }).catch(function () { search.shardIdx = {}; }));
+    return idxP.then(function () {
+      return Promise.all(usar.map(function (t, i) { return postings(t, i === usar.length - 1); }));
+    }).then(function (ls) {
+      ls.sort(function (a, b) { return a.length - b.length; });
+      var r = ls[0]; for (var i = 1; i < ls.length && r.length; i++) r = intersectar(r, ls[i]);
+      return r;
+    });
+  }
+
   function openSearch() {
     if (state.introActive) return;
     $('search').hidden = false; var inp = $('search-input'); inp.value = ''; inp.focus();
-    if (!search.index) buildSearchIndex();
-    $('search-scope').textContent = 'cargando subtemas…';
-    loadAllForSearch().then(function () { $('search-scope').textContent = fmtNum(search.index.length) + ' entradas'; runSearch(); });
+    $('search-scope').textContent = '';
+    loadTemas(); loadAsesores().catch(function () {});
     runSearch();
   }
   function closeSearch() { $('search').hidden = true; }
-  var LEVEL_LABEL = { macro: 'Territorio', meso: 'Subtema', micro: 'Tema fino', tesis: 'Tesis' };
+  function programarBusqueda() { clearTimeout(search.timer); search.timer = setTimeout(runSearch, 120); }
   function runSearch() {
-    var q = norm($('search-input').value).trim(), box = $('search-results');
-    if (!q) { box.innerHTML = '<div class="s-empty">Escribe una palabra. Se buscan los nombres de los 130 territorios, ~440 subtemas, ~510 temas finos y 2,500 títulos de referencia. Prueba «amparo», «diabetes», «petroleo» o «bach».</div>'; search.results = []; return; }
-    var toks = q.split(/\s+/);
-    var res = (search.index || []).filter(function (e) { return toks.every(function (t) { return e.text.indexOf(t) >= 0; }); })
-      .map(function (e) { var nameHit = toks.every(function (t) { return e.nameN.indexOf(t) >= 0; }); return { e: e, score: (nameHit ? 2 : 0) + ({ macro: 0.6, meso: 0.4, micro: 0.2, tesis: 0 })[e.level] + Math.log10(1 + e.size) / 10 }; })
-      .sort(function (a, b) { return b.score - a.score; }).map(function (r) { return r.e; })
-      .filter(function (e, i, arr) { var key = e.nameN + '|' + e.size; return e.level === 'tesis' || !arr.slice(0, i).some(function (o) { return o.level !== 'tesis' && o.nameN + '|' + o.size === key; }); })
-      .slice(0, 14);
+    var raw = $('search-input').value, q = norm(raw).trim(), box = $('search-results'), seq = ++search.seq;
+    if (!q) {
+      box.innerHTML = '<div class="s-empty">Busca un tema, una palabra de los títulos o un asesor. Se buscan los 130 territorios, sus subtemas y temas finos, los títulos de las 609,154 tesis y 81,151 asesores. Prueba «freud», «amparo», «diabetes» o el apellido de un asesor.</div>';
+      search.results = []; return;
+    }
+    var toks = q.split(/[^a-z0-9]+/).filter(function (t) { return t && !VACIAS[t]; });
+    if (!toks.length) toks = q.split(/[^a-z0-9]+/).filter(Boolean);
+    $('search-scope').textContent = 'Buscando…';
+    Promise.all([loadTemas(), loadAsesores().catch(function () { return null; }), buscarTitulos(toks)]).then(function (r) {
+      if (seq !== search.seq) return; // llego una tecla despues
+      var temas = r[0].filter(function (e) { return coincide(e.w, toks); })
+        .map(function (e) { return { e: e, s: ({ macro: 3, meso: 2, micro: 1 })[e.level] + Math.log10(1 + e.size) / 4 + (coincide(palabras(e.name), toks) ? 3 : 0) }; })
+        .sort(function (a, b) { return b.s - a.s; }).slice(0, 6).map(function (x) { return x.e; });
+      var asesores = [];
+      if (ases.nombres) {
+        if (!ases.norm) ases.norm = ases.nombres.map(palabras);
+        for (var a = 0; a < ases.norm.length && asesores.length < 400; a++) if (coincide(ases.norm[a], toks)) asesores.push(a);
+        asesores = asesores.sort(function (x, y) { return ases.n[y] - ases.n[x]; }).slice(0, 5); // ids ya vienen por n desc
+      }
+      var hits = r[2] || new Uint32Array(0);
+      search.hits = hits; search.q = raw.trim();
+      // tesis a mostrar: las mas recientes
+      var muestra = Array.prototype.slice.call(hits);
+      if (ases.anio) muestra.sort(function (x, y) { return ases.anio[y] - ases.anio[x]; });
+      muestra = muestra.slice(0, 8);
+      renderResultados(temas, asesores, muestra, hits.length, seq);
+    }).catch(function (e) { dlog('busqueda ' + e.message); });
+  }
+  function filaHtml(i, color, level, nombre, sub, ct) {
+    return '<button type="button" class="sr-item" data-i="' + i + '"><i class="sr-bar" style="background:' + hexToRgba(color, NIVEL_ALFA[level]) + '"></i>' +
+      '<span class="nm">' + nombre + '<small>' + sub + '</small></span><span class="ct">' + ct + '</span></button>';
+  }
+  function renderResultados(temas, asesores, muestra, total, seq) {
+    var box = $('search-results'), res = [], html = '';
+    if (temas.length) {
+      html += '<div class="s-sec">Temas</div>';
+      temas.forEach(function (e) {
+        var sub = LEVEL_LABEL[e.level] + (e.level === 'macro' ? '' : ' en ' + escapeHtml((state.macroById[e.macroId] || {}).name || ''));
+        html += filaHtml(res.length, colorTerritorio(e.macroId), e.level, escapeHtml(e.name), sub, fmtNum(e.size)); res.push({ type: 'tema', e: e });
+      });
+    }
+    if (asesores.length) {
+      html += '<div class="s-sec">Asesores</div>';
+      asesores.forEach(function (aid) {
+        var ts = tesisDeAsesor(aid), cnt = {}, best = -1, bn = 0;
+        for (var k = 0; k < ts.length; k++) { var mc = state.macroCode[ts[k]]; if (mc >= 0) { cnt[mc] = (cnt[mc] || 0) + 1; if (cnt[mc] > bn) { bn = cnt[mc]; best = mc; } } }
+        // territorio dominante solo si concentra al menos el 30% de sus tesis; si no, gris
+        if (bn < 0.3 * ts.length) best = -1;
+        var sub = 'Asesor' + (best >= 0 ? ', sobre todo en ' + escapeHtml(state.macroById[best].name) : '');
+        html += filaHtml(res.length, colorTerritorio(best), 'asesor', escapeHtml(ases.nombres[aid]), sub, fmtNum(ases.n[aid])); res.push({ type: 'asesor', aid: aid });
+      });
+    }
+    if (total) {
+      html += '<div class="s-sec">Tesis <span>' + fmtNum(total) + (total === 1 ? ' título coincide' : ' títulos coinciden') + (total > muestra.length ? '; las más recientes' : '') + '</span>' +
+        (total > 1 ? '<button type="button" class="s-all" id="s-all">Ver las ' + fmtNum(total) + ' en el mapa</button>' : '') + '</div>';
+      muestra.forEach(function (idx) {
+        var info = pointInfo(idx), mc = state.macroCode[idx];
+        var sub = (ases.anio && ases.anio[idx] ? ases.anio[idx] : '') + (mc >= 0 ? ' · ' + escapeHtml(state.macroById[mc].name) : ' · sin territorio');
+        html += filaHtml(res.length, colorTerritorio(mc), 'tesis', info ? escapeHtml(info.t) : '<span class="s-load">Cargando título…</span>', sub, '');
+        res.push({ type: 'tesis', idx: idx });
+      });
+    }
     search.results = res; search.active = 0;
-    if (!res.length) { box.innerHTML = '<div class="s-empty">Sin resultados para «' + escapeHtml(q) + '». Los nombres salen de palabras de los títulos, sin acentos: prueba otra forma o una palabra más general.</div>'; return; }
-    box.innerHTML = res.map(function (e, i) {
-      var sub = e.level === 'tesis' ? (e.year || '') + ' · ' + e.thesis : e.node.parentMacro ? 'en ' + e.node.parentMacro.name : areaNameFromStr(e.node.dominantArea);
-      return '<button type="button" class="sr-item' + (i === 0 ? ' active' : '') + '" data-i="' + i + '"><span class="lv">' + LEVEL_LABEL[e.level] + '</span><span class="nm">' + escapeHtml(e.name) + '<small>' + escapeHtml(sub) + '</small></span><span class="ct">' + (e.size ? fmtNum(e.size) : '') + '</span></button>';
-    }).join('');
+    $('search-scope').textContent = total ? fmtNum(total) + ' tesis' : '';
+    if (!res.length) {
+      box.innerHTML = '<div class="s-empty">Sin resultados para «' + escapeHtml(search.q) + '». Revisa la ortografía o prueba una palabra más general; se busca por inicio de palabra en temas, títulos y asesores.</div>';
+      return;
+    }
+    box.innerHTML = html;
+    var first = box.querySelector('.sr-item'); if (first) first.classList.add('active');
     box.querySelectorAll('.sr-item').forEach(function (b) { b.addEventListener('click', function () { pickResult(+b.getAttribute('data-i')); }); });
+    var all = $('s-all'); if (all) all.addEventListener('click', function () { verEnMapa(search.hits, 'Tesis cuyo título contiene «' + search.q + '»'); });
+    // titulos que faltan: se cargan por tesela y se rellenan sin volver a buscar
+    muestra.forEach(function (idx, k) {
+      if (pointInfo(idx) !== undefined) return;
+      titleTileFor(idx).then(function () {
+        if (seq !== search.seq) return;
+        var info = pointInfo(idx), row = box.querySelector('.sr-item[data-i="' + (res.length - muestra.length + k) + '"] .nm');
+        if (row && row.firstChild) row.replaceChild(document.createTextNode(info ? info.t : 'Título no disponible'), row.firstChild);
+      });
+    });
+  }
+  // conjunto de tesis resaltado en el mapa (resultado de busqueda o tesis de un asesor)
+  function encuadrar(idxs) {
+    if (!idxs.length) return;
+    var xs = [], ys = [], step = Math.max(1, Math.floor(idxs.length / 4000));
+    for (var i = 0; i < idxs.length; i += step) { xs.push(state.ndcX[idxs[i]]); ys.push(state.ndcY[idxs[i]]); }
+    xs.sort(function (a, b) { return a - b; }); ys.sort(function (a, b) { return a - b; });
+    var q = function (a, p) { return a[Math.min(a.length - 1, Math.floor(p * a.length))]; };
+    var x0 = q(xs, 0.05), x1 = q(xs, 0.95), y0 = q(ys, 0.05), y1 = q(ys, 0.95);
+    var aspect = state.W / Math.max(1, state.H);
+    flyTo((x0 + x1) / 2, (y0 + y1) / 2, Math.max((x1 - x0) / 2 / aspect, (y1 - y0) / 2) * 1.35 + 0.02);
+  }
+  function verEnMapa(idxs, titulo, nota) {
+    closeSearch();
+    if (state.iso) exitIsolation();
+    idxs = Array.prototype.slice.call(idxs);
+    state.searchPin = true; state.spotlightActive = false;
+    pinIndices('busq|' + titulo, idxs);
+    encuadrar(idxs);
+    var cnt = {}, tops = [];
+    idxs.forEach(function (i) { var mc = state.macroCode[i]; if (mc >= 0) cnt[mc] = (cnt[mc] || 0) + 1; });
+    tops = Object.keys(cnt).sort(function (a, b) { return cnt[b] - cnt[a]; }).slice(0, 3);
+    var anios = ases.anio ? idxs.map(function (i) { return ases.anio[i]; }).filter(Boolean).sort(function (a, b) { return a - b; }) : [];
+    $('ms-title').textContent = titulo;
+    $('ms-meta').textContent = fmtNum(idxs.length) + ' tesis' + (anios.length ? ', de ' + anios[0] + ' a ' + anios[anios.length - 1] : '');
+    var enTerr = 0; Object.keys(cnt).forEach(function (k) { enTerr += cnt[k]; });
+    $('ms-note').innerHTML = (nota ? nota + '<br><br>' : '') + (tops.length ? fmtNum(enTerr) + ' de ellas quedaron en algún territorio; donde más: ' + tops.map(function (mc) { return escapeHtml(state.macroById[mc].name) + ' (' + fmtNum(cnt[mc]) + ')'; }).join(', ') + '.' : 'Ninguna quedó en un territorio.') +
+      '<br>Las demás tesis se atenúan; cierra esta ficha para quitar el resaltado.';
+    $('ms-go-territory').hidden = !tops.length;
+    $('ms-go-territory').onclick = function () { $('map-selection').hidden = true; selectNode(state.macroById[tops[0]], true); };
+    $('ms-open-vecindario').hidden = true;
+    $('map-selection').hidden = false;
+  }
+  function verAsesor(aid) {
+    var ts = tesisDeAsesor(aid);
+    verEnMapa(ts, ases.nombres[aid], 'Tesis que dirigió o codirigió.');
   }
   function pickResult(i) {
-    var e = search.results[i]; if (!e) return;
+    var r = search.results[i]; if (!r) return;
+    if (r.type === 'asesor') return verAsesor(r.aid);
     closeSearch();
-    if (e.level === 'tesis') {
-      var idx = state.thesisIdToIndex.get(e.thesis);
-      if (idx != null) flyTo(state.ndcX[idx], state.ndcY[idx], 1 / (K_MICRO * 1.2));
-      applySpotlight(e.thesis, idx);
-    } else selectNode(e.node, true);
+    if (r.type === 'tesis') {
+      var idx = r.idx;
+      flyTo(state.ndcX[idx], state.ndcY[idx], 1 / (K_MICRO * 1.2));
+      onPointClick(idx);
+      return;
+    }
+    var e = r.e;
+    if (e.level === 'macro') return selectNode(e.node, true);
+    (e.level === 'meso' ? loadMeso(e.macroId) : loadMicro(e.macroId)).then(function (d) {
+      var n = d.nodes.filter(function (x) { return x.id === e.id; })[0];
+      if (n) selectNode(n, true);
+    });
   }
-  $('search-input').addEventListener('input', runSearch);
+  $('search-input').addEventListener('input', programarBusqueda);
   $('search-input').addEventListener('keydown', function (ev) {
     var items = document.querySelectorAll('#search-results .sr-item');
     if (ev.key === 'ArrowDown' || ev.key === 'ArrowUp') {
@@ -1964,10 +2199,12 @@
       search.active = (search.active + (ev.key === 'ArrowDown' ? 1 : items.length - 1)) % items.length;
       items.forEach(function (it, i) { it.classList.toggle('active', i === search.active); });
       items[search.active].scrollIntoView({ block: 'nearest' });
-    } else if (ev.key === 'Enter') { ev.preventDefault(); pickResult(search.active); }
+    } else if (ev.key === 'Enter') { ev.preventDefault(); clearTimeout(search.timer); if (search.results.length) pickResult(search.active); else runSearch(); }
   });
   document.querySelector('#search .s-backdrop').addEventListener('click', closeSearch);
   $('btn-search').addEventListener('click', openSearch);
+  // precarga de asesores cuando el mapa ya esta listo (no compite con la carga inicial)
+  (function precargar() { if (!state.n) return setTimeout(precargar, 1500); setTimeout(function () { loadAsesores().catch(function () {}); }, 2500); })();
 
   // ==================== introduccion: de areas a contenido ====================
   // El momento sorpresa: las 609,154 tesis empiezan agrupadas en discos por area
@@ -2697,7 +2934,8 @@
     state: state, flyTo: flyTo, flyToNode: flyToNode, flyHome: flyHome, selectNode: selectNode, setLens: setLens,
     openSearch: openSearch, runSearch: runSearch, pickResult: pickResult, startIntro: startIntro, startRoute: startRoute,
     applySpotlight: applySpotlight, clearSpotlight: clearSpotlight, highlightMacros: highlightMacros, openVecindarioModal: openVecindarioModal,
-    runIntroTransition: runIntroTransition, closeStory: closeStory, live: live, flow: flow
+    runIntroTransition: runIntroTransition, closeStory: closeStory, live: live, flow: flow,
+    onPointClick: onPointClick, loadAsesores: loadAsesores, asesoresDe: asesoresDe, tesisDeAsesor: tesisDeAsesor
   };
 })();
 </script>

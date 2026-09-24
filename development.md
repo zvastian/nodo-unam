@@ -1626,3 +1626,93 @@ Lección: primero se acuerda la estrategia por escrito y después se codifica. D
 - **Método** avisa que la escritura se restituye con un diccionario y puede fallar en alguna palabra.
 - **Verificado** en el harness: pestaña, favicon, panel, tema aislado y búsqueda, sin errores de consola.
 - **Límite.** Los títulos de `tesis_por_micro` y de las teselas se muestran como vienen del catálogo (a veces sin acentos). Son el texto original de cada tesis y no se reescriben.
+
+### v4.2.0 — búsqueda completa y asesores unificados (2026-09-24)
+
+**Diagnóstico** (pedido del usuario: «busco freud y no aparece nada»):
+- **Cobertura.** La búsqueda solo miraba 3,575 entradas: nombres de tema y 2,500 títulos de referencia, el 0.4% del corpus. 125 títulos mencionan a Freud y ninguno estaba ahí.
+- **Coincidencia.** Buscaba fragmentos dentro de palabras («de» coincidía con casi todo) y mezclaba territorios, temas y tesis en una sola lista de 14.
+- **Costo.** Al abrirla descargaba 238 archivos. Cada tecla tardaba ~30 ms en consultas cortas (deduplicado cuadrático) y no había espera entre teclas.
+- **Asesores.** No se buscaban. Además, el prototipo solo tenía asesores para las 199,623 tesis de algún tema fino, aunque el catálogo los tiene para 535,834 (88%).
+
+**Unificación de asesores** (`pipeline/unificar_asesores.py`, sobre `asesores_limpios_v2` de base7 en formato «Apellidos, Nombres»):
+- 117,482 variantes pasan a **81,151 asesores** (tras la fase 2, ver abajo).
+- Reglas conservadoras, porque fusionar a dos personas atribuye tesis a quien no las dirigió:
+  - **R1** misma clave sin acentos, títulos ni «Ma.»;
+  - **R2** registros sin coma, o una inversión rara de apellidos que comparte programa. Los apellidos invertidos frecuentes («Martínez García» / «García Martínez») se quedan separados, porque suelen ser personas distintas;
+  - **R3** nombre corto compatible con una sola forma larga dentro de los mismos apellidos; con un solo nombre de pila, además exige programa en común;
+  - **R4** un apellido frente a dos, con candidato único y programa en común;
+  - **R5** error de dedo: variante rara a distancia de edición ≤ 2, candidato único y programa en común.
+- Auditoría completa en `pipeline/audits/asesores_unificacion_v1.csv`. Hay casos discutibles, como «Galicia/García González, Rigoberto».
+
+**Corrección tras la prueba del usuario** («amador za» mostraba a «Edgar Abraham Amador Zamora» y a «Edgar Amador Zamora» por separado):
+- **Causa.** R3 veía dos formas largas posibles para «Edgar» («Edgar A» y «Edgar Abraham») y, por prudencia, no unía. Pero son la misma forma con y sin inicial.
+- **Arreglo.** Si todas las formas largas candidatas son compatibles entre sí, forman una sola cadena. Resultado: 85,991 → **85,429 asesores** (562 uniones más, del tipo «Irma», «Irma G», «Irma Graciela»).
+- **Sigue sin unirse:** nombres de pila en otro orden («Zoila Irma» / «Irma Zoila» Tejada Castañeda).
+
+**Investigación de fallos y fase 2** (pedido del usuario: nombres de pila en otro orden y «qué otros casos puede haber»):
+- **Método.** `pipeline/investigar_asesores.py` busca pares de asesores distintos que probablemente son la misma persona y los clasifica por tipo, contando cuántos comparten programa. `unificar_asesores.py` ahora exporta la tabla completa de variantes (`data/asesores/asesores_variantes.v1.parquet`, local).
+- **Tipos encontrados** (pares antes → después):
+
+  | Tipo | Antes | Después |
+  |---|---|---|
+  | A. Nombres de pila en otro orden | 228 | 5 |
+  | B. Subconjunto en otro orden | 41 | 6 |
+  | C. Coma mal puesta | 874 | 154 |
+  | D. Apellidos invertidos | 486 | 344 |
+  | E. Error de dedo en apellido | 2,490 | 1,012 |
+  | F. Error de dedo en nombre | 910 | 549 |
+  | G. Partículas y apóstrofos | 234 | 18 |
+
+  Además: abreviaturas (Fco., Gpe.) y texto corrupto («NuÃ±ez», «Heriberto @»).
+- **Causas.**
+  - Las reglas comparaban variante contra variante, no persona contra persona.
+  - El bloqueo por primera letra impedía ver «Juárez/Suarez» y «Cejudo/Sejudo».
+  - «Candidato único» bloqueaba casos con varias formas de la misma persona («Ricardo», «José Ricardo», «Ricardo José»).
+- **Fase 2, grupo contra grupo.** Siempre con programa en común y candidatos únicos o mutuamente compatibles:
+  - **R6** orden y subconjunto de nombres de pila, y partículas. Con 4 o más palabras idénticas en otro orden basta el nombre: «Zoila Irma» / «Irma Zoila» Tejada Castañeda aparecen en Nutrición animal y en Veterinaria.
+  - **R8** coma mal puesta.
+  - **R9** apellidos invertidos raros (el otro grupo tiene 10 veces más tesis o más).
+  - **R10** error de dedo grupo contra grupo, incluida la primera letra. Salvaguarda: con 3 palabras, dos nombres comunes distintos («Miguel/Manuel») no se unen.
+  - **R11** misma pronunciación en español (z/s/c, v/b, y/i, ll, h muda, letras dobles, palabras juntas). Conserva vocales, así que Francisca/Francisco y Emilia/Emilio siguen separados.
+- **Errores propios detectados y corregidos.**
+  - Cadenas de subconjuntos: «Carlos» unía «Carlos Eduardo» con «Carlos Raymundo». Ahora se exige que los nombres de pila completos sean compatibles.
+  - R4 al revés metía «Sánchez, Juan Manuel» en «Juan José Sánchez-Sosa».
+  - **El resultado dependía de la semilla de hash de Python**: «Siivia/Silvia» se unía en unas corridas y en otras no. Se fijó `PYTHONHASHSEED=0` y dos corridas dan la misma huella.
+- **Resultado:** 117,482 variantes → **81,151 asesores**.
+- **Lo que queda es intencional o ambiguo.**
+  - D: la mayoría sin programa en común («Pérez González / González Pérez, Óscar»).
+  - E/F: los que comparten programa son en buena parte personas distintas (Manuel/Daniel, Francisca/Francisco).
+  - Caso conocido que depende del orden: «Siivia Tejada Castañeda» (1 tesis).
+  - Para lo demás hace falta curaduría manual.
+
+**Datos nuevos del prototipo** (`pipeline/generar_atlas_busqueda.py`):
+- `busqueda/titulos/*.json`: índice invertido de los 609k títulos. 169,619 palabras en 1,588 repartos por prefijo (máx. 308 KB), postings en deltas varint base64, 14 MB en total. Cada búsqueda descarga solo lo que usa.
+- `busqueda/temas.v1.json`: los 945 subtemas y temas finos en un solo archivo.
+- `asesores.v1.json`: nombres y número de tesis.
+- `asesores_por_tesis.v1.bin`: CSR alineado con el orden del mapa, 668,415 vínculos. Es la base para la búsqueda y para las futuras vistas de asesores (recomendar, analizar, mapa complementario).
+- `tesis_anio.v1.bin`.
+
+**Interfaz:**
+- **Búsqueda**
+  - Por inicio de palabra, sin acentos; la última palabra puede ir a medias.
+  - Varias palabras se intersectan.
+  - Espera de 120 ms entre teclas y descarte de respuestas viejas.
+  - Secciones **Temas / Asesores / Tesis**; las tesis se muestran de la más reciente a la más antigua, con el total.
+  - «Ver las N en el mapa» resalta todas las coincidencias y encuadra la cámara, con una ficha que dice en qué territorios caen.
+  - Un asesor resalta en el mapa todas sus tesis.
+  - **Barra de color**: el tono es el territorio (el mismo del mapa) y la intensidad la granularidad (territorio 100%, subtema 70%, tema fino 45%, tesis 30%). Asesor: 70% del color de su territorio dominante si concentra ≥30% de sus tesis; si no, gris. Sin territorio: gris.
+- **Asesoría en la ficha de cualquier tesis** (antes solo en las de un tema aislado).
+- **Nombres canónicos** en listado, panorama y red de asesores. Ejemplo: en «Pareja y violencia» los asesores distintos bajaron de 435 a 406 al unir variantes.
+
+**Medido:**
+- «freud»: 125 tesis. «lacan»: 197. «diab»: 6,563 (por prefijo). «valenzuela cota»: la asesora con 125 tesis.
+- 0 errores de consola en escritorio y móvil.
+
+**Pendiente:**
+- Las vistas propias de asesores (recomendar asesor, analizar asesor, posible mapa complementario) ya tienen los datos base.
+- Revisar la auditoría de fusiones.
+- Afinar el ranking de tesis más allá de «más recientes».
+- **Bug encontrado al hacer commit.** En Windows, «con», «prn», «aux» y «nul» son nombres de archivo reservados. `con.json` se «escribía» a la consola sin error y todas las palabras que empiezan con «con…» (contaminación, conducta, constitución…) quedaban sin resultados.
+  - **Arreglo:** los repartos se llaman `t{xx}.json` y el generador verifica que estén todos en disco.
+  - **Verificado:** «contaminacion» da 905 tesis, «conducta» 2,376 y «nulidad» 440.
