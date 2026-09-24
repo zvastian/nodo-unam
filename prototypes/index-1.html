@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html data-bs-theme="light" lang="es">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>Búsqueda híbrida + IA | Tesis UNAM</title>
+    <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:300,400,700,300italic,400italic,700italic&amp;display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=ABeeZee&amp;display=swap">
+    <link rel="stylesheet" href="assets/css/bss-overrides.css">
+    <link rel="stylesheet" href="assets/css/Footer-Dark-icons.css">
+</head>
+
+<body style="background: radial-gradient(#6100ff 0%, rgb(176,127,255) 37%, white 95%), linear-gradient(black, white), rgb(255,255,255);">
+    <div class="container">
+        <h1>🧠 Búsqueda híbrida + IA explicable</h1>
+        <div class="sub"><span>Modelo multilingüe · 70% título (embedding) + 30% palabras clave · Re‑ranking con Groq</span></div>
+        <div class="search-panel">
+            <div class="input-group"><label class="input-group-text">Título&nbsp;</label><textarea id="tituloInput" placeholder="Ej: 'Impacto económico de la pandemia en México'" rows="2"></textarea></div>
+            <div class="input-group"><label class="input-group-text">Descripción corta (opcional, se usará en IA)</label><textarea id="descripcionInput" placeholder="Describe tu tema con más detalle (mejora el re‑ranking)" rows="2"></textarea></div>
+            <div class="input-group"><label class="input-group-text">Palabras clave&nbsp; — separa por comas o espacios</label><input class="fst-italic" type="text" id="keywordsInput" placeholder="Ej: pandemia, México, economía, COVID"></div>
+            <div class="flex-row">
+                <div><label>Top&nbsp;</label><select id="topK">
+                        <option value="">10</option>
+                        <option value="">15</option>
+                        <option value="">20</option>
+                    </select></div>
+                <div><button id="searchBtn">🔍 Buscar tesis similares</button></div>
+            </div>
+            <div class="note"><span>💡 La búsqueda híbrida combina embeddings semánticos + coincidencia de keywords. Luego la IA reordena y explica.</span></div>
+        </div>
+        <div id="filterBar" class="filters"></div>
+        <div id="resultsContainer" class="results">
+            <div class="info-message"><span>🔮 Cargando datos y modelo...</span></div>
+        </div>
+    </div>
+    <footer class="text-center bg-body" data-bs-theme="dark">
+        <div class="container py-4 py-lg-5">
+            <ul class="list-inline">
+                <li class="list-inline-item me-4"><a class="link-body-emphasis" href="#">Web design</a></li>
+                <li class="list-inline-item me-4"><a class="link-body-emphasis" href="#">Development</a></li>
+                <li class="list-inline-item"><a class="link-body-emphasis" href="#">Hosting</a></li>
+            </ul>
+            <ul class="list-inline">
+                <li class="list-inline-item me-4"><a href="#"><svg class="bi bi-facebook text-body" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M16 8.049c0-4.446-3.582-8.05-8-8.05C3.58 0-.002 3.603-.002 8.05c0 4.017 2.926 7.347 6.75 7.951v-5.625h-2.03V8.05H6.75V6.275c0-2.017 1.195-3.131 3.022-3.131.876 0 1.791.157 1.791.157v1.98h-1.009c-.993 0-1.303.621-1.303 1.258v1.51h2.218l-.354 2.326H9.25V16c3.824-.604 6.75-3.934 6.75-7.951"></path>
+                        </svg></a></li>
+                <li class="list-inline-item me-4"><a href="#"><svg class="bi bi-twitter-x text-body" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M12.6.75h2.454l-5.36 6.142L16 15.25h-4.937l-3.867-5.07-4.425 5.07H.316l5.733-6.57L0 .75h5.063l3.495 4.633L12.601.75Zm-.86 13.028h1.36L4.323 2.145H2.865z"></path>
+                        </svg></a></li>
+                <li class="list-inline-item"><a href="#"><svg class="bi bi-instagram text-body" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M8 0C5.829 0 5.556.01 4.703.048 3.85.088 3.269.222 2.76.42a3.9 3.9 0 0 0-1.417.923A3.9 3.9 0 0 0 .42 2.76C.222 3.268.087 3.85.048 4.7.01 5.555 0 5.827 0 8.001c0 2.172.01 2.444.048 3.297.04.852.174 1.433.372 1.942.205.526.478.972.923 1.417.444.445.89.719 1.416.923.51.198 1.09.333 1.942.372C5.555 15.99 5.827 16 8 16s2.444-.01 3.298-.048c.851-.04 1.434-.174 1.943-.372a3.9 3.9 0 0 0 1.416-.923c.445-.445.718-.891.923-1.417.197-.509.332-1.09.372-1.942C15.99 10.445 16 10.173 16 8s-.01-2.445-.048-3.299c-.04-.851-.175-1.433-.372-1.941a3.9 3.9 0 0 0-.923-1.417A3.9 3.9 0 0 0 13.24.42c-.51-.198-1.092-.333-1.943-.372C10.443.01 10.172 0 7.998 0zm-.717 1.442h.718c2.136 0 2.389.007 3.232.046.78.035 1.204.166 1.486.275.373.145.64.319.92.599s.453.546.598.92c.11.281.24.705.275 1.485.039.843.047 1.096.047 3.231s-.008 2.389-.047 3.232c-.035.78-.166 1.203-.275 1.485a2.5 2.5 0 0 1-.599.919c-.28.28-.546.453-.92.598-.28.11-.704.24-1.485.276-.843.038-1.096.047-3.232.047s-2.39-.009-3.233-.047c-.78-.036-1.203-.166-1.485-.276a2.5 2.5 0 0 1-.92-.598 2.5 2.5 0 0 1-.6-.92c-.109-.281-.24-.705-.275-1.485-.038-.843-.046-1.096-.046-3.233s.008-2.388.046-3.231c.036-.78.166-1.204.276-1.486.145-.373.319-.64.599-.92s.546-.453.92-.598c.282-.11.705-.24 1.485-.276.738-.034 1.024-.044 2.515-.045zm4.988 1.328a.96.96 0 1 0 0 1.92.96.96 0 0 0 0-1.92m-4.27 1.122a4.109 4.109 0 1 0 0 8.217 4.109 4.109 0 0 0 0-8.217m0 1.441a2.667 2.667 0 1 1 0 5.334 2.667 2.667 0 0 1 0-5.334"></path>
+                        </svg></a></li>
+            </ul>
+            <p class="text-body mb-0">Copyright © 2026 Brand</p>
+        </div>
+    </footer><script type="importmap">
+    {
+        "imports": {
+            "@xenova/transformers": "https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/dist/transformers.min.js"
+        }
+    }
+</script><script type="module">
+    import { pipeline } from '@xenova/transformers';
+
+    // ---------- Estado ----------
+    let dataset = [];
+    let allEmbeddings = null;
+    let currentFilter = "TODOS";
+    let availableCategories = new Set();
+    let embedder = null;
+    let lastQueryVector = null;
+    let currentResults = [];
+
+    const searchBtn = document.getElementById('searchBtn');
+    const tituloInput = document.getElementById('tituloInput');
+    const descripcionInput = document.getElementById('descripcionInput');
+    const keywordsInput = document.getElementById('keywordsInput');
+    const topKSelect = document.getElementById('topK');
+    const resultsDiv = document.getElementById('resultsContainer');
+    const filterBar = document.getElementById('filterBar');
+
+    // ---------- 1. Cargar dataset ----------
+    async function loadDataset() {
+        try {
+            const response = await fetch('muestra_tesis_norm.json');
+            if (!response.ok) throw new Error(`No se encontró muestra_tesis_norm.json`);
+            dataset = await response.json();
+            if (!dataset.length) throw new Error('Dataset vacío');
+
+            const dim = dataset[0].embedding.length;
+            allEmbeddings = new Float32Array(dataset.length * dim);
+            for (let i = 0; i < dataset.length; i++) {
+                const emb = dataset[i].embedding;
+                for (let j = 0; j < dim; j++) {
+                    allEmbeddings[i * dim + j] = emb[j];
+                }
+            }
+
+            dataset.forEach(d => availableCategories.add(d.categoria));
+            availableCategories = Array.from(availableCategories).sort();
+            renderFilterChips();
+
+            resultsDiv.innerHTML = `<div class="info-message">✅ Dataset cargado: ${dataset.length} tesis. Modelo listo.</div>`;
+            return true;
+        } catch (err) {
+            resultsDiv.innerHTML = `<div class="info-message">❌ Error: ${err.message}<br>¿Tienes "muestra_tesis_norm.json"?</div>`;
+            return false;
+        }
+    }
+
+    function renderFilterChips() {
+        const chips = ['TODOS', ...availableCategories];
+        filterBar.innerHTML = chips.map(cat => `
+            <div class="filter-chip ${currentFilter === cat ? 'active' : ''}" data-cat="${cat}">${cat}</div>
+        `).join('');
+        document.querySelectorAll('.filter-chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+                currentFilter = chip.dataset.cat;
+                renderFilterChips();
+                if (lastQueryVector !== null) performSearch();
+            });
+        });
+    }
+
+    async function getEmbedder() {
+        if (!embedder) {
+            resultsDiv.innerHTML = `<div class="info-message">🔄 Cargando modelo multilingüe (≈500 MB). Puede tomar hasta 30 s la primera vez.</div>`;
+            embedder = await pipeline('feature-extraction', 'Xenova/paraphrase-multilingual-MiniLM-L12-v2');
+            resultsDiv.innerHTML = `<div class="info-message">✅ Modelo listo. Ahora puedes buscar.</div>`;
+        }
+        return embedder;
+    }
+
+    // Normalización (minúsculas y limpieza) para eliminar diferencias mayúsculas/minúsculas
+    function normalizeText(text) {
+        return text.toLowerCase()
+            .replace(/[^\w\sáéíóúüñ]/g, ' ')
+            .trim()
+            .replace(/\s+/g, ' ');
+    }
+
+    function tokenize(text) {
+        return text.toLowerCase().split(/[\s,]+/).filter(t => t.length > 1);
+    }
+
+    function keywordMatchScore(userKeywordsRaw, thesisTitle) {
+        if (!userKeywordsRaw || !thesisTitle) return 0;
+        const userTokens = tokenize(userKeywordsRaw);
+        if (userTokens.length === 0) return 0;
+        const titleTokens = tokenize(thesisTitle);
+        const intersection = userTokens.filter(t => titleTokens.includes(t)).length;
+        return intersection / userTokens.length;
+    }
+
+    async function textToVector(text) {
+        const pipe = await getEmbedder();
+        const output = await pipe(text, { pooling: 'mean', normalize: true });
+        return Array.from(output.data);
+    }
+
+    async function hybridSearch(titleText, keywordsRaw) {
+        if (!titleText.trim()) throw new Error("Escribe al menos un título.");
+        // Normalizar título (minúsculas, quitar puntuación) para que mayúsculas/minúsculas no afecten
+        const normalizedTitle = normalizeText(titleText);
+        const titleVec = await textToVector(normalizedTitle);
+        lastQueryVector = titleVec;
+        
+        const dim = titleVec.length;
+        const N = dataset.length;
+        const cosineScores = new Float32Array(N);
+        for (let i = 0; i < N; i++) {
+            let dot = 0;
+            const offset = i * dim;
+            for (let j = 0; j < dim; j++) {
+                dot += titleVec[j] * allEmbeddings[offset + j];
+            }
+            cosineScores[i] = dot;
+        }
+        
+        const keywordScores = new Float32Array(N);
+        if (keywordsRaw && keywordsRaw.trim()) {
+            for (let i = 0; i < N; i++) {
+                keywordScores[i] = keywordMatchScore(keywordsRaw, dataset[i].titulo);
+            }
+        }
+        
+        const hybridScores = new Float32Array(N);
+        for (let i = 0; i < N; i++) {
+            hybridScores[i] = 0.7 * Math.max(0, cosineScores[i]) + 0.3 * keywordScores[i];
+        }
+        return hybridScores;
+    }
+
+    async function performSearch() {
+        const title = tituloInput.value.trim();
+        if (!title) {
+            alert("Escribe un título tentativo.");
+            return;
+        }
+        const keywords = keywordsInput.value.trim();
+        const descripcion = descripcionInput.value.trim();
+        
+        searchBtn.disabled = true;
+        searchBtn.textContent = "🔍 Buscando (híbrido)...";
+        
+        try {
+            const hybridScores = await hybridSearch(title, keywords);
+            let results = dataset.map((item, idx) => ({
+                ...item,
+                id: idx,
+                hybridScore: hybridScores[idx]
+            }));
+            if (currentFilter !== "TODOS") {
+                results = results.filter(r => r.categoria === currentFilter);
+            }
+            results.sort((a,b) => b.hybridScore - a.hybridScore);
+            const topK = parseInt(topKSelect.value, 10);
+            const topResults = results.slice(0, topK);
+            currentResults = topResults;
+            renderResults(topResults);
+            // Eliminar explicación anterior si existe
+            const oldExp = document.getElementById('aiExplanation');
+            if (oldExp) oldExp.remove();
+        } catch (err) {
+            console.error(err);
+            resultsDiv.innerHTML = `<div class="info-message">⚠️ Error: ${err.message}</div>`;
+        } finally {
+            searchBtn.disabled = false;
+            searchBtn.textContent = "🔍 Buscar tesis similares (híbrido)";
+        }
+    }
+    
+    function renderResults(results) {
+        if (!results.length) {
+            resultsDiv.innerHTML = `<div class="info-message">No se encontraron tesis con el filtro actual.</div>`;
+            return;
+        }
+        const html = results.map(r => `
+            <div class="result-item">
+                <div class="title">
+                    <span>${escapeHtml(r.titulo || "Sin título")}</span>
+                    <span class="score">${r.hybridScore !== undefined ? (r.hybridScore * 100).toFixed(1) + '% híbrido' : '♻️ IA'}</span>
+                </div>
+                <div class="meta">
+                    <span>✍️ ${escapeHtml(r.autor || "Autor desconocido")}</span>
+                    <span>🎓 ${r.grado || ""}</span>
+                    <span>📅 ${r.año || ""}</span>
+                    <span class="badge">${r.categoria || "Otro"}</span>
+                    <span>🏛️ ${escapeHtml(r.plantel?.substring(0, 60) || "")}</span>
+                </div>
+                <div class="meta">🧑‍🏫 Asesor: ${escapeHtml(r.asesor || "—")}</div>
+            </div>
+        `).join('');
+        resultsDiv.innerHTML = `<div style="padding:0.8rem 1.2rem; background:#fefaf0; border-bottom:1px solid #e0d6c8;">🔎 ${results.length} resultados (filtro: ${currentFilter})</div>` + html;
+    }
+    
+    function escapeHtml(str) {
+        if (!str) return "";
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+    
+    // ---------- Re‑ranking con IA (Groq) ----------
+    async function rerankWithAI() {
+        if (!currentResults.length) {
+            alert('Primero haz una búsqueda.');
+            return;
+        }
+        const originalResults = [...currentResults];
+        const candidatesForAI = originalResults.slice(0, 10).map(r => ({
+            id: r.id,
+            titulo: r.titulo
+        }));
+        
+        rerankButton.disabled = true;
+        rerankButton.textContent = 'Reordenando con IA...';
+        
+        try {
+            const WORKER_URL = 'https://tesis-reranker.sebastiaan-diaz-prado.workers.dev/api/rerank'; // <-- CAMBIA SI ES NECESARIO
+            const response = await fetch(WORKER_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    queryTitle: tituloInput.value,
+                    queryDescription: descripcionInput.value,
+                    keywords: keywordsInput.value,
+                    candidates: candidatesForAI
+                })
+            });
+            const data = await response.json();
+            if (data.success && data.ranking && data.ranking.length) {
+                const mapById = Object.fromEntries(originalResults.map(r => [r.id, r]));
+                const reordered = data.ranking.map(id => mapById[id]).filter(Boolean);
+                if (reordered.length) {
+                    currentResults = reordered;
+                    renderResults(currentResults);
+                    // Mostrar explicación del ranking
+                    showExplanation(data.ranking, data.reasons || {});
+                } else {
+                    alert('No se pudo reconstruir la lista (IDs no coinciden).');
+                }
+            } else {
+                alert('Error: ' + (data.error || 'No se obtuvo ranking'));
+            }
+        } catch (err) {
+            alert('No se pudo conectar con el Worker. Revisa la consola.');
+            console.error(err);
+        } finally {
+            rerankButton.disabled = false;
+            rerankButton.textContent = '🤖 Reordenar con IA (Groq)';
+        }
+    }
+    
+    function showExplanation(ranking, reasons) {
+        let html = `<div class="explanation" id="aiExplanation">
+            <strong>🧠 Explicación del orden (IA - Groq)</strong>
+            <ol>`;
+        for (const id of ranking) {
+            const reason = reasons[id] || "Sin razón específica";
+            html += `<li><strong>ID ${id}:</strong> ${escapeHtml(reason)}</li>`;
+        }
+        html += `</ol></div>`;
+        const existing = document.getElementById('aiExplanation');
+        if (existing) existing.remove();
+        const resultsContainer = document.getElementById('resultsContainer');
+        resultsContainer.insertAdjacentHTML('afterend', html);
+    }
+    
+    // Crear botón de re‑ranking
+    const rerankButton = document.createElement('button');
+    rerankButton.textContent = '🤖 Reordenar con IA (Groq)';
+    rerankButton.style.marginTop = '1rem';
+    rerankButton.style.padding = '0.5rem 1rem';
+    rerankButton.style.borderRadius = '2rem';
+    rerankButton.style.border = 'none';
+    rerankButton.style.backgroundColor = '#6a4e2e';
+    rerankButton.style.color = 'white';
+    rerankButton.style.cursor = 'pointer';
+    rerankButton.onclick = rerankWithAI;
+    
+    const resultsContainer = document.getElementById('resultsContainer');
+    if (resultsContainer) {
+        resultsContainer.parentNode.insertBefore(rerankButton, resultsContainer.nextSibling);
+    }
+    
+    searchBtn.addEventListener('click', performSearch);
+    topKSelect.addEventListener('change', () => { if (lastQueryVector !== null) performSearch(); });
+    
+    loadDataset();
+    getEmbedder();
+</script>
+    <script src="assets/bootstrap/js/bootstrap.min.js"></script>
+</body>
+
+</html>

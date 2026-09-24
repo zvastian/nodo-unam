@@ -1,0 +1,892 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>NODO UNAM — Atlas, Taller y Laboratorio</title>
+
+  <style>
+    :root{
+      --bg:#060b12;
+      --panel:#111820;
+      --panel-2:#151d26;
+      --panel-3:#0d131a;
+      --line:#263341;
+      --line-soft:rgba(255,255,255,.08);
+      --text:#eef4fb;
+      --muted:#95a3b3;
+      --muted-2:#647386;
+      --blue:#2878d8;
+      --blue-2:#49a3ff;
+      --white:#f8fbff;
+      --lilac:#9b8cff;
+      --green:#8be0c7;
+      --warn:#e6c16a;
+      --shadow:0 24px 80px rgba(0,0,0,.45);
+      --radius:18px;
+      --mono:"IBM Plex Mono","SFMono-Regular",Consolas,monospace;
+      --sans:Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      color:var(--text);
+      font-family:var(--sans);
+      background:
+        radial-gradient(circle at 20% 15%, rgba(40,120,216,.14), transparent 24%),
+        radial-gradient(circle at 85% 80%, rgba(155,140,255,.10), transparent 28%),
+        var(--bg);
+      overflow:hidden;
+    }
+
+    body::before{
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      opacity:.13;
+      background-image:
+        linear-gradient(30deg, transparent 24%, rgba(73,163,255,.35) 25%, rgba(73,163,255,.35) 26%, transparent 27%, transparent 74%, rgba(73,163,255,.35) 75%, rgba(73,163,255,.35) 76%, transparent 77%),
+        linear-gradient(150deg, transparent 24%, rgba(73,163,255,.35) 25%, rgba(73,163,255,.35) 26%, transparent 27%, transparent 74%, rgba(73,163,255,.35) 75%, rgba(73,163,255,.35) 76%, transparent 77%);
+      background-size:80px 46px;
+    }
+
+    .app{
+      width:min(1500px, calc(100vw - 42px));
+      height:min(900px, calc(100vh - 42px));
+      margin:21px auto;
+      border:1px solid rgba(255,255,255,.16);
+      border-radius:26px;
+      background:linear-gradient(180deg,#0b1118,#070c12);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+      position:relative;
+    }
+
+    .app::after{
+      content:"";
+      position:absolute;
+      inset:8px;
+      border-radius:21px;
+      border:1px solid rgba(255,255,255,.06);
+      pointer-events:none;
+    }
+
+    header{
+      height:76px;
+      display:flex;
+      align-items:center;
+      gap:24px;
+      padding:0 30px;
+      border-bottom:1px solid var(--line);
+      background:rgba(9,14,20,.92);
+      position:relative;
+      z-index:3;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      min-width:230px;
+    }
+
+    .mark{
+      width:42px;height:42px;
+      position:relative;
+    }
+    .mark span{
+      position:absolute;
+      width:8px;height:8px;
+      border-radius:50%;
+      background:var(--white);
+      box-shadow:0 0 12px rgba(255,255,255,.55);
+    }
+    .mark span:nth-child(1){left:2px;top:5px}
+    .mark span:nth-child(2){left:26px;top:8px;background:var(--blue-2)}
+    .mark span:nth-child(3){left:8px;top:30px;background:var(--blue)}
+    .mark span:nth-child(4){left:32px;top:30px}
+    .mark i{
+      position:absolute;
+      height:2px;
+      background:rgba(255,255,255,.75);
+      transform-origin:left center;
+    }
+    .mark i:nth-of-type(1){width:32px;left:6px;top:10px;transform:rotate(43deg)}
+    .mark i:nth-of-type(2){width:26px;left:30px;top:13px;transform:rotate(103deg)}
+    .mark i:nth-of-type(3){width:27px;left:11px;top:32px;transform:rotate(-47deg)}
+
+    .brand-title{line-height:.9}
+    .brand-title strong{
+      display:block;
+      font-weight:850;
+      letter-spacing:-.06em;
+      font-size:29px;
+    }
+    .brand-title small{
+      color:var(--blue-2);
+      font-weight:800;
+      letter-spacing:.08em;
+      font-size:12px;
+    }
+
+    nav{
+      display:flex;
+      align-items:center;
+      height:100%;
+      gap:6px;
+      flex:1;
+    }
+    .tab{
+      appearance:none;
+      border:0;
+      color:var(--muted);
+      background:transparent;
+      height:76px;
+      padding:0 18px;
+      font-size:14px;
+      cursor:pointer;
+      position:relative;
+      letter-spacing:-.01em;
+    }
+    .tab:hover{color:var(--text)}
+    .tab.active{color:var(--text)}
+    .tab.active::after{
+      content:"";
+      position:absolute;
+      left:14px;right:14px;bottom:-1px;
+      height:2px;
+      background:var(--blue-2);
+      box-shadow:0 0 18px var(--blue);
+    }
+
+    .header-actions{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      color:var(--muted);
+      font-size:13px;
+    }
+    .chip{
+      border:1px solid var(--line);
+      background:#0e141c;
+      border-radius:999px;
+      padding:8px 11px;
+      font-family:var(--mono);
+      font-size:12px;
+      color:#cbd7e6;
+    }
+
+    main{
+      height:calc(100% - 76px);
+      position:relative;
+    }
+
+    .view{
+      display:none;
+      height:100%;
+      grid-template-columns:260px 1fr 300px;
+      gap:12px;
+      padding:14px;
+    }
+    .view.active{display:grid}
+
+    .panel{
+      background:rgba(17,24,32,.94);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      overflow:hidden;
+      min-height:0;
+    }
+
+    .panel-head{
+      padding:16px 16px 12px;
+      border-bottom:1px solid var(--line-soft);
+    }
+    .eyebrow{
+      font-family:var(--mono);
+      font-size:11px;
+      color:var(--blue-2);
+      text-transform:uppercase;
+      letter-spacing:.12em;
+      margin-bottom:7px;
+    }
+    h2,h3,p{margin:0}
+    h2{font-size:19px;letter-spacing:-.04em}
+    h3{font-size:15px;letter-spacing:-.02em}
+    p{color:var(--muted);font-size:13px;line-height:1.5}
+
+    .section{padding:14px 16px;border-bottom:1px solid var(--line-soft)}
+    .field{
+      display:block;
+      margin-top:10px;
+    }
+    .label{
+      color:var(--muted);
+      font-size:12px;
+      margin-bottom:6px;
+      display:block;
+    }
+    select,input,textarea{
+      width:100%;
+      color:var(--text);
+      background:#0a1017;
+      border:1px solid var(--line);
+      border-radius:10px;
+      padding:10px 11px;
+      outline:none;
+      font:13px var(--sans);
+    }
+    textarea{min-height:90px;resize:vertical}
+
+    .stage{
+      background:#090f16;
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      position:relative;
+      overflow:hidden;
+      min-height:0;
+    }
+
+    .stage-toolbar{
+      position:absolute;
+      top:14px;left:14px;right:14px;
+      display:flex;
+      justify-content:space-between;
+      z-index:2;
+      pointer-events:none;
+    }
+    .tool-group{
+      display:flex;
+      gap:8px;
+      pointer-events:auto;
+    }
+    .icon-btn{
+      width:34px;height:34px;
+      border-radius:9px;
+      border:1px solid var(--line);
+      background:rgba(13,19,26,.85);
+      color:#cbd7e6;
+      display:grid;
+      place-items:center;
+      cursor:pointer;
+      font-family:var(--mono);
+      font-size:12px;
+    }
+
+    .graph{
+      position:absolute;
+      inset:0;
+    }
+    .node{
+      position:absolute;
+      border-radius:50%;
+      background:var(--blue);
+      box-shadow:0 0 18px rgba(73,163,255,.55);
+      transform:translate(-50%,-50%);
+    }
+    .node.white{background:#eaf2fb;box-shadow:0 0 18px rgba(255,255,255,.55)}
+    .node.lilac{background:var(--lilac);box-shadow:0 0 18px rgba(155,140,255,.55)}
+    .edge{
+      position:absolute;
+      height:1px;
+      background:rgba(167,190,214,.22);
+      transform-origin:left center;
+    }
+    .cluster-label{
+      position:absolute;
+      color:#f7fbff;
+      font-size:13px;
+      background:rgba(5,9,14,.58);
+      border:1px solid rgba(255,255,255,.12);
+      padding:5px 8px;
+      border-radius:8px;
+      backdrop-filter:blur(6px);
+      transform:translate(-50%,-50%);
+      white-space:nowrap;
+    }
+    .selected{
+      width:34px!important;height:34px!important;
+      background:#fff!important;
+      border:4px solid rgba(73,163,255,.88);
+      box-shadow:0 0 50px rgba(73,163,255,.95)!important;
+    }
+
+    .timeline{
+      position:absolute;
+      left:40px;right:40px;bottom:22px;
+      background:rgba(17,24,32,.9);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:13px 18px;
+      display:flex;
+      align-items:center;
+      gap:14px;
+    }
+    .line{
+      flex:1;height:4px;border-radius:99px;
+      background:linear-gradient(90deg,var(--blue),rgba(255,255,255,.25));
+      position:relative;
+    }
+    .line::after{
+      content:"";
+      width:14px;height:14px;border-radius:50%;
+      background:#fff;
+      position:absolute;right:28%;top:50%;
+      transform:translateY(-50%);
+      box-shadow:0 0 20px rgba(73,163,255,.9);
+    }
+    .timeline span{font-family:var(--mono);font-size:12px;color:#e6eef8}
+
+    .card-list{padding:12px;display:grid;gap:10px;overflow:auto;max-height:100%}
+    .mini-card{
+      background:var(--panel-2);
+      border:1px solid var(--line-soft);
+      border-radius:14px;
+      padding:12px;
+    }
+    .mini-card strong{display:block;font-size:13px;margin-bottom:6px}
+    .mini-card small{display:block;color:var(--muted);font-size:12px;line-height:1.45}
+
+    /* Taller */
+    .workshop{
+      grid-template-columns:340px 1fr;
+    }
+    .workshop .right-panel{display:none}
+    .chart-grid{
+      display:grid;
+      grid-template-columns:1.1fr .9fr;
+      grid-template-rows:1fr 1fr;
+      gap:12px;
+      height:100%;
+      padding:14px;
+    }
+    .chart-card{
+      background:rgba(17,24,32,.9);
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:16px;
+      position:relative;
+      overflow:hidden;
+    }
+    .bars{display:flex;align-items:end;gap:8px;height:170px;margin-top:20px}
+    .bar{flex:1;background:var(--blue);border-radius:6px 6px 0 0;opacity:.9}
+    .bar:nth-child(2n){background:#eaf2fb}
+    .bar:nth-child(3n){background:var(--lilac)}
+    .plot{
+      position:absolute;inset:56px 20px 28px;
+      border-left:1px solid rgba(255,255,255,.16);
+      border-bottom:1px solid rgba(255,255,255,.16);
+    }
+    .dot{
+      position:absolute;width:8px;height:8px;border-radius:50%;
+      background:var(--blue-2);
+      box-shadow:0 0 14px rgba(73,163,255,.6);
+    }
+    .question{
+      padding:12px;
+      border:1px solid var(--line);
+      border-radius:12px;
+      margin-top:10px;
+      cursor:pointer;
+      color:#dce8f5;
+      font-size:13px;
+      background:#0b1118;
+    }
+
+    /* Lab */
+    .lab{
+      grid-template-columns:380px 1fr 320px;
+    }
+    .lab-output{
+      padding:18px;
+      overflow:auto;
+    }
+    .step{
+      border:1px solid var(--line);
+      background:rgba(17,24,32,.78);
+      border-radius:18px;
+      padding:16px;
+      margin-bottom:12px;
+    }
+    .step-top{
+      display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:8px;
+    }
+    .pill{
+      font-family:var(--mono);
+      font-size:11px;
+      color:#dbeafe;
+      border:1px solid rgba(73,163,255,.35);
+      background:rgba(40,120,216,.14);
+      padding:5px 8px;
+      border-radius:999px;
+    }
+    .btn{
+      border:1px solid rgba(73,163,255,.55);
+      background:#123b68;
+      color:#fff;
+      border-radius:12px;
+      padding:11px 14px;
+      font-weight:700;
+      cursor:pointer;
+      width:100%;
+      margin-top:12px;
+    }
+
+    .home{
+      display:none;
+      height:100%;
+      padding:36px;
+      position:relative;
+      overflow:hidden;
+    }
+    .home.active{display:block}
+    .hero{
+      max-width:860px;
+      position:relative;
+      z-index:2;
+    }
+    .hero h1{
+      margin:0;
+      font-size:74px;
+      line-height:.92;
+      letter-spacing:-.08em;
+      max-width:840px;
+    }
+    .hero p{
+      margin-top:22px;
+      max-width:620px;
+      font-size:17px;
+      color:#b7c4d5;
+    }
+    .mode-cards{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:14px;
+      margin-top:46px;
+      max-width:980px;
+    }
+    .mode{
+      border:1px solid var(--line);
+      background:rgba(17,24,32,.82);
+      border-radius:22px;
+      padding:20px;
+      cursor:pointer;
+      min-height:170px;
+    }
+    .mode:hover{border-color:rgba(73,163,255,.55)}
+    .mode b{font-size:22px;letter-spacing:-.04em}
+    .mode p{margin-top:12px}
+    .bauhaus{
+      position:absolute;
+      right:40px;
+      bottom:18px;
+      width:430px;
+      height:360px;
+      opacity:.8;
+    }
+    .circle{position:absolute;border-radius:50%;border:18px solid var(--blue)}
+    .circle.one{width:210px;height:210px;right:120px;bottom:80px;border-color:var(--blue)}
+    .circle.two{width:150px;height:150px;right:30px;bottom:20px;border-color:#fff;border-left-color:transparent}
+    .rect{position:absolute;background:var(--lilac);width:170px;height:70px;right:230px;bottom:40px;transform:rotate(-18deg)}
+    .grid-dot{
+      position:absolute;right:20px;bottom:190px;width:170px;height:110px;
+      background-image:radial-gradient(#fff 2px, transparent 2px);
+      background-size:16px 16px;
+      opacity:.45;
+    }
+
+    @media(max-width:1050px){
+      body{overflow:auto}
+      .app{height:auto;min-height:100vh;width:100%;margin:0;border-radius:0}
+      .view,.view.active,.lab,.workshop{grid-template-columns:1fr;display:none}
+      .view.active{display:grid}
+      .home.active{display:block}
+      header{overflow:auto}
+      .brand{min-width:180px}
+      .hero h1{font-size:46px}
+      .mode-cards{grid-template-columns:1fr}
+      .stage{height:560px}
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <header>
+      <div class="brand">
+        <div class="mark" aria-hidden="true">
+          <span></span><span></span><span></span><span></span>
+          <i></i><i></i><i></i>
+        </div>
+        <div class="brand-title">
+          <strong>NODO</strong>
+          <small>UNAM</small>
+        </div>
+      </div>
+
+      <nav>
+        <button class="tab active" data-view="home">Inicio</button>
+        <button class="tab" data-view="atlas">Atlas</button>
+        <button class="tab" data-view="taller">Taller</button>
+        <button class="tab" data-view="lab">Laboratorio</button>
+      </nav>
+
+      <div class="header-actions">
+        <span class="chip">Piloto · 50k</span>
+        <span class="chip">UMAP 15D</span>
+      </div>
+    </header>
+
+    <main>
+      <section id="home" class="home active">
+        <div class="hero">
+          <div class="eyebrow">Cartografía computacional del conocimiento</div>
+          <h1>Explora, mide y desarrolla tesis UNAM.</h1>
+          <p>
+            NODO organiza tesis, asesores, temas y trayectorias en un sistema navegable:
+            un atlas para descubrir conocimiento, un taller para graficar patrones y un laboratorio para trabajar tu idea de tesis.
+          </p>
+
+          <div class="mode-cards">
+            <div class="mode" data-jump="atlas">
+              <b>Atlas</b>
+              <p>Mapa semántico de clusters, macrodominios, relaciones y zonas puente del conocimiento universitario.</p>
+            </div>
+            <div class="mode" data-jump="taller">
+              <b>Taller</b>
+              <p>Exploración gráfica inspirada en gramáticas visuales: tiempo, ranking, distribución, magnitud y redes.</p>
+            </div>
+            <div class="mode" data-jump="lab">
+              <b>Laboratorio</b>
+              <p>Pega tu idea de tesis y recibe interpretación, similares, preguntas, bibliografía y asesores relacionados.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="bauhaus" aria-hidden="true">
+          <div class="circle one"></div>
+          <div class="circle two"></div>
+          <div class="rect"></div>
+          <div class="grid-dot"></div>
+        </div>
+      </section>
+
+      <section id="atlas" class="view">
+        <aside class="panel">
+          <div class="panel-head">
+            <div class="eyebrow">Atlas</div>
+            <h2>Explorar conocimiento</h2>
+            <p>Vista global por macrodominios, clusters y relaciones semánticas.</p>
+          </div>
+          <div class="section">
+            <label class="field">
+              <span class="label">Macrodominio</span>
+              <select>
+                <option>Todos</option>
+                <option>Ciencias Médicas</option>
+                <option>Derecho</option>
+                <option>Ingeniería</option>
+                <option>Humanidades</option>
+              </select>
+            </label>
+            <label class="field">
+              <span class="label">Año</span>
+              <select>
+                <option>Todo el periodo</option>
+                <option>2020–2026</option>
+                <option>2010–2019</option>
+                <option>2000–2009</option>
+              </select>
+            </label>
+          </div>
+          <div class="section">
+            <h3>Capas</h3>
+            <div class="question">Clusters semánticos</div>
+            <div class="question">Asesores</div>
+            <div class="question">Trayectorias</div>
+            <div class="question">Puentes interdisciplinarios</div>
+          </div>
+        </aside>
+
+        <div class="stage">
+          <div class="stage-toolbar">
+            <div class="tool-group">
+              <button class="icon-btn">＋</button>
+              <button class="icon-btn">−</button>
+              <button class="icon-btn">⌖</button>
+            </div>
+            <div class="tool-group">
+              <button class="icon-btn">⚙</button>
+            </div>
+          </div>
+          <div class="graph" id="atlasGraph"></div>
+          <div class="timeline">
+            <span>1980</span><div class="line"></div><span>2026</span>
+          </div>
+        </div>
+
+        <aside class="panel">
+          <div class="panel-head">
+            <div class="eyebrow">Conocimiento</div>
+            <h2>Cluster seleccionado</h2>
+            <p>Click sobre un nodo para ver síntesis, tesis, asesores y conexiones.</p>
+          </div>
+          <div class="card-list">
+            <div class="mini-card">
+              <strong>Derecho Fiscal y Tributación</strong>
+              <small>343 tesis · Área 3 · conectado con Finanzas, Derecho Mercantil y Administración Pública.</small>
+            </div>
+            <div class="mini-card">
+              <strong>Puente detectado</strong>
+              <small>Relación fuerte entre fiscalidad, banca e inversión por similitud de centroides.</small>
+            </div>
+            <div class="mini-card">
+              <strong>Acciones</strong>
+              <small>Ver tesis · Ver asesores · Abrir en Laboratorio · Exportar citas</small>
+            </div>
+          </div>
+        </aside>
+      </section>
+
+      <section id="taller" class="view workshop">
+        <aside class="panel">
+          <div class="panel-head">
+            <div class="eyebrow">Taller</div>
+            <h2>Explorar datos</h2>
+            <p>Construye gráficos a partir de preguntas, no desde menús técnicos.</p>
+          </div>
+          <div class="section">
+            <h3>Tipo de pregunta</h3>
+            <div class="question">Cambio en el tiempo</div>
+            <div class="question">Ranking</div>
+            <div class="question">Distribución</div>
+            <div class="question">Magnitud</div>
+            <div class="question">Relación / red</div>
+          </div>
+          <div class="section">
+            <label class="field">
+              <span class="label">Pregunta libre</span>
+              <textarea placeholder="Ej. ¿Cómo ha cambiado la investigación ambiental desde 1990?"></textarea>
+            </label>
+            <button class="btn">Construir exploración</button>
+          </div>
+        </aside>
+
+        <div class="stage">
+          <div class="chart-grid">
+            <div class="chart-card">
+              <div class="eyebrow">Change over time</div>
+              <h2>Evolución de tesis sobre IA</h2>
+              <div class="plot">
+                <span class="dot" style="left:8%;bottom:12%"></span>
+                <span class="dot" style="left:22%;bottom:18%"></span>
+                <span class="dot" style="left:38%;bottom:28%"></span>
+                <span class="dot" style="left:54%;bottom:42%"></span>
+                <span class="dot" style="left:72%;bottom:68%"></span>
+                <span class="dot" style="left:90%;bottom:82%"></span>
+              </div>
+            </div>
+            <div class="chart-card">
+              <div class="eyebrow">Ranking</div>
+              <h2>Clusters con más tesis</h2>
+              <div class="bars">
+                <div class="bar" style="height:72%"></div>
+                <div class="bar" style="height:58%"></div>
+                <div class="bar" style="height:49%"></div>
+                <div class="bar" style="height:42%"></div>
+                <div class="bar" style="height:34%"></div>
+              </div>
+            </div>
+            <div class="chart-card">
+              <div class="eyebrow">Distribution</div>
+              <h2>Niveles por área</h2>
+              <p style="margin-top:14px">Licenciatura, especialidad, maestría y doctorado distribuidos por macrodominio.</p>
+            </div>
+            <div class="chart-card">
+              <div class="eyebrow">Network</div>
+              <h2>Asesores interdisciplinarios</h2>
+              <p style="margin-top:14px">Puentes entre clusters por tesis asesoradas, programa y trayectoria temporal.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="lab" class="view lab">
+        <aside class="panel">
+          <div class="panel-head">
+            <div class="eyebrow">Laboratorio</div>
+            <h2>Analiza tu tesis</h2>
+            <p>Entrada breve; salida estructurada y alimentada por embeddings, clusters, bibliografía y asesores.</p>
+          </div>
+          <div class="section">
+            <label class="field">
+              <span class="label">Título o idea</span>
+              <input placeholder="Ej. Modelos de lenguaje en grafos académicos" />
+            </label>
+            <label class="field">
+              <span class="label">Palabras clave</span>
+              <input placeholder="IA, grafos, tesis, UNAM" />
+            </label>
+            <label class="field">
+              <span class="label">Objetivos</span>
+              <textarea placeholder="Analizar..., comparar..., proponer..."></textarea>
+            </label>
+            <label class="field">
+              <span class="label">Programa / nivel</span>
+              <select>
+                <option>Economía · Licenciatura</option>
+                <option>Derecho · Licenciatura</option>
+                <option>Ingeniería · Maestría</option>
+                <option>Otro</option>
+              </select>
+            </label>
+            <button class="btn">Ejecutar análisis</button>
+          </div>
+        </aside>
+
+        <div class="stage lab-output">
+          <div class="step">
+            <div class="step-top">
+              <h2>Interpretación conceptual</h2>
+              <span class="pill">IA · síntesis</span>
+            </div>
+            <p>Tu proyecto se ubica en la intersección entre infraestructura semántica, recuperación de información académica y cartografía del conocimiento.</p>
+          </div>
+
+          <div class="step">
+            <div class="step-top">
+              <h2>Tesis cercanas</h2>
+              <span class="pill">Embeddings + rerank</span>
+            </div>
+            <p>Se detectan tesis relacionadas por similitud semántica; el top 10 puede reordenarse con IA para mejorar precisión contextual.</p>
+          </div>
+
+          <div class="step">
+            <div class="step-top">
+              <h2>Clusters y territorios cercanos</h2>
+              <span class="pill">JSON · no IA</span>
+            </div>
+            <p>Clusters: Redes, Datos y Sistemas de Información · Educación Superior y UNAM · Robótica, Automatización y Sistemas.</p>
+          </div>
+
+          <div class="step">
+            <div class="step-top">
+              <h2>Preguntas de investigación</h2>
+              <span class="pill">IA modular</span>
+            </div>
+            <p>¿Cómo pueden los embeddings académicos revelar relaciones invisibles entre tesis, asesores y campos disciplinarios?</p>
+          </div>
+
+          <div class="step">
+            <div class="step-top">
+              <h2>Bibliografía sugerida</h2>
+              <span class="pill">bibliografia_json + IA</span>
+            </div>
+            <p>Selección razonada desde las tesis más cercanas y sus referencias extraídas previamente.</p>
+          </div>
+        </div>
+
+        <aside class="panel">
+          <div class="panel-head">
+            <div class="eyebrow">Resultado</div>
+            <h2>Resumen ejecutivo</h2>
+          </div>
+          <div class="card-list">
+            <div class="mini-card">
+              <strong>Marco Bloom</strong>
+              <small>Predominio: analizar/comparar. Falta reforzar evaluación/propuesta.</small>
+            </div>
+            <div class="mini-card">
+              <strong>Asesores relacionados</strong>
+              <small>Ordenados por cercanía temática, actividad reciente y evidencia documental. Sin “score” visible.</small>
+            </div>
+            <div class="mini-card">
+              <strong>Exportar</strong>
+              <small>Reporte · APA · Chicago · BibTeX · JSON</small>
+            </div>
+          </div>
+        </aside>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const tabs = document.querySelectorAll(".tab");
+    const views = document.querySelectorAll(".view, .home");
+
+    function showView(id){
+      views.forEach(v => v.classList.toggle("active", v.id === id));
+      tabs.forEach(t => t.classList.toggle("active", t.dataset.view === id));
+    }
+
+    tabs.forEach(tab => tab.addEventListener("click", () => showView(tab.dataset.view)));
+    document.querySelectorAll("[data-jump]").forEach(card => {
+      card.addEventListener("click", () => showView(card.dataset.jump));
+    });
+
+    function addEdge(parent, x1,y1,x2,y2){
+      const dx=x2-x1, dy=y2-y1;
+      const len=Math.sqrt(dx*dx+dy*dy);
+      const angle=Math.atan2(dy,dx)*180/Math.PI;
+      const e=document.createElement("div");
+      e.className="edge";
+      e.style.width=len+"px";
+      e.style.left=x1+"%";
+      e.style.top=y1+"%";
+      e.style.transform=`rotate(${angle}deg)`;
+      parent.appendChild(e);
+    }
+
+    function addNode(parent, x,y,size,cls,label){
+      const n=document.createElement("div");
+      n.className="node "+(cls||"");
+      n.style.left=x+"%";
+      n.style.top=y+"%";
+      n.style.width=size+"px";
+      n.style.height=size+"px";
+      parent.appendChild(n);
+      if(label){
+        const l=document.createElement("div");
+        l.className="cluster-label";
+        l.textContent=label;
+        l.style.left=x+"%";
+        l.style.top=(y-6)+"%";
+        parent.appendChild(l);
+      }
+      return n;
+    }
+
+    const g=document.getElementById("atlasGraph");
+    const nodesData=[
+      [50,50,34,"selected","TESIS ID: 567123"],
+      [34,38,18,"","Inteligencia Artificial"],
+      [63,35,19,"white","Derecho Constitucional"],
+      [70,49,17,"","Clustering Temático"],
+      [42,62,21,"","Literatura Mexicana"],
+      [58,66,18,"white","Salud Pública"],
+      [32,55,15,"lilac","Educación"],
+      [76,31,13,"white","Física de Partículas"],
+      [26,43,10,"",""],
+      [81,58,11,"",""],
+      [22,62,8,"white",""],
+      [69,70,9,"white",""]
+    ];
+    nodesData.slice(1).forEach(d=>addEdge(g,50,50,d[0],d[1]));
+    addEdge(g,34,38,42,62); addEdge(g,63,35,76,31); addEdge(g,70,49,58,66);
+    nodesData.forEach(d=>addNode(g,...d));
+
+    // decorative extra nodes
+    for(let i=0;i<90;i++){
+      const angle=(i/90)*Math.PI*2;
+      const r=23+Math.sin(i*.7)*7;
+      const x=50+Math.cos(angle)*r;
+      const y=50+Math.sin(angle)*r*.72;
+      addNode(g,x,y,i%7===0?8:5,i%3===0?"white":"");
+      if(i%4===0) addEdge(g,50,50,x,y);
+    }
+  </script>
+</body>
+</html>

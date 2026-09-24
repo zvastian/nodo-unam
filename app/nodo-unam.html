@@ -1,0 +1,1799 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>NODO UNAM — Cartografía del conocimiento universitario</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Source+Sans+3:wght@300;400;500;600&family=Source+Serif+4:ital,wght@0,400;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+
+  <style>
+    :root {
+      --bg:        #f5f2ec;
+      --bg-warm:   #ede9e0;
+      --white:     #faf9f6;
+      --ink:       #1a1a1a;
+      --ink-2:     #2e2e2e;
+      --muted:     #6b6b6b;
+      --muted-2:   #9a9a9a;
+      --rule:      #d4cfc6;
+      --rule-dark: #b5afa4;
+      --accent:    #003f8a;
+      --accent-2:  #1a5fb4;
+      --accent-3:  #e8f0fb;
+      --teal:      #0d7a5f;
+      --amber:     #b05a00;
+      --red:       #8c1515;
+      --node-a:    #2a5fc7;
+      --node-b:    #0d7a5f;
+      --node-c:    #7a4f9c;
+      --node-d:    #b05a00;
+      --sans:      "Source Sans 3", ui-sans-serif, system-ui, sans-serif;
+      --serif:     "Playfair Display", Georgia, "Times New Roman", serif;
+      --body-serif:"Source Serif 4", Georgia, serif;
+      --mono:      "JetBrains Mono", "Fira Mono", monospace;
+      --r:         4px;
+      --r-lg:      8px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--ink);
+      overflow: hidden;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    /* ── LAYOUT ────────────────────────────────────────── */
+    .app {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ── MASTHEAD ──────────────────────────────────────── */
+    .masthead {
+      background: var(--accent);
+      color: #fff;
+      padding: 0 40px;
+      display: flex;
+      align-items: stretch;
+      height: 58px;
+      gap: 0;
+      flex-shrink: 0;
+      border-bottom: 3px solid #002a5e;
+      position: relative;
+      z-index: 10;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding-right: 32px;
+      margin-right: 8px;
+      border-right: 1px solid rgba(255,255,255,.2);
+    }
+
+    .brand-mark {
+      width: 34px;
+      height: 34px;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .brand-wordmark {
+      line-height: 1;
+    }
+    .brand-wordmark strong {
+      display: block;
+      font-family: var(--serif);
+      font-weight: 700;
+      font-size: 20px;
+      letter-spacing: .01em;
+      color: #fff;
+    }
+    .brand-wordmark small {
+      display: block;
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: .18em;
+      color: rgba(255,255,255,.65);
+      text-transform: uppercase;
+      margin-top: 1px;
+    }
+
+    .main-nav {
+      display: flex;
+      align-items: stretch;
+      flex: 1;
+      gap: 0;
+    }
+
+    .nav-btn {
+      appearance: none;
+      background: transparent;
+      border: none;
+      color: rgba(255,255,255,.72);
+      font-family: var(--sans);
+      font-size: 13.5px;
+      font-weight: 500;
+      letter-spacing: .01em;
+      padding: 0 20px;
+      cursor: pointer;
+      position: relative;
+      transition: color .15s;
+      white-space: nowrap;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -3px;
+    }
+    .nav-btn:hover { color: #fff; }
+    .nav-btn.active {
+      color: #fff;
+      border-bottom-color: #fff;
+      font-weight: 600;
+    }
+
+    .masthead-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding-left: 20px;
+      border-left: 1px solid rgba(255,255,255,.2);
+    }
+
+    .chip {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: rgba(255,255,255,.7);
+      background: rgba(255,255,255,.12);
+      border: 1px solid rgba(255,255,255,.2);
+      border-radius: 3px;
+      padding: 3px 8px;
+      letter-spacing: .03em;
+    }
+
+    /* ── SUBHEADER (breadcrumb / context bar) ─────────── */
+    .subheader {
+      background: var(--white);
+      border-bottom: 1px solid var(--rule);
+      padding: 0 40px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .breadcrumb span { color: var(--muted-2); }
+    .breadcrumb a {
+      color: var(--accent-2);
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .breadcrumb a:hover { text-decoration: underline; }
+
+    .subheader-meta {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-family: var(--mono);
+      font-size: 11.5px;
+      color: var(--muted-2);
+    }
+    .subheader-meta b { color: var(--ink); font-weight: 600; font-family: var(--sans); }
+
+    /* ── MAIN CONTENT ──────────────────────────────────── */
+    main {
+      flex: 1;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .view {
+      display: none;
+      height: 100%;
+    }
+    .view.active { display: flex; }
+
+    /* ── HOME ──────────────────────────────────────────── */
+    #home {
+      flex-direction: column;
+      overflow-y: auto;
+      background: var(--white);
+    }
+
+    .home-hero {
+      background: var(--accent);
+      color: #fff;
+      padding: 56px 40px 52px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .home-hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image:
+        repeating-linear-gradient(0deg, transparent, transparent 47px, rgba(255,255,255,.04) 48px),
+        repeating-linear-gradient(90deg, transparent, transparent 47px, rgba(255,255,255,.04) 48px);
+      pointer-events: none;
+    }
+
+    .home-hero-inner {
+      max-width: 820px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .home-eyebrow {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.6);
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .home-eyebrow::before {
+      content: "";
+      width: 24px;
+      height: 1px;
+      background: rgba(255,255,255,.4);
+    }
+
+    .home-hero h1 {
+      font-family: var(--serif);
+      font-size: 52px;
+      font-weight: 900;
+      line-height: 1.05;
+      letter-spacing: -.02em;
+      color: #fff;
+      max-width: 700px;
+      margin-bottom: 20px;
+    }
+
+    .home-hero p {
+      font-size: 17px;
+      font-weight: 300;
+      color: rgba(255,255,255,.8);
+      max-width: 580px;
+      line-height: 1.65;
+      margin-bottom: 36px;
+    }
+
+    .home-stats {
+      display: flex;
+      gap: 32px;
+      padding-top: 28px;
+      border-top: 1px solid rgba(255,255,255,.18);
+    }
+    .home-stat {}
+    .home-stat strong {
+      display: block;
+      font-family: var(--serif);
+      font-size: 28px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -.02em;
+    }
+    .home-stat span {
+      font-size: 12.5px;
+      color: rgba(255,255,255,.6);
+      letter-spacing: .02em;
+    }
+
+    .home-modes {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .mode-card {
+      background: var(--white);
+      border-right: 1px solid var(--rule);
+      padding: 32px 36px;
+      cursor: pointer;
+      transition: background .15s;
+      position: relative;
+    }
+    .mode-card:last-child { border-right: none; }
+    .mode-card:hover { background: var(--bg); }
+    .mode-card::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--accent);
+      transform: scaleX(0);
+      transition: transform .2s;
+      transform-origin: left;
+    }
+    .mode-card:hover::before { transform: scaleX(1); }
+
+    .mode-num {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--muted-2);
+      letter-spacing: .1em;
+      margin-bottom: 10px;
+    }
+    .mode-card h2 {
+      font-family: var(--serif);
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -.02em;
+      color: var(--ink);
+      margin-bottom: 10px;
+    }
+    .mode-card p {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 18px;
+    }
+    .mode-link {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--accent-2);
+      letter-spacing: .01em;
+    }
+    .mode-link::after { content: " →"; }
+
+    .home-about {
+      padding: 40px 40px 48px;
+      background: var(--bg-warm);
+      border-top: 1px solid var(--rule);
+    }
+    .home-about p {
+      max-width: 660px;
+      font-family: var(--body-serif);
+      font-size: 16px;
+      color: var(--ink-2);
+      line-height: 1.75;
+    }
+    .home-about strong { font-weight: 700; color: var(--ink); }
+
+    /* ── SHARED LAYOUT: SIDEBAR + STAGE + DETAIL ───────── */
+    .three-col {
+      display: grid;
+      grid-template-columns: 264px 1fr 288px;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .sidebar {
+      background: var(--white);
+      border-right: 1px solid var(--rule);
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar-head {
+      padding: 22px 22px 16px;
+      border-bottom: 1px solid var(--rule);
+      background: var(--white);
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+
+    .sidebar-eyebrow {
+      font-family: var(--mono);
+      font-size: 10.5px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--muted-2);
+      margin-bottom: 6px;
+    }
+
+    .sidebar-head h2 {
+      font-family: var(--serif);
+      font-size: 21px;
+      font-weight: 700;
+      letter-spacing: -.02em;
+      color: var(--ink);
+      margin-bottom: 6px;
+    }
+
+    .sidebar-head p {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .sidebar-section {
+      padding: 16px 22px;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .section-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--muted-2);
+      margin-bottom: 10px;
+      display: block;
+    }
+
+    label.field { display: block; margin-bottom: 10px; }
+    .field-label {
+      font-size: 12.5px;
+      color: var(--muted);
+      margin-bottom: 5px;
+      display: block;
+    }
+
+    select, input, textarea {
+      width: 100%;
+      font-family: var(--sans);
+      font-size: 13.5px;
+      color: var(--ink);
+      background: var(--bg);
+      border: 1px solid var(--rule-dark);
+      border-radius: var(--r);
+      padding: 8px 10px;
+      outline: none;
+      transition: border-color .15s;
+      -webkit-appearance: none;
+    }
+    select:focus, input:focus, textarea:focus {
+      border-color: var(--accent-2);
+      background: #fff;
+    }
+    textarea { min-height: 80px; resize: vertical; }
+
+    .layer-list {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .layer-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      border-radius: var(--r);
+      cursor: pointer;
+      font-size: 13.5px;
+      color: var(--muted);
+      transition: all .1s;
+      border: 1px solid transparent;
+    }
+    .layer-item:hover { background: var(--bg); color: var(--ink); }
+    .layer-item.active {
+      background: var(--accent-3);
+      color: var(--accent);
+      border-color: rgba(26,95,180,.2);
+      font-weight: 500;
+    }
+    .layer-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .question-list { display: flex; flex-direction: column; gap: 4px; }
+    .question-item {
+      padding: 9px 12px;
+      border: 1px solid var(--rule);
+      border-radius: var(--r);
+      cursor: pointer;
+      font-size: 13.5px;
+      color: var(--muted);
+      background: var(--bg);
+      transition: all .12s;
+      line-height: 1.4;
+    }
+    .question-item:hover { background: var(--white); color: var(--ink); border-color: var(--accent-2); }
+    .question-item.active { background: var(--accent-3); color: var(--accent); border-color: rgba(26,95,180,.25); font-weight: 500; }
+
+    .primary-btn {
+      display: block;
+      width: 100%;
+      background: var(--accent);
+      color: #fff;
+      font-family: var(--sans);
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: .01em;
+      border: none;
+      border-radius: var(--r);
+      padding: 11px 16px;
+      cursor: pointer;
+      margin-top: 14px;
+      transition: background .15s;
+      text-align: center;
+    }
+    .primary-btn:hover { background: var(--accent-2); }
+
+    /* ── STAGE / CANVAS ────────────────────────────────── */
+    .stage {
+      position: relative;
+      background: var(--bg);
+      overflow: hidden;
+      border-left: 1px solid var(--rule);
+      border-right: 1px solid var(--rule);
+    }
+
+    .stage-toolbar {
+      position: absolute;
+      top: 14px; left: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      z-index: 4;
+    }
+
+    .icon-btn {
+      width: 30px; height: 30px;
+      background: var(--white);
+      border: 1px solid var(--rule-dark);
+      border-radius: var(--r);
+      color: var(--muted);
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      font-size: 14px;
+      font-family: var(--mono);
+      transition: all .1s;
+    }
+    .icon-btn:hover { background: var(--bg); color: var(--ink); }
+
+    .stage-label {
+      position: absolute;
+      bottom: 14px; left: 14px;
+      font-family: var(--mono);
+      font-size: 10.5px;
+      color: var(--muted-2);
+      letter-spacing: .06em;
+    }
+
+    /* GRAPH */
+    .graph-canvas {
+      position: absolute;
+      inset: 0;
+    }
+
+    .edge {
+      position: absolute;
+      height: 1px;
+      background: var(--rule-dark);
+      transform-origin: left center;
+      opacity: .5;
+    }
+
+    .gnode {
+      position: absolute;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      cursor: pointer;
+      transition: transform .15s;
+    }
+    .gnode:hover { transform: translate(-50%, -50%) scale(1.15); }
+    .gnode.selected {
+      box-shadow: 0 0 0 3px var(--white), 0 0 0 5px var(--accent-2);
+    }
+
+    .cluster-label {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--ink-2);
+      white-space: nowrap;
+      background: rgba(245,242,236,.85);
+      padding: 3px 7px;
+      border-radius: 3px;
+      border: 1px solid var(--rule);
+      pointer-events: none;
+      letter-spacing: -.01em;
+    }
+
+    /* TIMELINE */
+    .timeline {
+      position: absolute;
+      left: 52px; right: 14px; bottom: 14px;
+      background: var(--white);
+      border: 1px solid var(--rule-dark);
+      border-radius: var(--r-lg);
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      z-index: 3;
+    }
+    .tl-track {
+      flex: 1;
+      height: 3px;
+      background: var(--rule);
+      border-radius: 99px;
+      position: relative;
+    }
+    .tl-fill {
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 72%;
+      background: var(--accent);
+      border-radius: 99px;
+    }
+    .tl-thumb {
+      position: absolute;
+      right: 0; top: 50%;
+      transform: translate(50%, -50%);
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: 2px solid var(--white);
+      box-shadow: 0 0 0 1px var(--accent);
+    }
+    .tl-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .tl-year {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--accent);
+      position: absolute;
+      right: 0; bottom: calc(100% + 5px);
+      transform: translateX(50%);
+    }
+
+    /* ── DETAIL PANEL ──────────────────────────────────── */
+    .detail {
+      background: var(--white);
+      overflow-y: auto;
+    }
+
+    .detail-head {
+      padding: 22px 22px 16px;
+      border-bottom: 1px solid var(--rule);
+      position: sticky;
+      top: 0;
+      background: var(--white);
+      z-index: 2;
+    }
+
+    .detail-head .sidebar-eyebrow { margin-bottom: 4px; }
+
+    .detail-head h3 {
+      font-family: var(--serif);
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -.02em;
+      margin-bottom: 6px;
+    }
+
+    .detail-head p { font-size: 13px; color: var(--muted); line-height: 1.5; }
+
+    .detail-section {
+      padding: 16px 22px;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .meta-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      padding: 7px 0;
+      border-bottom: 1px solid var(--rule);
+      font-size: 13px;
+    }
+    .meta-row:last-child { border-bottom: none; }
+    .meta-key { color: var(--muted); }
+    .meta-val { font-weight: 500; color: var(--ink-2); text-align: right; }
+
+    .tag-cloud { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 2px; }
+    .tag {
+      font-size: 12px;
+      padding: 3px 8px;
+      border: 1px solid var(--rule-dark);
+      border-radius: var(--r);
+      color: var(--muted);
+      background: var(--bg);
+    }
+
+    .related-list { display: flex; flex-direction: column; gap: 0; }
+    .related-item {
+      padding: 10px 0;
+      border-bottom: 1px solid var(--rule);
+      cursor: pointer;
+    }
+    .related-item:last-child { border-bottom: none; }
+    .related-title { font-size: 13px; color: var(--ink); line-height: 1.4; margin-bottom: 3px; }
+    .related-meta { font-size: 11.5px; color: var(--muted); }
+    .related-sim {
+      display: inline-block;
+      font-family: var(--mono);
+      font-size: 10.5px;
+      color: var(--accent-2);
+      background: var(--accent-3);
+      border-radius: 3px;
+      padding: 1px 5px;
+      margin-top: 3px;
+    }
+
+    /* ── TALLER ──────────────────────────────────────────*/
+    .chart-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 1px;
+      background: var(--rule);
+      height: 100%;
+    }
+    .chart-cell {
+      background: var(--white);
+      padding: 22px 24px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .chart-eyebrow {
+      font-family: var(--mono);
+      font-size: 10.5px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--muted-2);
+      margin-bottom: 6px;
+    }
+    .chart-cell h3 {
+      font-family: var(--serif);
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: -.02em;
+      color: var(--ink);
+      margin-bottom: 2px;
+    }
+    .chart-cell > p {
+      font-size: 12.5px;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+
+    /* scatter */
+    .scatter { position: relative; height: 130px; margin-top: 10px; border-left: 1px solid var(--rule-dark); border-bottom: 1px solid var(--rule-dark); }
+    .sdot { position: absolute; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); transform: translate(-50%, 50%); opacity: .85; }
+
+    /* bars */
+    .bar-chart { display: flex; align-items: flex-end; gap: 5px; height: 120px; margin-top: 10px; }
+    .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .bar-fill { width: 100%; border-radius: 2px 2px 0 0; min-height: 4px; }
+    .bar-lbl { font-family: var(--mono); font-size: 9px; color: var(--muted-2); writing-mode: vertical-lr; transform: rotate(180deg); }
+
+    /* sparkline */
+    .sparkline { margin-top: 10px; }
+
+    /* distribution rings */
+    .dist-rings { display: flex; gap: 10px; align-items: center; margin-top: 12px; }
+    .ring-item { text-align: center; }
+    .ring-label { font-size: 11px; color: var(--muted); margin-top: 4px; }
+    .ring-val { font-family: var(--mono); font-size: 12px; color: var(--ink); font-weight: 500; }
+
+    /* ── LABORATORIO ─────────────────────────────────────*/
+    .lab-output {
+      background: var(--bg);
+      overflow-y: auto;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .output-step {
+      background: var(--white);
+      border: 1px solid var(--rule);
+      border-radius: var(--r-lg);
+      overflow: hidden;
+    }
+
+    .step-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--rule);
+      background: var(--bg);
+    }
+
+    .step-header h3 {
+      font-family: var(--serif);
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -.01em;
+      color: var(--ink);
+    }
+
+    .step-badge {
+      font-family: var(--mono);
+      font-size: 10.5px;
+      color: var(--accent);
+      background: var(--accent-3);
+      border: 1px solid rgba(26,95,180,.2);
+      padding: 3px 8px;
+      border-radius: 3px;
+      letter-spacing: .04em;
+    }
+
+    .step-body {
+      padding: 16px 18px;
+    }
+
+    .step-body p {
+      font-family: var(--body-serif);
+      font-size: 14.5px;
+      color: var(--ink-2);
+      line-height: 1.7;
+    }
+
+    .thesis-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--rule);
+    }
+    .thesis-row:last-child { border-bottom: none; }
+    .thesis-rank {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--muted-2);
+      min-width: 20px;
+      margin-top: 2px;
+    }
+    .thesis-info { flex: 1; }
+    .thesis-title { font-size: 13.5px; color: var(--ink); line-height: 1.4; margin-bottom: 3px; }
+    .thesis-meta { font-size: 12px; color: var(--muted); }
+    .thesis-score {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--teal);
+      background: #edf7f3;
+      border: 1px solid rgba(13,122,95,.2);
+      border-radius: 3px;
+      padding: 2px 6px;
+      white-space: nowrap;
+    }
+
+    .cluster-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12.5px;
+      padding: 5px 10px;
+      border: 1px solid var(--rule-dark);
+      border-radius: var(--r);
+      margin: 4px 4px 0 0;
+      color: var(--ink-2);
+    }
+    .cluster-chip .cdot { width: 6px; height: 6px; border-radius: 50%; }
+
+    .bloom-bars { display: flex; flex-direction: column; gap: 7px; margin-top: 4px; }
+    .bloom-row-item { display: flex; align-items: center; gap: 10px; font-size: 12.5px; }
+    .bloom-label { width: 80px; color: var(--muted); font-size: 12px; }
+    .bloom-track { flex: 1; height: 4px; background: var(--rule); border-radius: 99px; }
+    .bloom-fill { height: 100%; border-radius: 99px; background: var(--accent); }
+    .bloom-pct { font-family: var(--mono); font-size: 11px; color: var(--muted-2); min-width: 30px; }
+
+    .question-output-list { display: flex; flex-direction: column; gap: 6px; }
+    .question-output-item {
+      padding: 10px 12px;
+      background: var(--bg);
+      border: 1px solid var(--rule);
+      border-radius: var(--r);
+      font-size: 13.5px;
+      color: var(--ink-2);
+      line-height: 1.5;
+    }
+
+    .advisor-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--rule);
+    }
+    .advisor-row:last-child { border-bottom: none; }
+    .advisor-avatar {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: var(--accent-3);
+      border: 1px solid rgba(26,95,180,.2);
+      display: grid;
+      place-items: center;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+    .advisor-name { font-size: 13.5px; font-weight: 500; color: var(--ink); }
+    .advisor-dept { font-size: 12px; color: var(--muted); }
+    .advisor-tesis { font-family: var(--mono); font-size: 11px; color: var(--muted-2); margin-left: auto; }
+
+    .export-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .export-btn {
+      font-size: 12.5px;
+      padding: 6px 12px;
+      border: 1px solid var(--rule-dark);
+      border-radius: var(--r);
+      background: var(--bg);
+      color: var(--muted);
+      cursor: pointer;
+      font-family: var(--mono);
+      letter-spacing: .03em;
+      transition: all .1s;
+    }
+    .export-btn:hover { background: var(--white); color: var(--ink); border-color: var(--accent-2); }
+
+    /* ── FOOTER BAR ────────────────────────────────────── */
+    .footer-bar {
+      background: var(--ink);
+      color: rgba(255,255,255,.45);
+      font-size: 11.5px;
+      padding: 8px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      letter-spacing: .01em;
+    }
+    .footer-bar a { color: rgba(255,255,255,.55); text-decoration: none; }
+    .footer-bar a:hover { color: rgba(255,255,255,.8); }
+
+    /* ── SCROLLBARS ────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--rule-dark); border-radius: 99px; }
+  </style>
+</head>
+
+<body>
+<div class="app">
+
+  <!-- MASTHEAD -->
+  <header class="masthead">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 34 34" fill="none" aria-hidden="true">
+        <circle cx="6" cy="6" r="4" fill="rgba(255,255,255,.9)"/>
+        <circle cx="28" cy="8" r="3" fill="#7bb3f5"/>
+        <circle cx="10" cy="28" r="3" fill="#5a9aee"/>
+        <circle cx="28" cy="26" r="4" fill="rgba(255,255,255,.9)"/>
+        <line x1="6" y1="6" x2="28" y2="8" stroke="rgba(255,255,255,.5)" stroke-width="1.2"/>
+        <line x1="6" y1="6" x2="10" y2="28" stroke="rgba(255,255,255,.5)" stroke-width="1.2"/>
+        <line x1="28" y1="8" x2="28" y2="26" stroke="rgba(255,255,255,.5)" stroke-width="1.2"/>
+        <line x1="10" y1="28" x2="28" y2="26" stroke="rgba(255,255,255,.5)" stroke-width="1.2"/>
+        <line x1="6" y1="6" x2="28" y2="26" stroke="rgba(255,255,255,.3)" stroke-width="1"/>
+      </svg>
+      <div class="brand-wordmark">
+        <strong>NODO</strong>
+        <small>UNAM</small>
+      </div>
+    </div>
+
+    <nav class="main-nav">
+      <button class="nav-btn active" data-view="home">Inicio</button>
+      <button class="nav-btn" data-view="atlas">Atlas</button>
+      <button class="nav-btn" data-view="taller">Taller</button>
+      <button class="nav-btn" data-view="lab">Laboratorio</button>
+    </nav>
+
+    <div class="masthead-right">
+      <span class="chip">600k tesis</span>
+      <span class="chip">UMAP 15D</span>
+    </div>
+  </header>
+
+  <!-- SUBHEADER -->
+  <div class="subheader">
+    <div class="breadcrumb" id="breadcrumb">
+      <span>Inicio</span>
+    </div>
+    <div class="subheader-meta">
+      <span>Actualizado <b>mayo 2025</b></span>
+      <span>·</span>
+      <span><b>600,847</b> tesis indexadas</span>
+      <span>·</span>
+      <span><b>60</b> macrodominios</span>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <main>
+
+    <!-- HOME -->
+    <section id="home" class="view active" style="flex-direction:column;overflow-y:auto;background:var(--white);">
+      <div class="home-hero">
+        <div class="home-hero-inner">
+          <div class="home-eyebrow">Cartografía computacional del conocimiento · UNAM</div>
+          <h1>Explora, mide<br>y desarrolla<br>conocimiento universitario.</h1>
+          <p>NODO organiza 600,847 tesis en un sistema navegable: un atlas para descubrir el mapa del conocimiento, un taller para explorar patrones y un laboratorio para desarrollar tu idea de tesis.</p>
+          <div class="home-stats">
+            <div class="home-stat">
+              <strong>600k</strong>
+              <span>Tesis indexadas</span>
+            </div>
+            <div class="home-stat">
+              <strong>60</strong>
+              <span>Macrodominios</span>
+            </div>
+            <div class="home-stat">
+              <strong>52 años</strong>
+              <span>1973 – 2025</span>
+            </div>
+            <div class="home-stat">
+              <strong>4,200+</strong>
+              <span>Asesores mapeados</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="home-modes">
+        <div class="mode-card" data-jump="atlas">
+          <div class="mode-num">01</div>
+          <h2>Atlas</h2>
+          <p>Mapa semántico de clusters, macrodominios, relaciones y zonas puente del conocimiento universitario. Explora por área, período y trayectoria.</p>
+          <div class="mode-link">Explorar el mapa</div>
+        </div>
+        <div class="mode-card" data-jump="taller">
+          <div class="mode-num">02</div>
+          <h2>Taller</h2>
+          <p>Exploración gráfica guiada por preguntas, no por menús técnicos. Visualiza cambio temporal, rankings, distribuciones y redes de asesores.</p>
+          <div class="mode-link">Explorar datos</div>
+        </div>
+        <div class="mode-card" data-jump="lab">
+          <div class="mode-num">03</div>
+          <h2>Laboratorio</h2>
+          <p>Pega tu idea de tesis y recibe interpretación conceptual, tesis similares, preguntas de investigación, bibliografía sugerida y asesores relacionados.</p>
+          <div class="mode-link">Analizar mi tesis</div>
+        </div>
+      </div>
+
+      <div class="home-about">
+        <p>
+          <strong>NODO</strong> es un proyecto de cartografía computacional de la producción académica de la Universidad Nacional Autónoma de México.
+          Los datos provienen del repositorio institucional de tesis. Los clusters semánticos se calculan mediante embeddings multilingües y proyección UMAP.
+          El sistema no reemplaza el juicio académico: lo contextualiza.
+        </p>
+      </div>
+    </section>
+
+    <!-- ATLAS -->
+    <section id="atlas" class="view">
+      <div class="three-col" style="width:100%;height:100%;">
+
+        <aside class="sidebar">
+          <div class="sidebar-head">
+            <div class="sidebar-eyebrow">Atlas</div>
+            <h2>Explorar conocimiento</h2>
+            <p>Mapa global de macrodominios y clusters semánticos.</p>
+          </div>
+
+          <div class="sidebar-section">
+            <span class="section-label">Filtros</span>
+            <label class="field">
+              <span class="field-label">Macrodominio</span>
+              <select>
+                <option>Todos los macrodominios</option>
+                <option>Ciencias Médicas y Salud</option>
+                <option>Derecho</option>
+                <option>Ingeniería</option>
+                <option>Humanidades</option>
+                <option>Ciencias Sociales</option>
+                <option>Computación e Informática</option>
+              </select>
+            </label>
+            <label class="field">
+              <span class="field-label">Período</span>
+              <select>
+                <option>Todo el período (1973–2025)</option>
+                <option>2015–2025</option>
+                <option>2005–2014</option>
+                <option>1995–2004</option>
+                <option>Antes de 1995</option>
+              </select>
+            </label>
+            <label class="field">
+              <span class="field-label">Nivel</span>
+              <select>
+                <option>Todos los niveles</option>
+                <option>Licenciatura</option>
+                <option>Maestría</option>
+                <option>Doctorado</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="sidebar-section">
+            <span class="section-label">Capas de visualización</span>
+            <div class="layer-list">
+              <div class="layer-item active">
+                <span class="layer-dot" style="background:var(--node-a)"></span>
+                Clusters semánticos
+              </div>
+              <div class="layer-item">
+                <span class="layer-dot" style="background:var(--node-b)"></span>
+                Asesores
+              </div>
+              <div class="layer-item">
+                <span class="layer-dot" style="background:var(--node-d)"></span>
+                Trayectorias temporales
+              </div>
+              <div class="layer-item">
+                <span class="layer-dot" style="background:var(--node-c)"></span>
+                Puentes interdisciplinarios
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        <div class="stage">
+          <div class="stage-toolbar">
+            <button class="icon-btn" title="Acercar">+</button>
+            <button class="icon-btn" title="Alejar">−</button>
+            <button class="icon-btn" title="Centrar" style="margin-top:4px;">⊙</button>
+          </div>
+
+          <div class="graph-canvas" id="atlasGraph"></div>
+
+          <div class="timeline">
+            <span class="tl-label">1973</span>
+            <div class="tl-track">
+              <div class="tl-fill"></div>
+              <div class="tl-thumb">
+                <span class="tl-year">2019</span>
+              </div>
+            </div>
+            <span class="tl-label">2025</span>
+          </div>
+
+          <div class="stage-label">600,847 tesis · zoom semántico activo</div>
+        </div>
+
+        <aside class="detail">
+          <div class="detail-head">
+            <div class="sidebar-eyebrow">Cluster seleccionado</div>
+            <h3>Computación e Informática</h3>
+            <p>Click sobre cualquier nodo para explorar su detalle, tesis y asesores.</p>
+          </div>
+
+          <div class="detail-section">
+            <span class="section-label">Datos del cluster</span>
+            <div class="meta-row">
+              <span class="meta-key">Tesis totales</span>
+              <span class="meta-val">41,280</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-key">Período</span>
+              <span class="meta-val">1978–2025</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-key">Cluster más cercano</span>
+              <span class="meta-val">Ingeniería</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-key">Pico de producción</span>
+              <span class="meta-val">2019</span>
+            </div>
+          </div>
+
+          <div class="detail-section">
+            <span class="section-label">Subclusters</span>
+            <div class="tag-cloud">
+              <span class="tag">Inteligencia Artificial</span>
+              <span class="tag">Redes</span>
+              <span class="tag">Bases de datos</span>
+              <span class="tag">HCI</span>
+              <span class="tag">Software</span>
+              <span class="tag">Ciberseguridad</span>
+            </div>
+          </div>
+
+          <div class="detail-section">
+            <span class="section-label">Tesis representativas</span>
+            <div class="related-list">
+              <div class="related-item">
+                <div class="related-title">Grafos de conocimiento para recuperación de información en corpus universitarios</div>
+                <div class="related-meta">López, C. · 2023 · Maestría</div>
+                <div class="related-sim">94% similitud</div>
+              </div>
+              <div class="related-item">
+                <div class="related-title">Embeddings multilingües para búsqueda semántica académica</div>
+                <div class="related-meta">Ramírez, J. · 2022 · Doctorado</div>
+                <div class="related-sim">89% similitud</div>
+              </div>
+              <div class="related-item">
+                <div class="related-title">Modelos transformer para clasificación de texto científico en español</div>
+                <div class="related-meta">Mendoza, A. · 2024 · Maestría</div>
+                <div class="related-sim">83% similitud</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="detail-section">
+            <button class="primary-btn" onclick="showView('lab')">Analizar mi tesis en este cluster →</button>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- TALLER -->
+    <section id="taller" class="view">
+      <div class="two-col" style="width:100%;height:100%;">
+
+        <aside class="sidebar">
+          <div class="sidebar-head">
+            <div class="sidebar-eyebrow">Taller</div>
+            <h2>Explorar patrones</h2>
+            <p>Construye visualizaciones desde preguntas, no desde menús técnicos.</p>
+          </div>
+
+          <div class="sidebar-section">
+            <span class="section-label">¿Qué quieres explorar?</span>
+            <div class="question-list">
+              <div class="question-item active">Cambio en el tiempo</div>
+              <div class="question-item">Ranking</div>
+              <div class="question-item">Distribución</div>
+              <div class="question-item">Red de asesores</div>
+              <div class="question-item">Comparación entre áreas</div>
+            </div>
+          </div>
+
+          <div class="sidebar-section">
+            <label class="field">
+              <span class="field-label">Pregunta libre</span>
+              <textarea placeholder="Ej. ¿Cómo ha cambiado la investigación ambiental desde 1990?"></textarea>
+            </label>
+            <label class="field">
+              <span class="field-label">Área temática</span>
+              <select>
+                <option>Todas las áreas</option>
+                <option>Ingeniería</option>
+                <option>Humanidades</option>
+                <option>Medicina</option>
+                <option>Computación</option>
+              </select>
+            </label>
+            <button class="primary-btn">Construir visualización</button>
+          </div>
+
+          <div class="sidebar-section" style="margin-top:auto;">
+            <span class="section-label">Explorar preguntas sugeridas</span>
+            <div class="question-list">
+              <div class="question-item">¿Qué áreas crecieron más desde 2000?</div>
+              <div class="question-item">¿Qué carreras producen más tesis interdisciplinarias?</div>
+              <div class="question-item">¿Cómo cambió la investigación en pandemia?</div>
+            </div>
+          </div>
+        </aside>
+
+        <div class="stage" style="border-right:none;">
+          <div class="chart-grid">
+            <div class="chart-cell">
+              <div class="chart-eyebrow">Cambio en el tiempo</div>
+              <h3>Evolución de tesis por área · 2000–2025</h3>
+              <p>Tesis registradas por año. Computación e IA muestra el mayor crecimiento sostenido.</p>
+              <div class="scatter" id="scatter1">
+                <div class="sdot" style="left:5%;bottom:10%;background:var(--node-a)"></div>
+                <div class="sdot" style="left:13%;bottom:14%;background:var(--node-a)"></div>
+                <div class="sdot" style="left:22%;bottom:19%;background:var(--node-a)"></div>
+                <div class="sdot" style="left:31%;bottom:28%;background:var(--node-a)"></div>
+                <div class="sdot" style="left:41%;bottom:38%;background:var(--node-a)"></div>
+                <div class="sdot" style="left:51%;bottom:50%;background:var(--node-a)"></div>
+                <div class="sdot" style="left:61%;bottom:64%;background:var(--node-a)"></div>
+                <div class="sdot" style="left:71%;bottom:52%;background:var(--node-a)"></div>
+                <div class="sdot" style="left:81%;bottom:72%;background:var(--node-a)"></div>
+                <div class="sdot" style="left:91%;bottom:82%;background:var(--node-a)"></div>
+                <div class="sdot" style="left:5%;bottom:40%;background:var(--node-b);opacity:.5"></div>
+                <div class="sdot" style="left:25%;bottom:42%;background:var(--node-b);opacity:.5"></div>
+                <div class="sdot" style="left:50%;bottom:44%;background:var(--node-b);opacity:.5"></div>
+                <div class="sdot" style="left:75%;bottom:43%;background:var(--node-b);opacity:.5"></div>
+                <div class="sdot" style="left:91%;bottom:42%;background:var(--node-b);opacity:.5"></div>
+              </div>
+              <div style="display:flex;gap:14px;margin-top:8px;">
+                <span style="display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--muted)"><span style="width:8px;height:8px;border-radius:50%;background:var(--node-a);display:inline-block"></span>Computación</span>
+                <span style="display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--muted)"><span style="width:8px;height:8px;border-radius:50%;background:var(--node-b);display:inline-block"></span>Medicina</span>
+              </div>
+            </div>
+
+            <div class="chart-cell">
+              <div class="chart-eyebrow">Ranking</div>
+              <h3>Clusters con mayor producción</h3>
+              <p>Total de tesis por macrodominio acumulado al cierre de 2025.</p>
+              <div class="bar-chart">
+                <div class="bar-col">
+                  <div class="bar-fill" style="height:92%;background:var(--node-b)"></div>
+                  <div class="bar-lbl">Ingeniería</div>
+                </div>
+                <div class="bar-col">
+                  <div class="bar-fill" style="height:83%;background:var(--node-b);opacity:.75"></div>
+                  <div class="bar-lbl">Medicina</div>
+                </div>
+                <div class="bar-col">
+                  <div class="bar-fill" style="height:74%;background:var(--node-b);opacity:.6"></div>
+                  <div class="bar-lbl">Cs. Sociales</div>
+                </div>
+                <div class="bar-col">
+                  <div class="bar-fill" style="height:62%;background:var(--node-b);opacity:.5"></div>
+                  <div class="bar-lbl">Humanidades</div>
+                </div>
+                <div class="bar-col">
+                  <div class="bar-fill" style="height:51%;background:var(--node-a)"></div>
+                  <div class="bar-lbl">Computación</div>
+                </div>
+                <div class="bar-col">
+                  <div class="bar-fill" style="height:43%;background:var(--node-b);opacity:.4"></div>
+                  <div class="bar-lbl">Derecho</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="chart-cell">
+              <div class="chart-eyebrow">Distribución</div>
+              <h3>Nivel académico por área</h3>
+              <p>Proporción de licenciatura, maestría y doctorado por macrodominio.</p>
+              <div class="dist-rings">
+                <div style="flex:1;">
+                  <div style="font-size:12px;color:var(--muted);margin-bottom:8px;">Ingeniería</div>
+                  <div style="display:flex;gap:3px;height:16px;border-radius:3px;overflow:hidden;">
+                    <div style="flex:5;background:var(--accent);opacity:.9"></div>
+                    <div style="flex:3;background:var(--accent);opacity:.55"></div>
+                    <div style="flex:2;background:var(--accent);opacity:.3"></div>
+                  </div>
+                  <div style="display:flex;gap:3px;margin-top:4px;font-family:var(--mono);font-size:10px;color:var(--muted-2);">
+                    <span style="flex:5">Lic 50%</span><span style="flex:3">Mtra 30%</span><span style="flex:2">Doc 20%</span>
+                  </div>
+                </div>
+                <div style="flex:1;">
+                  <div style="font-size:12px;color:var(--muted);margin-bottom:8px;">Computación</div>
+                  <div style="display:flex;gap:3px;height:16px;border-radius:3px;overflow:hidden;">
+                    <div style="flex:4;background:var(--node-a);opacity:.9"></div>
+                    <div style="flex:4;background:var(--node-a);opacity:.55"></div>
+                    <div style="flex:2;background:var(--node-a);opacity:.3"></div>
+                  </div>
+                  <div style="display:flex;gap:3px;margin-top:4px;font-family:var(--mono);font-size:10px;color:var(--muted-2);">
+                    <span style="flex:4">Lic 40%</span><span style="flex:4">Mtra 40%</span><span style="flex:2">Doc 20%</span>
+                  </div>
+                </div>
+                <div style="flex:1;">
+                  <div style="font-size:12px;color:var(--muted);margin-bottom:8px;">Humanidades</div>
+                  <div style="display:flex;gap:3px;height:16px;border-radius:3px;overflow:hidden;">
+                    <div style="flex:6;background:var(--node-c);opacity:.9"></div>
+                    <div style="flex:2;background:var(--node-c);opacity:.55"></div>
+                    <div style="flex:2;background:var(--node-c);opacity:.3"></div>
+                  </div>
+                  <div style="display:flex;gap:3px;margin-top:4px;font-family:var(--mono);font-size:10px;color:var(--muted-2);">
+                    <span style="flex:6">Lic 60%</span><span style="flex:2">Mtra 20%</span><span style="flex:2">Doc 20%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="chart-cell">
+              <div class="chart-eyebrow">Red</div>
+              <h3>Asesores interdisciplinarios</h3>
+              <p>Asesores que han dirigido tesis en más de un macrodominio. Tamaño proporcional al número de tesis.</p>
+              <div style="position:relative;height:120px;margin-top:10px;" id="netChart">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- LABORATORIO -->
+    <section id="lab" class="view">
+      <div class="three-col" style="width:100%;height:100%;">
+
+        <aside class="sidebar">
+          <div class="sidebar-head">
+            <div class="sidebar-eyebrow">Laboratorio</div>
+            <h2>Analiza tu tesis</h2>
+            <p>Entrada breve; análisis estructurado con embeddings, clusters, bibliografía y asesores.</p>
+          </div>
+
+          <div class="sidebar-section">
+            <label class="field">
+              <span class="field-label">Título o idea tentativa</span>
+              <input value="Modelos de lenguaje en grafos de conocimiento académico"/>
+            </label>
+            <label class="field">
+              <span class="field-label">Palabras clave</span>
+              <input value="NLP, grafos, embeddings, UNAM, semántica"/>
+            </label>
+            <label class="field">
+              <span class="field-label">Objetivos</span>
+              <textarea>Demostrar que los embeddings semánticos mejoran la navegación de repositorios de tesis respecto a la búsqueda por palabras clave.</textarea>
+            </label>
+            <label class="field">
+              <span class="field-label">Programa y nivel</span>
+              <select>
+                <option>Ciencia de Datos · Maestría</option>
+                <option>Ingeniería en Computación · Maestría</option>
+                <option>Lingüística · Doctorado</option>
+                <option>Otro</option>
+              </select>
+            </label>
+            <button class="primary-btn">Ejecutar análisis</button>
+          </div>
+
+          <div class="sidebar-section" style="font-size:12.5px;color:var(--muted);line-height:1.6;">
+            El análisis usa embeddings para encontrar tesis cercanas, luego IA para interpretar el núcleo conceptual, generar preguntas y sugerir bibliografía. Los datos de asesores y clusters provienen de cálculos locales sin IA.
+          </div>
+        </aside>
+
+        <div class="lab-output">
+
+          <div class="output-step">
+            <div class="step-header">
+              <h3>Interpretación conceptual</h3>
+              <span class="step-badge">IA · síntesis</span>
+            </div>
+            <div class="step-body">
+              <p>Tu proyecto se ubica en la intersección entre <strong>infraestructura semántica</strong>, recuperación de información académica y cartografía del conocimiento. El eje central es la pregunta de si la similitud vectorial puede revelar relaciones entre tesis que las clasificaciones institucionales no capturan.</p>
+              <div class="bloom-bars" style="margin-top:14px;">
+                <div class="bloom-row-item">
+                  <span class="bloom-label">Analizar</span>
+                  <div class="bloom-track"><div class="bloom-fill" style="width:88%"></div></div>
+                  <span class="bloom-pct">88%</span>
+                </div>
+                <div class="bloom-row-item">
+                  <span class="bloom-label">Evaluar</span>
+                  <div class="bloom-track"><div class="bloom-fill" style="width:72%"></div></div>
+                  <span class="bloom-pct">72%</span>
+                </div>
+                <div class="bloom-row-item">
+                  <span class="bloom-label">Crear</span>
+                  <div class="bloom-track"><div class="bloom-fill" style="width:58%"></div></div>
+                  <span class="bloom-pct">58%</span>
+                </div>
+                <div class="bloom-row-item">
+                  <span class="bloom-label">Aplicar</span>
+                  <div class="bloom-track"><div class="bloom-fill" style="width:80%;background:var(--teal)"></div></div>
+                  <span class="bloom-pct">80%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="output-step">
+            <div class="step-header">
+              <h3>Tesis semánticamente cercanas</h3>
+              <span class="step-badge">Embeddings + rerank IA</span>
+            </div>
+            <div class="step-body">
+              <div class="thesis-row">
+                <span class="thesis-rank">01</span>
+                <div class="thesis-info">
+                  <div class="thesis-title">Grafos de conocimiento para recuperación de información en corpus universitarios</div>
+                  <div class="thesis-meta">López, C. · UNAM · 2023 · Ingeniería en Computación</div>
+                </div>
+                <span class="thesis-score">94%</span>
+              </div>
+              <div class="thesis-row">
+                <span class="thesis-rank">02</span>
+                <div class="thesis-info">
+                  <div class="thesis-title">Embeddings multilingües para búsqueda semántica en repositorios académicos</div>
+                  <div class="thesis-meta">Ramírez, J. · UNAM · 2022 · Ciencia de Datos</div>
+                </div>
+                <span class="thesis-score">89%</span>
+              </div>
+              <div class="thesis-row">
+                <span class="thesis-rank">03</span>
+                <div class="thesis-info">
+                  <div class="thesis-title">Comparativa de modelos transformer para clasificación de texto científico</div>
+                  <div class="thesis-meta">Mendoza, A. · UNAM · 2024 · Lingüística Computacional</div>
+                </div>
+                <span class="thesis-score">83%</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="output-step">
+            <div class="step-header">
+              <h3>Clusters y territorios cercanos</h3>
+              <span class="step-badge">Solo embeddings · sin IA</span>
+            </div>
+            <div class="step-body">
+              <div>
+                <span class="cluster-chip"><span class="cdot" style="background:var(--node-a)"></span>Redes y Sistemas de Información</span>
+                <span class="cluster-chip"><span class="cdot" style="background:var(--node-a)"></span>Computación e IA</span>
+                <span class="cluster-chip"><span class="cdot" style="background:var(--node-c)"></span>Lingüística Computacional</span>
+                <span class="cluster-chip"><span class="cdot" style="background:var(--node-b)"></span>Educación Superior</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="output-step">
+            <div class="step-header">
+              <h3>Preguntas de investigación sugeridas</h3>
+              <span class="step-badge">IA modular</span>
+            </div>
+            <div class="step-body">
+              <div class="question-output-list">
+                <div class="question-output-item">¿Qué arquitectura de embedding preserva mejor las relaciones disciplinares en corpus de tesis en español?</div>
+                <div class="question-output-item">¿Cómo varía la precisión de recuperación semántica según el tamaño del corpus de entrenamiento?</div>
+                <div class="question-output-item">¿Existe correspondencia entre los clusters semánticos y las clasificaciones institucionales de la UNAM?</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="output-step">
+            <div class="step-header">
+              <h3>Bibliografía sugerida</h3>
+              <span class="step-badge">bibliografia_json + IA</span>
+            </div>
+            <div class="step-body">
+              <p>Selección razonada desde las tesis más cercanas y sus referencias extraídas previamente del repositorio institucional.</p>
+            </div>
+          </div>
+
+          <div class="output-step">
+            <div class="step-header">
+              <h3>Asesores relacionados</h3>
+              <span class="step-badge">Sin IA · datos institucionales</span>
+            </div>
+            <div class="step-body">
+              <div class="advisor-row">
+                <div class="advisor-avatar">AR</div>
+                <div>
+                  <div class="advisor-name">Dr. Alejandro Ruiz</div>
+                  <div class="advisor-dept">Inst. de Investigaciones en Matemáticas Aplicadas · IIMAS</div>
+                </div>
+                <div class="advisor-tesis">42 tesis</div>
+              </div>
+              <div class="advisor-row">
+                <div class="advisor-avatar">ML</div>
+                <div>
+                  <div class="advisor-name">Dra. María López</div>
+                  <div class="advisor-dept">Facultad de Ingeniería · Sistemas</div>
+                </div>
+                <div class="advisor-tesis">31 tesis</div>
+              </div>
+              <div class="advisor-row">
+                <div class="advisor-avatar">JV</div>
+                <div>
+                  <div class="advisor-name">Dr. Jorge Vega</div>
+                  <div class="advisor-dept">Centro de Ciencias de la Complejidad · C3</div>
+                </div>
+                <div class="advisor-tesis">28 tesis</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="output-step">
+            <div class="step-header">
+              <h3>Exportar</h3>
+              <span class="step-badge">Formatos disponibles</span>
+            </div>
+            <div class="step-body">
+              <div class="export-row">
+                <button class="export-btn">Reporte PDF</button>
+                <button class="export-btn">APA</button>
+                <button class="export-btn">Chicago</button>
+                <button class="export-btn">BibTeX</button>
+                <button class="export-btn">JSON</button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <aside class="detail">
+          <div class="detail-head">
+            <div class="sidebar-eyebrow">Resumen ejecutivo</div>
+            <h3>Tu tesis en el mapa</h3>
+            <p>Posición en el atlas y métricas clave del análisis.</p>
+          </div>
+
+          <div class="detail-section">
+            <span class="section-label">Posición en el atlas</span>
+            <div class="meta-row">
+              <span class="meta-key">Cluster principal</span>
+              <span class="meta-val">Computación</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-key">Cluster secundario</span>
+              <span class="meta-val">Lingüística Comp.</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-key">Tesis en el mismo cluster</span>
+              <span class="meta-val">41,280</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-key">Tesis muy similares</span>
+              <span class="meta-val">12</span>
+            </div>
+          </div>
+
+          <div class="detail-section">
+            <span class="section-label">Marco Bloom</span>
+            <div class="meta-row">
+              <span class="meta-key">Nivel dominante</span>
+              <span class="meta-val">Analizar</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-key">Nivel secundario</span>
+              <span class="meta-val">Aplicar</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-key">Sugerencia</span>
+              <span class="meta-val" style="font-size:12px;color:var(--amber);">Reforzar Evaluar</span>
+            </div>
+          </div>
+
+          <div class="detail-section">
+            <button class="primary-btn" onclick="showView('atlas')">Ver en el Atlas →</button>
+          </div>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <div class="footer-bar">
+    <span>NODO UNAM · Proyecto de cartografía académica · <a href="#">Acerca del proyecto</a> · <a href="#">Metodología</a></span>
+    <span>Datos: Repositorio Institucional UNAM · <a href="#">Licencia CC BY</a></span>
+  </div>
+
+</div>
+
+<script>
+  const navBtns = document.querySelectorAll('.nav-btn');
+  const views   = document.querySelectorAll('.view');
+  const breadcrumb = document.getElementById('breadcrumb');
+
+  const labels = { home:'Inicio', atlas:'Atlas', taller:'Taller', lab:'Laboratorio' };
+
+  function showView(id) {
+    views.forEach(v => v.classList.toggle('active', v.id === id));
+    navBtns.forEach(b => b.classList.toggle('active', b.dataset.view === id));
+    if (id === 'home') {
+      breadcrumb.innerHTML = '<span>Inicio</span>';
+    } else {
+      breadcrumb.innerHTML = `<a onclick="showView('home')">Inicio</a><span>›</span><span>${labels[id]}</span>`;
+    }
+  }
+
+  navBtns.forEach(b => b.addEventListener('click', () => showView(b.dataset.view)));
+  document.querySelectorAll('[data-jump]').forEach(c => {
+    c.addEventListener('click', () => showView(c.dataset.jump));
+  });
+
+  /* ── ATLAS GRAPH ─────────────────────────────────────── */
+  const g = document.getElementById('atlasGraph');
+
+  function pct(v) { return v + '%'; }
+
+  function mkEdge(x1,y1,x2,y2) {
+    const dx = x2-x1, dy = (y2-y1)*.65;
+    const len = Math.sqrt(dx*dx+dy*dy);
+    const angle = Math.atan2(dy,dx)*180/Math.PI;
+    const e = document.createElement('div');
+    e.className = 'edge';
+    e.style.cssText = `width:${len}%;left:${x1}%;top:${y1}%;transform:rotate(${angle}deg)`;
+    g.appendChild(e);
+  }
+
+  const nodesData = [
+    [50,48,38,'var(--node-a)','TESIS\nID: 567123', true],
+    [33,35,22,'var(--node-a)','Inteligencia Artificial', false],
+    [64,32,20,'var(--rule-dark)','Derecho Constitucional', false],
+    [70,50,18,'var(--rule-dark)','Clustering Temático', false],
+    [41,60,22,'var(--rule-dark)','Literatura Mexicana', false],
+    [57,65,19,'var(--rule-dark)','Salud Pública', false],
+    [31,53,16,'var(--node-c)','Educación', false],
+    [75,30,14,'var(--rule-dark)','Física', false],
+    [25,40,11,'var(--rule-dark)','', false],
+    [80,58,12,'var(--rule-dark)','', false],
+  ];
+
+  nodesData.slice(1).forEach(d => mkEdge(50,48,d[0],d[1]));
+  mkEdge(33,35,41,60); mkEdge(64,32,75,30); mkEdge(70,50,57,65);
+
+  for (let i=0;i<80;i++) {
+    const a = (i/80)*Math.PI*2;
+    const r = 20 + Math.sin(i*.8)*8;
+    const x = 50 + Math.cos(a)*r;
+    const y = 50 + Math.sin(a)*r*.6;
+    const n = document.createElement('div');
+    n.className = 'gnode';
+    const s = i%9===0 ? 10 : i%5===0 ? 7 : 5;
+    n.style.cssText = `width:${s}px;height:${s}px;left:${x}%;top:${y}%;background:var(--rule-dark);opacity:.6`;
+    g.appendChild(n);
+    if(i%5===0) mkEdge(50,48,x,y);
+  }
+
+  nodesData.forEach(([x,y,size,color,label,selected]) => {
+    const n = document.createElement('div');
+    n.className = 'gnode' + (selected ? ' selected' : '');
+    n.style.cssText = `width:${size}px;height:${size}px;left:${x}%;top:${y}%;background:${color}`;
+    g.appendChild(n);
+    if (label && !label.includes('\n') && label.length > 0) {
+      const l = document.createElement('div');
+      l.className = 'cluster-label';
+      l.textContent = label;
+      l.style.cssText = `left:${x}%;top:${(y - 7)}%`;
+      g.appendChild(l);
+    }
+  });
+
+  /* ── NETWORK MINI ───────────────────────────────── */
+  const net = document.getElementById('netChart');
+  if (net) {
+    const netNodes = [
+      [20,50,16,'var(--node-a)'], [50,20,13,'var(--node-b)'],
+      [80,50,18,'var(--node-c)'], [50,80,12,'var(--node-d)'],
+      [50,50,10,'var(--rule-dark)'],
+    ];
+    netNodes.forEach(([x,y,s,c],i) => {
+      if(i>0) {
+        const prev = netNodes[i-1];
+        const e = document.createElement('div');
+        e.className = 'edge';
+        const dx = x-prev[0], dy = (y-prev[1]);
+        const len = Math.sqrt(dx*dx+dy*dy);
+        const angle = Math.atan2(dy,dx)*180/Math.PI;
+        e.style.cssText = `width:${len}%;left:${prev[0]}%;top:${prev[1]}%;transform:rotate(${angle}deg)`;
+        net.appendChild(e);
+      }
+      const n = document.createElement('div');
+      n.className = 'gnode';
+      n.style.cssText = `width:${s}px;height:${s}px;left:${x}%;top:${y}%;background:${c}`;
+      net.appendChild(n);
+    });
+  }
+
+  /* ── QUESTION LIST INTERACTION ──────────────────── */
+  document.querySelectorAll('.question-list').forEach(list => {
+    list.querySelectorAll('.question-item').forEach(item => {
+      item.addEventListener('click', () => {
+        list.querySelectorAll('.question-item').forEach(i => i.classList.remove('active'));
+        item.classList.add('active');
+      });
+    });
+  });
+
+  document.querySelectorAll('.layer-item').forEach(item => {
+    item.addEventListener('click', () => {
+      document.querySelectorAll('.layer-item').forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+    });
+  });
+</script>
+</body>
+</html>

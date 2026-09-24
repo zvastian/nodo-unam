@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>MiTesis UNAM | Exploración de la Producción Científica</title>
+    <!-- Google Fonts: Para una tipografía limpia y artística -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS via CDN (para agilizar el maquetado) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Estilos personalizados para detalles únicos -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #fdfbf7; /* Fondo cálido tipo museo */
+            scroll-behavior: smooth;
+        }
+        h1, h2, h3, .serif {
+            font-family: 'Playfair Display', serif;
+        }
+        /* Decoración de "museo": bordes sutiles y líneas de tiempo */
+        .museum-border {
+            border-bottom: 1px solid rgba(0,0,0,0.08);
+        }
+        .card-hover {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -12px rgba(0, 0, 0, 0.1);
+        }
+        /* Efecto de cristal para elementos flotantes sutiles */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 2rem;
+        }
+        .hero-overlay {
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.1) 100%);
+        }
+        .landing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+        /* Inspiración curaduría: cita flotante */
+        .quote-museum {
+            font-style: italic;
+            border-left: 4px solid #8B5A2B;
+            padding-left: 1.5rem;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Navegación ligera tipo museo minimalista -->
+    <header class="fixed top-0 left-0 w-full z-50 py-5 px-6 md:px-12 bg-white/80 backdrop-blur-md border-b border-gray-100 transition-all">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <span class="text-2xl font-light text-stone-800 serif">Mi</span>
+                <span class="text-2xl font-semibold text-stone-800 serif">Tesis UNAM</span>
+            </div>
+            <nav class="hidden md:flex space-x-8 text-stone-600 text-sm font-medium">
+                <a href="#" class="hover:text-stone-900 transition">Inicio</a>
+                <a href="#ranking" class="hover:text-stone-900 transition">Impacto Científico</a>
+                <a href="#temas" class="hover:text-stone-900 transition">Colecciones</a>
+                <a href="#" class="hover:text-stone-900 transition">Acerca del Proyecto</a>
+            </nav>
+            <button class="bg-stone-900 text-white px-5 py-2 rounded-full text-sm font-medium hover:bg-stone-700 transition shadow-md">
+                Explorar tesis
+            </button>
+        </div>
+    </header>
+
+    <main>
+        <!-- Sección Héroe: Imagen Generada por IA + Texto curatorial -->
+        <section class="relative min-h-[85vh] flex items-center justify-center overflow-hidden">
+            <!-- Contenedor de la imagen de fondo (IA) -->
+            <div class="absolute inset-0 z-0">
+                <!-- SVG decorativo o imagen: se usará un placeholder de alta calidad con diseño de biblioteca central, puedes reemplazar la URL -->
+                <!-- Esta URL es de ejemplo de una ilustración artística de biblioteca, ideal para el concepto "museo" -->
+                <img src="i.png" 
+                     alt="Ilustración artística de la Biblioteca Central de la UNAM, generada por IA, estilo grabado contemporáneo" 
+                     class="w-full h-full object-cover brightness-90">
+                <div class="absolute inset-0 hero-overlay"></div>
+            </div>
+            
+            <!-- Contenido textual curatorial -->
+            <div class="relative z-10 max-w-5xl mx-auto px-6 text-center text-white">
+                <div class="inline-block px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm text-xs font-medium tracking-wider mb-6 border border-white/30">
+                    ARCHIVO · ATLAS · LABORATORIO DE IDEAS
+                </div>
+                <h1 class="text-5xl md:text-7xl lg:text-8xl font-bold leading-tight tracking-tight serif drop-shadow-lg">
+                    Descubre,<br> <span class="italic">explora</span>.
+                </h1>
+                <p class="text-lg md:text-2xl mt-6 max-w-2xl mx-auto text-white/90 font-light">
+                    Un repositorio de +600,000 tesis donde la ciencia mexicana se convierte patio de juegos.
+                </p>
+                <div class="mt-10 flex flex-wrap justify-center gap-4">
+                    <a href="#ranking" class="bg-white text-stone-900 hover:bg-stone-100 px-8 py-3 rounded-full font-medium transition shadow-lg">Descubrir tendencias →</a>
+                    <a href="#temas" class="bg-transparent border border-white text-white hover:bg-white/10 px-8 py-3 rounded-full font-medium transition backdrop-blur-sm">Explorar por temas</a>
+                </div>
+            </div>
+            <!-- Scroll down cue (ornamento minimalista) -->
+            <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10 animate-bounce">
+                <svg class="w-6 h-6 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
+            </div>
+        </section>
+
+        <!-- Sección Ranking UNAM: “UNAM LIDERA LA PRODUCCIÓN CIENTÍFICA MEXICANA” con sentimiento de orgullo -->
+        <section id="ranking" class="py-24 px-6 bg-white">
+            <div class="max-w-7xl mx-auto">
+                <!-- Encabezado curatorial -->
+                <div class="text-center mb-16">
+                    <span class="text-amber-700 text-sm font-semibold tracking-widest">RANKING 2025 · AD SCIENTIFIC INDEX</span>
+                    <h2 class="text-4xl md:text-5xl font-bold text-stone-900 mt-3 serif">Orgullo UNAM: <br>Líder indiscutible en producción científica</h2>
+                    <div class="w-24 h-0.5 bg-amber-600 mx-auto mt-6"></div>
+                    <p class="text-stone-600 max-w-2xl mx-auto mt-6 text-lg">
+                        La Universidad Nacional Autónoma de México se posiciona como la institución con mayor impacto e influencia científica del país, según el AD Scientific Index 2025, una de las métricas globales más rigurosas basada en Google Scholar.
+                    </p>
+                </div>
+
+                <!-- Grid de Top 3 / 5 universidades destacadas (diseño tipo pedestal) -->
+                <div class="flex flex-wrap justify-center items-end gap-8 lg:gap-12 mb-20">
+                    <!-- Puesto 1: UNAM -->
+                    <div class="flex flex-col items-center text-center w-64 transform scale-105">
+                        <div class="relative">
+                            <div class="w-32 h-32 rounded-full bg-amber-100 flex items-center justify-center shadow-xl border-4 border-amber-500">
+                                <span class="text-4xl font-bold text-amber-800">1</span>
+                            </div>
+                            <div class="absolute -top-3 -right-2 bg-amber-500 text-white text-xs font-bold px-2 py-1 rounded-full">#90 Global</div>
+                        </div>
+                        <h3 class="text-2xl font-bold mt-6 serif">UNAM</h3>
+                        <p class="text-stone-500 text-sm">Universidad Nacional Autónoma de México</p>
+                        <div class="mt-4 bg-stone-50 px-4 py-2 rounded-full text-sm font-medium text-stone-700">📊 Producción científica más alta del país</div>
+                    </div>
+                    <!-- Puesto 2: Tec de Monterrey -->
+                    <div class="flex flex-col items-center text-center w-64">
+                        <div class="w-24 h-24 rounded-full bg-stone-100 flex items-center justify-center border border-stone-200 shadow-md">
+                            <span class="text-2xl font-bold text-stone-700">2</span>
+                        </div>
+                        <h3 class="text-xl font-bold mt-4">Tecnológico de Monterrey</h3>
+                        <p class="text-stone-500 text-sm">ITESM · Puesto Global #798</p>
+                    </div>
+                    <!-- Puesto 3: UAM -->
+                    <div class="flex flex-col items-center text-center w-64">
+                        <div class="w-24 h-24 rounded-full bg-stone-100 flex items-center justify-center border border-stone-200 shadow-md">
+                            <span class="text-2xl font-bold text-stone-700">3</span>
+                        </div>
+                        <h3 class="text-xl font-bold mt-4">UAM</h3>
+                        <p class="text-stone-500 text-sm">Universidad Autónoma Metropolitana · #836 Global</p>
+                        <div class="mt-2 text-xs text-green-600 font-medium">↑ 2a pública nacional</div>
+                    </div>
+                    <!-- Puesto 4: IPN y Puesto 5: UdeG en una fila adicional más compacta -->
+                </div>
+                <div class="flex flex-wrap justify-center gap-8 mt-6">
+                    <div class="flex items-center space-x-3 bg-stone-50 px-6 py-3 rounded-full">
+                        <span class="font-bold text-stone-800">4</span>
+                        <span class="font-medium">Instituto Politécnico Nacional (IPN)</span>
+                        <span class="text-stone-500 text-sm">#862 Global</span>
+                    </div>
+                    <div class="flex items-center space-x-3 bg-stone-50 px-6 py-3 rounded-full">
+                        <span class="font-bold text-stone-800">5</span>
+                        <span class="font-medium">Universidad de Guadalajara (UdeG)</span>
+                        <span class="text-stone-500 text-sm">#951 Global</span>
+                    </div>
+                    <!-- Un pequeño extra: nota a pie que refuerza el orgullo -->
+                </div>
+                <div class="text-center mt-12 text-stone-500 text-sm max-w-xl mx-auto border-t pt-8 border-stone-100">
+                    <span>📈 Datos basados en el AD Scientific Index 2025 (actualización mayo 2025) — Ranking que evalúa productividad, citas e impacto de investigadores en Google Scholar. Fuente: <a href="https://cronicamaya.com/cronica-mexico/ranking-ad-scientific-index-2025-unam-lidera-la-lista-de-universidades-mexicanas-mas-influyentes-en-produccion-cientifica/" target="_blank" class="text-amber-700 underline">Crónica Maya</a> · AD Scientific Index 2025</span>
+                </div>
+
+                <!-- Cita emotiva para generar orgullo -->
+                <div class="quote-museum max-w-2xl mx-auto mt-20 bg-stone-50 p-8 rounded-3xl">
+                    <p class="text-stone-700 text-lg">"La UNAM no solo almacena conocimiento: lo genera al ritmo más alto de México. Cada tesis en este museo forma parte de un ecosistema que hoy lidera la ciencia nacional."</p>
+                    <p class="text-stone-400 text-sm mt-3">— Observatorio de Tesis / AD Scientific Index 2025</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sección Galería Temática (Cards estilo museo: temas como IA, COVID, Literatura Mexicana) -->
+        <section id="temas" class="py-24 px-6 bg-stone-50">
+            <div class="max-w-7xl mx-auto">
+                <div class="text-center mb-16">
+                    <span class="text-amber-700 text-sm font-semibold tracking-widest">EXPLORACIÓN POR COLECCIONES</span>
+                    <h2 class="text-4xl md:text-5xl font-bold text-stone-900 mt-2 serif">Galería de Ideas Vivas</h2>
+                    <p class="text-stone-600 max-w-2xl mx-auto mt-4">Selecciona un tema y sumérgete en un universo de tesis, tendencias y trayectorias académicas.</p>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Card 1: Inteligencia Artificial -->
+                    <div class="bg-white rounded-2xl overflow-hidden shadow-md card-hover border border-stone-100 transition-all cursor-pointer group">
+                        <div class="h-48 bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center text-white text-6xl">🧠</div>
+                        <div class="p-6">
+                            <h3 class="text-2xl font-bold serif">Inteligencia Artificial</h3>
+                            <p class="text-stone-500 text-sm mt-1">+180 tesis · tendencia al alza 2020-2025</p>
+                            <p class="text-stone-700 mt-3">Desde aprendizaje automático hasta ética algorítmica: el futuro se escribe en estas páginas.</p>
+                            <div class="mt-4 flex items-center text-amber-600 font-medium text-sm group-hover:underline">Explorar colección →</div>
+                        </div>
+                    </div>
+
+                    <!-- Card 2: COVID-19 / Pandemias -->
+                    <div class="bg-white rounded-2xl overflow-hidden shadow-md card-hover border border-stone-100 transition-all cursor-pointer">
+                        <div class="h-48 bg-gradient-to-br from-rose-500 to-orange-500 flex items-center justify-center text-white text-6xl">🦠</div>
+                        <div class="p-6">
+                            <h3 class="text-2xl font-bold serif">Salud Global & Pandemias</h3>
+                            <p class="text-stone-500 text-sm mt-1">+320 tesis · impacto en epidemiología</p>
+                            <p class="text-stone-700 mt-3">Análisis de COVID-19, vacunas, salud pública y preparación ante futuras crisis.</p>
+                            <div class="mt-4 flex items-center text-amber-600 font-medium text-sm group-hover:underline">Explorar colección →</div>
+                        </div>
+                    </div>
+
+                    <!-- Card 3: Literatura Mexicana -->
+                    <div class="bg-white rounded-2xl overflow-hidden shadow-md card-hover border border-stone-100 transition-all cursor-pointer">
+                        <div class="h-48 bg-gradient-to-br from-amber-700 to-yellow-700 flex items-center justify-center text-white text-6xl">📖</div>
+                        <div class="p-6">
+                            <h3 class="text-2xl font-bold serif">Literatura Mexicana</h3>
+                            <p class="text-stone-500 text-sm mt-1">+450 tesis · narrativa y poesía contemporánea</p>
+                            <p class="text-stone-700 mt-3">De la Colonia al Siglo XXI: análisis de obras, autores y movimientos literarios nacionales.</p>
+                            <div class="mt-4 flex items-center text-amber-600 font-medium text-sm group-hover:underline">Explorar colección →</div>
+                        </div>
+                    </div>
+
+                    <!-- Card 4: Economía y Comercio Exterior (con enfoque China / Asia) -->
+                    <div class="bg-white rounded-2xl overflow-hidden shadow-md card-hover border border-stone-100 transition-all cursor-pointer">
+                        <div class="h-48 bg-gradient-to-br from-emerald-600 to-teal-600 flex items-center justify-center text-white text-6xl">🌏</div>
+                        <div class="p-6">
+                            <h3 class="text-2xl font-bold serif">Comercio & China</h3>
+                            <p class="text-stone-500 text-sm mt-1">+72 tesis · relación México-Asia</p>
+                            <p class="text-stone-700 mt-3">Tendencias económicas, cadenas de suministro y el fenómeno China en la investigación mexicana.</p>
+                            <div class="mt-4 flex items-center text-amber-600 font-medium text-sm group-hover:underline">Explorar colección →</div>
+                        </div>
+                    </div>
+
+                    <!-- Card 5: Energía Renovable -->
+                    <div class="bg-white rounded-2xl overflow-hidden shadow-md card-hover border border-stone-100 transition-all cursor-pointer">
+                        <div class="h-48 bg-gradient-to-br from-lime-600 to-green-700 flex items-center justify-center text-white text-6xl">☀️</div>
+                        <div class="p-6">
+                            <h3 class="text-2xl font-bold serif">Energía Renovable</h3>
+                            <p class="text-stone-500 text-sm mt-1">+290 tesis · sostenibilidad y futuro</p>
+                            <p class="text-stone-700 mt-3">Solar, eólica, biocombustibles. El conocimiento para la transición energética de México.</p>
+                            <div class="mt-4 flex items-center text-amber-600 font-medium text-sm group-hover:underline">Explorar colección →</div>
+                        </div>
+                    </div>
+
+                    <!-- Card 6: Innovación Educativa -->
+                    <div class="bg-white rounded-2xl overflow-hidden shadow-md card-hover border border-stone-100 transition-all cursor-pointer">
+                        <div class="h-48 bg-gradient-to-br from-blue-600 to-cyan-600 flex items-center justify-center text-white text-6xl">🎓</div>
+                        <div class="p-6">
+                            <h3 class="text-2xl font-bold serif">Pedagogía y Tecnología</h3>
+                            <p class="text-stone-500 text-sm mt-1">+600 tesis · educación digital</p>
+                            <p class="text-stone-700 mt-3">Modelos educativos, inclusión digital y el futuro de la enseñanza universitaria.</p>
+                            <div class="mt-4 flex items-center text-amber-600 font-medium text-sm group-hover:underline">Explorar colección →</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pequeño call to action para sugerir la inmersión -->
+                <div class="text-center mt-16">
+                    <p class="text-stone-500">¿Tienes un tema en mente? Próximamente: búsqueda semántica libre y generación de tendencias por IA.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer tipo museo: datos de contexto y referencias -->
+        <footer class="bg-white border-t border-stone-100 py-12 px-6">
+            <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center text-stone-500 text-sm">
+                <div class="flex space-x-6 mb-4 md:mb-0">
+                    <span>MiTesis UNAM</span>
+                    <span>·</span>
+                    <span>Exploratorio interactivo</span>
+                    <span>·</span>
+                    <span>600k+ registros</span>
+                </div>
+                <div class="flex space-x-5">
+                    <a href="#" class="hover:text-stone-900">Acerca</a>
+                    <a href="#" class="hover:text-stone-900">API / Datos abiertos</a>
+                    <a href="#" class="hover:text-stone-900">Inspiración Gapminder + Harvard CURIOSity</a>
+                </div>
+            </div>
+            <div class="text-center text-stone-400 text-xs mt-6">
+                Basado en TESIUNAM · Diseño conceptual para experiencia tipo “Atlas de Conocimiento”.
+            </div>
+        </footer>
+    </main>
+
+    <!-- Script para futura interactividad (simulación de clic en cards) -->
+    <script>
+        // Este script es solo placeholder para una futura integración con datos reales.
+        // Al hacer clic en las cards podrían cargarse consultas predefinidas.
+        document.querySelectorAll('.group.cursor-pointer').forEach(card => {
+            card.addEventListener('click', () => {
+                // Por ahora solo envía un mensaje inspiracional en consola.
+                console.log('Abrir galería temática: simulación de búsqueda semántica predefinida');
+                alert('En el prototipo final, aquí se mostrarán las tesis más relevantes sobre este tema, con gráficas de tendencias y recomendación de asesores.');
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1893 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>MiTesis UNAM | Exploración con IA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-3.0.1.min.js" charset="utf-8"></script>
+    <style>
+        :root {
+            --bg: #faf8f4;
+            --bg-warm: #f5f2ec;
+            --bg-deep: #f0ece4;
+            --surface: #ffffff;
+            --text: #1a1a1a;
+            --text-secondary: #5c5c5c;
+            --text-tertiary: #8a8a8a;
+            --text-muted: #a8a29e;
+            --border: #e8e4dc;
+            --border-light: #f0ece4;
+            --unam: #003366;
+            --unam-hover: #004080;
+            --unam-light: #e8eef5;
+            --gold: #c9a227;
+            --gold-light: #f5f0e6;
+            --gold-pale: #faf6ed;
+            --radius-sm: 0.5rem;
+            --radius: 0.875rem;
+            --radius-lg: 1.25rem;
+            --radius-xl: 1.75rem;
+            --shadow-sm: 0 1px 2px rgba(26,26,26,0.04);
+            --shadow: 0 4px 20px rgba(26,26,26,0.06);
+            --shadow-lg: 0 12px 40px rgba(26,26,26,0.08);
+            --shadow-xl: 0 24px 60px rgba(26,26,26,0.1);
+            --bloom-1: #f3e8ff;
+            --bloom-1-text: #581c87;
+            --bloom-2: #e9d5ff;
+            --bloom-2-text: #6b21a8;
+            --bloom-3: #d8b4fe;
+            --bloom-3-text: #7e22ce;
+            --bloom-4: #c084fc;
+            --bloom-4-text: #ffffff;
+            --bloom-5: #a855f7;
+            --bloom-5-text: #ffffff;
+            --bloom-6: #7e22ce;
+            --bloom-6-text: #ffffff;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.55;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        h1, h2, h3, h4, .serif, .display {
+            font-family: 'Cormorant Garamond', serif;
+            font-weight: 500;
+            letter-spacing: -0.02em;
+            line-height: 1.15;
+        }
+        .display { font-weight: 600; }
+        .italic { font-style: italic; font-weight: 400; }
+
+        /* ===== Navegación ===== */
+        .site-header {
+            position: fixed; top: 0; left: 0; width: 100%; z-index: 100;
+            padding: 1rem 2.5rem;
+            background: rgba(250, 248, 244, 0.92);
+            backdrop-filter: blur(16px) saturate(1.2);
+            border-bottom: 1px solid var(--border-light);
+        }
+        .nav-container {
+            max-width: 1280px; margin: 0 auto;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .logo {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.5rem; font-weight: 600;
+            color: var(--text); text-decoration: none; letter-spacing: -0.01em;
+        }
+        .logo span { font-weight: 300; }
+        .nav-links {
+            display: flex; gap: 2.5rem; align-items: center;
+        }
+        .nav-links a {
+            text-decoration: none; color: var(--text-secondary);
+            font-weight: 500; font-size: 0.85rem; letter-spacing: 0.01em;
+            transition: color 0.2s; position: relative;
+        }
+        .nav-links a:hover { color: var(--unam); }
+        .nav-links a::after {
+            content: ''; position: absolute; bottom: -4px; left: 0;
+            width: 0; height: 1.5px; background: var(--unam);
+            transition: width 0.25s ease;
+        }
+        .nav-links a:hover::after { width: 100%; }
+        .explore-btn {
+            background: var(--text); color: var(--bg) !important;
+            padding: 0.5rem 1.25rem; border-radius: 2rem;
+            font-size: 0.8rem; font-weight: 600; letter-spacing: 0.02em;
+            transition: all 0.2s;
+        }
+        .explore-btn:hover { background: var(--unam); }
+        .explore-btn::after { display: none !important; }
+
+        /* ===== Hero ===== */
+        .hero {
+            min-height: 92vh; display: flex; align-items: flex-end;
+            position: relative; margin-top: 3.5rem; padding-bottom: 6rem;
+            background-image: url('i.png'); background-size: cover;
+            background-position: center 25%; overflow: hidden;
+        }
+        .hero::before {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(180deg, rgba(26,26,26,0.1) 0%, rgba(26,26,26,0.5) 60%, rgba(26,26,26,0.75) 100%);
+        }
+        .hero-content {
+            position: relative; z-index: 2;
+            max-width: 1280px; width: 100%; margin: 0 auto;
+            padding: 0 2.5rem; display: grid;
+            grid-template-columns: 1.2fr 0.8fr; gap: 4rem; align-items: end;
+        }
+        .hero-left { padding-bottom: 2rem; }
+        .hero-tag {
+            font-size: 0.7rem; letter-spacing: 3px; text-transform: uppercase;
+            color: rgba(255,255,255,0.7); font-weight: 500;
+            margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem;
+        }
+        .hero-tag::before {
+            content: ''; display: block; width: 32px; height: 1px; background: rgba(255,255,255,0.4);
+        }
+        .hero h1 {
+            font-size: clamp(3rem, 6.5vw, 6rem); font-weight: 600;
+            color: white; line-height: 1.05; margin-bottom: 1.5rem;
+        }
+        .hero h1 .italic { font-weight: 300; }
+        .hero-desc {
+            font-size: 1.1rem; color: rgba(255,255,255,0.8);
+            max-width: 480px; line-height: 1.6; margin-bottom: 2.5rem;
+            font-weight: 400;
+        }
+        .hero-cta { display: flex; gap: 1rem; align-items: center; }
+        .btn-primary {
+            background: white; color: var(--text);
+            padding: 0.8rem 2rem; border-radius: 3rem;
+            text-decoration: none; font-weight: 600; font-size: 0.9rem;
+            border: none; cursor: pointer; font-family: inherit;
+            transition: all 0.25s; letter-spacing: 0.01em;
+        }
+        .btn-primary:hover { background: var(--bg); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.15); }
+        .btn-ghost {
+            background: transparent; color: white;
+            padding: 0.8rem 2rem; border-radius: 3rem;
+            text-decoration: none; font-weight: 500; font-size: 0.9rem;
+            border: 1px solid rgba(255,255,255,0.3);
+            transition: all 0.25s; font-family: inherit; cursor: pointer;
+        }
+        .btn-ghost:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.5); }
+        .hero-right {
+            display: flex; flex-direction: column; align-items: flex-end;
+            gap: 1.5rem; padding-bottom: 2rem;
+        }
+        .hero-stat { text-align: right; color: rgba(255,255,255,0.9); }
+        .hero-stat .number {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 3.5rem; font-weight: 600; line-height: 1;
+            font-style: italic; color: var(--gold);
+        }
+        .hero-stat .label {
+            font-size: 0.75rem; text-transform: uppercase;
+            letter-spacing: 2px; opacity: 0.7; margin-top: 0.25rem;
+        }
+        .scroll-hint {
+            position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%);
+            z-index: 2; display: flex; flex-direction: column; align-items: center;
+            gap: 0.5rem; color: rgba(255,255,255,0.5); font-size: 0.7rem;
+            letter-spacing: 2px; text-transform: uppercase;
+            animation: fadePulse 3s ease-in-out infinite;
+        }
+        @keyframes fadePulse { 0%,100%{opacity:0.4;} 50%{opacity:0.8;} }
+
+        /* ===== Podio ===== */
+        .podium-section {
+            background: var(--surface); padding: 7rem 2.5rem; position: relative;
+        }
+        .podium-section::before {
+            content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+            width: 1px; height: 80px; background: var(--border);
+        }
+        .podium-inner { max-width: 1100px; margin: 0 auto; }
+        .section-eyebrow {
+            font-size: 0.7rem; letter-spacing: 3px; text-transform: uppercase;
+            color: var(--text-tertiary); font-weight: 600; text-align: center;
+            margin-bottom: 1rem;
+        }
+        .section-title { font-size: clamp(2rem, 4vw, 3rem); text-align: center; color: var(--text); margin-bottom: 0.75rem; }
+        .section-desc {
+            text-align: center; color: var(--text-secondary);
+            max-width: 560px; margin: 0 auto 4rem; font-size: 1.05rem; line-height: 1.6;
+        }
+        .podium-grid {
+            display: flex; align-items: flex-end; justify-content: center;
+            gap: 1.5rem; position: relative;
+        }
+        .podium-card {
+            background: var(--bg); border-radius: var(--radius-lg);
+            padding: 2.5rem 2rem; text-align: center; flex: 1;
+            max-width: 280px; border: 1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+        .podium-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-lg); }
+        .podium-card.center {
+            max-width: 360px; padding: 0 0 2.5rem 0;
+            background: var(--surface); border: 1px solid var(--border);
+            box-shadow: var(--shadow-xl); z-index: 2;
+            transform: translateY(-2.5rem);
+        }
+        .podium-card.center:hover { transform: translateY(-3.5rem); }
+        .podium-img {
+            width: 100%; height: 200px; object-fit: cover;
+            display: block; border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+            margin-bottom: 1.5rem;
+        }
+        .podium-rank {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 2.5rem; font-weight: 600; font-style: italic;
+            color: var(--unam); line-height: 1; margin-bottom: 0.5rem;
+        }
+        .podium-card.center .podium-rank {
+            font-size: 1.6rem; font-style: normal; font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        .podium-name {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.5rem; font-weight: 600; color: var(--text);
+            margin-bottom: 0.4rem;
+        }
+        .podium-card p {
+            font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;
+        }
+        .podium-badge {
+            display: inline-block; background: var(--unam-light);
+            color: var(--unam); font-size: 0.7rem; font-weight: 700;
+            padding: 0.35rem 1rem; border-radius: 2rem;
+            margin-bottom: 0.75rem; letter-spacing: 0.5px;
+        }
+        .podium-extra {
+            display: flex; justify-content: center; gap: 1rem;
+            margin-top: 3rem; flex-wrap: wrap;
+        }
+        .podium-extra-item {
+            background: var(--bg); border: 1px solid var(--border);
+            border-radius: 2rem; padding: 0.6rem 1.25rem;
+            font-size: 0.85rem; color: var(--text-secondary);
+            display: flex; align-items: center; gap: 0.6rem;
+            transition: all 0.2s;
+        }
+        .podium-extra-item:hover { border-color: var(--gold); }
+        .podium-extra-item .num {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.2rem; font-weight: 600; color: var(--text);
+        }
+        .quote-museum {
+            max-width: 700px; margin: 5rem auto 0;
+            padding: 3rem; position: relative;
+        }
+        .quote-museum::before {
+            content: '"'; position: absolute; top: 0; left: 1.5rem;
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 8rem; line-height: 1; color: var(--gold);
+            opacity: 0.25;
+        }
+        .quote-museum p:first-child {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.35rem; font-style: italic; color: var(--text);
+            line-height: 1.5; position: relative; z-index: 1;
+        }
+        .quote-museum p:last-child {
+            font-size: 0.8rem; color: var(--text-tertiary);
+            margin-top: 1.5rem; font-weight: 500;
+        }
+
+        /* ===== Buscador ===== */
+        .search-section {
+            background: var(--bg); padding: 6rem 2.5rem; position: relative;
+        }
+        .search-section::before {
+            content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+            width: 1px; height: 80px; background: var(--border);
+        }
+        .search-container { max-width: 1100px; margin: 0 auto; }
+        .search-header { text-align: center; margin-bottom: 3.5rem; }
+        .search-header h2 { font-size: clamp(2rem, 4vw, 2.8rem); margin-bottom: 0.5rem; }
+        .search-header p { color: var(--text-secondary); font-size: 1.05rem; }
+        .search-card {
+            background: var(--surface); border-radius: var(--radius-xl);
+            padding: 3rem; box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border);
+        }
+        .form-group { margin-bottom: 2rem; position: relative; }
+        .form-label {
+            display: block; font-weight: 600; margin-bottom: 0.6rem;
+            color: var(--text-secondary); font-size: 0.8rem;
+            letter-spacing: 0.5px; text-transform: uppercase;
+        }
+        textarea, input[type="text"], select {
+            width: 100%; padding: 1rem 1.25rem;
+            border: 1.5px solid var(--border); border-radius: var(--radius);
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.1rem;
+            background: var(--surface); color: var(--text);
+            transition: all 0.2s;
+            letter-spacing: 0.01em;
+        }
+        textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
+        textarea:focus, input:focus, select:focus {
+            outline: none; border-color: var(--unam);
+            box-shadow: 0 0 0 4px rgba(0, 51, 102, 0.06);
+        }
+        textarea::placeholder, input::placeholder {
+            font-family: 'Cormorant Garamond', serif;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+        .chips-container {
+            display: flex; flex-wrap: wrap; gap: 0.5rem;
+            align-items: center; margin-bottom: 0.6rem;
+        }
+        .chip {
+            background: var(--bg-warm); border-radius: 2rem;
+            padding: 0.4rem 1rem; display: inline-flex;
+            align-items: center; gap: 0.5rem;
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1rem; font-weight: 500;
+            color: var(--text-secondary); border: 1px solid var(--border);
+            transition: all 0.15s;
+        }
+        .chip:hover { border-color: var(--gold); }
+        .chip .remove { cursor: pointer; font-weight: 600; color: var(--text-tertiary); font-size: 0.9rem; transition: color 0.15s; font-family: 'DM Sans', sans-serif; }
+        .chip .remove:hover { color: #c0392b; }
+        .add-field { display: flex; gap: 0.5rem; align-items: center; margin-top: 0.4rem; }
+        .add-field input { flex: 1; }
+        .btn {
+            background: var(--text); border: none; padding: 0.85rem 2rem;
+            border-radius: 2rem; font-weight: 600; cursor: pointer;
+            transition: all 0.2s; color: var(--bg); font-family: inherit;
+            font-size: 0.85rem; letter-spacing: 0.02em;
+        }
+        .btn:hover { background: var(--unam); transform: translateY(-1px); box-shadow: var(--shadow); }
+        .btn:disabled { background: var(--text-muted); cursor: not-allowed; transform: none; box-shadow: none; }
+        .btn-outline {
+            background: transparent; color: var(--text-secondary);
+            border: 1.5px solid var(--border);
+        }
+        .btn-outline:hover { background: var(--bg-warm); border-color: var(--text-secondary); color: var(--text); }
+        .flex-row { display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end; margin-top: 0.5rem; }
+        .flex-row > div { flex: 1; min-width: 160px; }
+        .note {
+            font-size: 0.78rem; color: var(--text-tertiary);
+            margin-top: 1rem; padding: 0.75rem 1rem;
+            background: var(--bg-warm); border-radius: var(--radius);
+            border-left: 3px solid var(--gold);
+        }
+
+        /* ===== Sección Objetivos con Panel Bloom ===== */
+        .objectives-layout {
+            display: grid;
+            grid-template-columns: 1fr 280px;
+            gap: 2rem;
+            align-items: start;
+        }
+        @media (max-width: 768px) {
+            .objectives-layout { grid-template-columns: 1fr; }
+        }
+        .bloom-panel {
+            background: var(--surface);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 1.25rem;
+            box-shadow: var(--shadow-sm);
+            position: sticky;
+            top: 5rem;
+        }
+        .bloom-panel-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 1rem;
+            text-align: center;
+            letter-spacing: 0.5px;
+        }
+        .bloom-category {
+            margin-bottom: 0.75rem;
+            padding: 0.6rem 0.75rem;
+            border-radius: var(--radius);
+            background: var(--bg-warm);
+            border-left: 3px solid transparent;
+            transition: all 0.2s;
+        }
+        .bloom-category:hover { transform: translateX(3px); }
+        .bloom-category-name {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1rem;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.2rem;
+        }
+        .bloom-category-desc {
+            font-size: 0.72rem;
+            color: var(--text-tertiary);
+            line-height: 1.3;
+            font-family: 'DM Sans', sans-serif;
+        }
+        .bloom-count {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            min-width: 1.5rem;
+            text-align: right;
+        }
+        .bloom-count.zero { opacity: 0.3; }
+        .bloom-cat-1 { border-left-color: var(--bloom-1-text); }
+        .bloom-cat-1 .bloom-category-name { color: var(--bloom-1-text); }
+        .bloom-cat-1 .bloom-count { color: var(--bloom-1-text); }
+        .bloom-cat-2 { border-left-color: var(--bloom-2-text); }
+        .bloom-cat-2 .bloom-category-name { color: var(--bloom-2-text); }
+        .bloom-cat-2 .bloom-count { color: var(--bloom-2-text); }
+        .bloom-cat-3 { border-left-color: var(--bloom-3-text); }
+        .bloom-cat-3 .bloom-category-name { color: var(--bloom-3-text); }
+        .bloom-cat-3 .bloom-count { color: var(--bloom-3-text); }
+        .bloom-cat-4 { border-left-color: var(--bloom-4-text); background: #faf5ff; }
+        .bloom-cat-4 .bloom-category-name { color: #9333ea; }
+        .bloom-cat-4 .bloom-count { color: #9333ea; }
+        .bloom-cat-5 { border-left-color: var(--bloom-5-text); background: #f3e8ff; }
+        .bloom-cat-5 .bloom-category-name { color: var(--bloom-5-text); }
+        .bloom-cat-5 .bloom-count { color: var(--bloom-5-text); }
+        .bloom-cat-6 { border-left-color: var(--bloom-6-text); background: #ede9fe; }
+        .bloom-cat-6 .bloom-category-name { color: var(--bloom-6-text); }
+        .bloom-cat-6 .bloom-count { color: var(--bloom-6-text); }
+
+        /* ===== Verbos Bloom ===== */
+        .verb-bulb {
+            display: inline-flex; align-items: center; justify-content: center;
+            margin-left: 0.5rem; font-size: 0.9rem; cursor: pointer;
+            background: var(--bg-deep); border-radius: 50%;
+            width: 1.6rem; height: 1.6rem; transition: all 0.2s;
+            vertical-align: middle;
+        }
+        .verb-bulb:hover { background: var(--gold-light); }
+        .verb-popup {
+            position: absolute; bottom: calc(100% + 12px); left: 0; z-index: 100;
+            background: var(--surface); border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-xl); border: 1px solid var(--border);
+            padding: 1.5rem; width: 100%; max-width: 540px; display: none;
+        }
+        .verb-popup-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 1rem; padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border-light);
+        }
+        .verb-popup-header span { font-weight: 600; font-size: 0.85rem; color: var(--text); }
+        .verb-popup-header button {
+            background: none; border: none; font-size: 1rem; cursor: pointer;
+            padding: 0.25rem 0.5rem; color: var(--text-tertiary);
+            border-radius: var(--radius-sm); transition: all 0.15s;
+        }
+        .verb-popup-header button:hover { background: var(--bg-warm); color: var(--text); }
+        .verb-suggestion-section {
+            margin-bottom: 1rem; padding: 0.6rem 0.75rem;
+            border-left: 3px solid; border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+        }
+        .verb-suggestion-section[data-cat="Recordar"] { border-left-color: var(--bloom-1-text); background: var(--bloom-1); }
+        .verb-suggestion-section[data-cat="Comprender"] { border-left-color: var(--bloom-2-text); background: var(--bloom-2); }
+        .verb-suggestion-section[data-cat="Aplicar"] { border-left-color: var(--bloom-3-text); background: var(--bloom-3); }
+        .verb-suggestion-section[data-cat="Analizar"] { border-left-color: #9333ea; background: #f3e8ff; }
+        .verb-suggestion-section[data-cat="Evaluar"] { border-left-color: var(--bloom-5-text); background: #e9d5ff; }
+        .verb-suggestion-section[data-cat="Crear"] { border-left-color: var(--bloom-6-text); background: #ddd6fe; }
+        .verb-suggestion-section h4 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 0.9rem; font-weight: 700;
+            margin-bottom: 0.3rem; letter-spacing: 0.5px;
+        }
+        .verb-suggestion-section[data-cat="Recordar"] h4 { color: var(--bloom-1-text); }
+        .verb-suggestion-section[data-cat="Comprender"] h4 { color: var(--bloom-2-text); }
+        .verb-suggestion-section[data-cat="Aplicar"] h4 { color: var(--bloom-3-text); }
+        .verb-suggestion-section[data-cat="Analizar"] h4 { color: #9333ea; }
+        .verb-suggestion-section[data-cat="Evaluar"] h4 { color: var(--bloom-5-text); }
+        .verb-suggestion-section[data-cat="Crear"] h4 { color: var(--bloom-6-text); }
+        .verb-suggestion-section .cat-desc {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.4rem;
+            line-height: 1.3;
+            font-family: 'DM Sans', sans-serif;
+        }
+        .verb-chips-suggest { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+        .verb-chip-suggest {
+            padding: 0.3rem 0.8rem; border-radius: 2rem;
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 0.85rem; font-weight: 500;
+            cursor: pointer; transition: all 0.15s;
+            border: 1px solid transparent;
+        }
+        .verb-chip-suggest:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .verb-chip-suggest[data-cat="Recordar"] {
+            background: var(--bloom-1); color: var(--bloom-1-text); border-color: var(--bloom-2);
+        }
+        .verb-chip-suggest[data-cat="Comprender"] {
+            background: var(--bloom-2); color: var(--bloom-2-text); border-color: var(--bloom-3);
+        }
+        .verb-chip-suggest[data-cat="Aplicar"] {
+            background: var(--bloom-3); color: var(--bloom-3-text); border-color: #c084fc;
+        }
+        .verb-chip-suggest[data-cat="Analizar"] {
+            background: #c084fc; color: #ffffff; border-color: #a855f7;
+        }
+        .verb-chip-suggest[data-cat="Evaluar"] {
+            background: #a855f7; color: #ffffff; border-color: #7e22ce;
+        }
+        .verb-chip-suggest[data-cat="Crear"] {
+            background: #7e22ce; color: #ffffff; border-color: #581c87;
+        }
+        .expand-btn {
+            text-align: center; margin-top: 0.75rem; font-size: 0.78rem;
+            color: var(--unam); cursor: pointer; font-weight: 600;
+            padding: 0.5rem; border-radius: var(--radius-sm);
+            transition: background 0.15s;
+        }
+        .expand-btn:hover { background: var(--unam-light); }
+        .full-verbs-list { display: none; margin-top: 1rem; max-height: 340px; overflow-y: auto; border-top: 1px solid var(--border-light); padding-top: 0.75rem; }
+        .verb-preview {
+            margin-top: 0.5rem; padding: 0.35rem 0.8rem;
+            background: var(--bg-warm); border-radius: 2rem;
+            font-size: 0.8rem; display: inline-flex; align-items: center; gap: 0.5rem;
+        }
+        .verb-preview span { padding: 0.2rem 0.7rem; border-radius: 2rem; font-weight: 500; }
+        .verb-highlight {
+            display: inline-block; border-radius: 2rem;
+            padding: 0.15rem 0.7rem; font-weight: 600; margin-right: 0.3rem;
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 0.95rem;
+        }
+        .verb-highlight[data-cat="Recordar"] { background-color: var(--bloom-1); color: var(--bloom-1-text); border: 1px solid var(--bloom-2); }
+        .verb-highlight[data-cat="Comprender"] { background-color: var(--bloom-2); color: var(--bloom-2-text); border: 1px solid var(--bloom-3); }
+        .verb-highlight[data-cat="Aplicar"] { background-color: var(--bloom-3); color: var(--bloom-3-text); border: 1px solid #c084fc; }
+        .verb-highlight[data-cat="Analizar"] { background-color: #c084fc; color: #ffffff; border: 1px solid #a855f7; }
+        .verb-highlight[data-cat="Evaluar"] { background-color: #a855f7; color: #ffffff; border: 1px solid #7e22ce; }
+        .verb-highlight[data-cat="Crear"] { background-color: #7e22ce; color: #ffffff; border: 1px solid #581c87; }
+
+        /* ===== Filtros ===== */
+        .filters-wrap { margin: 2rem 0 1rem; }
+        .filters-wrap label { font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); display: block; margin-bottom: 0.5rem; letter-spacing: 0.5px; text-transform: uppercase; }
+        .filter-bar { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.8rem; }
+        .filter-chip {
+            background: var(--bg-warm); padding: 0.35rem 1rem; border-radius: 2rem;
+            font-size: 0.82rem; cursor: pointer; transition: all 0.15s;
+            color: var(--text-secondary); border: 1.5px solid transparent;
+            flex-shrink: 0; align-self: flex-start; white-space: nowrap;
+        }
+        .filter-chip:hover { border-color: var(--gold); color: var(--text); }
+        .filter-chip.active { background: var(--text); color: var(--bg); border-color: var(--text); }
+        .programa-search input {
+            width: 100%; padding: 0.65rem 1.1rem; border-radius: 2rem;
+            border: 1.5px solid var(--border); font-family: 'Cormorant Garamond', serif;
+            font-size: 1rem; background: var(--surface);
+        }
+        .programa-search input:focus { outline: none; border-color: var(--unam); box-shadow: 0 0 0 4px rgba(0,51,102,0.06); }
+        .programa-search input::placeholder { font-style: italic; }
+        .programa-filter-scroll {
+            display: flex; flex-direction: row; flex-wrap: wrap;
+            gap: 0.5rem; align-items: flex-start; align-content: flex-start;
+            max-height: 160px; overflow-y: auto;
+            padding: 0.6rem; background: var(--surface);
+            border-radius: var(--radius); border: 1.5px solid var(--border);
+            margin-top: 0.5rem;
+        }
+        .programa-filter-scroll .filter-chip { font-size: 0.78rem; padding: 0.3rem 0.7rem; }
+
+        /* ===== Resultados — 1 por fila ===== */
+        .results-header {
+            padding: 1rem 1.5rem; background: var(--bg-warm);
+            border-bottom: 1px solid var(--border); font-size: 0.85rem;
+            color: var(--text-secondary); font-weight: 500;
+            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+            letter-spacing: 0.3px;
+        }
+        .results-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.25rem;
+            margin-top: 1.5rem;
+        }
+        .thesis-card {
+            background: var(--surface); border-radius: var(--radius-lg); padding: 2.5rem;
+            transition: all 0.3s ease;
+            border: 1px solid var(--border); box-shadow: var(--shadow-sm);
+            position: relative; overflow: hidden;
+        }
+        .thesis-card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(90deg, var(--unam), var(--gold));
+            opacity: 0; transition: opacity 0.3s;
+        }
+        .thesis-card:hover::before { opacity: 1; }
+        .thesis-card:hover {
+            transform: translateY(-3px); box-shadow: var(--shadow-lg);
+            border-color: var(--border-light);
+        }
+        .thesis-card.exploratory { opacity: 0.7; }
+        .card-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 1rem; flex-wrap: wrap; gap: 0.6rem;
+        }
+        .grado-badge {
+            background: var(--unam-light); padding: 0.25rem 0.9rem;
+            border-radius: 2rem; font-size: 0.65rem; font-weight: 700;
+            text-transform: uppercase; color: var(--unam);
+            letter-spacing: 0.8px;
+        }
+        .score {
+            background: var(--bg-warm); padding: 0.25rem 0.8rem;
+            border-radius: 2rem; font-size: 0.75rem; font-weight: 700;
+            color: var(--text-secondary); border: 1px solid var(--border);
+        }
+        .relevance-badge {
+            font-size: 0.7rem; padding: 0.25rem 0.7rem;
+            border-radius: 2rem; font-weight: 600;
+        }
+        .thesis-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.65rem; font-weight: 600;
+            line-height: 1.3; margin: 0.8rem 0 1rem;
+            text-transform: uppercase; letter-spacing: 0.3px;
+            color: var(--text);
+            display: flex; justify-content: space-between; align-items: flex-start; gap: 0.8rem;
+        }
+        .title-text { flex: 1; }
+        .action-buttons { display: flex; gap: 0.4rem; flex-shrink: 0; margin-top: 0.2rem; }
+        .action-btn {
+            background: var(--bg); border: 1px solid var(--border);
+            cursor: pointer; padding: 6px;
+            transition: all 0.15s; border-radius: var(--radius-sm);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .action-btn:hover { background: var(--surface); border-color: var(--gold); transform: scale(1.05); }
+        .thesis-meta {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.05rem; color: var(--text-secondary);
+            margin-bottom: 0.5rem; line-height: 1.6;
+        }
+        .thesis-asesor {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 0.95rem; color: var(--text-tertiary);
+            border-top: 1px solid var(--border-light); padding-top: 0.9rem; margin-top: 0.9rem;
+        }
+
+        /* ===== Tabla similitudes/diferencias (Claude) ===== */
+        .comparison-table {
+            margin-top: 1.25rem;
+            border-radius: var(--radius);
+            overflow: hidden;
+            border: 1px solid var(--border);
+            font-size: 0.875rem;
+        }
+        .comparison-table-header {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            background: var(--bg-deep);
+            border-bottom: 1px solid var(--border);
+        }
+        .comparison-table-header span {
+            padding: 0.5rem 1rem;
+            font-weight: 700;
+            font-size: 0.72rem;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            font-family: 'DM Sans', sans-serif;
+        }
+        .comparison-table-header span:first-child {
+            color: #2d6a4f;
+            border-right: 1px solid var(--border);
+        }
+        .comparison-table-header span:last-child { color: #b45309; }
+        .comparison-table-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            border-bottom: 1px solid var(--border-light);
+            transition: background 0.15s;
+        }
+        .comparison-table-row:last-child { border-bottom: none; }
+        .comparison-table-row:hover { background: var(--bg-warm); }
+        .comparison-cell {
+            padding: 0.55rem 1rem;
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1rem;
+            line-height: 1.4;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+        .comparison-cell:first-child { border-right: 1px solid var(--border-light); }
+        .comparison-cell::before {
+            flex-shrink: 0;
+            margin-top: 0.1rem;
+            font-size: 0.75rem;
+        }
+        .comparison-cell.sim::before { content: '✓'; color: #2d6a4f; font-weight: 700; }
+        .comparison-cell.dif::before { content: '≠'; color: #b45309; font-weight: 700; }
+
+        /* ===== Preguntas de investigación inline (Claude) ===== */
+        .research-questions-inline {
+            margin-top: 2rem;
+            background: var(--unam-light);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem 1.75rem;
+            border-left: 4px solid var(--unam);
+        }
+        .research-questions-inline h4 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: var(--unam);
+            margin-bottom: 1rem;
+        }
+        .rq-item {
+            display: flex;
+            gap: 0.75rem;
+            align-items: flex-start;
+            padding: 0.65rem 0;
+            border-bottom: 1px solid rgba(0,51,102,0.1);
+        }
+        .rq-item:last-child { border-bottom: none; }
+        .rq-num {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--unam);
+            min-width: 1.5rem;
+            opacity: 0.6;
+        }
+        .rq-text {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.05rem;
+            color: var(--unam-hover);
+            line-height: 1.45;
+            font-style: italic;
+        }
+
+        .comparison-block {
+            margin-top: 0.8rem; background: var(--gold-pale);
+            padding: 0.7rem 1rem; border-radius: var(--radius);
+            font-size: 0.85rem; border-left: 3px solid var(--gold);
+            line-height: 1.5;
+            font-family: 'Cormorant Garamond', serif;
+        }
+        .info-message { padding: 3rem; text-align: center; color: var(--text-tertiary); font-size: 1rem; }
+        .info-warning {
+            background: var(--gold-pale); border-left: 4px solid var(--gold);
+            padding: 0.8rem 1.2rem; border-radius: var(--radius);
+            margin-bottom: 1rem; font-size: 0.85rem; color: var(--warning);
+        }
+
+        /* ===== Explicaciones IA ===== */
+        .explanation {
+            background: var(--surface); border-radius: var(--radius-lg); padding: 1.5rem;
+            margin-top: 2rem; border: 1px solid var(--border); box-shadow: var(--shadow);
+        }
+        .explanation strong { color: var(--text); font-size: 0.9rem; }
+        .explanation ol { margin-left: 1.5rem; margin-top: 0.75rem; }
+        .explanation li { margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--text-secondary); }
+        .research-block {
+            background: var(--unam-light); border-radius: var(--radius-lg); padding: 1.5rem;
+            margin-top: 1rem; border-left: 4px solid var(--unam);
+        }
+        .research-block strong { color: var(--unam); font-size: 0.9rem; }
+        .research-block ul { margin-top: 0.6rem; margin-left: 1.5rem; }
+        .research-block li { margin-bottom: 0.35rem; font-size: 0.9rem; color: var(--unam-hover); }
+
+        /* ===== Gráfico ===== */
+        .chart-container {
+            margin-top: 2rem; background: var(--surface); border-radius: var(--radius-lg);
+            padding: 1.5rem; border: 1px solid var(--border); box-shadow: var(--shadow);
+        }
+
+        /* ===== Footer ===== */
+        footer {
+            background: var(--text); color: var(--text-muted);
+            padding: 4rem 2.5rem; margin-top: 6rem;
+        }
+        .footer-inner {
+            max-width: 1100px; margin: 0 auto;
+            display: flex; flex-direction: column; gap: 1.2rem;
+            text-align: center;
+        }
+        .footer-brand {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.5rem; color: var(--bg); font-weight: 600;
+        }
+        .footer-links { display: flex; gap: 2rem; justify-content: center; flex-wrap: wrap; }
+        .footer-links a { color: var(--text-muted); text-decoration: none; font-size: 0.85rem; transition: color 0.2s; }
+        .footer-links a:hover { color: var(--bg); }
+        .footer-copy { font-size: 0.78rem; color: var(--text-tertiary); margin-top: 0.5rem; }
+
+        /* ===== Responsive ===== */
+        @media (max-width: 768px) {
+            .site-header { padding: 0.9rem 1.25rem; }
+            .nav-links { display: none; }
+            .hero { margin-top: 3rem; min-height: 80vh; padding-bottom: 4rem; }
+            .hero-content { grid-template-columns: 1fr; gap: 2rem; padding: 0 1.25rem; }
+            .hero-right { display: none; }
+            .podium-section { padding: 4rem 1.25rem; }
+            .podium-grid { flex-direction: column; align-items: center; gap: 1rem; }
+            .podium-card { max-width: 100%; width: 100%; padding: 2rem 1.5rem; }
+            .podium-card.center { transform: translateY(0); max-width: 100%; }
+            .search-section { padding: 4rem 1.25rem; }
+            .search-card { padding: 1.75rem; }
+            .thesis-card { padding: 1.5rem; }
+            .verb-popup { max-width: 92vw; left: 50%; transform: translateX(-50%); }
+            .programa-filter-scroll { max-height: 140px; }
+            .quote-museum { padding: 2rem 1.5rem; }
+            .quote-museum::before { font-size: 5rem; }
+            .objectives-layout { grid-template-columns: 1fr; }
+            .bloom-panel { position: relative; top: 0; }
+        }
+    </style>
+<base target="_blank">
+</head>
+<body>
+
+<header class="site-header">
+    <div class="nav-container">
+        <a href="#" class="logo"><span>Mi</span>Tesis UNAM</a>
+        <nav class="nav-links">
+            <a href="#">Inicio</a>
+            <a href="#buscador">Búsqueda</a>
+            <a href="#">Asesores</a>
+            <a href="#">Trayectoria</a>
+            <a href="#buscador" class="explore-btn">Explorar tesis</a>
+        </nav>
+    </div>
+</header>
+
+<main>
+    <section class="hero">
+        <div class="hero-content">
+            <div class="hero-left">
+                <div class="hero-tag">Archivo · Atlas · Laboratorio de ideas</div>
+                <h1>Descubre,<br><span class="italic">explora</span>.</h1>
+                <p class="hero-desc">Un repositorio semántico de +600,000 tesis donde la ciencia mexicana se convierte en patio de juegos.</p>
+                <div class="hero-cta">
+                    <a href="#buscador" class="btn-primary">Comenzar búsqueda →</a>
+                    <a href="#ranking" class="btn-ghost">Ver impacto UNAM</a>
+                </div>
+            </div>
+            <div class="hero-right">
+                <div class="hero-stat">
+                    <div class="number">600k+</div>
+                    <div class="label">Tesis indexadas</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="number">#1</div>
+                    <div class="label">México · AD Index</div>
+                </div>
+            </div>
+        </div>
+        <div class="scroll-hint">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+            <span>Descubrir</span>
+        </div>
+    </section>
+
+    <section id="ranking" class="podium-section">
+        <div class="podium-inner">
+            <div class="section-eyebrow">Ranking 2025 · AD Scientific Index</div>
+            <h2 class="section-title">Orgullo UNAM: Líder en producción científica</h2>
+            <p class="section-desc">La Universidad Nacional Autónoma de México se posiciona como la institución con mayor impacto e influencia científica del país.</p>
+            <div class="podium-grid">
+                <div class="podium-card">
+                    <div class="podium-rank">2</div>
+                    <div class="podium-name">Tecnológico de Monterrey</div>
+                    <p>ITESM · Puesto Global #798</p>
+                    <p style="margin-top:0.75rem;font-weight:600;color:var(--text);">2º en producción nacional</p>
+                </div>
+                <div class="podium-card center">
+                    <img src="i.png" alt="UNAM" class="podium-img">
+                    <div class="podium-badge">#1 en México · #90 Global</div>
+                    <div class="podium-name">UNAM</div>
+                    <p>Universidad Nacional Autónoma de México</p>
+                    <p style="margin-top:0.75rem;font-weight:600;color:var(--text);">Producción científica más alta del país</p>
+                </div>
+                <div class="podium-card">
+                    <div class="podium-rank">3</div>
+                    <div class="podium-name">UAM</div>
+                    <p>Universidad Autónoma Metropolitana · #836 Global</p>
+                    <p style="margin-top:0.75rem;font-weight:600;color:var(--success);">2ª pública nacional</p>
+                </div>
+            </div>
+            <div class="podium-extra">
+                <div class="podium-extra-item"><span class="num">4</span> Instituto Politécnico Nacional <span style="color:var(--text-muted);">#862</span></div>
+                <div class="podium-extra-item"><span class="num">5</span> Universidad de Guadalajara <span style="color:var(--text-muted);">#951</span></div>
+            </div>
+            <div class="quote-museum">
+                <p>"La UNAM no solo almacena conocimiento: lo genera al ritmo más alto de México. Cada tesis en este museo forma parte de un ecosistema que hoy lidera la ciencia nacional."</p>
+                <p>— Observatorio de Tesis / AD Scientific Index 2025</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="buscador" class="search-section">
+        <div class="search-container">
+            <div class="search-header">
+                <div class="section-eyebrow">Búsqueda inteligente</div>
+                <h2>Encuentra tesis afines</h2>
+                <p>Búsqueda semántica + IA</p>
+            </div>
+
+                        <div class="search-card">
+                <!-- Grado al que se aspira -->
+                <div class="form-group">
+                    <label class="form-label">Grado al que aspiras</label>
+                    <select id="nivelEstudio">
+                        <option value="licenciatura">Licenciatura</option>
+                        <option value="especialidad">Especialidad</option>
+                        <option value="maestria">Maestría</option>
+                        <option value="doctorado">Doctorado</option>
+                    </select>
+                </div>
+
+                <!-- Carrera / Programa -->
+                <div class="form-group">
+                    <label class="form-label">Carrera / Programa</label>
+                    <input type="text" id="carreraInput" placeholder="Ej. Economía, Medicina, Derecho...">
+                </div>
+
+                <!-- Título tentativo -->
+                <div class="form-group">
+                    <label class="form-label">Título tentativo de tu tesis</label>
+                    <textarea id="tituloInput" rows="2" placeholder="Ej: 'Impacto económico de la pandemia en México'"></textarea>
+                </div>
+
+                <!-- Rango de años -->
+                <div class="form-group">
+                    <label class="form-label">Rango de años de tu estudio</label>
+                    <div style="display: flex; gap: 0.75rem; align-items: center;">
+                        <input type="number" id="anioDesde" placeholder="1950" style="flex:1;" step="1" value="">
+                        <span style="font-size: 1.5rem; color: var(--text-tertiary);">—</span>
+                        <input type="number" id="anioHasta" placeholder="2020" style="flex:1;" step="1" value="">
+                    </div>
+                    <div style="font-size: 0.75rem; color: var(--text-tertiary); margin-top: 0.4rem;">Ejemplo: 2010 — 2025</div>
+                </div>
+
+                <!-- Palabras clave -->
+                <div class="form-group">
+                    <label class="form-label">Palabras clave</label>
+                    <div id="keywordsContainer" class="chips-container"></div>
+                    <div class="add-field">
+                        <input type="text" id="newKeyword" placeholder="Escribe una palabra y presiona +">
+                        <button id="addKeywordBtn" class="btn">+</button>
+                    </div>
+                </div>
+
+                <!-- Objetivo(s) con ayuda de verbos y panel Bloom -->
+                <div class="form-group" id="objectiveGroup">
+                    <label class="form-label">
+                        Objetivo(s) de tu tesis
+                        <span id="verbBulb" class="verb-bulb" title="Ver lista completa de verbos">💡</span>
+                    </label>
+                    <div class="objectives-layout">
+                        <div class="objectives-left">
+                            <div id="objectivesContainer" class="chips-container"></div>
+                            <div class="add-field">
+                                <input type="text" id="newObjective" placeholder="Escribe un objetivo y presiona +">
+                                <button id="addObjectiveBtn" class="btn">+</button>
+                            </div>
+                            <div id="verbPopup" class="verb-popup">
+                                <div class="verb-popup-header">
+                                    <span>💡 Verbos sugeridos para iniciar tu objetivo</span>
+                                    <div>
+                                        <button id="refreshSuggestionsBtn" title="Refrescar sugerencias">⟳</button>
+                                        <button id="closePopupBtn" title="Cerrar">✕</button>
+                                    </div>
+                                </div>
+                                <div id="suggestionsContent"></div>
+                                <div class="expand-btn" id="expandFullListBtn">Mostrar lista completa de verbos</div>
+                                <div id="fullVerbsList" class="full-verbs-list"></div>
+                            </div>
+                            <div id="verbPreview" class="verb-preview" style="display: none;"></div>
+                        </div>
+                        <div class="objectives-right">
+                            <div class="bloom-panel" id="bloomPanel">
+                                <div class="bloom-panel-title">Taxonomía de Bloom</div>
+                                <div class="bloom-category bloom-cat-1" id="bloom-Recordar">
+                                    <div class="bloom-category-name">
+                                        <span>Recordar</span>
+                                        <span class="bloom-count zero" id="count-Recordar">0</span>
+                                    </div>
+                                    <div class="bloom-category-desc">Recuperar conocimientos previos, reconocer hechos, términos o conceptos básicos.</div>
+                                </div>
+                                <div class="bloom-category bloom-cat-2" id="bloom-Comprender">
+                                    <div class="bloom-category-name">
+                                        <span>Comprender</span>
+                                        <span class="bloom-count zero" id="count-Comprender">0</span>
+                                    </div>
+                                    <div class="bloom-category-desc">Entender el significado de la información, interpretar, resumir o explicar ideas.</div>
+                                </div>
+                                <div class="bloom-category bloom-cat-3" id="bloom-Aplicar">
+                                    <div class="bloom-category-name">
+                                        <span>Aplicar</span>
+                                        <span class="bloom-count zero" id="count-Aplicar">0</span>
+                                    </div>
+                                    <div class="bloom-category-desc">Utilizar el conocimiento aprendido en situaciones nuevas o prácticas.</div>
+                                </div>
+                                <div class="bloom-category bloom-cat-4" id="bloom-Analizar">
+                                    <div class="bloom-category-name">
+                                        <span>Analizar</span>
+                                        <span class="bloom-count zero" id="count-Analizar">0</span>
+                                    </div>
+                                    <div class="bloom-category-desc">Descomponer la información en partes, identificar relaciones y estructuras.</div>
+                                </div>
+                                <div class="bloom-category bloom-cat-5" id="bloom-Evaluar">
+                                    <div class="bloom-category-name">
+                                        <span>Evaluar</span>
+                                        <span class="bloom-count zero" id="count-Evaluar">0</span>
+                                    </div>
+                                    <div class="bloom-category-desc">Emitir juicios de valor sobre la base de criterios y estándares.</div>
+                                </div>
+                                <div class="bloom-category bloom-cat-6" id="bloom-Crear">
+                                    <div class="bloom-category-name">
+                                        <span>Crear</span>
+                                        <span class="bloom-count zero" id="count-Crear">0</span>
+                                    </div>
+                                    <div class="bloom-category-desc">Combinar elementos para formar un todo coherente; generar nuevas ideas o productos.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Top y botones -->
+                <div class="flex-row">
+                    <div>
+                        <label class="form-label">Top</label>
+                        <select id="topK"><option>10</option><option>15</option><option>20</option></select>
+                    </div>
+                    <div>
+                        <button id="searchBtn" class="btn">🔍 Buscar tesis similares</button>
+                    </div>
+                    <div>
+                        <button id="plotBtn" class="btn btn-outline">📊 Graficar tendencias</button>
+                    </div>
+                </div>
+                <div class="note">💡 Búsqueda: similitud coseno × (1 + 0.5 × coincidencia de keywords). La IA reordena, compara y sugiere preguntas.</div>
+            </div>
+            <div class="filters-wrap">
+                <label>🏛️ Filtrar por plantel (CU, FES, etc.)</label>
+                <div id="filterBar" class="filter-bar"></div>
+            </div>
+            <div class="filters-wrap">
+                <label>🎓 Filtrar por programa (carrera)</label>
+                <div class="programa-search">
+                    <input type="text" id="programaSearchInput" placeholder="🔍 Buscar programa (ej. economía, derecho, ingeniería civil...)">
+                </div>
+                <div id="programaFilterBar" class="programa-filter-scroll"></div>
+            </div>
+
+            <div id="resultsContainer">
+                <div class="info-message">🔮 Cargando datos y modelo...</div>
+            </div>
+
+                        <div style="margin-top: 1.5rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+                         <label for="pieKeywordSelect" style="font-size:0.85rem; font-weight:600;">Palabra clave para ver áreas:</label>
+                        <select id="pieKeywordSelect" style="background: var(--surface); border:1px solid var(--border); border-radius:2rem; padding:0.4rem 1rem;">                        <option value="">-- Selecciona una palabra --</option>
+                        </select>
+                        </div>
+            <div id="pieChart" class="chart-container" style="display: none; margin-top: 1rem;"></div>
+            <div id="keywordChart" class="chart-container" style="display: none;"></div>
+        </div>
+    </section>
+</main>
+
+<footer>
+    <div class="footer-inner">
+        <div class="footer-brand">MiTesis UNAM</div>
+        <div class="footer-links">
+            <a href="#">Acerca</a>
+            <a href="#">API / Datos abiertos</a>
+            <a href="#">Inspiración Gapminder + Harvard CURIOSity</a>
+        </div>
+        <div class="footer-copy">Exploratorio interactivo · 600k+ registros · Basado en TESIUNAM · Búsqueda híbrida con IA (Groq)</div>
+    </div>
+</footer>
+
+<script type="importmap">{ "imports": { "@xenova/transformers": "https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/dist/transformers.min.js" } }</script>
+<script type="module">
+    import { pipeline } from '@xenova/transformers';
+
+    function toTitleCase(str) {
+        if (!str) return "";
+        return str.split(' ').map(word => {
+            if (/^[IVXLCDM]+$/i.test(word) && word.length <= 4) return word.toUpperCase();
+            return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+        }).join(' ');
+    }
+
+    let dataset = [];
+    let allEmbeddings = null;
+    let currentFilter = "TODOS";
+    let currentProgramaFilter = "TODOS";
+    let availableCategories = new Set();
+    let availableProgramas = new Set();
+    let embedder = null;
+    let lastQueryVector = null;
+    let currentResults = [];
+    let currentComparisons = {};
+    let currentResearchQuestions = [];
+
+    const searchBtn = document.getElementById('searchBtn');
+    const nivelSelect = document.getElementById('nivelEstudio');
+    const carreraInput = document.getElementById('carreraInput');
+    const anioDesdeInput = document.getElementById('anioDesde');
+    const anioHastaInput = document.getElementById('anioHasta');
+    const plotBtn = document.getElementById('plotBtn');
+    const tituloInput = document.getElementById('tituloInput');
+    const keywordsContainer = document.getElementById('keywordsContainer');
+    const newKeywordInput = document.getElementById('newKeyword');
+    const addKeywordBtn = document.getElementById('addKeywordBtn');
+    const objectivesContainer = document.getElementById('objectivesContainer');
+    const newObjectiveInput = document.getElementById('newObjective');
+    const addObjectiveBtn = document.getElementById('addObjectiveBtn');
+    const topKSelect = document.getElementById('topK');
+    const resultsDiv = document.getElementById('resultsContainer');
+    const filterBar = document.getElementById('filterBar');
+    const programaFilterBar = document.getElementById('programaFilterBar');
+    const programaSearchInput = document.getElementById('programaSearchInput');
+    const chartDiv = document.getElementById('keywordChart');
+    const pieSelect = document.getElementById('pieKeywordSelect');
+    const pieChartDiv = document.getElementById('pieChart');
+    const verbPopup = document.getElementById('verbPopup');
+    const suggestionsContent = document.getElementById('suggestionsContent');
+    const fullVerbsListDiv = document.getElementById('fullVerbsList');
+    const refreshBtn = document.getElementById('refreshSuggestionsBtn');
+    const closePopupBtn = document.getElementById('closePopupBtn');
+    const expandBtn = document.getElementById('expandFullListBtn');
+    const verbBulb = document.getElementById('verbBulb');
+    const verbPreviewDiv = document.getElementById('verbPreview');
+
+    // --------------------------------------------------------------
+    // Palabras clave
+    // --------------------------------------------------------------
+    let keywordsList = [];
+    function renderKeywords() {
+        keywordsContainer.innerHTML = '';
+        keywordsList.forEach((kw, idx) => {
+            const chip = document.createElement('span');
+            chip.className = 'chip';
+            chip.innerHTML = `${escapeHtml(kw)} <span class="remove" data-idx="${idx}">✕</span>`;
+            keywordsContainer.appendChild(chip);
+        });
+        document.querySelectorAll('#keywordsContainer .chip .remove').forEach(el => {
+            el.addEventListener('click', (e) => {
+                const idx = parseInt(e.target.dataset.idx);
+                keywordsList.splice(idx, 1);
+                renderKeywords();
+                updatePieKeywordSelect();
+            });
+        });
+        updatePieKeywordSelect();
+    }
+
+    function updatePieKeywordSelect() {
+        if (!pieSelect) return;
+        const currentKeywords = [...new Set(keywordsList.map(k => normalizeText(k)))];
+        pieSelect.innerHTML = '<option value="">-- Selecciona una palabra --</option>';
+        for (const kw of currentKeywords) {
+            const option = document.createElement('option');
+            option.value = kw;
+            option.textContent = kw;
+            pieSelect.appendChild(option);
+        }
+    }
+
+    addKeywordBtn.addEventListener('click', () => {
+        let kw = newKeywordInput.value.trim().toLowerCase();
+        if (kw && !keywordsList.includes(kw)) {
+            keywordsList.push(kw);
+            renderKeywords();
+            newKeywordInput.value = '';
+        } else if (!kw) {
+            alert("Escribe una palabra clave válida.");
+        } else {
+            alert("Esta palabra ya está en la lista.");
+        }
+    });
+    newKeywordInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') addKeywordBtn.click();
+    });
+
+    // --------------------------------------------------------------
+    // Objetivos + Bloom
+    // --------------------------------------------------------------
+    let objectivesList = [];
+    const verbToCategory = new Map();
+    const fullVerbsData = {
+        "Recordar": ["Definir", "Describir", "Encontrar", "Enumerar", "Identificar", "Nombrar", "Recordar", "Relacionar", "Relatar", "Repetir", "Subrayar"],
+        "Comprender": ["Describir", "Discutir", "Explicar", "Expresar", "Identificar", "Localizar", "Reconocer", "Revisar", "Traducir"],
+        "Aplicar": ["Aplicar", "Demostrar", "Dramatizar", "Emplear", "Ilustrar", "Interpretar", "Operar", "Practicar", "Programar", "Usar"],
+        "Analizar": ["Analizar", "Calcular", "Comparar", "Contrastar", "Criticar", "Diferenciar", "Diagramar", "Distinguir", "Experimentar", "Inspeccionar", "Probar"],
+        "Evaluar": ["Arreglar", "Coleccionar", "Componer", "Concluir", "Construir", "Diseñar", "Ensamblar", "Formular", "Proponer", "Apreciar", "Calificar", "Escoger", "Estimar", "Evaluar", "Juzgar", "Medir", "Revisar", "Seleccionar", "Valuar"],
+        "Crear": ["Apreciar", "Calificar", "Escoger", "Estimar", "Evaluar", "Juzgar", "Medir", "Revisar", "Seleccionar", "Valuar"]
+    };
+    for (const [cat, verbs] of Object.entries(fullVerbsData)) {
+        for (const v of verbs) verbToCategory.set(v.toLowerCase(), cat);
+    }
+
+    function detectVerb(text) {
+        if (!text) return null;
+        const firstWord = text.trim().split(/\s+/)[0];
+        const lower = firstWord.toLowerCase();
+        if (verbToCategory.has(lower)) return { verb: firstWord, category: verbToCategory.get(lower) };
+        return null;
+    }
+
+    function getCategoryColor(cat) {
+        switch(cat) {
+            case "Recordar": return "var(--bloom-1)";
+            case "Comprender": return "var(--bloom-2)";
+            case "Aplicar": return "var(--bloom-3)";
+            case "Analizar": return "#c084fc";
+            case "Evaluar": return "#a855f7";
+            case "Crear": return "#7e22ce";
+            default: return "#e2e8f0";
+        }
+    }
+    function getCategoryTextColor(cat) {
+        switch(cat) {
+            case "Recordar": return "var(--bloom-1-text)";
+            case "Comprender": return "var(--bloom-2-text)";
+            case "Aplicar": return "var(--bloom-3-text)";
+            case "Analizar": return "#ffffff";
+            case "Evaluar": return "#ffffff";
+            case "Crear": return "#ffffff";
+            default: return "#1a1a1a";
+        }
+    }
+
+    function updateBloomCounter() {
+        const counts = { "Recordar": 0, "Comprender": 0, "Aplicar": 0, "Analizar": 0, "Evaluar": 0, "Crear": 0 };
+        for (const obj of objectivesList) {
+            const detected = detectVerb(obj);
+            if (detected && counts[detected.category] !== undefined) {
+                counts[detected.category]++;
+            }
+        }
+        for (const [cat, count] of Object.entries(counts)) {
+            const el = document.getElementById(`count-${cat}`);
+            if (el) {
+                el.textContent = count;
+                el.classList.toggle('zero', count === 0);
+            }
+        }
+    }
+
+    newObjectiveInput.addEventListener('input', () => {
+        const text = newObjectiveInput.value.trim();
+        const detected = detectVerb(text);
+        if (detected) {
+            const bg = getCategoryColor(detected.category);
+            const tc = getCategoryTextColor(detected.category);
+            verbPreviewDiv.style.display = "inline-flex";
+            verbPreviewDiv.innerHTML = `<span style="background:${bg}; color:${tc}; padding:0.2rem 0.6rem; border-radius:2rem; font-family:'Cormorant Garamond',serif; font-weight:600;">${detected.verb}</span> <small style="font-family:'Cormorant Garamond',serif;">(${detected.category})</small>`;
+        } else {
+            verbPreviewDiv.style.display = "none";
+        }
+    });
+
+    function renderObjectives() {
+        objectivesContainer.innerHTML = '';
+        objectivesList.forEach((obj, idx) => {
+            const chip = document.createElement('span');
+            chip.className = 'chip';
+            const detected = detectVerb(obj);
+            let inner = '';
+            if (detected) {
+                inner = `<span class="verb-highlight" data-cat="${detected.category}" title="Categoría: ${detected.category}">${escapeHtml(detected.verb)}</span>${escapeHtml(obj.slice(detected.verb.length))}`;
+            } else {
+                inner = escapeHtml(obj);
+            }
+            chip.innerHTML = `${inner} <span class="remove" data-idx="${idx}">✕</span>`;
+            objectivesContainer.appendChild(chip);
+        });
+        document.querySelectorAll('#objectivesContainer .chip .remove').forEach(el => {
+            el.addEventListener('click', (e) => {
+                const idx = parseInt(e.target.dataset.idx);
+                objectivesList.splice(idx, 1);
+                renderObjectives();
+                updateBloomCounter();
+            });
+        });
+        updateBloomCounter();
+    }
+
+    addObjectiveBtn.addEventListener('click', () => {
+        const text = newObjectiveInput.value.trim();
+        if (text) { objectivesList.push(text); renderObjectives(); newObjectiveInput.value = ''; verbPreviewDiv.style.display = 'none'; }
+    });
+    newObjectiveInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') addObjectiveBtn.click(); });
+    newObjectiveInput.addEventListener('input', () => hidePopup());
+
+    // Verbos bloom popup – ya está definido más abajo (renderSuggestions, etc.)
+    const orderedCategories = ["Recordar", "Comprender", "Aplicar", "Analizar", "Evaluar", "Crear"];
+    const bloomDescriptions = {
+        "Recordar": "Recuperar conocimientos previos, reconocer hechos, términos o conceptos básicos.",
+        "Comprender": "Entender el significado de la información, interpretar, resumir o explicar ideas.",
+        "Aplicar": "Utilizar el conocimiento aprendido en situaciones nuevas o prácticas.",
+        "Analizar": "Descomponer la información en partes, identificar relaciones y estructuras.",
+        "Evaluar": "Emitir juicios de valor sobre la base de criterios y estándares.",
+        "Crear": "Combinar elementos para formar un todo coherente; generar nuevas ideas o productos."
+    };
+    const fixedSuggestionVerbs = {
+        "Analizar": fullVerbsData["Analizar"].slice(0,5),
+        "Comprender": fullVerbsData["Comprender"].slice(0,5),
+        "Evaluar": fullVerbsData["Evaluar"].slice(0,5)
+    };
+
+    function renderSuggestions() {
+        suggestionsContent.innerHTML = '';
+        for (const cat of ["Analizar", "Comprender", "Evaluar"]) {
+            const verbs = fixedSuggestionVerbs[cat];
+            const section = document.createElement('div');
+            section.className = 'verb-suggestion-section';
+            section.setAttribute('data-cat', cat);
+            section.innerHTML = `<h4>${cat}</h4><div class="cat-desc">${bloomDescriptions[cat]}</div><div class="verb-chips-suggest"></div>`;
+            const chipsDiv = section.querySelector('.verb-chips-suggest');
+            verbs.forEach(v => {
+                const chip = document.createElement('span');
+                chip.className = 'verb-chip-suggest';
+                chip.setAttribute('data-cat', cat);
+                chip.textContent = v;
+                chip.addEventListener('click', () => {
+                    const currentText = newObjectiveInput.value;
+                    newObjectiveInput.value = currentText.trim() === '' ? v : currentText + ' ' + v;
+                    newObjectiveInput.focus();
+                    hidePopup();
+                });
+                chipsDiv.appendChild(chip);
+            });
+            suggestionsContent.appendChild(section);
+        }
+    }
+
+    function buildFullVerbsList() {
+        let html = '';
+        for (const cat of orderedCategories) {
+            html += `<div class="verb-suggestion-section" data-cat="${cat}"><h4>${cat}</h4><div class="cat-desc">${bloomDescriptions[cat]}</div><div class="verb-chips-suggest">`;
+            fullVerbsData[cat].forEach(v => {
+                html += `<span class="verb-chip-suggest" data-verb="${v}" data-cat="${cat}">${v}</span>`;
+            });
+            html += `</div></div>`;
+        }
+        fullVerbsListDiv.innerHTML = html;
+        fullVerbsListDiv.querySelectorAll('.verb-chip-suggest').forEach(chip => {
+            chip.addEventListener('click', () => {
+                const verb = chip.dataset.verb;
+                const currentText = newObjectiveInput.value;
+                newObjectiveInput.value = currentText.trim() === '' ? verb : currentText + ' ' + verb;
+                newObjectiveInput.focus();
+                hidePopup();
+            });
+        });
+    }
+
+    let isFullListVisible = false;
+    function showPopup() {
+        if (!isFullListVisible) {
+            renderSuggestions();
+            fullVerbsListDiv.style.display = 'none';
+            suggestionsContent.style.display = 'block';
+        } else {
+            fullVerbsListDiv.style.display = 'block';
+            suggestionsContent.style.display = 'none';
+        }
+        verbPopup.style.display = 'block';
+    }
+    function hidePopup() { verbPopup.style.display = 'none'; }
+
+    refreshBtn.addEventListener('click', () => {
+        if (isFullListVisible) {
+            isFullListVisible = false;
+            fullVerbsListDiv.style.display = 'none';
+            suggestionsContent.style.display = 'block';
+            renderSuggestions();
+        } else {
+            renderSuggestions();
+        }
+    });
+    closePopupBtn.addEventListener('click', hidePopup);
+    expandBtn.addEventListener('click', () => {
+        if (!isFullListVisible) {
+            isFullListVisible = true;
+            buildFullVerbsList();
+            fullVerbsListDiv.style.display = 'block';
+            suggestionsContent.style.display = 'none';
+            expandBtn.textContent = '➖ Mostrar menos';
+        } else {
+            isFullListVisible = false;
+            fullVerbsListDiv.style.display = 'none';
+            suggestionsContent.style.display = 'block';
+            renderSuggestions();
+            expandBtn.textContent = '📚 Mostrar lista completa de verbos';
+        }
+    });
+    newObjectiveInput.addEventListener('focus', () => {
+        if (!isFullListVisible) { renderSuggestions(); fullVerbsListDiv.style.display = 'none'; }
+        showPopup();
+    });
+    document.addEventListener('click', (e) => {
+        if (!verbPopup.contains(e.target) && e.target !== newObjectiveInput && e.target !== addObjectiveBtn && e.target !== verbBulb) hidePopup();
+    });
+    if (verbBulb) {
+        verbBulb.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (verbPopup.style.display !== 'block') showPopup();
+            if (!isFullListVisible) {
+                isFullListVisible = true;
+                buildFullVerbsList();
+                fullVerbsListDiv.style.display = 'block';
+                suggestionsContent.style.display = 'none';
+                expandBtn.textContent = '➖ Mostrar menos';
+            } else {
+                buildFullVerbsList();
+            }
+        });
+    }
+    renderSuggestions();
+    buildFullVerbsList();
+
+    // --------------------------------------------------------------
+    // Funciones auxiliares
+    // --------------------------------------------------------------
+    function normalizeText(text) {
+        return text.toLowerCase()
+            .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+            .replace(/[^\w\s]/g, ' ')
+            .trim()
+            .replace(/\s+/g, ' ');
+    }
+    function escapeHtml(str) { if (!str) return ""; return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m])); }
+    function extractPrograma(grado) {
+        if (!grado || typeof grado !== 'string') return "Desconocido";
+        let prog = grado.toLowerCase();
+        const prefijos = ["licenciatura en ", "maestria en ", "doctorado en ", "especialidad en "];
+        for (const p of prefijos) {
+            if (prog.startsWith(p)) { prog = prog.slice(p.length); break; }
+        }
+        prog = prog.replace(/ unam$/, '').trim();
+        return prog || "General";
+    }
+    function extraerGradoCorto(grado) {
+        if (!grado) return "GRADO";
+        const g = grado.toLowerCase();
+        if (g.includes("licenciatura")) return "LICENCIATURA";
+        if (g.includes("maestria")) return "MAESTRÍA";
+        if (g.includes("doctorado")) return "DOCTORADO";
+        if (g.includes("especialidad")) return "ESPECIALIDAD";
+        return "POSGRADO";
+    }
+    function tokenize(text) { return text.toLowerCase().split(/[\s,]+/).filter(t => t.length > 1); }
+    function keywordMatchScore(userKeywordsArray, thesisTitle) {
+        if (!userKeywordsArray.length || !thesisTitle) return 0;
+        const userTokens = userKeywordsArray.map(k => normalizeText(k));
+        const titleTokens = tokenize(thesisTitle);
+        const intersection = userTokens.filter(t => titleTokens.includes(t)).length;
+        return intersection / userTokens.length;
+    }
+    function getRelevanceLevel(score, maxScore) {
+        if (maxScore === 0) return { level: 'exploratory', label: 'Exploratoria', color: '#a0aec0' };
+        const relative = score / maxScore;
+        if (relative >= 0.85) return { level: 'high', label: 'Alta relevancia', color: '#2d6a4f' };
+        if (relative >= 0.60) return { level: 'medium', label: 'Relacionada', color: '#b45309' };
+        return { level: 'exploratory', label: 'Exploratoria', color: '#a0aec0' };
+    }
+
+    // --------------------------------------------------------------
+    // Carga inicial y filtros
+    // --------------------------------------------------------------
+    async function loadDataset() {
+        try {
+            resultsDiv.innerHTML = `<div class="info-message">📂 Cargando dataset (muestra_tesis_norm.json)...</div>`;
+            const response = await fetch('muestra_tesis_norm.json');
+            if (!response.ok) throw new Error(`No se encontró muestra_tesis_norm.json`);
+            dataset = await response.json();
+            if (!dataset.length) throw new Error('Dataset vacío');
+            resultsDiv.innerHTML = `<div class="info-message">✅ Dataset cargado: ${dataset.length} tesis. Preparando embeddings...</div>`;
+            const dim = dataset[0].embedding.length;
+            allEmbeddings = new Float32Array(dataset.length * dim);
+            for (let i = 0; i < dataset.length; i++) {
+                const emb = dataset[i].embedding;
+                for (let j = 0; j < dim; j++) allEmbeddings[i * dim + j] = emb[j];
+                const programa = extractPrograma(dataset[i].grado);
+                dataset[i].programa_clean = programa;
+                dataset[i].grado_corto = extraerGradoCorto(dataset[i].grado);
+                availableProgramas.add(programa);
+            }
+            dataset.forEach(d => availableCategories.add(d.categoria));
+            const sortedCategories = Array.from(availableCategories).sort();
+            availableCategories = new Set(sortedCategories);
+            renderFilterChips();
+            const programaCounts = new Map();
+            dataset.forEach(d => { const p = d.programa_clean; programaCounts.set(p, (programaCounts.get(p) || 0) + 1); });
+            const sortedProgramas = Array.from(programaCounts.keys()).sort((a,b) => programaCounts.get(b) - programaCounts.get(a));
+            availableProgramas = new Set(sortedProgramas);
+            renderProgramaFilterChips("");
+            resultsDiv.innerHTML = `<div class="info-message">✅ Dataset listo (${dataset.length} tesis). Cargando modelo de IA...</div>`;
+            return true;
+        } catch (err) {
+            resultsDiv.innerHTML = `<div class="info-message">❌ Error: ${err.message}<br>¿Tienes "muestra_tesis_norm.json" en la misma carpeta?</div>`;
+            return false;
+        }
+    }
+
+    function renderFilterChips() {
+        const chips = ['TODOS', ...Array.from(availableCategories).sort()];
+        filterBar.innerHTML = chips.map(cat => `<div class="filter-chip ${currentFilter === cat ? 'active' : ''}" data-cat="${cat}">${cat}</div>`).join('');
+        document.querySelectorAll('#filterBar .filter-chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+                currentFilter = chip.dataset.cat;
+                renderFilterChips();
+                if (lastQueryVector !== null) performSearch();
+            });
+        });
+    }
+
+    function renderProgramaFilterChips(searchTerm = "") {
+        let programas = Array.from(availableProgramas);
+        if (searchTerm) { const term = searchTerm.toLowerCase(); programas = programas.filter(p => p.toLowerCase().includes(term)); }
+        const maxDisplay = 40;
+        const displayed = programas.slice(0, maxDisplay);
+        let chipsHtml = displayed.map(prog => `<div class="filter-chip ${currentProgramaFilter === prog ? 'active' : ''}" data-prog="${prog}">${escapeHtml(prog)}</div>`).join('');
+        let extraHtml = '';
+        if (programas.length > maxDisplay) extraHtml = `<span style="font-size:0.75rem;color:var(--text-tertiary);padding:0.2rem 0.5rem;flex-basis:100%;">... y ${programas.length - maxDisplay} más. Usa la búsqueda.</span>`;
+        programaFilterBar.innerHTML = chipsHtml + extraHtml;
+        const todosChip = document.createElement('div');
+        todosChip.className = `filter-chip ${currentProgramaFilter === "TODOS" ? 'active' : ''}`;
+        todosChip.textContent = "TODOS";
+        todosChip.dataset.prog = "TODOS";
+        programaFilterBar.prepend(todosChip);
+        document.querySelectorAll('#programaFilterBar .filter-chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+                currentProgramaFilter = chip.dataset.prog;
+                renderProgramaFilterChips(programaSearchInput.value);
+                if (lastQueryVector !== null) performSearch();
+            });
+        });
+    }
+    programaSearchInput.addEventListener('input', (e) => renderProgramaFilterChips(e.target.value));
+
+    // --------------------------------------------------------------
+    // Embeddings y búsqueda híbrida
+    // --------------------------------------------------------------
+    async function getEmbedder() {
+        if (!embedder) {
+            resultsDiv.innerHTML = `<div class="info-message">🔄 Cargando modelo multilingüe (≈500 MB). Primera vez puede tardar hasta 30 segundos...</div>`;
+            embedder = await pipeline('feature-extraction', 'Xenova/paraphrase-multilingual-MiniLM-L12-v2');
+            resultsDiv.innerHTML = `<div class="info-message">✅ Modelo listo. Ahora puedes buscar.</div>`;
+        }
+        return embedder;
+    }
+
+    async function textToVector(text) {
+        const pipe = await getEmbedder();
+        const output = await pipe(text, { pooling: 'mean', normalize: true });
+        return Array.from(output.data);
+    }
+
+    async function hybridSearch(titleText, keywordsArray, objectivesText) {
+        if (!titleText.trim()) throw new Error("Escribe al menos un título.");
+        const normalizedTitle = normalizeText(titleText);
+        const titleVec = await textToVector(normalizedTitle);
+        lastQueryVector = titleVec;
+        const dim = titleVec.length, N = dataset.length;
+        const cosineScores = new Float32Array(N);
+        for (let i = 0; i < N; i++) {
+            let dot = 0, offset = i * dim;
+            for (let j = 0; j < dim; j++) dot += titleVec[j] * allEmbeddings[offset + j];
+            cosineScores[i] = Math.max(0, dot);
+        }
+        const kwScores = new Float32Array(N);
+        if (keywordsArray.length) for (let i = 0; i < N; i++) kwScores[i] = keywordMatchScore(keywordsArray, dataset[i].titulo);
+        const finalScores = new Float32Array(N);
+        for (let i = 0; i < N; i++) finalScores[i] = cosineScores[i] * (1 + 0.5 * kwScores[i]);
+        return finalScores;
+    }
+
+    async function performSearch() {
+        const title = tituloInput.value.trim();
+        if (!title) { alert("Escribe un título tentativo."); return; }
+        const keywordsArray = keywordsList;
+        const objectivesText = objectivesList.join(' ');
+        searchBtn.disabled = true; searchBtn.textContent = "🔍 Buscando...";
+        try {
+            const rawScores = await hybridSearch(title, keywordsArray, objectivesText);
+            let results = dataset.map((item, idx) => ({ ...item, id: idx, rawScore: rawScores[idx] }));
+            if (currentFilter !== "TODOS") results = results.filter(r => r.categoria === currentFilter);
+            if (currentProgramaFilter !== "TODOS") results = results.filter(r => r.programa_clean === currentProgramaFilter);
+            results.sort((a,b) => b.rawScore - a.rawScore);
+            const topK = parseInt(topKSelect.value, 10);
+            const topResults = results.slice(0, topK);
+            let minScore = topResults.length ? topResults[topResults.length-1].rawScore : 0;
+            let maxScore = topResults.length ? topResults[0].rawScore : 1;
+            if (maxScore === minScore) maxScore = minScore + 1;
+            for (let r of topResults) r.displayScore = ((r.rawScore - minScore) / (maxScore - minScore)) * 100;
+            currentResults = topResults;
+            currentComparisons = {}; currentResearchQuestions = [];
+            renderResults(topResults);
+            const oldExp = document.getElementById('aiExplanation'); if (oldExp) oldExp.remove();
+            chartDiv.style.display = 'none';
+        } catch (err) { console.error(err); resultsDiv.innerHTML = `<div class="info-message">⚠️ Error: ${err.message}</div>`;
+        } finally { searchBtn.disabled = false; searchBtn.textContent = "🔍 Buscar tesis similares"; }
+    }
+
+    // --------------------------------------------------------------
+    // Renderizado de resultados
+    // --------------------------------------------------------------
+    function renderResults(results) {
+        if (!results.length) {
+            resultsDiv.innerHTML = `<div class="info-message">No se encontraron tesis con los filtros actuales.</div>`;
+            return;
+        }
+        const maxRaw = results[0].rawScore;
+        const highCount = results.filter(r => getRelevanceLevel(r.rawScore, maxRaw).level === 'high').length;
+        let warningHtml = '';
+        if (highCount < 3 && results.length > highCount)
+            warningHtml = `<div class="info-warning">⚠️ Solo se encontraron ${highCount} tesis con alta similitud. Prueba añadir sinónimos o términos más específicos.</div>`;
+
+        const cardsHtml = results.map((r, rank) => {
+            const { level, label, color } = getRelevanceLevel(r.rawScore, maxRaw);
+            const badgeHtml = `<span class="relevance-badge" style="background:${color}15; color:${color}; border:1px solid ${color}50;">${label}</span>`;
+
+            let comparisonHtml = '';
+            const compData = currentComparisons[r.id] || currentComparisons[String(r.id)];
+            if (currentComparisons && compData) {
+                const comp = compData;
+                const sims = Array.isArray(comp.similitudes) ? comp.similitudes : (comp.similitud ? [comp.similitud] : []);
+                const difs = Array.isArray(comp.diferencias) ? comp.diferencias : (comp.diferencia ? [comp.diferencia] : []);
+                if (sims.length && difs.length) {
+                    const maxRows = Math.max(sims.length, difs.length);
+                    let rowsHtml = '';
+                    for (let i = 0; i < maxRows; i++) {
+                        rowsHtml += `<div class="comparison-table-row">
+                            <div class="comparison-cell sim">${escapeHtml(sims[i] || '')}</div>
+                            <div class="comparison-cell dif">${escapeHtml(difs[i] || '')}</div>
+                        </div>`;
+                    }
+                    comparisonHtml = `
+                    <div class="comparison-table">
+                        <div class="comparison-table-header">
+                            <span>🟢 Similitudes</span>
+                            <span>🟠 Diferencias</span>
+                        </div>
+                        ${rowsHtml}
+                    </div>`;
+                }
+            }
+
+            const tituloFormateado = (r.titulo || "Sin título").toUpperCase();
+            const autorFormateado = toTitleCase(r.autor || "Autor desconocido");
+            const plantelFormateado = toTitleCase(r.plantel || "");
+            const programaFormateado = toTitleCase(r.programa_clean || "");
+            const asesorFormateado = toTitleCase(r.asesor || "");
+            const ubicacion = plantelFormateado ? `${plantelFormateado}${programaFormateado ? `, ${programaFormateado}` : ""}` : programaFormateado;
+            const anio = r.año ? ` — ${r.año}` : "";
+            const autorLine = `${autorFormateado}${ubicacion ? ` (${ubicacion})` : ""}${anio}`;
+            const asesorText = asesorFormateado ? `Asesor(es): ${asesorFormateado}` : "Asesor(es): no registrado";
+
+            return `<div class="thesis-card ${level === 'exploratory' ? 'exploratory' : ''}">
+                <div class="card-header">
+                    <span class="grado-badge">${r.grado_corto || "GRADO"}</span>
+                    <div style="display:flex;gap:0.5rem;align-items:center;">
+                        <span class="score">${r.displayScore.toFixed(0)}%</span>
+                        ${badgeHtml}
+                    </div>
+                </div>
+                <div class="thesis-title">
+                    <span class="title-text">${escapeHtml(tituloFormateado)}</span>
+                    <div class="action-buttons">
+                        <button class="action-btn" title="Ver tesis" onclick="console.log('Link tesis ${r.id}')">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8a8a8a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                        </button>
+                        <button class="action-btn" title="Citar" onclick="console.log('Citar tesis ${r.id}')">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8a8a8a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="thesis-meta">${escapeHtml(autorLine)}</div>
+                <div class="thesis-asesor">${escapeHtml(asesorText)}</div>
+                ${comparisonHtml}
+            </div>`;
+        }).join('');
+
+        let researchHtml = '';
+        if (currentResearchQuestions && currentResearchQuestions.length) {
+            const items = currentResearchQuestions.map((q, i) =>
+                `<div class="rq-item"><span class="rq-num">${i + 1}.</span><span class="rq-text">${escapeHtml(q)}</span></div>`
+            ).join('');
+            researchHtml = `<div class="research-questions-inline">
+                <h4>💡 Preguntas de investigación sugeridas por IA</h4>
+                ${items}
+            </div>`;
+        }
+
+        resultsDiv.innerHTML = warningHtml +
+            `<div class="results-header">🔎 ${results.length} resultados (filtro: ${currentFilter}, programa: ${currentProgramaFilter})</div>` +
+            `<div class="results-grid">${cardsHtml}</div>` +
+            researchHtml;
+    }
+
+    // --------------------------------------------------------------
+    // Reordenamiento con IA
+    // --------------------------------------------------------------
+    async function rerankWithAI() {
+        if (!currentResults.length) { alert('Primero haz una búsqueda.'); return; }
+        const originalResults = [...currentResults];
+        const candidatesForAI = originalResults.slice(0,10).map(r => ({ id: r.id, titulo: r.titulo, año: r.año }));
+        rerankButton.disabled = true; rerankButton.textContent = 'Reordenando con IA...';
+        try {
+            const WORKER_URL = 'https://tesis-reranker.sebastiaan-diaz-prado.workers.dev/api/rerank';
+            const response = await fetch(WORKER_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    queryTitle: tituloInput.value,
+                    queryDescription: objectivesList.join(' '),
+                    keywords: keywordsList.join(', '),
+                    nivel: nivelSelect.value,
+                    carrera: carreraInput.value.trim(),
+                    anioDesde: anioDesdeInput.value ? parseInt(anioDesdeInput.value) : null,
+                    anioHasta: anioHastaInput.value ? parseInt(anioHastaInput.value) : null,
+                    candidates: candidatesForAI
+                })
+            });
+            const data = await response.json();
+            if (data.success && data.ranking && data.ranking.length) {
+                const mapById = Object.fromEntries(originalResults.map(r => [r.id, r]));
+                const reordered = data.ranking.map(id => mapById[id]).filter(Boolean);
+                if (reordered.length) {
+                    currentResults = reordered;
+                    currentComparisons = data.comparisons || {};
+                    currentResearchQuestions = data.researchQuestions || [];
+                    const maxRaw = Math.max(...currentResults.map(r => r.rawScore));
+                    const minRaw = Math.min(...currentResults.map(r => r.rawScore));
+                    for (let r of currentResults) r.displayScore = maxRaw === minRaw ? 0 : ((r.rawScore - minRaw) / (maxRaw - minRaw)) * 100;
+                    renderResults(currentResults);
+                } else alert('No se pudo reconstruir la lista');
+            } else alert('Error: ' + (data.error || 'No se obtuvo ranking'));
+        } catch (err) { alert('No se pudo conectar con el Worker.'); console.error(err);
+        } finally { rerankButton.disabled = false; rerankButton.textContent = 'Reordenar con IA ✨'; }
+    }
+
+    // --------------------------------------------------------------
+    // Gráficas
+    // --------------------------------------------------------------
+    function plotKeywordFrequencies() {
+        if (keywordsList.length === 0) {
+            alert("Agrega al menos una palabra clave.");
+            return;
+        }
+        const uniqueKeywords = [...new Set(keywordsList.map(k => normalizeText(k)))];
+        const startYear = 1880, endYear = 2026;
+        const years = Array.from({length: endYear - startYear + 1}, (_, i) => startYear + i);
+        const traces = [];
+        for (const kw of uniqueKeywords) {
+            const counts = new Array(years.length).fill(0);
+            for (const tesis of dataset) {
+                const year = tesis.año;
+                if (!year || year < startYear || year > endYear) continue;
+                const titleNorm = normalizeText(tesis.titulo || "");
+                if (titleNorm.includes(kw)) {
+                    counts[year - startYear]++;
+                }
+            }
+            traces.push({
+                x: years,
+                y: counts,
+                name: kw,
+                type: 'bar'
+            });
+        }
+        const layout = {
+            title: '📊 Frecuencia de palabras clave por año',
+            xaxis: { title: 'Año', tickangle: -45 },
+            yaxis: { title: 'Número de tesis' },
+            barmode: 'stack',
+            hovermode: 'closest',
+            height: 500,
+            plot_bgcolor: 'var(--bg-warm)',
+            paper_bgcolor: 'var(--bg)',
+            font: { family: 'DM Sans, sans-serif' }
+        };
+        Plotly.newPlot(chartDiv, traces, layout, { responsive: true });
+        chartDiv.style.display = 'block';
+    }
+
+    function plotKeywordPie() {
+    const selectedKw = pieSelect.value;
+    if (!selectedKw) { alert("Selecciona una palabra clave."); return; }
+    const normalizedKw = normalizeText(selectedKw);
+
+    // Agrupar por plantel (campo "categoria")
+    const counts = {};
+    for (const tesis of dataset) {
+        const titleNorm = tesis.titulo_norm || normalizeText(tesis.titulo || "");
+        if (titleNorm.includes(normalizedKw)) {
+            const plantel = tesis.categoria || "Sin plantel";
+            counts[plantel] = (counts[plantel] || 0) + 1;
+        }
+    }
+
+    const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+    if (!entries.length) {
+        alert(`No hay tesis con la palabra "${selectedKw}".`);
+        return;
+    }
+
+    const colors = ['#003366','#c9a227','#2d6a4f','#b45309','#1e40af','#a855f7','#0891b2','#dc2626','#059669','#7c3aed'];
+
+    Plotly.newPlot(pieChartDiv, [{
+        values: entries.map(e => e[1]),
+        labels: entries.map(e => e[0]),
+        type: 'pie',
+        marker: { colors: colors.slice(0, entries.length) },
+        textinfo: 'label+percent',
+        textposition: 'auto',
+        hoverinfo: 'label+value+percent',
+        hole: 0.3
+    }], {
+        title: `Tesis con "${selectedKw}" por plantel`,
+        height: 500,
+        plot_bgcolor: 'var(--bg-warm)',
+        paper_bgcolor: 'var(--bg)',
+        font: { family: 'DM Sans, sans-serif' },
+        showlegend: true,
+        legend: { orientation: 'h', y: -0.2 }
+    }, { responsive: true });
+
+    pieChartDiv.style.display = 'block';
+}
+    // --------------------------------------------------------------
+    // Botones y eventos finales
+    // --------------------------------------------------------------
+    const rerankButton = document.createElement('button');
+    rerankButton.textContent = 'Reordenar con IA ✨';
+    rerankButton.className = 'btn';
+    rerankButton.style.marginTop = '1.5rem';
+    rerankButton.onclick = rerankWithAI;
+    resultsDiv.parentNode.insertBefore(rerankButton, resultsDiv.nextSibling);
+
+    plotBtn.addEventListener('click', () => {
+        plotKeywordFrequencies();
+        const selectedKw = pieSelect.value;
+        if (!selectedKw) {
+            const firstKw = pieSelect.options[1]?.value;
+            if (firstKw) {
+                pieSelect.value = firstKw;
+                plotKeywordPie();
+            } else {
+                alert("Agrega al menos una palabra clave para ver el gráfico de áreas.");
+            }
+        } else {
+            plotKeywordPie();
+        }
+    });
+    searchBtn.addEventListener('click', performSearch);
+    topKSelect.addEventListener('change', () => { if (lastQueryVector !== null) performSearch(); });
+    loadDataset();
+    getEmbedder();
+        loadDataset();
+    getEmbedder();
+
+    // Agregar evento change al selector de palabras clave
+    pieSelect.addEventListener('change', plotKeywordPie);
+</script>
+</body>
+</html>

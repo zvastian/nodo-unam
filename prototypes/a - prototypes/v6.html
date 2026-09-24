@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Búsqueda Híbrida | Tesis UNAM (título + palabras clave)</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: #f9f8f6;
+            color: #1e1e1e;
+            padding: 2rem;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        h1 { font-size: 2rem; font-weight: 600; margin-bottom: 0.5rem; }
+        .sub {
+            color: #5a5a5a;
+            margin-bottom: 2rem;
+            border-left: 3px solid #c7a03b;
+            padding-left: 1rem;
+        }
+        .search-panel {
+            background: white;
+            border-radius: 1.5rem;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.03);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid #ece8e0;
+        }
+        .input-group {
+            margin-bottom: 1.2rem;
+        }
+        label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #5a4a2e;
+            margin-bottom: 0.4rem;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd6cc;
+            border-radius: 1rem;
+            font-family: inherit;
+            font-size: 0.9rem;
+            background: #fffefc;
+        }
+        textarea { resize: vertical; }
+        .flex-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: flex-end;
+            margin-top: 0.5rem;
+        }
+        .flex-row > div { flex: 1; min-width: 180px; }
+        select, button {
+            padding: 0.6rem 1rem;
+            border-radius: 2rem;
+            border: 1px solid #ddd6cc;
+            background: white;
+        }
+        button {
+            background: #2c2c2c;
+            color: white;
+            border: none;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        button:hover { background: #1a1a1a; }
+        button:disabled { background: #b0a898; cursor: not-allowed; }
+        .results {
+            background: white;
+            border-radius: 1.5rem;
+            border: 1px solid #ece8e0;
+            overflow: hidden;
+        }
+        .result-item {
+            padding: 1.2rem 1.5rem;
+            border-bottom: 1px solid #f0ede7;
+        }
+        .result-item:hover { background: #fdfaf5; }
+        .score {
+            display: inline-block;
+            background: #e7e1d4;
+            padding: 0.2rem 0.6rem;
+            border-radius: 2rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #5a4a2e;
+            margin-left: 0.8rem;
+        }
+        .title {
+            font-weight: 600;
+            font-size: 1.05rem;
+            margin-bottom: 0.3rem;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .meta {
+            font-size: 0.8rem;
+            color: #6b5a42;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 0.4rem;
+        }
+        .badge {
+            background: #f0eade;
+            padding: 0.15rem 0.5rem;
+            border-radius: 1rem;
+            font-size: 0.7rem;
+        }
+        .filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            align-items: center;
+        }
+        .filter-chip {
+            background: #f0ede7;
+            padding: 0.3rem 0.9rem;
+            border-radius: 2rem;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: 0.1s;
+        }
+        .filter-chip.active {
+            background: #2c2c2c;
+            color: white;
+        }
+        .info-message {
+            padding: 2rem;
+            text-align: center;
+            color: #8e7a5e;
+        }
+        .note {
+            font-size: 0.7rem;
+            color: #b0a090;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>🧠 Búsqueda híbrida: título (semántica) + palabras clave (exactas)</h1>
+    <div class="sub">Modelo multilingüe · 70% título (embedding) + 30% keywords (coincidencia explícita)</div>
+
+    <div class="search-panel">
+        <div class="input-group">
+            <label>📌 Título tentativo de tu tesis (peso 70%)</label>
+            <textarea id="tituloInput" rows="2" placeholder="Ej: 'Impacto del cambio climático en el maíz en México'"></textarea>
+        </div>
+        <div class="input-group">
+            <label>📝 Descripción corta (reservada para futura mejora con IA)</label>
+            <textarea id="descripcionInput" rows="2" placeholder="Opcional: describe tu tema con más detalle (aún no se usa, pero se almacenará)"></textarea>
+        </div>
+        <div class="input-group">
+            <label>🔑 Palabras clave explícitas (peso 30%) — separa por comas o espacios</label>
+            <input type="text" id="keywordsInput" placeholder="Ej: maíz, clima, sequía, México">
+        </div>
+
+        <div class="flex-row">
+            <div>
+                <label>🎯 Top K</label>
+                <select id="topK">
+                    <option>10</option>
+                    <option>15</option>
+                    <option>20</option>
+                </select>
+            </div>
+            <div>
+                <button id="searchBtn">🔍 Buscar tesis similares (híbrido)</button>
+            </div>
+        </div>
+        <div class="note">💡 La búsqueda combina: similitud semántica del título (embedding) + coincidencia de palabras clave en el título de la tesis. La descripción se usará en futuras fases con IA.</div>
+    </div>
+
+    <div id="filterBar" class="filters" style="margin-top: 0.5rem;"></div>
+
+    <div class="results" id="resultsContainer">
+        <div class="info-message">🔮 Cargando datos y modelo...</div>
+    </div>
+</div>
+
+<script type="importmap">
+    {
+        "imports": {
+            "@xenova/transformers": "https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/dist/transformers.min.js"
+        }
+    }
+</script>
+<script type="module">
+    import { pipeline } from '@xenova/transformers';
+
+    // ---------- Estado ----------
+    let dataset = [];
+    let allEmbeddings = null;
+    let currentFilter = "TODOS";
+    let availableCategories = new Set();
+    let embedder = null;
+    let lastQueryVector = null;
+    let currentResults = [];   // <--- variable global para almacenar los últimos resultados
+
+    const searchBtn = document.getElementById('searchBtn');
+    const tituloInput = document.getElementById('tituloInput');
+    const descripcionInput = document.getElementById('descripcionInput');
+    const keywordsInput = document.getElementById('keywordsInput');
+    const topKSelect = document.getElementById('topK');
+    const resultsDiv = document.getElementById('resultsContainer');
+    const filterBar = document.getElementById('filterBar');
+
+    // ---------- 1. Cargar dataset ----------
+    async function loadDataset() {
+        try {
+            const response = await fetch('muestra_tesis_norm.json');
+            if (!response.ok) throw new Error(`No se encontró muestra_tesis_norm.json`);
+            dataset = await response.json();
+            if (!dataset.length) throw new Error('Dataset vacío');
+
+            const dim = dataset[0].embedding.length;
+            allEmbeddings = new Float32Array(dataset.length * dim);
+            for (let i = 0; i < dataset.length; i++) {
+                const emb = dataset[i].embedding;
+                for (let j = 0; j < dim; j++) {
+                    allEmbeddings[i * dim + j] = emb[j];
+                }
+            }
+
+            dataset.forEach(d => availableCategories.add(d.categoria));
+            availableCategories = Array.from(availableCategories).sort();
+            renderFilterChips();
+
+            resultsDiv.innerHTML = `<div class="info-message">✅ Dataset cargado: ${dataset.length} tesis. Modelo multilingüe listo.</div>`;
+            return true;
+        } catch (err) {
+            resultsDiv.innerHTML = `<div class="info-message">❌ Error: ${err.message}<br>Asegúrate de tener "muestra_tesis_norm.json" en la misma carpeta.</div>`;
+            return false;
+        }
+    }
+
+    // ---------- 2. Filtros UI ----------
+    function renderFilterChips() {
+        const chips = ['TODOS', ...availableCategories];
+        filterBar.innerHTML = chips.map(cat => `
+            <div class="filter-chip ${currentFilter === cat ? 'active' : ''}" data-cat="${cat}">${cat}</div>
+        `).join('');
+        document.querySelectorAll('.filter-chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+                currentFilter = chip.dataset.cat;
+                renderFilterChips();
+                if (lastQueryVector !== null) performSearch();
+            });
+        });
+    }
+
+    // ---------- 3. Cargar modelo multilingüe ----------
+    async function getEmbedder() {
+        if (!embedder) {
+            resultsDiv.innerHTML = `<div class="info-message">🔄 Cargando modelo multilingüe (≈500 MB). Puede tomar hasta 30 s la primera vez.</div>`;
+            embedder = await pipeline('feature-extraction', 'Xenova/paraphrase-multilingual-MiniLM-L12-v2');
+            resultsDiv.innerHTML = `<div class="info-message">✅ Modelo listo. Ahora puedes buscar.</div>`;
+        }
+        return embedder;
+    }
+
+    // ---------- 4. Normalización ----------
+    function normalizeText(text) {
+        return text.toLowerCase()
+            .replace(/[^\w\sáéíóúüñ]/gi, '')
+            .trim();
+    }
+
+    function tokenize(text) {
+        return text.toLowerCase().split(/[\s,]+/).filter(t => t.length > 1);
+    }
+
+    function keywordMatchScore(userKeywordsRaw, thesisTitle) {
+        if (!userKeywordsRaw || !thesisTitle) return 0;
+        const userTokens = tokenize(userKeywordsRaw);
+        if (userTokens.length === 0) return 0;
+        const titleTokens = tokenize(thesisTitle);
+        const intersection = userTokens.filter(t => titleTokens.includes(t)).length;
+        return intersection / userTokens.length;
+    }
+
+    // ---------- 5. Embedding ----------
+    async function textToVector(text) {
+        const pipe = await getEmbedder();
+        const output = await pipe(text, { pooling: 'mean', normalize: true });
+        return Array.from(output.data);
+    }
+
+    // ---------- 6. Búsqueda híbrida ----------
+    async function hybridSearch(titleText, keywordsRaw) {
+        if (!titleText.trim()) throw new Error("Escribe al menos un título.");
+        
+        const titleVec = await textToVector(titleText);
+        lastQueryVector = titleVec;
+        
+        const dim = titleVec.length;
+        const N = dataset.length;
+        
+        const cosineScores = new Float32Array(N);
+        for (let i = 0; i < N; i++) {
+            let dot = 0;
+            const offset = i * dim;
+            for (let j = 0; j < dim; j++) {
+                dot += titleVec[j] * allEmbeddings[offset + j];
+            }
+            cosineScores[i] = dot;
+        }
+        
+        const keywordScores = new Float32Array(N);
+        if (keywordsRaw && keywordsRaw.trim()) {
+            for (let i = 0; i < N; i++) {
+                keywordScores[i] = keywordMatchScore(keywordsRaw, dataset[i].titulo);
+            }
+        }
+        
+        const hybridScores = new Float32Array(N);
+        for (let i = 0; i < N; i++) {
+            hybridScores[i] = 0.7 * Math.max(0, cosineScores[i]) + 0.3 * keywordScores[i];
+        }
+        
+        return hybridScores;
+    }
+
+    // ---------- 7. Ejecutar búsqueda y guardar resultados ----------
+    async function performSearch() {
+        const title = tituloInput.value.trim();
+        if (!title) {
+            alert("Por favor, escribe un título tentativo.");
+            return;
+        }
+        const keywords = keywordsInput.value.trim();
+        const descripcion = descripcionInput.value.trim();
+        console.log("Descripción (para fase IA):", descripcion);
+        
+        searchBtn.disabled = true;
+        searchBtn.textContent = "🔍 Buscando (híbrido)...";
+        
+        try {
+            const hybridScores = await hybridSearch(title, keywords);
+            
+            let results = dataset.map((item, idx) => ({
+                ...item,
+                id: idx,                     // <--- ID numérico único
+                hybridScore: hybridScores[idx]
+            }));
+            
+            if (currentFilter !== "TODOS") {
+                results = results.filter(r => r.categoria === currentFilter);
+            }
+            
+            results.sort((a,b) => b.hybridScore - a.hybridScore);
+            const topK = parseInt(topKSelect.value, 10);
+            const topResults = results.slice(0, topK);
+            
+            // Guardar resultados globalmente (para el botón de re‑ranking)
+            currentResults = topResults;
+            renderResults(topResults);
+        } catch (err) {
+            console.error(err);
+            resultsDiv.innerHTML = `<div class="info-message">⚠️ Error: ${err.message}</div>`;
+        } finally {
+            searchBtn.disabled = false;
+            searchBtn.textContent = "🔍 Buscar tesis similares (híbrido)";
+        }
+    }
+    
+    // ---------- 8. Renderizar resultados ----------
+    function renderResults(results) {
+        if (!results.length) {
+            resultsDiv.innerHTML = `<div class="info-message">No se encontraron tesis con el filtro actual. Prueba otros términos.</div>`;
+            return;
+        }
+        const html = results.map(r => `
+            <div class="result-item">
+                <div class="title">
+                    <span>${escapeHtml(r.titulo || "Sin título")}</span>
+                    <span class="score">${(r.hybridScore * 100).toFixed(1)}% híbrido</span>
+                </div>
+                <div class="meta">
+                    <span>✍️ ${escapeHtml(r.autor || "Autor desconocido")}</span>
+                    <span>🎓 ${r.grado || ""}</span>
+                    <span>📅 ${r.año || ""}</span>
+                    <span class="badge">${r.categoria || "Otro"}</span>
+                    <span>🏛️ ${escapeHtml(r.plantel?.substring(0, 60) || "")}</span>
+                </div>
+                <div class="meta">🧑‍🏫 Asesor: ${escapeHtml(r.asesor || "—")}</div>
+            </div>
+        `).join('');
+        resultsDiv.innerHTML = `<div style="padding:0.8rem 1.2rem; background:#fefaf0; border-bottom:1px solid #e0d6c8;">🔎 ${results.length} resultados (filtro: ${currentFilter})</div>` + html;
+    }
+    
+    function escapeHtml(str) {
+        if (!str) return "";
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+    
+    // ---------- 9. Botón de re‑ranking con IA (Cloudflare Worker) ----------
+    async function rerankWithAI() {
+        if (!currentResults.length) {
+            alert('Primero haz una búsqueda.');
+            return;
+        }
+        const candidatesForAI = currentResults.slice(0, 10).map(r => ({
+            id: r.id,
+            titulo: r.titulo
+        }));
+        
+        rerankButton.disabled = true;
+        rerankButton.textContent = 'Reordenando con IA...';
+        
+        try {
+            // === IMPORTANTE: REEMPLAZA ESTA URL CON LA DE TU WORKER ===
+            const WORKER_URL = 'https://tesis-reranker.sebastiaan-diaz-prado.workers.dev/api/rerank';
+            
+            const response = await fetch(WORKER_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    queryTitle: tituloInput.value,
+                    queryDescription: descripcionInput.value,
+                    keywords: keywordsInput.value,
+                    candidates: candidatesForAI
+                })
+            });
+            const data = await response.json();
+            if (data.success) {
+                // Reemplazar resultados mostrados
+                currentResults = data.reranked;
+                renderResults(currentResults);
+                alert('Lista reordenada por IA.');
+            } else {
+                alert('Error: ' + (data.error || 'desconocido'));
+            }
+        } catch (err) {
+            alert('No se pudo conectar con el Worker. Revisa la URL y CORS.');
+            console.error(err);
+        } finally {
+            rerankButton.disabled = false;
+            rerankButton.textContent = '🤖 Reordenar con IA (Groq)';
+        }
+    }
+    
+    // Crear el botón de re‑ranking (una sola vez)
+    const rerankButton = document.createElement('button');
+    rerankButton.textContent = '🤖 Reordenar con IA (Groq)';
+    rerankButton.style.marginTop = '1rem';
+    rerankButton.style.padding = '0.5rem 1rem';
+    rerankButton.style.borderRadius = '2rem';
+    rerankButton.style.border = 'none';
+    rerankButton.style.backgroundColor = '#6a4e2e';
+    rerankButton.style.color = 'white';
+    rerankButton.style.cursor = 'pointer';
+    rerankButton.onclick = rerankWithAI;
+    
+    // Insertar botón después del contenedor de resultados
+    const resultsContainer = document.getElementById('resultsContainer');
+    if (resultsContainer) {
+        resultsContainer.parentNode.insertBefore(rerankButton, resultsContainer.nextSibling);
+    }
+    
+    // ---------- 10. Eventos e inicialización ----------
+    searchBtn.addEventListener('click', performSearch);
+    topKSelect.addEventListener('change', () => { if (lastQueryVector !== null) performSearch(); });
+    
+    loadDataset();
+    getEmbedder();
+</script>
+</body>
+</html>

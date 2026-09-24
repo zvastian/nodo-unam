@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Repositorio de Tesis UNAM · 2020–2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4f6fb;--bg2:#ffffff;--bg3:#eef1f8;
+  --border:rgba(0,30,80,0.09);--border2:rgba(0,30,80,0.16);
+  --text:#0d1f45;--text2:#4a5f8a;--text3:#8a9bbf;
+  --gold:#9a6f0e;--gold-bg:#fdf3dc;--gold-border:#e8c96a;
+  --blue:#003087;--blue-mid:#1a4fa0;--blue-light:#e8eef8;
+  --mono:'IBM Plex Mono',monospace;--sans:'IBM Plex Sans',sans-serif;--serif:'Playfair Display',serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:13px;font-weight:300;}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:0.5px solid var(--border);background:var(--blue);}
+.topbar-left{display:flex;align-items:baseline;gap:12px;}
+.topbar-title{font-family:var(--serif);font-size:17px;font-weight:400;color:#fff;}
+.topbar-badge{font-family:var(--mono);font-size:10px;color:var(--gold-border);border:0.5px solid rgba(232,201,106,0.5);padding:2px 7px;border-radius:2px;}
+.topbar-right{font-family:var(--mono);font-size:10px;color:rgba(255,255,255,0.4);}
+.nav{display:flex;border-bottom:0.5px solid var(--border);background:var(--bg2);}
+.nav-item{padding:9px 18px;font-size:11px;color:var(--text3);cursor:pointer;border-bottom:1.5px solid transparent;letter-spacing:0.04em;text-transform:uppercase;}
+.nav-item.active{color:var(--blue);border-bottom-color:var(--blue);}
+.nav-item:hover:not(.active){color:var(--text);}
+.layout{display:grid;grid-template-columns:220px 1fr;min-height:580px;}
+.sidebar{background:var(--bg2);border-right:0.5px solid var(--border);padding:16px 14px;display:flex;flex-direction:column;gap:18px;}
+.filter-label{font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:3px;}
+.filter-select,.filter-input{width:100%;background:var(--bg3);border:0.5px solid var(--border2);color:var(--text);font-family:var(--sans);font-size:12px;font-weight:300;padding:7px 9px;border-radius:3px;appearance:none;}
+.filter-input::placeholder{color:var(--text3);}
+.filter-select:focus,.filter-input:focus{outline:none;border-color:var(--blue);}
+hr{border:none;border-top:0.5px solid var(--border);}
+.apply-btn{background:var(--blue);color:#fff;font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;border:none;padding:9px;border-radius:3px;cursor:pointer;width:100%;}
+.apply-btn:hover{background:var(--blue-mid);}
+.main{display:flex;flex-direction:column;}
+.kpi-strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-bottom:0.5px solid var(--border);background:var(--bg2);}
+.kpi{padding:16px 18px;border-right:0.5px solid var(--border);}
+.kpi:last-child{border-right:none;}
+.kpi-n{font-family:var(--mono);font-size:24px;font-weight:500;color:var(--blue);line-height:1;}
+.kpi-l{font-size:10px;color:var(--text3);margin-top:5px;letter-spacing:0.04em;text-transform:uppercase;}
+.kpi-sub{font-family:var(--mono);font-size:10px;color:var(--gold);margin-top:3px;}
+.charts-area{display:grid;grid-template-columns:1.5fr 1fr;border-bottom:0.5px solid var(--border);}
+.chart-panel{padding:16px 18px;background:var(--bg2);}
+.chart-panel:first-child{border-right:0.5px solid var(--border);}
+.panel-title{font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:12px;}
+.bar-chart{display:flex;align-items:flex-end;gap:7px;height:100px;}
+.bar-wrap{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;}
+.bar{background:var(--blue-light);border:0.5px solid rgba(0,48,135,0.2);border-radius:2px 2px 0 0;width:100%;cursor:pointer;}
+.bar:hover{background:#c8d5f0;border-color:var(--blue-mid);}
+.bar.peak{background:var(--blue);border-color:var(--blue);}
+.bar-lbl{font-family:var(--mono);font-size:9px;color:var(--text3);}
+.bar-val{font-family:var(--mono);font-size:8px;color:var(--text2);}
+.donut-wrap{display:flex;align-items:center;gap:14px;}
+.donut-legend{display:flex;flex-direction:column;gap:6px;}
+.legend-row{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--text2);}
+.legend-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.search-area{padding:16px 18px;border-bottom:0.5px solid var(--border);background:var(--bg2);}
+.search-row{display:flex;gap:8px;margin-bottom:12px;}
+.search-input{flex:1;background:var(--bg3);border:0.5px solid var(--border2);color:var(--text);font-family:var(--sans);font-size:13px;font-weight:300;padding:9px 12px;border-radius:3px;}
+.search-input::placeholder{color:var(--text3);}
+.search-input:focus{outline:none;border-color:var(--blue);}
+.search-btn{background:var(--blue);color:#fff;font-family:var(--mono);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;padding:0 16px;border-radius:3px;cursor:pointer;border:none;}
+.search-btn:hover{background:var(--blue-mid);}
+.result-row{display:flex;align-items:flex-start;gap:12px;padding:9px 0;border-top:0.5px solid var(--border);}
+.result-pct{font-family:var(--mono);font-size:11px;font-weight:500;color:var(--gold);background:var(--gold-bg);border:0.5px solid var(--gold-border);padding:2px 6px;border-radius:2px;min-width:40px;text-align:center;}
+.result-title{font-size:12px;color:var(--text);line-height:1.5;margin-bottom:3px;}
+.result-meta{font-family:var(--mono);font-size:9px;color:var(--text3);}
+.tag{display:inline-block;background:var(--blue-light);border:0.5px solid rgba(0,48,135,0.15);color:var(--blue-mid);font-family:var(--mono);font-size:9px;padding:1px 6px;border-radius:2px;margin-right:4px;}
+.table-area{padding:16px 18px;background:var(--bg2);}
+.tbl{width:100%;border-collapse:collapse;table-layout:fixed;}
+.tbl th{font-family:var(--mono);font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3);text-align:left;padding:0 0 8px;border-bottom:0.5px solid var(--border2);font-weight:400;}
+.tbl td{padding:7px 0;border-bottom:0.5px solid var(--border);font-size:11px;color:var(--text2);vertical-align:top;}
+.tbl tr:last-child td{border-bottom:none;}
+.tbl td:first-child{color:var(--text);font-size:12px;}
+.mono{font-family:var(--mono);font-size:10px;}
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="topbar-left">
+      <span class="topbar-title">Repositorio de Tesis</span>
+      <span class="topbar-badge">UNAM · 2020–2026</span>
+    </div>
+    <span class="topbar-right">70,000 registros</span>
+  </div>
+  <div class="nav">
+    <div class="nav-item active">Explorar</div>
+    <div class="nav-item">Similitud semántica</div>
+    <div class="nav-item">Tendencias</div>
+    <div class="nav-item">Asesores</div>
+  </div>
+  <div class="layout">
+    <aside class="sidebar">
+      <div><div class="filter-label">Año</div><select class="filter-select"><option>Todos</option><option>2020</option><option>2021</option><option>2022</option><option>2023</option><option>2024</option><option>2025</option><option>2026</option></select></div>
+      <div><div class="filter-label">Área</div><select class="filter-select"><option>Todas</option><option>Ciencias Sociales</option><option>Ingeniería</option><option>Salud</option><option>Humanidades</option><option>Exactas</option></select></div>
+      <div><div class="filter-label">Nivel</div><select class="filter-select"><option>Todos</option><option>Licenciatura</option><option>Maestría</option><option>Doctorado</option></select></div>
+      <hr>
+      <div><div class="filter-label">Autor</div><input type="text" class="filter-input" placeholder="Nombre..."></div>
+      <div><div class="filter-label">Asesor</div><input type="text" class="filter-input" placeholder="Nombre..."></div>
+      <div><div class="filter-label">Palabras clave</div><input type="text" class="filter-input" placeholder="ej. inflación, redes..."></div>
+      <hr>
+      <button class="apply-btn">Aplicar filtros</button>
+    </aside>
+    <main class="main">
+      <div class="kpi-strip">
+        <div class="kpi"><div class="kpi-n">70,000</div><div class="kpi-l">Total tesis</div><div class="kpi-sub">2020–2026</div></div>
+        <div class="kpi"><div class="kpi-n">2022</div><div class="kpi-l">Año más activo</div><div class="kpi-sub">13,421 trabajos</div></div>
+        <div class="kpi"><div class="kpi-n">18</div><div class="kpi-l">Áreas</div><div class="kpi-sub">del conocimiento</div></div>
+        <div class="kpi"><div class="kpi-n">4,230</div><div class="kpi-l">Asesores únicos</div><div class="kpi-sub">en el periodo</div></div>
+      </div>
+      <div class="charts-area">
+        <div class="chart-panel">
+          <div class="panel-title">Tesis por año</div>
+          <div class="bar-chart" id="bc2"></div>
+        </div>
+        <div class="chart-panel">
+          <div class="panel-title">Distribución por área</div>
+          <div class="donut-wrap"><canvas id="dn2" width="110" height="110"></canvas><div class="donut-legend" id="lg2"></div></div>
+        </div>
+      </div>
+      <div class="search-area">
+        <div class="panel-title">Búsqueda semántica</div>
+        <div class="search-row">
+          <input type="text" class="search-input" id="si2" placeholder="Escribe el tema o título de tu investigación...">
+          <button class="search-btn" onclick="handleS2()">Buscar →</button>
+        </div>
+        <div id="res2">
+          <div class="result-row"><span class="result-pct">98%</span><div><div class="result-title">Análisis de redes neuronales aplicadas a predicción de series temporales en mercados emergentes</div><div class="result-meta"><span class="tag">Cs. Exactas</span><span class="tag">2023</span>Asesor: Dr. Ramírez Torres · Doctorado</div></div></div>
+          <div class="result-row"><span class="result-pct">94%</span><div><div class="result-title">Modelos econométricos para detección de anomalías en datos financieros de alta frecuencia</div><div class="result-meta"><span class="tag">Cs. Sociales</span><span class="tag">2022</span>Asesor: Dra. Morales Vega · Maestría</div></div></div>
+          <div class="result-row"><span class="result-pct">89%</span><div><div class="result-title">Aplicación de modelos GARCH multivariados en portafolios de inversión latinoamericanos</div><div class="result-meta"><span class="tag">Cs. Sociales</span><span class="tag">2021</span>Asesor: Dr. Suárez Mendoza · Maestría</div></div></div>
+        </div>
+      </div>
+      <div class="table-area">
+        <div class="panel-title" style="margin-bottom:10px;">Últimas tesis registradas</div>
+        <table class="tbl">
+          <colgroup><col style="width:42%"><col style="width:18%"><col style="width:14%"><col style="width:14%"><col style="width:12%"></colgroup>
+          <thead><tr><th>Título</th><th>Autor</th><th>Área</th><th>Asesor</th><th>Año</th></tr></thead>
+          <tbody>
+            <tr><td>Factores determinantes de la evasión fiscal en pymes mexicanas</td><td>García Leal, A.</td><td class="mono">Cs. Sociales</td><td>Dra. Fuentes R.</td><td class="mono">2026</td></tr>
+            <tr><td>Variabilidad climática y producción agrícola en el Bajío</td><td>Núñez Paredes, C.</td><td class="mono">Cs. Naturales</td><td>Dr. Vidal M.</td><td class="mono">2025</td></tr>
+            <tr><td>Aprendizaje federado para sistemas de salud distribuidos</td><td>Reyes Solano, M.</td><td class="mono">Ingeniería</td><td>Dr. Aguilar T.</td><td class="mono">2025</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+<script>
+const años=['2020','2021','2022','2023','2024','2025','2026'];
+const vals=[9200,11400,13421,12800,11600,8900,2679];
+const mx=Math.max(...vals);
+const bc=document.getElementById('bc2');
+años.forEach((a,i)=>{
+  const h=Math.round((vals[i]/mx)*90);
+  const pk=vals[i]===mx;
+  bc.innerHTML+=`<div class="bar-wrap"><div class="bar-val">${(vals[i]/1000).toFixed(1)}k</div><div class="bar ${pk?'peak':''}" style="height:${h}px"></div><div class="bar-lbl">${a}</div></div>`;
+});
+const areas=[{l:'Cs. Sociales',p:28,c:'#9a6f0e'},{l:'Ingeniería',p:22,c:'#003087'},{l:'Salud',p:18,c:'#4aab8c'},{l:'Humanidades',p:14,c:'#7f77dd'},{l:'Exactas',p:11,c:'#8a9bbf'},{l:'Otras',p:7,c:'#c8d5f0'}];
+const cv=document.getElementById('dn2');
+const ctx=cv.getContext('2d');
+let s=-Math.PI/2;
+areas.forEach(a=>{
+  const sl=(a.p/100)*Math.PI*2;
+  ctx.beginPath();ctx.moveTo(55,55);ctx.arc(55,55,42,s,s+sl);ctx.closePath();
+  ctx.fillStyle=a.c;ctx.fill();s+=sl;
+});
+ctx.beginPath();ctx.arc(55,55,26,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();
+ctx.fillStyle='#003087';ctx.font='500 12px IBM Plex Mono,monospace';ctx.textAlign='center';ctx.fillText('70k',55,57);
+ctx.fillStyle='#8a9bbf';ctx.font='9px IBM Plex Mono,monospace';ctx.fillText('tesis',55,68);
+const lg=document.getElementById('lg2');
+areas.forEach(a=>{
+  lg.innerHTML+=`<div class="legend-row"><div class="legend-dot" style="background:${a.c}"></div><span>${a.l} <span style="color:#8a9bbf">${a.p}%</span></span></div>`;
+});
+function handleS2(){
+  const q=document.getElementById('si2').value.trim();
+  if(!q)return;
+  alert('Búsqueda semántica: "'+q+'"\n\nAquí se integrará Transformers.js + DuckDB-WASM.');
+}
+</script>
+</body>
+</html>

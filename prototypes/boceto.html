@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>MiTesis UNAM | Exploración con IA</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #fdfbf7;
+            scroll-behavior: smooth;
+        }
+        h1, h2, h3, .serif {
+            font-family: 'Playfair Display', serif;
+        }
+        .card-hover {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -12px rgba(0, 0, 0, 0.1);
+        }
+        .quote-museum {
+            font-style: italic;
+            border-left: 4px solid #8B5A2B;
+            padding-left: 1.5rem;
+        }
+        /* Podio: UNAM más elevada */
+        .podium-center {
+            transform: translateY(-1.5rem);
+        }
+        @media (min-width: 768px) {
+            .podium-center {
+                transform: translateY(-2.5rem);
+            }
+        }
+        .podium-card {
+            background: white;
+            border-radius: 1.5rem;
+            box-shadow: 0 20px 30px -12px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+        .podium-img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        .img-container {
+            max-height: 260px;
+            overflow: hidden;
+        }
+        .explanation {
+            background-color: #f5f0e8;
+            border-radius: 1rem;
+            padding: 1rem;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Navegación -->
+    <header class="fixed top-0 left-0 w-full z-50 py-5 px-6 md:px-12 bg-white/80 backdrop-blur-md border-b border-gray-100">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <span class="text-2xl font-light text-stone-800 serif">Mi</span>
+                <span class="text-2xl font-semibold text-stone-800 serif">Tesis UNAM</span>
+            </div>
+            <nav class="hidden md:flex space-x-8 text-stone-600 text-sm font-medium">
+                <a href="#" class="hover:text-stone-900">Inicio</a>
+                <a href="#ranking" class="hover:text-stone-900">Búsqueda</a>
+                <a href="#temas" class="hover:text-stone-900">Asesores</a>
+                <a href="#" class="hover:text-stone-900">Trayectoria</a>
+            </nav>
+            <button id="searchBtnNav" class="bg-stone-900 text-white px-5 py-2 rounded-full text-sm font-medium hover:bg-stone-700 transition shadow-md">
+                Explorar tesis
+            </button>
+        </div>
+    </header>
+
+    <main>
+        <!-- Sección Héroe con imagen de la Biblioteca Central -->
+        <section class="relative min-h-[85vh] flex items-center justify-center overflow-hidden">
+            <div class="absolute inset-0 z-0">
+                <img src="i.png" 
+                     alt="Ilustración artística de la Biblioteca Central de la UNAM, generada por IA" 
+                     class="w-full h-full object-cover brightness-90">
+                <div class="absolute inset-0 bg-gradient-to-b from-black/30 to-black/10"></div>
+            </div>
+            <div class="relative z-10 max-w-5xl mx-auto px-6 text-center text-white">
+                <div class="inline-block px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm text-xs font-medium tracking-wider mb-6 border border-white/30">
+                    ARCHIVO · ATLAS · LABORATORIO DE IDEAS
+                </div>
+                <h1 class="text-5xl md:text-7xl lg:text-8xl font-bold leading-tight tracking-tight serif drop-shadow-lg">
+                    Descubre,<br> <span class="italic">explora</span>.
+                </h1>
+                <p class="text-lg md:text-2xl mt-6 max-w-2xl mx-auto text-white/90 font-light">
+                    Un repositorio semántico de +600,000 tesis donde la ciencia mexicana se convierte en patio de juegos.
+                </p>
+                <div class="mt-10 flex flex-wrap justify-center gap-4">
+                    <a href="#buscador" class="bg-white text-stone-900 hover:bg-stone-100 px-8 py-3 rounded-full font-medium transition shadow-lg">Comenzar búsqueda →</a>
+                    <a href="#ranking" class="bg-transparent border border-white text-white hover:bg-white/10 px-8 py-3 rounded-full font-medium transition backdrop-blur-sm">Ver impacto UNAM</a>
+                </div>
+            </div>
+            <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10 animate-bounce">
+                <svg class="w-6 h-6 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
+            </div>
+        </section>
+
+        <!-- Sección Ranking (Podio) -->
+        <section id="ranking" class="py-24 px-6 bg-white">
+            <div class="max-w-6xl mx-auto">
+                <div class="text-center mb-16">
+                    <span class="text-amber-700 text-sm font-semibold tracking-widest">RANKING 2025 · AD SCIENTIFIC INDEX</span>
+                    <h2 class="text-4xl md:text-5xl font-bold text-stone-900 mt-3 serif">Orgullo UNAM: <br>Líder indiscutible en producción científica</h2>
+                    <div class="w-24 h-0.5 bg-amber-600 mx-auto mt-6"></div>
+                    <p class="text-stone-600 max-w-2xl mx-auto mt-6 text-lg">
+                        La Universidad Nacional Autónoma de México se posiciona como la institución con mayor impacto e influencia científica del país, según el AD Scientific Index 2025.
+                    </p>
+                </div>
+
+                <!-- PODIO -->
+                <div class="flex flex-col md:flex-row justify-center items-end gap-6 md:gap-8 mb-16">
+                    <!-- 2º lugar -->
+                    <div class="flex-1 max-w-xs mx-auto md:mx-0 text-center order-1">
+                        <div class="podium-card bg-stone-50 p-6">
+                            <div class="w-16 h-16 rounded-full bg-stone-200 flex items-center justify-center mx-auto mb-4">
+                                <span class="text-2xl font-bold text-stone-600">2</span>
+                            </div>
+                            <h3 class="text-xl font-bold">Tecnológico de Monterrey</h3>
+                            <p class="text-stone-500 text-sm">ITESM · Puesto Global #798</p>
+                            <p class="mt-3 text-sm text-stone-600">2º en producción nacional</p>
+                        </div>
+                    </div>
+
+                    <!-- 1º lugar UNAM con imagen de la BC -->
+                    <div class="flex-1 max-w-md mx-auto md:mx-0 text-center podium-center order-2 z-10">
+                        <div class="podium-card bg-white shadow-xl border border-stone-100">
+                            <div class="img-container">
+                                <img src="i.png" alt="Biblioteca Central UNAM" class="podium-img">
+                            </div>
+                            <div class="p-6">
+                                <div class="inline-block bg-amber-100 text-amber-800 text-xs font-bold px-3 py-1 rounded-full mb-3">#1 en México · #90 Global</div>
+                                <h3 class="text-2xl md:text-3xl font-bold serif">UNAM</h3>
+                                <p class="text-stone-500 text-sm">Universidad Nacional Autónoma de México</p>
+                                <p class="mt-3 text-stone-700 font-medium">Producción científica más alta del país</p>
+                                <p class="mt-2 text-xs text-stone-500">Líder en citas e impacto</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3º lugar -->
+                    <div class="flex-1 max-w-xs mx-auto md:mx-0 text-center order-3">
+                        <div class="podium-card bg-stone-50 p-6">
+                            <div class="w-16 h-16 rounded-full bg-stone-200 flex items-center justify-center mx-auto mb-4">
+                                <span class="text-2xl font-bold text-stone-600">3</span>
+                            </div>
+                            <h3 class="text-xl font-bold">UAM</h3>
+                            <p class="text-stone-500 text-sm">Universidad Autónoma Metropolitana · #836 Global</p>
+                            <p class="mt-2 text-xs text-green-600 font-medium">2ª pública nacional</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Puestos 4 y 5 -->
+                <div class="flex flex-wrap justify-center gap-6 mt-2">
+                    <div class="bg-stone-50 rounded-full px-6 py-3 flex items-center gap-3 shadow-sm">
+                        <span class="font-bold text-stone-800 text-lg">4</span>
+                        <span class="font-medium">Instituto Politécnico Nacional (IPN)</span>
+                        <span class="text-stone-500 text-sm">#862 Global</span>
+                    </div>
+                    <div class="bg-stone-50 rounded-full px-6 py-3 flex items-center gap-3 shadow-sm">
+                        <span class="font-bold text-stone-800 text-lg">5</span>
+                        <span class="font-medium">Universidad de Guadalajara (UdeG)</span>
+                        <span class="text-stone-500 text-sm">#951 Global</span>
+                    </div>
+                </div>
+
+                <div class="text-center mt-12 text-stone-500 text-sm max-w-xl mx-auto border-t pt-8 border-stone-100">
+                    <span>Datos basados en el AD Scientific Index 2025. Fuente: <a href="https://cronicamaya.com/cronica-mexico/ranking-ad-scientific-index-2025-unam-lidera-la-lista-de-universidades-mexicanas-mas-influyentes-en-produccion-cientifica/" target="_blank" class="text-amber-700 underline">Crónica Maya</a></span>
+                </div>
+
+                <div class="quote-museum max-w-2xl mx-auto mt-16 bg-stone-50 p-8 rounded-3xl">
+                    <p class="text-stone-700 text-lg">"La UNAM no solo almacena conocimiento: lo genera al ritmo más alto de México. Cada tesis en este museo forma parte de un ecosistema que hoy lidera la ciencia nacional."</p>
+                    <p class="text-stone-400 text-sm mt-3">— Observatorio de Tesis / AD Scientific Index 2025</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN BUSCADOR (funcional) -->
+        <section id="buscador" class="py-16 px-6 bg-stone-50">
+            <div class="max-w-6xl mx-auto">
+                <div class="text-center mb-10">
+                    <span class="text-amber-700 text-sm font-semibold tracking-widest">BÚSQUEDA INTELIGENTE</span>
+                    <h2 class="text-4xl md:text-5xl font-bold text-stone-900 mt-2 serif">Encuentra tesis afines</h2>
+                    <p class="text-stone-600 max-w-2xl mx-auto mt-4">Búsqueda semántica + IA explicable (Groq)</p>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+                    <div class="mb-4">
+                        <label class="block text-stone-700 font-semibold mb-1">📌 Título tentativo (peso 70%)</label>
+                        <textarea id="tituloInput" rows="2" class="w-full border border-stone-300 rounded-xl p-3" placeholder="Ej: 'Impacto económico de la pandemia en México'"></textarea>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-stone-700 font-semibold mb-1">📝 Descripción corta (opcional, para IA)</label>
+                        <textarea id="descripcionInput" rows="2" class="w-full border border-stone-300 rounded-xl p-3" placeholder="Describe tu tema con más detalle"></textarea>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-stone-700 font-semibold mb-1">🔑 Palabras clave (peso 30%)</label>
+                        <input type="text" id="keywordsInput" class="w-full border border-stone-300 rounded-xl p-3" placeholder="Ej: pandemia, México, economía, COVID">
+                    </div>
+                    <div class="flex flex-wrap gap-4 items-center justify-between">
+                        <div>
+                            <label class="text-stone-700 font-semibold mr-2">🎯 Top K</label>
+                            <select id="topK" class="border border-stone-300 rounded-full px-4 py-2">
+                                <option>10</option>
+                                <option>15</option>
+                                <option>20</option>
+                            </select>
+                        </div>
+                        <button id="searchBtn" class="bg-stone-900 text-white px-6 py-2 rounded-full hover:bg-stone-700 transition">🔍 Buscar tesis similares</button>
+                    </div>
+                </div>
+
+                <!-- Filtros dinámicos (categorías) -->
+                <div id="filterBar" class="flex flex-wrap gap-2 mb-6"></div>
+
+                <!-- Resultados -->
+                <div id="resultsContainer" class="space-y-4">
+                    <div class="bg-white rounded-xl p-8 text-center text-stone-500 shadow-sm">🔮 Cargando datos y modelo...</div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-white border-t border-stone-100 py-12 px-6">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center text-stone-500 text-sm">
+            <div class="flex space-x-6 mb-4 md:mb-0">
+                <span>MiTesis UNAM</span>
+                <span>·</span>
+                <span>Exploratorio interactivo</span>
+                <span>·</span>
+                <span>600k+ registros</span>
+            </div>
+            <div class="flex space-x-5">
+                <a href="#" class="hover:text-stone-900">Acerca</a>
+                <a href="#" class="hover:text-stone-900">API / Datos abiertos</a>
+                <a href="#" class="hover:text-stone-900">Inspiración Gapminder + Harvard CURIOSity</a>
+            </div>
+        </div>
+        <div class="text-center text-stone-400 text-xs mt-6">
+            Basado en TESIUNAM · Búsqueda híbrida con IA (Groq)
+        </div>
+    </footer>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "@xenova/transformers": "https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/dist/transformers.min.js"
+            }
+        }
+    </script>
+    <script type="module">
+        import { pipeline } from '@xenova/transformers';
+
+        // ---------- Estado ----------
+        let dataset = [];
+        let allEmbeddings = null;
+        let currentFilter = "TODOS";
+        let availableCategories = new Set();
+        let embedder = null;
+        let lastQueryVector = null;
+        let currentResults = [];
+
+        const searchBtn = document.getElementById('searchBtn');
+        const tituloInput = document.getElementById('tituloInput');
+        const descripcionInput = document.getElementById('descripcionInput');
+        const keywordsInput = document.getElementById('keywordsInput');
+        const topKSelect = document.getElementById('topK');
+        const resultsDiv = document.getElementById('resultsContainer');
+        const filterBar = document.getElementById('filterBar');
+
+        // ---------- 1. Cargar dataset ----------
+        async function loadDataset() {
+            try {
+                const response = await fetch('muestra_tesis_norm.json');
+                if (!response.ok) throw new Error(`No se encontró muestra_tesis_norm.json`);
+                dataset = await response.json();
+                if (!dataset.length) throw new Error('Dataset vacío');
+
+                const dim = dataset[0].embedding.length;
+                allEmbeddings = new Float32Array(dataset.length * dim);
+                for (let i = 0; i < dataset.length; i++) {
+                    const emb = dataset[i].embedding;
+                    for (let j = 0; j < dim; j++) {
+                        allEmbeddings[i * dim + j] = emb[j];
+                    }
+                }
+
+                dataset.forEach(d => availableCategories.add(d.categoria));
+                availableCategories = Array.from(availableCategories).sort();
+                renderFilterChips();
+
+                resultsDiv.innerHTML = `<div class="bg-white rounded-xl p-8 text-center text-green-700 shadow-sm">✅ Dataset cargado: ${dataset.length} tesis. Modelo listo.</div>`;
+                return true;
+            } catch (err) {
+                resultsDiv.innerHTML = `<div class="bg-white rounded-xl p-8 text-center text-red-600 shadow-sm">❌ Error: ${err.message}<br>¿Tienes "muestra_tesis_norm.json"?</div>`;
+                return false;
+            }
+        }
+
+        function renderFilterChips() {
+            const chips = ['TODOS', ...availableCategories];
+            filterBar.innerHTML = chips.map(cat => `
+                <button class="px-4 py-1 rounded-full border border-stone-300 text-sm transition ${currentFilter === cat ? 'bg-stone-800 text-white' : 'bg-white text-stone-700 hover:bg-stone-100'}" data-cat="${cat}">${cat}</button>
+            `).join('');
+            document.querySelectorAll('#filterBar button').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    currentFilter = btn.dataset.cat;
+                    renderFilterChips();
+                    if (lastQueryVector !== null) performSearch();
+                });
+            });
+        }
+
+        async function getEmbedder() {
+            if (!embedder) {
+                resultsDiv.innerHTML = `<div class="bg-white rounded-xl p-8 text-center text-stone-500 shadow-sm">🔄 Cargando modelo multilingüe (≈500 MB). Puede tomar hasta 30 s la primera vez.</div>`;
+                embedder = await pipeline('feature-extraction', 'Xenova/paraphrase-multilingual-MiniLM-L12-v2');
+                resultsDiv.innerHTML = `<div class="bg-white rounded-xl p-8 text-center text-green-700 shadow-sm">✅ Modelo listo. Ahora puedes buscar.</div>`;
+            }
+            return embedder;
+        }
+
+        function normalizeText(text) {
+            return text.toLowerCase()
+                .replace(/[^\w\sáéíóúüñ]/g, ' ')
+                .trim()
+                .replace(/\s+/g, ' ');
+        }
+
+        function tokenize(text) {
+            return text.toLowerCase().split(/[\s,]+/).filter(t => t.length > 1);
+        }
+
+        function keywordMatchScore(userKeywordsRaw, thesisTitle) {
+            if (!userKeywordsRaw || !thesisTitle) return 0;
+            const userTokens = tokenize(userKeywordsRaw);
+            if (userTokens.length === 0) return 0;
+            const titleTokens = tokenize(thesisTitle);
+            const intersection = userTokens.filter(t => titleTokens.includes(t)).length;
+            return intersection / userTokens.length;
+        }
+
+        async function textToVector(text) {
+            const pipe = await getEmbedder();
+            const output = await pipe(text, { pooling: 'mean', normalize: true });
+            return Array.from(output.data);
+        }
+
+        async function hybridSearch(titleText, keywordsRaw) {
+            if (!titleText.trim()) throw new Error("Escribe al menos un título.");
+            const normalizedTitle = normalizeText(titleText);
+            const titleVec = await textToVector(normalizedTitle);
+            lastQueryVector = titleVec;
+            const dim = titleVec.length;
+            const N = dataset.length;
+            const cosineScores = new Float32Array(N);
+            for (let i = 0; i < N; i++) {
+                let dot = 0;
+                const offset = i * dim;
+                for (let j = 0; j < dim; j++) {
+                    dot += titleVec[j] * allEmbeddings[offset + j];
+                }
+                cosineScores[i] = dot;
+            }
+            const keywordScores = new Float32Array(N);
+            if (keywordsRaw && keywordsRaw.trim()) {
+                for (let i = 0; i < N; i++) {
+                    keywordScores[i] = keywordMatchScore(keywordsRaw, dataset[i].titulo);
+                }
+            }
+            const hybridScores = new Float32Array(N);
+            for (let i = 0; i < N; i++) {
+                hybridScores[i] = 0.7 * Math.max(0, cosineScores[i]) + 0.3 * keywordScores[i];
+            }
+            return hybridScores;
+        }
+
+        async function performSearch() {
+            const title = tituloInput.value.trim();
+            if (!title) { alert("Escribe un título tentativo."); return; }
+            const keywords = keywordsInput.value.trim();
+            const descripcion = descripcionInput.value.trim();
+
+            searchBtn.disabled = true;
+            searchBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Buscando...';
+
+            try {
+                const hybridScores = await hybridSearch(title, keywords);
+                let results = dataset.map((item, idx) => ({
+                    ...item,
+                    id: idx,
+                    hybridScore: hybridScores[idx]
+                }));
+                if (currentFilter !== "TODOS") {
+                    results = results.filter(r => r.categoria === currentFilter);
+                }
+                results.sort((a,b) => b.hybridScore - a.hybridScore);
+                const topK = parseInt(topKSelect.value, 10);
+                const topResults = results.slice(0, topK);
+                currentResults = topResults;
+                renderResults(topResults);
+                const oldExp = document.getElementById('aiExplanation');
+                if (oldExp) oldExp.remove();
+            } catch (err) {
+                console.error(err);
+                resultsDiv.innerHTML = `<div class="bg-white rounded-xl p-8 text-center text-red-600 shadow-sm">⚠️ Error: ${err.message}</div>`;
+            } finally {
+                searchBtn.disabled = false;
+                searchBtn.innerHTML = "🔍 Buscar tesis similares";
+            }
+        }
+
+        function renderResults(results) {
+            if (!results.length) {
+                resultsDiv.innerHTML = `<div class="bg-white rounded-xl p-8 text-center text-stone-500 shadow-sm">No se encontraron tesis con el filtro actual.</div>`;
+                return;
+            }
+            let html = `<div class="space-y-4">`;
+            for (const r of results) {
+                html += `
+                    <div class="bg-white rounded-xl shadow-sm p-5 border border-stone-100 hover:shadow-md transition">
+                        <div class="flex justify-between items-start">
+                            <h3 class="text-lg font-bold text-stone-800">${escapeHtml(r.titulo || "Sin título")}</h3>
+                            <span class="bg-amber-100 text-amber-800 text-xs font-semibold px-2 py-1 rounded-full">${r.hybridScore !== undefined ? (r.hybridScore * 100).toFixed(1) + '%' : 'IA'}</span>
+                        </div>
+                        <div class="text-sm text-stone-500 mt-2 flex flex-wrap gap-x-4 gap-y-1">
+                            <span>✍️ ${escapeHtml(r.autor || "Autor desconocido")}</span>
+                            <span>🎓 ${r.grado || ""}</span>
+                            <span>📅 ${r.año || ""}</span>
+                            <span class="bg-stone-100 px-2 rounded">${r.categoria || "Otro"}</span>
+                            <span>🏛️ ${escapeHtml(r.plantel?.substring(0, 60) || "")}</span>
+                        </div>
+                        <div class="text-sm text-stone-500 mt-1">🧑‍🏫 Asesor: ${escapeHtml(r.asesor || "—")}</div>
+                    </div>
+                `;
+            }
+            html += `</div>`;
+            resultsDiv.innerHTML = `<div class="mb-2 text-sm text-stone-500">🔎 ${results.length} resultados (filtro: ${currentFilter})</div>` + html;
+        }
+
+        function escapeHtml(str) {
+            if (!str) return "";
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        // ---------- Re‑ranking con IA (Groq) ----------
+        async function rerankWithAI() {
+            if (!currentResults.length) {
+                alert('Primero haz una búsqueda.');
+                return;
+            }
+            const originalResults = [...currentResults];
+            const candidatesForAI = originalResults.slice(0, 10).map(r => ({ id: r.id, titulo: r.titulo }));
+            
+            rerankButton.disabled = true;
+            rerankButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Reordenando con IA...';
+            
+            try {
+                const WORKER_URL = 'https://tesis-reranker.sebastiaan-diaz-prado.workers.dev/api/rerank';
+                const response = await fetch(WORKER_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        queryTitle: tituloInput.value,
+                        queryDescription: descripcionInput.value,
+                        keywords: keywordsInput.value,
+                        candidates: candidatesForAI
+                    })
+                });
+                const data = await response.json();
+                if (data.success && data.ranking && data.ranking.length) {
+                    const mapById = Object.fromEntries(originalResults.map(r => [r.id, r]));
+                    const reordered = data.ranking.map(id => mapById[id]).filter(Boolean);
+                    if (reordered.length) {
+                        currentResults = reordered;
+                        renderResults(currentResults);
+                        showExplanation(data.ranking, data.reasons || {});
+                    } else {
+                        alert('No se pudo reconstruir la lista (IDs no coinciden).');
+                    }
+                } else {
+                    alert('Error: ' + (data.error || 'No se obtuvo ranking'));
+                }
+            } catch (err) {
+                alert('No se pudo conectar con el Worker. Revisa la consola.');
+                console.error(err);
+            } finally {
+                rerankButton.disabled = false;
+                rerankButton.innerHTML = '🤖 Reordenar con IA (Groq)';
+            }
+        }
+
+        function showExplanation(ranking, reasons) {
+            let html = `<div id="aiExplanation" class="mt-6 p-4 bg-amber-50 rounded-xl border border-amber-200">
+                <strong class="text-amber-800">🧠 Explicación del orden (IA - Groq)</strong>
+                <ol class="list-decimal list-inside mt-2 space-y-1 text-sm text-stone-700">`;
+            for (const id of ranking) {
+                const reason = reasons[id] || "Sin razón específica";
+                html += `<li><strong>ID ${id}:</strong> ${escapeHtml(reason)}</li>`;
+            }
+            html += `</ol></div>`;
+            const existing = document.getElementById('aiExplanation');
+            if (existing) existing.remove();
+            resultsDiv.insertAdjacentHTML('afterend', html);
+        }
+
+        // Crear botón de re‑ranking y añadirlo después de los resultados
+        const rerankButton = document.createElement('button');
+        rerankButton.textContent = '🤖 Reordenar con IA (Groq)';
+        rerankButton.className = 'mt-6 bg-amber-700 text-white px-6 py-2 rounded-full hover:bg-amber-800 transition';
+        rerankButton.onclick = rerankWithAI;
+        const resultsContainer = document.getElementById('resultsContainer');
+        if (resultsContainer) {
+            resultsContainer.parentNode.insertBefore(rerankButton, resultsContainer.nextSibling);
+        }
+
+        // Eventos e inicio
+        searchBtn.addEventListener('click', performSearch);
+        topKSelect.addEventListener('change', () => { if (lastQueryVector !== null) performSearch(); });
+        loadDataset();
+        getEmbedder();
+    </script>
+</body>
+</html>

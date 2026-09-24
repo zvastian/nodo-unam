@@ -1,0 +1,76 @@
+# NODO UNAM — repo raíz (creado 2026-09-23). Versiona CÓDIGO y DOCUMENTACIÓN, no datos.
+# Todo lo excluido aquí es regenerable desde pipeline/ o es privado; ver development.md.
+
+# --- Datos: pesados, regenerables o con PII (base7_kaggle_clean tiene nombres de autor) ---
+data/
+atlas_data/
+prototypes/**/data/
+*.parquet
+*.npy
+*.npz
+*.bin
+*.wasm
+*.joblib
+*.pkl
+*.sqlite
+*.sqlite3
+*.db
+*.h5
+*.csv
+*.zip
+*.7z
+*.tar
+*.gz
+
+# --- Repos anidados con historia propia (no se absorben aquí) ---
+app/MI-TESIS-UNAM_github/
+app/nodo-unam/
+app/semantic_full/
+
+# --- Documentos personales / de terceros (credenciales, constancias, PDFs ajenos) ---
+docs/*
+!docs/evidencia_visual/
+
+# --- Notebooks: sus outputs pueden contener nombres de autores (PII). Pendiente: nbstripout ---
+notebooks/
+*.ipynb
+
+# --- Instaladores, binarios, diseño ---
+*.exe
+*.msi
+*.winmd
+*.psd
+*.docx
+*.pdf
+
+# --- Entornos y caches ---
+_scratch/
+.venv/
+venv/
+node_modules/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.DS_Store
+Thumbs.db
+
+# --- Local / secretos ---
+.claude/settings.local.json
+.env
+.env.*
+kaggle.json
+
+# --- Scraping crudo (HTML/JSONL de TESIUNAM, incluye autores) y logs ---
+pipeline/recovery/
+pipeline/outputs/
+*.jsonl
+*.log
+# JSON de datos derivados grandes (los manifests chicos del atlas viven en atlas_data/, ya excluido)
+app/nobel_atlas_es_ui.v1.json
+
+# --- TEMPORAL: API keys (Groq/Cerebras) escritas en el codigo. Rotar las keys y
+# leerlas de variables de entorno antes de versionar estos archivos. Ver development.md.
+app/AI Pipeline/Scripts/ai_bloom.py
+app/AI Pipeline/Scripts/ai_initial_note_cerebras.py
+app/AI Pipeline/Scripts/ai_questions.py
+app/AI Pipeline/Scripts/ai_rerank.py

@@ -1,0 +1,1833 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Atlas Macro NODO</title>
+<style>
+  :root {
+    --bg: #fbfaf7;
+    --page: #f7f5f0;
+    --ink: #17181a;
+    --ink-2: #6b6558;
+    --ink-3: #948d7c;
+    --grid: #e4e0d3;
+    --border: rgba(23,24,26,0.12);
+    --accent: #0f7d5c;
+    --panel-bg: #ffffff;
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--page);
+    color: var(--ink);
+    font-family: "Public Sans", -apple-system, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .app {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 100vh;
+  }
+  header {
+    padding: 18px 22px 12px;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+  }
+  h1 {
+    font-family: "Source Serif 4", Georgia, serif;
+    font-weight: 600;
+    font-size: 22px;
+    letter-spacing: 0.015em;
+    text-transform: uppercase;
+    margin: 0;
+    color: var(--ink);
+  }
+  .subtitle {
+    font-size: 12.5px;
+    color: var(--ink-2);
+    margin-top: 2px;
+    font-family: "Public Sans", sans-serif;
+  }
+  .zoom-readout {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    color: var(--ink-3);
+    margin-top: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  /* Botones de navegacion del header -- nunca se les puso estilo propio
+     (venian de un panel de depuracion temporal, quedaron pegados sin pasar
+     por el Design Manifest -- "no se respeto nada, empezando por las
+     tipografias", 2026-09-23). Antes: Arial/gris/borde 3D por defecto del
+     navegador. Ahora: mismo lenguaje visual que el resto de los botones
+     (.vm-close, .back-btn) -- Public Sans, borde fino, sin bisel.
+     Mayusculas + tracking amplio (2026-09-23, segunda ronda de feedback):
+     "voz instrumento" en mayusculas, igual que .panel-eyebrow/.lg-title que
+     ya lo hacian -- Public Sans SI funciona bien en mayusculas (es lo que
+     usa el propio USWDS para esta clase de etiquetas), el problema no era
+     la tipografia sino que estos botones nunca pasaron por la regla. La voz
+     "curaduria" (titulos de tesis/cluster, serif) se deja intacta, en
+     minuscula -- mezclar mayusculas con serif es justo el antipatron que
+     el manifiesto ya habia identificado en la referencia "no me gusta". */
+  .nav-btn {
+    font-family: "Public Sans", sans-serif;
+    font-size: 10.5px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--panel-bg);
+    color: var(--ink-2);
+    cursor: pointer;
+    transition: border-color 140ms ease, color 140ms ease;
+  }
+  .nav-btn:hover { border-color: var(--accent); color: var(--accent); }
+  main {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    background: var(--bg);
+    overflow: hidden;
+  }
+  #wgl-host { position: absolute; inset: 0; }
+  #wgl-host canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  svg#overlay {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    touch-action: none;
+    pointer-events: none;
+  }
+  /* Cross-fade entre niveles de revelado (2026-09-23, pulido visual punto 1):
+     cada rebuildOverlay() crea una capa nueva y deja la anterior en el DOM el
+     tiempo justo para que ambas transicionen opacity en paralelo -- entra la
+     nueva mientras sale la vieja, en vez del corte duro de antes. */
+  .reveal-layer { opacity: 1; transition: opacity 220ms ease; }
+  .reveal-layer.reveal-entering, .reveal-layer.reveal-exiting { opacity: 0; }
+  .gridline { stroke: var(--grid); stroke-width: 1; }
+  .tick-label {
+    font-family: "Public Sans", sans-serif;
+    font-size: 9px;
+    fill: var(--ink-3);
+    letter-spacing: 0.03em;
+  }
+  .edge { stroke: #c7c2b2; stroke-opacity: 0.45; fill: none; }
+  .node { pointer-events: auto; }
+  .node circle {
+    stroke: rgba(255,255,255,0.9);
+    stroke-width: 1;
+    cursor: pointer;
+  }
+  .node:hover circle, .node.selected circle {
+    stroke: var(--accent);
+    stroke-width: 2.5;
+  }
+  .node-label {
+    /* 2026-09-23: cambiado de Source Serif 4 a Source Sans 3 (nombre actual en
+       Google Fonts de la familia antes llamada "Source Sans Pro", a pedido del
+       usuario) -- hermana de diseno de Source Serif 4 (ambas de la "Source
+       superfamily" de Adobe, pensadas para combinar entre si), asi que sigue
+       coherente con el resto de la tipografia sin ser la misma familia que
+       Public Sans (evita una tercera voz sin motivo). Un grotesco a este
+       tamano (10.5px) tambien lee mas limpio en mayusculas que un serif chico. */
+    font-family: "Source Sans 3", "Source Sans Pro", "Public Sans", sans-serif;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    fill: var(--ink);
+    pointer-events: none;
+    paint-order: stroke;
+    stroke: var(--bg);
+    stroke-width: 3px;
+    stroke-linejoin: round;
+  }
+  .node-unloaded circle { stroke-dasharray: 2 2; }
+  #tooltip {
+    position: absolute;
+    pointer-events: none;
+    background: var(--panel-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 11px;
+    font-size: 12px;
+    line-height: 1.45;
+    box-shadow: 0 6px 18px rgba(23,24,26,0.10);
+    max-width: 260px;
+    opacity: 0;
+    transform: translate(-9999px,-9999px);
+    transition: opacity 0.1s;
+    z-index: 5;
+  }
+  #tooltip .t-label {
+    font-family: "Source Serif 4", Georgia, serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.015em;
+    text-transform: uppercase;
+    margin-bottom: 3px;
+    display: block;
+  }
+  #tooltip .t-meta { color: var(--ink-2); font-size: 11px; text-transform: uppercase; letter-spacing: 0.02em; }
+
+  aside#panel {
+    position: absolute;
+    top: 0; right: 0; bottom: 0;
+    width: 320px;
+    max-width: 86vw;
+    background: var(--panel-bg);
+    border-left: 1px solid var(--border);
+    box-shadow: -10px 0 24px rgba(23,24,26,0.06);
+    transform: translateX(100%);
+    transition: transform 0.22s ease;
+    display: flex;
+    flex-direction: column;
+    z-index: 6;
+  }
+  aside#panel.open { transform: translateX(0); }
+  #panel .panel-head {
+    padding: 20px 20px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  #panel .panel-eyebrow {
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-3);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  #panel .back-btn {
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--ink-2);
+    border-radius: 5px;
+    font-size: 10.5px;
+    padding: 2px 7px;
+    cursor: pointer;
+    font-family: "Public Sans", sans-serif;
+    text-transform: none;
+    letter-spacing: normal;
+  }
+  #panel h2 {
+    font-family: "Source Serif 4", Georgia, serif;
+    font-size: 19px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    text-transform: uppercase;
+    margin: 0 0 4px;
+    line-height: 1.25;
+  }
+  #panel .panel-body { padding: 16px 20px; overflow-y: auto; flex: 1; }
+  #panel .stat-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--grid);
+    font-size: 12.5px;
+  }
+  #panel .stat-row span:first-child { color: var(--ink-2); text-transform: uppercase; font-size: 10.5px; letter-spacing: 0.03em; }
+  #panel .stat-row span:last-child { font-family: "JetBrains Mono", monospace; font-variant-numeric: tabular-nums; font-weight: 600; }
+  #panel .section-label {
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-3);
+    margin: 18px 0 8px;
+  }
+  #panel .programs { font-size: 12px; line-height: 1.9; color: var(--ink); text-transform: uppercase; letter-spacing: 0.02em; }
+  #panel .close-btn {
+    position: absolute;
+    top: 14px; right: 14px;
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--ink-2);
+    font-size: 14px;
+    cursor: pointer;
+    line-height: 1;
+  }
+  .thesis-row {
+    padding: 9px 0;
+    border-bottom: 1px solid var(--grid);
+    cursor: pointer;
+  }
+  .thesis-row:hover { background: var(--page); }
+  .thesis-row .th-title {
+    font-family: "Source Serif 4", Georgia, serif;
+    font-size: 13px;
+    line-height: 1.35;
+    letter-spacing: 0.01em;
+    text-transform: uppercase;
+    color: var(--ink);
+    display: block;
+    margin-bottom: 2px;
+  }
+  .thesis-row .th-meta {
+    font-size: 10.5px;
+    color: var(--ink-3);
+    font-family: "JetBrains Mono", monospace;
+    text-transform: uppercase;
+  }
+  .thesis-row .th-sim {
+    display: inline-block;
+    background: rgba(15,125,92,0.1);
+    color: var(--accent);
+    border-radius: 4px;
+    padding: 1px 5px;
+    font-weight: 600;
+    margin-right: 6px;
+  }
+  .thesis-row.not-clickable { cursor: default; opacity: 0.72; }
+  .thesis-row.not-clickable:hover { background: none; }
+  .dup-note { color: var(--ink-3); font-style: italic; }
+  .vecindario-note {
+    font-size: 11px;
+    color: var(--ink-3);
+    line-height: 1.5;
+    margin: 4px 0 14px;
+    padding: 8px 10px;
+    background: var(--page);
+    border-radius: 6px;
+  }
+
+  footer {
+    border-top: 1px solid var(--border);
+    background: var(--bg);
+    padding: 9px 22px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10.5px;
+    color: var(--ink-3);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  /* Versionado canonico (2026-09-23, a pedido del usuario: "para saber cuando ir
+     atras" -- v2.x.x, semver). Fijo abajo a la derecha, siempre visible, separado
+     del footer de notas de desarrollo (ese cambia de contenido con cada paso del
+     backlog; el numero de version es la unica fuente estable de "que build es
+     esta"). Subir el numero (v2.1.0, v2.0.1, etc.) queda como convencion a futuro:
+     MAJOR = cambio de arquitectura/rediseno grande, MINOR = feature nueva, PATCH =
+     fix sin feature nueva. */
+  #app-version {
+    position: fixed; right: 10px; bottom: 8px; z-index: 30;
+    font-family: "JetBrains Mono", monospace; font-size: 10px; color: var(--ink-3);
+    background: var(--panel-bg); border: 1px solid var(--border); border-radius: 5px;
+    padding: 2px 7px; opacity: 0.85; pointer-events: none;
+  }
+
+  .legend {
+    position: absolute;
+    left: 20px;
+    bottom: 16px;
+    background: var(--panel-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 13px;
+    font-size: 11px;
+    color: var(--ink-2);
+    box-shadow: 0 4px 14px rgba(23,24,26,0.06);
+    max-width: 220px;
+  }
+  .legend .lg-title { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-3); margin-bottom: 6px; }
+  .legend .lg-area-row { display: flex; align-items: center; gap: 7px; margin-bottom: 3px; }
+  .legend .lg-area-label { width: 38px; font-size: 10px; color: var(--ink-2); flex-shrink: 0; }
+  .legend .lg-area-bar { width: 92px; height: 7px; border-radius: 4px; border: 1px solid var(--border); }
+  .legend .lg-scale { display: flex; justify-content: space-between; font-size: 9.5px; color: var(--ink-3); width: 130px; margin: 2px 0 0 45px; }
+  .legend .lg-note { margin-top: 8px; font-size: 10px; color: var(--ink-3); line-height: 1.5; }
+  .density-toggle { display: flex; border: 1px solid var(--border); border-radius: 7px; overflow: hidden; width: fit-content; }
+  .density-toggle button {
+    border: none; background: var(--bg); color: var(--ink-2); cursor: pointer;
+    font-family: "Public Sans", sans-serif; font-size: 10.5px; font-weight: 500;
+    text-transform: uppercase; letter-spacing: 0.04em; padding: 5px 9px;
+  }
+  .density-toggle button + button { border-left: 1px solid var(--border); }
+  .density-toggle button.active { background: var(--accent); color: #fff; }
+
+  #map-selection {
+    position: absolute; top: 16px; right: 16px; z-index: 6;
+    width: 280px; background: var(--panel-bg); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px 16px; box-shadow: 0 8px 22px rgba(23,24,26,0.12);
+  }
+  #map-selection .close-btn-mini {
+    position: absolute; top: 9px; right: 9px; width: 20px; height: 20px; border-radius: 50%;
+    border: 1px solid var(--border); background: var(--bg); color: var(--ink-2); font-size: 11px; cursor: pointer; line-height: 1;
+  }
+  #map-selection .ms-eyebrow { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-3); margin-bottom: 5px; }
+  #map-selection .ms-title { font-family: "Source Serif 4", Georgia, serif; font-size: 14px; line-height: 1.35; letter-spacing: 0.01em; text-transform: uppercase; margin-bottom: 4px; padding-right: 16px; }
+  #map-selection .ms-meta { font-size: 10.5px; color: var(--ink-2); font-family: "JetBrains Mono", monospace; text-transform: uppercase; margin-bottom: 8px; }
+  #map-selection .ms-note { font-size: 11px; color: var(--ink-3); line-height: 1.5; }
+  #map-selection .ms-open-btn {
+    margin-top: 10px; width: 100%; border: 1px solid var(--border); border-radius: 6px;
+    background: var(--bg); color: var(--accent); font-family: "Public Sans", sans-serif;
+    text-transform: uppercase; letter-spacing: 0.05em; font-weight: 500;
+    font-size: 10.5px; padding: 7px 9px; cursor: pointer;
+  }
+
+  /* Modo analytic del vecindario -- grid-of-grids animado, ver development.md
+     "Investigacion: ranking y mecanica de diseno del modo Explorar/analytic viejo". */
+  #vmodal {
+    position: fixed; inset: 0; z-index: 20;
+    display: flex; align-items: center; justify-content: center;
+    padding: 26px;
+  }
+  #vmodal[hidden] { display: none; }
+  #vmodal .vm-backdrop {
+    position: absolute; inset: 0;
+    background: rgba(23,24,26,0.42);
+    backdrop-filter: blur(1.5px);
+  }
+  #vmodal .vm-card {
+    position: relative;
+    width: min(1180px, 100%);
+    height: min(760px, 100%);
+    background: var(--panel-bg);
+    border-radius: 14px;
+    box-shadow: 0 24px 60px rgba(23,24,26,0.28);
+    display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+  #vmodal .vm-head {
+    padding: 16px 20px 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 14px;
+  }
+  #vmodal .vm-breadcrumb {
+    font-size: 10.5px; color: var(--ink-3); margin-bottom: 5px;
+    font-family: "JetBrains Mono", monospace;
+    text-transform: uppercase;
+  }
+  #vmodal .vm-breadcrumb button {
+    border: none; background: none; color: var(--accent); cursor: pointer;
+    font-family: "JetBrains Mono", monospace; font-size: 10.5px; padding: 0; margin-right: 4px;
+  }
+  #vmodal .vm-title { font-family: "Source Serif 4", Georgia, serif; font-size: 17px; line-height: 1.3; letter-spacing: 0.01em; text-transform: uppercase; max-width: 820px; }
+  #vmodal .vm-meta { font-size: 11px; color: var(--ink-2); margin-top: 4px; font-family: "JetBrains Mono", monospace; text-transform: uppercase; }
+  #vmodal .vm-controls { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+  #vmodal select {
+    font-size: 11.5px; padding: 5px 8px; border-radius: 6px; border: 1px solid var(--border);
+    background: var(--bg); color: var(--ink); font-family: "Public Sans", sans-serif;
+  }
+  #vmodal .vm-close {
+    width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--border);
+    background: var(--bg); color: var(--ink-2); cursor: pointer; font-size: 14px; line-height: 1;
+  }
+  #vmodal .vm-body { position: relative; flex: 1; min-height: 0; }
+  #vmodal svg { width: 100%; height: 100%; display: block; }
+  #vmodal .vm-group-label {
+    font-family: "Public Sans", sans-serif; font-size: 10px; text-transform: uppercase;
+    letter-spacing: 0.05em; fill: var(--ink-3);
+  }
+  #vmodal .vm-edge { stroke: var(--ink-3); fill: none; pointer-events: none; }
+  #vmodal .vm-node circle { cursor: pointer; stroke: var(--panel-bg); stroke-width: 1.2px; }
+  #vmodal .vm-node.not-in-sample circle { cursor: default; }
+  #vmodal .vm-node.focal circle { cursor: default; stroke: var(--panel-bg); stroke-width: 2px; }
+  #vmodal .vm-legend {
+    position: absolute; right: 16px; bottom: 14px;
+    background: var(--panel-bg); border: 1px solid var(--border); border-radius: 8px;
+    padding: 9px 12px; font-size: 10.5px; color: var(--ink-2); box-shadow: 0 4px 14px rgba(23,24,26,0.08);
+  }
+  #vmodal .vm-legend .vm-lg-row { display: flex; align-items: center; gap: 6px; margin-top: 3px; }
+  #vmodal .vm-legend .vm-lg-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+  #vtooltip {
+    position: absolute; pointer-events: none; z-index: 21;
+    background: var(--panel-bg); border: 1px solid var(--border); border-radius: 8px;
+    padding: 7px 10px; font-size: 11.5px; line-height: 1.4; max-width: 240px;
+    box-shadow: 0 6px 18px rgba(23,24,26,0.12); opacity: 0; transform: translate(-9999px,-9999px);
+    transition: opacity 0.1s;
+  }
+  #vtooltip .vt-title { font-family: "Source Serif 4", Georgia, serif; font-size: 12.5px; letter-spacing: 0.01em; text-transform: uppercase; display: block; margin-bottom: 2px; }
+  #vtooltip .vt-meta { color: var(--ink-3); font-size: 10.5px; }
+  @media (max-width: 640px) {
+    #vmodal { padding: 0; }
+    #vmodal .vm-card { width: 100%; height: 100%; border-radius: 0; }
+  }
+
+  .loading-note, .empty-note {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; color: var(--ink-3);
+    text-align: center; padding: 0 30px; line-height: 1.6;
+    z-index: 4; background: var(--bg);
+  }
+
+  @media (max-width: 640px) {
+    header { padding: 14px 14px 10px; }
+    h1 { font-size: 18px; }
+    aside#panel { width: 100vw; max-width: 100vw; }
+    .legend { left: 10px; bottom: 10px; padding: 8px 10px; }
+    .legend .lg-bar { width: 96px; }
+    footer { padding: 8px 14px; font-size: 9.5px; }
+  }
+</style>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&family=Source+Sans+3:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<div class="app">
+  <header>
+    <div>
+      <h1>Atlas semántico — NODO UNAM</h1>
+      <div class="subtitle" id="subtitle">cargando librerías (regl + regl-scatterplot)…</div>
+      <div class="zoom-readout" id="zoom-readout"></div>
+    </div>
+    <div id="debug-zoom-buttons" style="display:flex;gap:6px;align-items:center;">
+      <button type="button" class="nav-btn" data-dist="0.34">Reset</button>
+      <button type="button" class="nav-btn" data-dist="0.149">Macro → meso</button>
+      <button type="button" class="nav-btn" data-dist="0.063">Meso → micro</button>
+      <button type="button" class="nav-btn" id="debug-log-toggle">Log ▾</button>
+    </div>
+  </header>
+  <div id="debug-log" hidden style="font:10px monospace;background:#fffbe6;border-bottom:1px solid #ddd;padding:4px 10px;max-height:160px;overflow:auto;white-space:pre-wrap;"></div>
+
+  <main id="main">
+    <div id="wgl-host"></div>
+    <svg id="overlay"></svg>
+    <div class="legend">
+      <div class="lg-title">Tamaño = masa · color = área predominante</div>
+      <div class="lg-area-row"><span class="lg-area-label">área 1</span><span class="lg-area-bar" style="background:linear-gradient(to right, rgb(255,255,255), rgb(42,77,122))"></span></div>
+      <div class="lg-area-row"><span class="lg-area-label">área 2</span><span class="lg-area-bar" style="background:linear-gradient(to right, rgb(255,255,255), rgb(15,125,92))"></span></div>
+      <div class="lg-area-row"><span class="lg-area-label">área 3</span><span class="lg-area-bar" style="background:linear-gradient(to right, rgb(255,255,255), rgb(201,138,46))"></span></div>
+      <div class="lg-area-row"><span class="lg-area-label">área 4</span><span class="lg-area-bar" style="background:linear-gradient(to right, rgb(255,255,255), rgb(184,65,47))"></span></div>
+      <div class="lg-scale"><span>menor dominancia*</span><span>mayor dominancia*</span></div>
+      <div class="lg-note">*Degradado por dominancia relativo a los nodos visibles ahora, no un umbral fijo (recalibrado 2026-09-23). Fondo: 609,154 tesis reales (<code>atlas_chaos_mode.v1.bin</code>) vía WebGL — color = área real de cada tesis (dato de catálogo, no del clustering), opacidad = si HDBSCAN la agrupó o es ruido (67.2%). Zoom + pan revelan meso/micro por viewport real (130/130 macros elegibles, no una lista fija). Clic en cualquier punto del mapa → si tiene vecindario precargado, apaga el resto y colorea sus vecinos reales por área (acotado a 2,500 tesis de referencia, ver development.md). Nodos micro con tesis representativas → clic para ver el vecindario en grid.</div>
+      <div class="lg-density">
+        <div class="lg-title" style="margin:10px 0 5px;">Densidad del fondo (experimental)</div>
+        <div id="density-toggle" class="density-toggle">
+          <button type="button" data-pct="1" class="active">100%</button>
+          <button type="button" data-pct="0.75">75%</button>
+          <button type="button" data-pct="0.5">50%</button>
+          <button type="button" data-pct="0.25">25%</button>
+        </div>
+      </div>
+    </div>
+    <div id="tooltip"></div>
+    <div id="map-selection" hidden>
+      <button class="close-btn-mini" id="map-selection-close" type="button">✕</button>
+      <div class="ms-eyebrow">Tesis seleccionada — clic en el mapa</div>
+      <div class="ms-title" id="ms-title">—</div>
+      <div class="ms-meta" id="ms-meta"></div>
+      <div class="ms-note" id="ms-note"></div>
+      <button class="ms-open-btn" id="ms-open-vecindario" type="button" hidden>Ver vecindario completo (grid) →</button>
+    </div>
+    <aside id="panel">
+      <button class="close-btn" id="panel-close">✕</button>
+      <div class="panel-head">
+        <div class="panel-eyebrow" id="panel-eyebrow">Macro</div>
+        <h2 id="panel-title">—</h2>
+      </div>
+      <div class="panel-body" id="panel-body"></div>
+    </aside>
+  </main>
+
+  <footer>
+    <span id="footer-left">n=609,154 tesis · HDBSCAN + Ward sobre centroides e5-large · PaCMAP 2D</span>
+    <span id="footer-right">datos reales de atlas_data/ · lazy-load por viewport, 130/130 macros (paso 4) · 2026-09-23</span>
+  </footer>
+</div>
+<div id="app-version" title="Versionado canónico (semver) — para saber qué versión del prototipo se está viendo">v2.2.0</div>
+
+<div id="vmodal" hidden>
+  <div class="vm-backdrop"></div>
+  <div class="vm-card">
+    <div class="vm-head">
+      <div>
+        <div class="vm-breadcrumb" id="vm-breadcrumb"></div>
+        <div class="vm-title" id="vm-title">—</div>
+        <div class="vm-meta" id="vm-meta"></div>
+      </div>
+      <div class="vm-controls">
+        <select id="vm-groupby">
+          <option value="area">Agrupar por área</option>
+          <option value="decade">Agrupar por década</option>
+        </select>
+        <button class="vm-close" id="vm-close" type="button">✕</button>
+      </div>
+    </div>
+    <div class="vm-body">
+      <svg id="vm-svg">
+        <g class="vm-edges"></g>
+        <g class="vm-nodes"></g>
+        <g class="vm-group-labels"></g>
+      </svg>
+      <div class="vm-legend">
+        <div><strong>Color</strong> = área administrativa</div>
+        <div><strong>Tamaño/opacidad</strong> = similitud</div>
+        <div class="vm-lg-row"><span class="vm-lg-dot" style="background:#2a4d7a"></span>área 1</div>
+        <div class="vm-lg-row"><span class="vm-lg-dot" style="background:#0f7d5c"></span>área 2</div>
+        <div class="vm-lg-row"><span class="vm-lg-dot" style="background:#c98a2e"></span>área 3</div>
+        <div class="vm-lg-row"><span class="vm-lg-dot" style="background:#b8412f"></span>área 4</div>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="vtooltip"></div>
+
+<script>
+(function () {
+  var overlay = document.getElementById('overlay');
+  var wglHost = document.getElementById('wgl-host');
+  var main = document.getElementById('main');
+  var tooltip = document.getElementById('tooltip');
+  var panel = document.getElementById('panel');
+  var subtitle = document.getElementById('subtitle');
+  var zoomReadout = document.getElementById('zoom-readout');
+  var NS = 'http://www.w3.org/2000/svg';
+
+  // Lazy-load por viewport (2026-09-23, paso 4 del backlog) -- los 130 macros tienen datos
+  // de meso/micro publicados (son ~1MB en total para los 130, medido, cabe sin problema),
+  // pero solo se FETCHEAN los que realmente caen dentro del viewport actual mas un margen
+  // (VIEWPORT_PAD) -- reemplaza la lista fija PREFETCHED de la iteracion anterior, que
+  // traia siempre los mismos 10 macros sin importar a donde se hiciera pan. Ver development.md.
+  // Umbrales de nivel RELATIVOS al zoom inicial (v2.2.0). Antes K_MESO=3.0 con
+  // k inicial=2.94: un 2% de zoom revelaba meso en todo el mapa -- el nivel macro
+  // practicamente no existia. Ahora meso a ~2x y micro a ~4.5x del encuadre inicial,
+  // con histeresis (LEVEL_HYSTERESIS) para que no parpadee justo en el umbral.
+  var DEFAULT_CAMERA_DISTANCE = 0.34;
+  var K0 = 1 / DEFAULT_CAMERA_DISTANCE;
+  var K_MESO = K0 * 1.9;
+  var K_MICRO = K0 * 4.5;
+  var LEVEL_HYSTERESIS = 0.08;
+  // Tope de zoom-in (2026-09-23, "el zoom te permite ir demasiado lejos") -- antes
+  // no existia ningun limite (regl-scatterplot no trae uno por defecto, verificado
+  // contra su documentacion). Calculado con datos reales, no arbitrario: a k=25,
+  // la MEDIANA de distancia al vecino mas cercano entre los 609,154 puntos reales
+  // (0.00947 unidades, medido con cKDTree) ya se separa ~6px en pantalla -- mas
+  // alla de este punto, seguir haciendo zoom no revela estructura curada nueva
+  // (K_MICRO=8 ya es el nivel mas fino que la app dibuja) y persigue una
+  // separacion que buena parte del corpus no va a dar aunque se siga acercando
+  // (ver "Analisis de distancia/crowding" en development.md -- el 10% mas
+  // apretado necesitaria k~99 para lo mismo).
+  // v2.2.0: subido de 25 a K0*10 (~29) para que el rango micro (desde K0*4.5) tenga
+  // recorrido real. El tope ahora lo aplica la PROPIA camara (setScaleBounds, ver
+  // initScatterplot) antes de dibujar, no una correccion reactiva despues.
+  var K_MAX_ZOOM = K0 * 10;
+  // Zoom-out maximo = estado inicial (DEFAULT_CAMERA_DISTANCE=0.34, k~2.94, pedido
+  // del usuario 2026-09-23 -- ver development.md).
+  // POSITION_SCALE (v2.0.0-v2.0.2, 1.5x -> 3x -> 12x) ELIMINADO en v2.2.0: era un
+  // no-op visual. El fondo se normaliza a NDC ((x*s - min*s)/(span*s)) y el factor
+  // se cancela; el overlay usaba escalas en el mismo espacio multiplicado. Se habia
+  // "verificado" midiendo xSpan/ySpan -- la variable cambiada, no el resultado en
+  // pantalla. Ver development.md, "Revision critica de la v2.1.1".
+  var VIEWPORT_PAD = 0.25; // margen extra (fraccion del span visible) para precargar justo antes de que un macro entre en pantalla
+
+  var state = {
+    macroGraph: null,
+    mesoCache: {},
+    microCache: {},
+    revealLevel: {},   // macroId -> 'macro' | 'meso-loading' | 'meso' | 'micro-loading' | 'micro'
+    domain: null,
+    xScale: null,
+    yScale: null,
+    scatterplot: null,
+    W: 0, H: 0,
+    k: 1,
+    selected: null,
+    lastBuiltSignature: '',
+    vecindarioPreview: null,   // atlas_data/vecindario_preview.v1.json -- subconjunto acotado, ver development.md
+    panelStack: []             // pila de vistas del panel para el boton "volver": [{type:'node', node}, {type:'theses', clusterNode}, {type:'vecindario', thesisId}]
+  };
+
+  var dlogLines = [];
+  var DLOG_MAX_LINES = 60; // el log crecia sin limite (bug real: RAM/DOM crecientes durante una sesion larga, ver development.md) -- ring buffer fijo
+  function dlog(msg) {
+    var el = document.getElementById('debug-log');
+    if (!el) return;
+    dlogLines.push(msg);
+    if (dlogLines.length > DLOG_MAX_LINES) dlogLines.shift();
+    el.textContent = dlogLines.join('\n');
+    el.scrollTop = el.scrollHeight;
+  }
+  function fmtNum(n) { return n.toLocaleString('es-MX'); }
+  function escapeHtml(s) { var d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+
+  // Color de nodos macro/meso/micro = area administrativa predominante, en
+  // degradado por que tan predominante es (2026-09-23, reemplaza el color por
+  // masa del macro -- "el coloreado por tamano no sirve", a pedido del
+  // usuario; el tamano del circulo ya codifica la masa via radius(), no hacia
+  // falta tambien en el color). Mismos 4 colores base que ya usa el modal de
+  // vecindario (AREA_COLORS), para que el codigo de area sea consistente en
+  // toda la interfaz, no una paleta nueva por vista.
+  var AREA_COLORS_RGB = {
+    'area 1': [42, 77, 122],
+    'area 2': [15, 125, 92],
+    'area 3': [201, 138, 46],
+    'area 4': [184, 65, 47]
+  };
+  var AREA_COLOR_DEFAULT_RGB = [148, 141, 124];
+  // Degradado blanco -> color (2026-09-23, tercera ronda, a pedido explicito del
+  // usuario: "el gradiente debe ir de blanco al color, no de gris"). Revierte el
+  // fix de la ronda anterior (que iba hacia un gris neutro para evitar el "nunca
+  // pastel" del Design Manifest) -- el usuario prefiere la rampa secuencial
+  // clasica de dataviz (tinte claro del mismo tono -> tono saturado, como
+  // ColorBrewer) sobre la version desaturada-hacia-gris. Documentado como
+  // decision explicita del usuario que revisa esa regla del manifiesto, no un
+  // olvido.
+  function whiteRgb() { return [255, 255, 255]; }
+  // t se recibe ya normalizado (0..1), NO se calcula aqui con un rango fijo --
+  // fix 2026-09-23, segunda ronda: la primera version normalizaba contra un
+  // rango teorico (0.28-0.90) asumido sin medir. Medido despues (a pedido del
+  // usuario, "los clusters ya no siguen gradientes" -- el degradado se veia
+  // plano): la mediana real de dominantAreaShare entre los 130 macros es
+  // 0.907, p90=0.99 -- la mayoria ya caia en t=1 (saturado), el degradado
+  // colapsaba a color solido para la mitad del mapa. Fix: normalizar por el
+  // min/max real del share DENTRO de la vista activa (mismo criterio que ya
+  // usa radius() para el tamano, mismo patron establecido, no uno nuevo).
+  function colorByDominantArea(area, t) {
+    var base = AREA_COLORS_RGB[(area || '').toLowerCase()] || AREA_COLOR_DEFAULT_RGB;
+    var white = whiteRgb();
+    var rgb = [0, 1, 2].map(function (i) { return Math.round(white[i] + (base[i] - white[i]) * t); });
+    return 'rgb(' + rgb.join(',') + ')';
+  }
+
+  // ---------- bootstrap: pub-sub-es (ESM) -> regl -> regl-scatterplot -> d3 (todos como <script> clasico, en orden) ----------
+  function loadScript(src) {
+    return new Promise(function (res, rej) {
+      var s = document.createElement('script');
+      s.src = src;
+      s.onload = res;
+      s.onerror = function () { rej(new Error('no cargo ' + src)); };
+      document.head.appendChild(s);
+    });
+  }
+
+  async function bootstrapLibs() {
+    var mod = await import('https://cdn.jsdelivr.net/npm/pub-sub-es@3.0.0/dist/index.js');
+    window.createPubSub = mod.default || mod.createPubSub;
+    await loadScript('https://cdn.jsdelivr.net/npm/regl@2.1.1/dist/regl.min.js');
+    await loadScript('https://cdn.jsdelivr.net/npm/regl-scatterplot@1.16.0/dist/regl-scatterplot.min.js');
+    var ns = window.createScatterplot;
+    if (ns && typeof ns !== 'function' && typeof ns.default === 'function') {
+      window.createScatterplot = ns.default;
+      window.createScatterplotRenderer = ns.createRenderer;
+    }
+    await loadScript('https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js');
+  }
+
+  // {cache:'no-store'} -- en desarrollo local los datos se regeneran seguido;
+  // sin esto el navegador sirvio una vez un atlas_chaos_mode.v1.json viejo
+  // desde cache pese a recargar la pagina (bug real encontrado 2026-09-23).
+  function fetchJson(path) { return fetch(path, { cache: 'no-store' }).then(function (r) {
+    if (!r.ok) throw new Error(path + ' -> ' + r.status);
+    return r.json();
+  }); }
+
+  function computeDomain(xs, ys, pad) {
+    // Sin correccion de aspect ratio manual: regl-scatterplot ya mantiene 1 unidad de
+    // dato = mismos pixeles en x/y (equal-scale, "carta nautica" real) usando su propia
+    // camara -- corregir el dominio aca ademas de eso duplica el efecto (bug real
+    // encontrado y corregido en esta sesion, ver development.md).
+    var minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    for (var i = 0; i < xs.length; i++) { var v = xs[i]; if (v < minX) minX = v; if (v > maxX) maxX = v; }
+    for (i = 0; i < ys.length; i++) { var w = ys[i]; if (w < minY) minY = w; if (w > maxY) maxY = w; }
+    // Equi-escala (v2.2.0): el mismo span en x e y. Antes cada eje se normalizaba
+    // por su propio rango (53.0 vs 49.2) -> ~7% de anisotropia al pasar a NDC.
+    var span = Math.max(maxX - minX, maxY - minY) * pad;
+    var spanX = span, spanY = span;
+    var cx = (minX + maxX) / 2, cy = (minY + maxY) / 2;
+    return { minX: cx - spanX / 2, maxX: cx + spanX / 2, minY: cy - spanY / 2, maxY: cy + spanY / 2 };
+  }
+
+  // ---------- carga del bundle real ----------
+  async function loadEverything() {
+    subtitle.textContent = 'cargando librerías (regl + regl-scatterplot)…';
+    await bootstrapLibs();
+
+    subtitle.textContent = 'cargando atlas_macro_graph.v1.json + modo caos (14MB) + vecindario preview…';
+    var graphP = fetchJson('./data/atlas_macro_graph.v1.json');
+    var chaosMetaP = fetchJson('./data/atlas_chaos_mode.v1.json');
+    var chaosBinP = fetch('./data/atlas_chaos_mode.v1.bin', { cache: 'no-store' }).then(function (r) { return r.arrayBuffer(); });
+    var vecindarioP = fetchJson('./data/vecindario_preview.v1.json').catch(function (err) {
+      dlog('[vecindario] no se pudo cargar el preview: ' + err.message);
+      return null;
+    });
+
+    var results = await Promise.all([graphP, chaosMetaP, chaosBinP, vecindarioP]);
+    var graph = results[0], chaosMeta = results[1], chaosBuf = results[2];
+    state.vecindarioPreview = results[3];
+    if (state.vecindarioPreview) {
+      dlog('[vecindario] preview cargado: ' + state.vecindarioPreview.totalTheses + ' tesis representativas con vecindario');
+    }
+
+    state.macroGraph = graph;
+    graph.nodes.forEach(function (n) {
+      state.revealLevel[n.macroId] = 'macro';
+    });
+
+    var f = chaosMeta.fields;
+    var xArr = new Float32Array(chaosBuf, f.x.byteOffset, f.x.count);
+    var yArr = new Float32Array(chaosBuf, f.y.byteOffset, f.y.count);
+    var macroCodeArr = new Int32Array(chaosBuf, f.macroCode.byteOffset, f.macroCode.count);
+    var areaCodeArr = new Int32Array(chaosBuf, f.areaCode.byteOffset, f.areaCode.count);
+    state.chaosAreaCode = areaCodeArr;
+    var n = chaosMeta.n;
+    var noiseCount = 0;
+    for (var i = 0; i < n; i++) if (macroCodeArr[i] === -1) noiseCount++;
+
+    // thesisIdsBlob: id por punto, mismo orden que x/y/macroCode (ya lo generaba
+    // generar_atlas_modo_caos.py, nunca se habia leido en el frontend hasta ahora --
+    // necesario para el click-en-tesis-individual del mapa, ver development.md).
+    var idsText = new TextDecoder('utf-8').decode(new Uint8Array(chaosBuf, f.thesisIdsBlob.byteOffset, f.thesisIdsBlob.byteLength));
+    var chaosThesisIds = idsText.split('\n');
+    var thesisIdToChaosIndex = new Map();
+    for (var ti = 0; ti < chaosThesisIds.length; ti++) thesisIdToChaosIndex.set(chaosThesisIds[ti], ti);
+    state.chaosThesisIds = chaosThesisIds;
+    state.thesisIdToChaosIndex = thesisIdToChaosIndex;
+
+    var domain = computeDomain(xArr, yArr, 1.08);
+    state.domain = domain;
+
+    initScatterplot(domain, xArr, yArr, macroCodeArr, n);
+    buildOverlay();
+
+    subtitle.textContent = fmtNum(n) + ' tesis reales (fondo WebGL, ' + (100 * noiseCount / n).toFixed(1) + '% sin cluster) · ' +
+      graph.nodes.length + ' macro-grupos · ' + (graph.edges || []).length + ' edges de macro (aproximados)';
+
+    // Atajos de navegacion -- utiles ademas de scroll/drag reales (ya confirmados
+    // funcionando, ver development.md) porque saltar a un nivel de zoom exacto es mas
+    // rapido que rueda del mouse repetida.
+    document.querySelectorAll('#debug-zoom-buttons button[data-dist]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        state.scatterplot.zoomToLocation([0, 0], parseFloat(btn.getAttribute('data-dist')), { transition: false });
+      });
+    });
+    var logToggle = document.getElementById('debug-log-toggle');
+    var logEl = document.getElementById('debug-log');
+    logToggle.addEventListener('click', function () {
+      var willShow = logEl.hidden;
+      logEl.hidden = !willShow;
+      logToggle.textContent = willShow ? 'Log ▴' : 'Log ▾';
+    });
+  }
+
+  function initScatterplot(domain, xArr, yArr, macroCodeArr, n) {
+    var rect = main.getBoundingClientRect();
+    state.W = rect.width; state.H = rect.height;
+    var canvas = document.createElement('canvas');
+    wglHost.appendChild(canvas);
+
+    var xScale = d3.scaleLinear().domain([domain.minX, domain.maxX]).range([0, rect.width]);
+    var yScale = d3.scaleLinear().domain([domain.minY, domain.maxY]).range([rect.height, 0]);
+    state.xScale = xScale; state.yScale = yScale;
+
+    // Paleta categorica del fondo WebGL. Cada tesis individual ya tiene area real
+    // (dato de catalogo, independiente de si HDBSCAN la clusterizo) -- el usuario
+    // pidio explicitamente que el color por area no se quedara solo en los nodos
+    // agregados ("eso solo aplica en los clusters, por que en las tesis
+    // individuales no?", 2026-09-23). Se codifican DOS variables, no una sola
+    // categoria plana: HUE = area (la misma paleta de 5 colores usada en toda la
+    // interfaz), OPACIDAD = si esta clusterizada o es ruido HDBSCAN (para no
+    // perder esa distincion, que ya era el punto central del "modo caos"). Cada
+    // combinacion area x clusterizada es su propia categoria (10 = 5 areas x 2),
+    // mas DIMMED/FOCAL para el spotlight de clic (ver applyMapSpotlight) --
+    // todas deben declararse de entrada, regl-scatterplot fija pointColor/opacity
+    // al crear el plot, no se pueden agregar categorias despues.
+    var MAP_CATEGORIES = {
+      SIN_AREA_RUIDO: 0, SIN_AREA_MACRO: 1,
+      AREA1_RUIDO: 2, AREA1_MACRO: 3,
+      AREA2_RUIDO: 4, AREA2_MACRO: 5,
+      AREA3_RUIDO: 6, AREA3_MACRO: 7,
+      AREA4_RUIDO: 8, AREA4_MACRO: 9,
+      DIMMED: 10, FOCAL: 11
+    };
+    // area x2 (+1 si tiene macro) da directo el indice de categoria de arriba --
+    // se reusa tanto para pintar el fondo por defecto como para el spotlight
+    // (ahi siempre con el "+1", vivido, sin importar si esa tesis en particular
+    // esta clusterizada o no -- en spotlight lo que importa es que es un vecino
+    // real, no su estatus de ruido).
+    function areaMapCategory(areaCode, hasMacro) { return areaCode * 2 + (hasMacro ? 1 : 0); }
+    state.areaMapCategory = areaMapCategory;
+
+    // Renderer propio (v2.2.0): el renderer compartido por defecto dimensiona su
+    // canvas interno a min(innerWidth, screen.availWidth) y lo copia CENTRADO al
+    // canvas visible -- si el contenedor es mas grande que la pantalla reportada
+    // (zoom del navegador <100%, headless, ventanas entre monitores) el mapa sale
+    // RECORTADO a un recuadro central. Se dimensiona a mano al tamano real.
+    var renderer = window.createScatterplotRenderer ? window.createScatterplotRenderer() : undefined;
+    state.renderer = renderer;
+    resizeRenderer();
+
+    var plot = window.createScatterplot({
+      renderer: renderer,
+      canvas: canvas,
+      width: rect.width,
+      height: rect.height,
+      xScale: xScale,
+      yScale: yScale,
+      pointSize: 2.4,
+      // Opacidad bajada 2026-09-23 (feedback del usuario: "opaca completamente
+      // todo" con 0.80 en las tesis clusterizadas) -- tope 0.40 para que el
+      // fondo real siga leyendose como textura/contexto, no compita con las
+      // etiquetas y edges del overlay curado por encima. Ruido baja proporcional.
+      opacity: [0.12, 0.28, 0.15, 0.40, 0.15, 0.40, 0.15, 0.40, 0.15, 0.40, 0.08, 1.0],
+      colorBy: 'valueA',
+      opacityBy: 'valueA',
+      pointColor: [
+        '#948d7c', '#948d7c', // sin area: ruido, con macro (mismo tono, solo cambia opacidad)
+        '#2a4d7a', '#2a4d7a', // area 1
+        '#0f7d5c', '#0f7d5c', // area 2
+        '#c98a2e', '#c98a2e', // area 3
+        '#b8412f', '#b8412f', // area 4
+        '#e7e3d8', // dimmed
+        '#17181a'  // focal
+      ],
+      backgroundColor: '#fbfaf7',
+      cameraDistance: DEFAULT_CAMERA_DISTANCE,
+      lassoOnLongPress: false
+    });
+    state.scatterplot = plot;
+    state.mapCategories = MAP_CATEGORIES;
+
+    // CAUSA RAIZ del bug "muevo los nodos como quiero" / YSPAN colapsado (v2.2.0,
+    // ver development.md "Revision critica de la v2.1.1"): el action key map por
+    // defecto de regl-scatterplot es {rotate:'alt', ...} y la camara nace con
+    // isRotate=true -> Alt+arrastrar ROTA la camara. En Windows Alt queda "atorado"
+    // tras Alt+Tab (dom-2d-camera solo lo suelta en keyup, que llega a otra
+    // ventana) y desde ahi todo arrastre rota. computeDomainView() de la libreria
+    // no contempla rotacion: con ~17 grados el ySpan del overlay llega a 0.
+    // OJO: pasar actionKeyMap a createScatterplot() NO basta -- solo .set() llama
+    // a updateActionKeyMapChange(), que es lo que configura isRotate en la camara.
+    plot.set({ actionKeyMap: { lasso: 'shift' } });
+    // Tope de zoom aplicado por la PROPIA camara dentro de camera.scale(), antes de
+    // dibujar -- reemplaza la correccion reactiva de clampCamera() que peleaba
+    // contra la rueda del mouse (3 versiones de parches, v2.0.0-v2.1.1).
+    var camera = plot.get('camera');
+    var minScale = K0 * 0.999, maxScale = K_MAX_ZOOM;
+    camera.setScaleBounds([[minScale, maxScale], [minScale, maxScale]]);
+
+    var spanX = domain.maxX - domain.minX, spanY = domain.maxY - domain.minY;
+    var ndcX = new Float32Array(n), ndcY = new Float32Array(n), cat = new Float32Array(n);
+    for (var i = 0; i < n; i++) {
+      ndcX[i] = ((xArr[i] - domain.minX) / spanX) * 2 - 1;
+      ndcY[i] = ((yArr[i] - domain.minY) / spanY) * 2 - 1;
+      cat[i] = areaMapCategory(state.chaosAreaCode[i], macroCodeArr[i] !== -1);
+    }
+    state.chaosNdcX = ndcX; state.chaosNdcY = ndcY; state.chaosCatBase = cat; state.chaosN = n;
+    plot.draw({ x: ndcX, y: ndcY, valueA: cat });
+    updateAdaptivePointSize();
+
+    // Rank pseudo-aleatorio pero determinista por punto (2026-09-23, a pedido del
+    // usuario: toggle para ver solo 25/50/75/100% de las tesis individuales, "para
+    // ver si asi se limpia la vista" -- experimento directo sobre el diagnostico de
+    // amontonamiento ya hecho). Hash barato (no cripto, solo necesita distribuirse
+    // uniforme en [0,1) y ser igual entre recargas) en vez de una permutacion
+    // completa -- mas barato para 609,154 puntos y el resultado es equivalente para
+    // este uso (elegir el X% "de abajo" del rank es un muestreo aleatorio valido).
+    var densityRank = new Float32Array(n);
+    for (var di = 0; di < n; di++) {
+      var x = Math.sin(di * 12.9898) * 43758.5453;
+      densityRank[di] = x - Math.floor(x);
+    }
+    state.densityRank = densityRank;
+    state.densityIncludedCache = {};
+    state.densityPct = 1;
+    applyDensityFilter(1, true);
+
+    plot.subscribe('select', function (ev) {
+      var idx = ev && ev.points && ev.points.length === 1 ? ev.points[0] : null;
+      if (idx == null) return;
+      var thesisId = state.chaosThesisIds[idx];
+      applyMapSpotlight(thesisId, idx);
+    });
+    plot.subscribe('deselect', function () { clearMapSpotlight(); });
+
+    plot.subscribe('view', function (ev) {
+      if (ev && ev.xScale) state.xScale = ev.xScale;
+      if (ev && ev.yScale) state.yScale = ev.yScale;
+      // k relativo a cameraDistance=1 (el estado inicial, siempre bien definido) --
+      // no al ancho de xDomain, que depende del aspect ratio del canvas (regl-scatterplot
+      // mantiene escala 1:1 entre ejes solo, no un ancho fijo de dominio). Ver development.md.
+      state.k = 1 / plot.get('cameraDistance');
+      zoomReadout.textContent = 'zoom ×' + state.k.toFixed(2) + ' · nivel ' + updateLevel() +
+        ' · xSpan=' + (state.xScale.domain()[1]-state.xScale.domain()[0]).toFixed(1) + ' ySpan=' + (state.yScale.domain()[1]-state.yScale.domain()[0]).toFixed(1);
+      clampCamera();
+      updatePositions();
+      scheduleReveal();
+      updateAdaptivePointSize();
+    });
+  }
+
+  // Diagnostico de aire visual (2026-09-23, a pedido del usuario: "que no se vean
+  // tantas tesis pegadas una al lado de la otra"). Medido con cKDTree sobre los
+  // 609,154 puntos reales antes de tocar nada: solo 1.37% esta genuinamente
+  // superpuesto (distancia < 0.001, coincide con el ~1.4% de titulos duplicados
+  // exactos ya documentado) -- NO es la causa principal del amontonamiento. La
+  // causa real: 53.4% de los puntos tiene su vecino mas cercano a menos de 0.01
+  // unidades (el mapa completo mide ~72 unidades) -- es la naturaleza esperada
+  // de un embedding PaCMAP de 609k puntos (preserva vecindarios locales muy
+  // apretados a proposito), no un defecto de los datos.
+  // Fix aplicado aqui (no altera ninguna posicion real, solo tamano de render):
+  // punto mas chico alejado (nivel macro) para que la masa global no se lea
+  // como un borron solido, creciendo al acercarse -- a nivel micro la distancia
+  // real entre puntos vecinos ya ocupa mas pixeles de pantalla, tiene sentido
+  // que el punto tambien crezca ahi.
+  // Pendiente, NO implementado (decision con mas peso, se deja para el usuario):
+  // jitter deterministico solo para el 1.37% de superposicion exacta -- separaria
+  // visualmente los duplicados reales (mismo titulo, mismo embedding) sin tocar
+  // el 98.63% restante, que ya esta en su posicion semantica real y honesta.
+  var lastPointSize = null;
+  function updateAdaptivePointSize() {
+    var size = Math.max(1.4, Math.min(4.8, 1.4 + state.k * 0.35));
+    var rounded = Math.round(size * 20) / 20; // evita llamar .set() por cambios imperceptibles
+    if (rounded === lastPointSize) return;
+    lastPointSize = rounded;
+    state.scatterplot.set({ pointSize: rounded });
+  }
+
+  // Bug real de rendimiento encontrado (2026-09-23, reportado por el usuario: "el render es
+  // algo lento al hacer zoom"): 'view' dispara en CADA frame de una transicion continua de
+  // zoom/pan (varias veces por segundo), y maybeReveal() antes corria sincronicamente en cada
+  // disparo -- cada vez que cruzaba el umbral de nivel, forzaba fetch + rebuildIfChanged()
+  // (destruye y reconstruye todo el overlay SVG). Con un gesto de zoom continuo esto podia
+  // disparar decenas de reconstrucciones completas por segundo. Fix: debounce -- solo se
+  // evalua maybeReveal() una vez que el gesto se "asienta" (150ms sin nuevos eventos view).
+  // updatePositions() (solo reposiciona nodos ya existentes, barato) se mantiene en cada
+  // evento para que el paneo/zoom se siga viendo fluido mientras tanto.
+  var revealDebounceTimer = null;
+  function scheduleReveal() {
+    if (revealDebounceTimer) clearTimeout(revealDebounceTimer);
+    revealDebounceTimer = setTimeout(function () {
+      revealDebounceTimer = null;
+      maybeReveal();
+    }, 150);
+  }
+
+  // Tope de zoom-in, TERCER intento (2026-09-23, "sigue estando el bug en el
+  // que puedo mover los nodos como yo quiera" -- el segundo intento, con el
+  // setTimeout(0) de abajo, no lo arreglo). Se leyo el bundle real de
+  // regl-scatterplot@1.16.0 (descargado y decompilado, no adivinado) para
+  // entender que hace zoomToLocation(..., {transition:false}) por dentro:
+  // llama a `Ir.lookAt(e,t)` de forma SINCRONA (dentro del executor de la
+  // Promise, que corre en el mismo tick) -- no hay ninguna razon real para
+  // envolver la llamada en `setTimeout(fn, 0)`. El problema del setTimeout:
+  // captura `tx`/`ty`/`dist` por closure en ESTE tick, pero se ejecuta en el
+  // tick SIGUIENTE -- durante un drag/scroll continuo (que dispara 'view' en
+  // cada frame), para cuando el timeout corria el usuario ya habia seguido
+  // arrastrando, asi que la correccion aplicaba una posicion YA VIEJA sobre
+  // una camara que ya habia avanzado -- un salto hacia atras en contra del
+  // gesto activo. Con el throttle del caso fuera-de-rango ya quitado (ver
+  // historial abajo) estas correcciones podian ademas acumularse sin esperar
+  // a que la anterior resolviera, generando el efecto de "los nodos se mueven
+  // solos" que reportó el usuario. Fix: llamar zoomToLocation directo, sin
+  // setTimeout -- clampCamera() ya corre una vez por evento 'view' (un valor
+  // fresco por llamada), asi que no hace falta throttle ni deferral para
+  // ninguno de los dos casos.
+  // v2.2.0: el zoom ya lo acota la camara (setScaleBounds). Aqui solo queda el pan,
+  // porque setTranslationBounds() de dom-2d-camera se guarda pero NO se aplica en
+  // translate() (verificado en el bundle 1.16.0). Se acota por los BORDES del
+  // viewport, no recortando el centro a [-1,1] (eso dejaba media pantalla vacia):
+  // mitad visible en x = aspect*dist, en y = dist (unidades NDC de datos, [-1,1]).
+  var PAN_MARGIN = 0.12;
+  var cameraTransitioning = false; // durante un vuelo animado no se corrige nada
+  function clampAxis(t, half) {
+    var lo = -1 - PAN_MARGIN + half, hi = 1 + PAN_MARGIN - half;
+    return lo > hi ? 0 : Math.max(lo, Math.min(hi, t));
+  }
+  function clampCamera() {
+    if (!state.scatterplot || cameraTransitioning) return;
+    var dist = state.scatterplot.get('cameraDistance');
+    var target = state.scatterplot.get('cameraTarget') || [0, 0];
+    var aspect = state.W / Math.max(1, state.H);
+    var tx = clampAxis(target[0], aspect * dist);
+    var ty = clampAxis(target[1], dist);
+    if (Math.abs(tx - target[0]) < 1e-6 && Math.abs(ty - target[1]) < 1e-6) return;
+    state.scatterplot.zoomToLocation([tx, ty], dist, { transition: false });
+  }
+
+  // ---------- carga lazy de meso/micro, por viewport real (130/130 macros elegibles) ----------
+  function inViewport(pos) {
+    if (!state.xScale || !state.yScale) return false;
+    var xd = state.xScale.domain(), yd = state.yScale.domain();
+    var padX = (xd[1] - xd[0]) * VIEWPORT_PAD;
+    var padY = (yd[1] - yd[0]) * VIEWPORT_PAD;
+    return pos.x >= xd[0] - padX && pos.x <= xd[1] + padX && pos.y >= yd[0] - padY && pos.y <= yd[1] + padY;
+  }
+
+  // Nivel global con histeresis (v2.2.0): para subir de nivel hay que pasar el
+  // umbral por +8%, para bajar hay que caer -8% por debajo -- sin esto, un zoom que
+  // se detiene justo en el umbral hacia parpadear macro<->meso en cada evento view.
+  state.level = 'macro';
+  function updateLevel() {
+    var k = state.k, up = 1 + LEVEL_HYSTERESIS, down = 1 - LEVEL_HYSTERESIS, lvl = state.level;
+    if (lvl === 'macro' && k >= K_MESO * up) lvl = 'meso';
+    if (lvl === 'meso' && k >= K_MICRO * up) lvl = 'micro';
+    if (lvl === 'micro' && k < K_MICRO * down) lvl = 'meso';
+    if (lvl === 'meso' && k < K_MESO * down) lvl = 'macro';
+    state.level = lvl;
+    return lvl;
+  }
+
+  var maybeRevealCallCount = 0;
+  function maybeReveal() {
+    maybeRevealCallCount++;
+    var level = updateLevel();
+    var changed = false;
+    var acted = 0;
+    var visibleCount = 0;
+    (state.macroGraph.nodes || []).forEach(function (n) {
+      var id = n.macroId;
+      var cur = state.revealLevel[id];
+      var visible = inViewport(n.position);
+      if (visible) visibleCount++;
+      if (level === 'micro' && visible) {
+        if (cur !== 'micro' && cur !== 'micro-loading') {
+          acted++;
+          state.revealLevel[id] = 'micro-loading';
+          loadMicro(id).then(function () { dlog('[reveal] micro OK ' + id); state.revealLevel[id] = 'micro'; rebuildIfChanged(); })
+            .catch(function (err) { dlog('[reveal] micro FAIL ' + id + ' ' + err.message); state.revealLevel[id] = 'macro'; });
+        }
+      } else if (level === 'meso' && visible) {
+        if (cur !== 'meso' && cur !== 'meso-loading') {
+          acted++;
+          state.revealLevel[id] = 'meso-loading';
+          loadMeso(id).then(function () { dlog('[reveal] meso OK ' + id); state.revealLevel[id] = 'meso'; rebuildIfChanged(); })
+            .catch(function (err) { dlog('[reveal] meso FAIL ' + id + ' ' + err.message); state.revealLevel[id] = 'macro'; });
+        }
+      } else {
+        // fuera de viewport (con margen) o zoom insuficiente -- vuelve a macro aunque
+        // ya se haya revelado antes (viewport real, no una lista fija de 10 macros).
+        if (cur !== 'macro') { state.revealLevel[id] = 'macro'; changed = true; }
+      }
+    });
+    if (maybeRevealCallCount <= 3 || acted > 0) dlog('[reveal] maybeReveal#' + maybeRevealCallCount + ' k=' + state.k.toFixed(2) + ' visibles=' + visibleCount + '/130 acted=' + acted);
+    if (changed) rebuildIfChanged();
+  }
+
+  function loadMeso(id) {
+    if (state.mesoCache[id]) return Promise.resolve(state.mesoCache[id]);
+    return fetchJson('./data/meso_by_macro/M' + id + '.json').then(function (d) { state.mesoCache[id] = d; return d; });
+  }
+  function loadMicro(id) {
+    if (state.microCache[id]) return Promise.resolve(state.microCache[id]);
+    return fetchJson('./data/micro_by_macro/M' + id + '.json').then(function (d) { state.microCache[id] = d; return d; });
+  }
+
+  function currentActiveNodes() {
+    // arma la lista de nodos visibles ahora mismo, mezclando niveles segun revealLevel por macro
+    var out = [];
+    var edges = [];
+    (state.macroGraph.nodes || []).forEach(function (n) {
+      var lvl = state.revealLevel[n.macroId];
+      if (lvl === 'meso' && state.mesoCache[n.macroId]) {
+        state.mesoCache[n.macroId].nodes.forEach(function (c) { out.push(c); });
+        (state.mesoCache[n.macroId].edges || []).forEach(function (e) { edges.push(e); });
+      } else if (lvl === 'micro' && state.microCache[n.macroId]) {
+        state.microCache[n.macroId].nodes.forEach(function (c) { out.push(c); });
+        (state.microCache[n.macroId].edges || []).forEach(function (e) { edges.push(e); });
+      } else {
+        out.push(n);
+      }
+    });
+    // v2.2.0: edges entre macros eliminados del mapa -- salen de coseno entre
+    // centroides e5, que en este espacio cae casi siempre en 0.91-0.94 (ver piloto
+    // BGE-M3 en development.md): no discriminan, solo agregan ruido visual. Los
+    // edges meso/micro (c-TF-IDF completo, si discriminan) se conservan.
+    return { nodes: out, edges: edges };
+  }
+
+  function rebuildIfChanged() {
+    var sig = JSON.stringify(state.revealLevel);
+    if (sig === state.lastBuiltSignature) { updatePositions(); return; }
+    state.lastBuiltSignature = sig;
+    try { buildOverlay(); } catch (err) { dlog('[reveal] buildOverlay threw: ' + err.message); }
+  }
+
+  // ---------- overlay SVG: estructura (rebuild) vs posiciones (update, barato) ----------
+  var byId = {};
+  var activeLayerGroup = null; // <g> actualmente visible; ver cross-fade en buildOverlay()
+  var REVEAL_FADE_MS = 220;    // debe coincidir con la transition-duration de .reveal-layer en CSS
+
+  var buildOverlayCount = 0;
+  function buildOverlay() {
+    var active = currentActiveNodes();
+    byId = {};
+    active.nodes.forEach(function (n) { byId[n.id] = n; });
+    buildOverlayCount++;
+    if (buildOverlayCount <= 12) {
+      var byLevel = {};
+      active.nodes.forEach(function (n) { var l = n.level || 'macro'; byLevel[l] = (byLevel[l] || 0) + 1; });
+      dlog('[build#' + buildOverlayCount + '] total=' + active.nodes.length + ' porNivel=' + JSON.stringify(byLevel));
+    }
+
+    // Cross-fade entre niveles (2026-09-23, pulido visual punto 1): antes esta
+    // funcion vaciaba overlay.innerHTML y reconstruia todo de golpe -- corte
+    // duro cada vez que macro->meso->micro cambiaba. Ahora la capa nueva se
+    // arma aparte y entra con opacity:0->1 mientras la capa anterior sale en
+    // paralelo (CSS transition, ver .reveal-layer); recien al terminar se
+    // saca la vieja del DOM. No es un morph nodo-a-nodo -- los sets de nodos
+    // entre niveles no son 1:1 (un macro se vuelve N nodos meso/micro) -- es
+    // una disolucion cruzada honesta, no una animacion de posicion falsa.
+    var prevLayerGroup = activeLayerGroup;
+    var newLayerGroup = document.createElementNS(NS, 'g');
+    newLayerGroup.setAttribute('class', 'reveal-layer reveal-entering');
+
+    var gridLayer = document.createElementNS(NS, 'g'); gridLayer.setAttribute('class', 'grid-layer');
+    var edgeLayer = document.createElementNS(NS, 'g'); edgeLayer.setAttribute('class', 'edge-layer-g');
+    var nodeLayer = document.createElementNS(NS, 'g'); nodeLayer.setAttribute('class', 'node-layer-g');
+    newLayerGroup.appendChild(gridLayer);
+    newLayerGroup.appendChild(edgeLayer);
+    newLayerGroup.appendChild(nodeLayer);
+
+    var sizes = active.nodes.map(function (n) { return n.size; });
+    var minS = Math.min.apply(null, sizes), maxS = Math.max.apply(null, sizes);
+    // Multiplicador de tamano por nivel (2026-09-23, a pedido del usuario: "haremos
+    // los clusters mas grandes, empezando por los macro, al menos 1.5x mas
+    // grandes"). Extendido el mismo dia (pulido visual, punto 4) a meso/micro --
+    // bump mas chico que macro a proposito: meso ya es visualmente disperso
+    // (pocos blobs grandes por macro, tolera crecer casi tanto como macro),
+    // micro es la capa mas densa (la que el diagnostico de amontonamiento
+    // senalo como apretada), asi que sube lo justo para seguir la jerarquia de
+    // tamano sin reintroducir ese problema.
+    var LEVEL_SIZE_MULT = { macro: 1.5, meso: 1.25, micro: 1.1 };
+    function radius(n) {
+      var t = (n.size - minS) / (maxS - minS || 1);
+      var base = 3 + Math.sqrt(Math.max(0, t)) * 20;
+      return base * (LEVEL_SIZE_MULT[n.level || 'macro'] || 1.0);
+    }
+    var shares = active.nodes.map(function (n) { return Number(n.dominantAreaShare || 0); });
+    var minSh = Math.min.apply(null, shares), maxSh = Math.max.apply(null, shares);
+    function color(n) {
+      var t = (Number(n.dominantAreaShare || 0) - minSh) / (maxSh - minSh || 1);
+      return colorByDominantArea(n.dominantArea, Math.max(0, Math.min(1, t)));
+    }
+
+    active.edges.forEach(function (e) {
+      var l = document.createElementNS(NS, 'line');
+      l.setAttribute('class', 'edge');
+      l.setAttribute('data-src', e.source); l.setAttribute('data-tgt', e.target);
+      l.setAttribute('stroke-width', Math.max(0.4, (e.weight || 0.3) * 1.4));
+      edgeLayer.appendChild(l);
+    });
+
+    var sorted = active.nodes.slice().sort(function (a, b) { return a.size - b.size; });
+
+    // Opacidad por nivel (2026-09-23, a pedido del usuario -- "haz tu los numeros
+    // para que vaya de menor opacidad a 100% en los macro"): antes 0.9 fijo sin
+    // importar el nivel. Jerarquia: macro = 100% (la vista mas agregada, siempre
+    // el ancla visual principal), meso = 0.70, micro = 0.48 -- cada nivel mas fino
+    // se siente progresivamente mas "bajo la superficie", reforzando que estan
+    // anidados unos dentro de otros en vez de compitiendo por la misma atencion.
+    var LEVEL_OPACITY = { macro: 1.0, meso: 0.70, micro: 0.48 };
+    function nodeFillOpacity(n) { return LEVEL_OPACITY[n.level || 'macro'] || 1.0; }
+
+    sorted.forEach(function (n) {
+      var grp = document.createElementNS(NS, 'g');
+      grp.setAttribute('class', 'node');
+      grp.setAttribute('data-id', n.id);
+      var c = document.createElementNS(NS, 'circle');
+      c.setAttribute('r', radius(n));
+      c.setAttribute('fill', color(n));
+      c.setAttribute('fill-opacity', nodeFillOpacity(n));
+      grp.appendChild(c);
+      // v2.2.0: TODOS los nodos llevan etiqueta (oculta por defecto); cual se ve
+      // lo decide placeLabels() en cada frame: solo en viewport, por masa, sin
+      // colisiones. Antes: top-16 por tamano de todos los nodos activos, incluidos
+      // los que estaban fuera de pantalla, sin manejo de solapamiento.
+      {
+        var label = document.createElementNS(NS, 'text');
+        label.style.display = 'none';
+        label.setAttribute('class', 'node-label');
+        var shortLabel = (n.label || '').split(' · ')[0] || (n.label || '').split(' ')[0] || n.id;
+        label.textContent = shortLabel;
+        label.setAttribute('data-r', radius(n));
+        grp.appendChild(label);
+      }
+      grp.addEventListener('mouseenter', function (ev) { showTooltip(n, ev); });
+      grp.addEventListener('mousemove', moveTooltip);
+      grp.addEventListener('mouseleave', hideTooltip);
+      grp.addEventListener('click', function () { openPanel(n); });
+      nodeLayer.appendChild(grp);
+    });
+
+    overlay.appendChild(newLayerGroup);
+    activeLayerGroup = newLayerGroup;
+    updatePositions();
+
+    // Se saca la clase "entering" en el frame siguiente (si se sacara en el
+    // mismo tick que el elemento entra al DOM, el navegador suele colapsar
+    // las dos reglas de opacity y no anima nada). La vieja capa recibe
+    // "exiting" al mismo tiempo para que ambas transicionen juntas.
+    requestAnimationFrame(function () {
+      newLayerGroup.classList.remove('reveal-entering');
+      if (prevLayerGroup && prevLayerGroup.parentNode) {
+        prevLayerGroup.classList.add('reveal-exiting');
+        setTimeout(function () {
+          if (prevLayerGroup.parentNode) prevLayerGroup.parentNode.removeChild(prevLayerGroup);
+        }, REVEAL_FADE_MS + 40);
+      }
+    });
+  }
+
+  function updatePositions() {
+    if (!state.xScale || !state.yScale || !activeLayerGroup) return;
+    var xs = state.xScale, ys = state.yScale;
+    var W = state.W, H = state.H;
+
+    // v2.2.0: la grilla solo recrea elementos si cambia el paso o el rango de
+    // lineas (nivel de zoom / pan grande); en cada frame solo se reposicionan los
+    // elementos existentes. Antes: innerHTML='' + recrear todo en CADA evento view.
+    var gridLayer = activeLayerGroup.querySelector('.grid-layer');
+    if (gridLayer) {
+      var dom = xs.domain(), domY = ys.domain();
+      var step = niceStep((dom[1] - dom[0]) / 8), stepY = niceStep((domY[1] - domY[0]) / 8);
+      var gx0 = Math.floor(dom[0] / step) - 1, gx1 = Math.ceil(dom[1] / step) + 1;
+      var gy0 = Math.floor(domY[0] / stepY) - 1, gy1 = Math.ceil(domY[1] / stepY) + 1;
+      var gKey = [step, stepY, gx0, gx1, gy0, gy1].join('|');
+      if (gridLayer.getAttribute('data-key') !== gKey) {
+        gridLayer.setAttribute('data-key', gKey);
+        gridLayer.innerHTML = '';
+        var mk = function (axis, v) {
+          var line = document.createElementNS(NS, 'line'); line.setAttribute('class', 'gridline');
+          line.setAttribute('data-axis', axis); line.setAttribute('data-v', v);
+          var lbl = document.createElementNS(NS, 'text'); lbl.setAttribute('class', 'tick-label');
+          lbl.setAttribute('data-axis', axis); lbl.setAttribute('data-v', v); lbl.textContent = (+v).toFixed(0);
+          gridLayer.appendChild(line); gridLayer.appendChild(lbl);
+        };
+        for (var gi = gx0; gi <= gx1; gi++) mk('x', gi * step);
+        for (var gj = gy0; gj <= gy1; gj++) mk('y', gj * stepY);
+      }
+      gridLayer.querySelectorAll('[data-axis]').forEach(function (el) {
+        var v = parseFloat(el.getAttribute('data-v')), isLine = el.tagName === 'line';
+        if (el.getAttribute('data-axis') === 'x') {
+          var px = xs(v);
+          if (isLine) { el.setAttribute('x1', px); el.setAttribute('x2', px); el.setAttribute('y1', 0); el.setAttribute('y2', H); }
+          else { el.setAttribute('x', px + 3); el.setAttribute('y', H - 6); }
+        } else {
+          var py = ys(v);
+          if (isLine) { el.setAttribute('y1', py); el.setAttribute('y2', py); el.setAttribute('x1', 0); el.setAttribute('x2', W); }
+          else { el.setAttribute('x', 4); el.setAttribute('y', py - 3); }
+        }
+      });
+    }
+
+    activeLayerGroup.querySelectorAll('.node-layer-g .node').forEach(function (grp) {
+      var n = byId[grp.getAttribute('data-id')];
+      if (!n) return;
+      var cx = xs(n.position.x), cy = ys(n.position.y);
+      var c = grp.querySelector('circle');
+      c.setAttribute('cx', cx); c.setAttribute('cy', cy);
+      var label = grp.querySelector('text');
+      if (label) {
+        var r = parseFloat(label.getAttribute('data-r')) || 8;
+        label.setAttribute('x', cx + r + 5);
+        label.setAttribute('y', cy + 4);
+      }
+    });
+    placeLabels(activeLayerGroup);
+    activeLayerGroup.querySelectorAll('.edge-layer-g .edge').forEach(function (l) {
+      var s = byId[l.getAttribute('data-src')], t = byId[l.getAttribute('data-tgt')];
+      if (!s || !t) { l.style.display = 'none'; return; }
+      l.setAttribute('x1', xs(s.position.x)); l.setAttribute('y1', ys(s.position.y));
+      l.setAttribute('x2', xs(t.position.x)); l.setAttribute('y2', ys(t.position.y));
+    });
+  }
+
+  // Colocacion greedy sin colisiones, en pixeles de pantalla: candidatos en
+  // viewport ordenados por masa; cada etiqueta ocupa una caja estimada
+  // (ancho ~ caracteres x 0.64 x tamano de fuente, por mayusculas + tracking) y se
+  // descarta si choca con una ya colocada. Tope MAX_LABELS para no saturar.
+  var MAX_LABELS = 28;
+  function placeLabels(layer) {
+    var W = state.W, H = state.H, placed = [], cands = [];
+    layer.querySelectorAll('.node-layer-g .node').forEach(function (grp) {
+      var label = grp.querySelector('text');
+      var n = byId[grp.getAttribute('data-id')];
+      if (!label || !n) return;
+      label.style.display = 'none';
+      var c = grp.querySelector('circle');
+      var cx = parseFloat(c.getAttribute('cx')), cy = parseFloat(c.getAttribute('cy'));
+      if (cx < -20 || cx > W + 20 || cy < -20 || cy > H + 20) return;
+      cands.push({ n: n, label: label, cx: cx, cy: cy });
+    });
+    cands.sort(function (a, b) { return b.n.size - a.n.size; });
+    for (var i = 0; i < cands.length && placed.length < MAX_LABELS; i++) {
+      var cd = cands[i];
+      var r = parseFloat(cd.label.getAttribute('data-r')) || 8;
+      var w = cd.label.textContent.length * 10.5 * 0.64 + 6, h = 14;
+      var box = { x0: cd.cx + r + 3, y0: cd.cy - h / 2, x1: cd.cx + r + 3 + w, y1: cd.cy + h / 2 };
+      if (box.x1 > W - 4) { box.x1 = cd.cx - r - 3; box.x0 = box.x1 - w; } // voltear a la izquierda si no cabe
+      var hit = placed.some(function (p) { return !(box.x1 < p.x0 || box.x0 > p.x1 || box.y1 < p.y0 || box.y0 > p.y1); });
+      if (hit) continue;
+      placed.push(box);
+      cd.label.style.display = '';
+      cd.label.setAttribute('x', box.x0 + 2);
+      cd.label.setAttribute('y', cd.cy + 4);
+    }
+  }
+
+  function niceStep(raw) {
+    var pow = Math.pow(10, Math.floor(Math.log10(raw)));
+    var f = raw / pow;
+    var nf = f < 1.5 ? 1 : f < 3 ? 2 : f < 7 ? 5 : 10;
+    return nf * pow;
+  }
+
+  function showTooltip(n, ev) {
+    var extra = '';
+    if (n.sourceMicroClusters !== undefined) extra = n.sourceMicroClusters + ' micro-clusters · ';
+    tooltip.innerHTML = '<span class="t-label">' + escapeHtml((n.label || '').split(' · ').slice(0, 3).join(' · ')) + '</span>' +
+      '<span class="t-meta">n = ' + fmtNum(n.size) + ' tesis · ' + extra + 'área: ' + (n.dominantArea || '?') + ' (' + Math.round((n.dominantAreaShare || 0) * 100) + '%)</span>';
+    tooltip.style.opacity = '1';
+    moveTooltip(ev);
+  }
+  function moveTooltip(ev) {
+    var r = main.getBoundingClientRect();
+    var x = ev.clientX - r.left + 14, y = ev.clientY - r.top + 14;
+    tooltip.style.transform = 'translate(' + x + 'px,' + y + 'px)';
+  }
+  function hideTooltip() { tooltip.style.opacity = '0'; tooltip.style.transform = 'translate(-9999px,-9999px)'; }
+
+  // ---------- panel: pila de vistas (node -> theses -> vecindario), con boton "volver" ----------
+  function openPanel(n) {
+    state.selected = n.id;
+    document.querySelectorAll('.node').forEach(function (el) { el.classList.toggle('selected', el.getAttribute('data-id') === n.id); });
+    state.panelStack = [{ type: 'node', node: n }];
+    renderPanelStack();
+    panel.classList.add('open');
+  }
+
+  function pushPanel(view) {
+    state.panelStack.push(view);
+    renderPanelStack();
+  }
+
+  function popPanel() {
+    if (state.panelStack.length > 1) state.panelStack.pop();
+    renderPanelStack();
+  }
+
+  function renderPanelStack() {
+    var top = state.panelStack[state.panelStack.length - 1];
+    var eyebrow = document.getElementById('panel-eyebrow');
+    var backHtml = state.panelStack.length > 1 ? '<button class="back-btn" id="panel-back">← volver</button>' : '';
+    if (top.type === 'node') {
+      eyebrow.innerHTML = backHtml + '<span>' + (top.node.level || 'macro') + '</span>';
+      renderNodeView(top.node);
+    } else if (top.type === 'theses') {
+      eyebrow.innerHTML = backHtml + '<span>tesis representativas</span>';
+      renderThesesView(top.node);
+    }
+    var backBtn = document.getElementById('panel-back');
+    if (backBtn) backBtn.addEventListener('click', popPanel);
+  }
+
+  function renderNodeView(n) {
+    document.getElementById('panel-title').textContent = (n.label || '').split(' · ').slice(0, 4).join(' · ');
+    var areaHtml = '';
+    if (n.areaMix) {
+      var entries = Object.keys(n.areaMix).sort(function (a, b) { return n.areaMix[b] - n.areaMix[a]; });
+      areaHtml = entries.map(function (a) { return '<div class="stat-row"><span>' + a + '</span><span>' + Math.round(n.areaMix[a] * 100) + '%</span></div>'; }).join('');
+    } else {
+      areaHtml = '<div class="stat-row"><span>' + (n.dominantArea || '?') + '</span><span>' + Math.round((n.dominantAreaShare || 0) * 100) + '%</span></div>';
+    }
+    var body =
+      '<div class="stat-row"><span>Tesis</span><span>' + fmtNum(n.size) + '</span></div>' +
+      (n.sourceMicroClusters !== undefined ? '<div class="stat-row"><span>Micro-clusters (HDBSCAN)</span><span>' + n.sourceMicroClusters + '</span></div>' : '') +
+      (n.sourceMesoClusters !== undefined ? '<div class="stat-row"><span>Meso-clusters</span><span>' + n.sourceMesoClusters + '</span></div>' : '') +
+      '<div class="section-label">Mezcla por área administrativa</div>' + areaHtml +
+      '<div class="section-label">Programas más frecuentes</div>' +
+      '<div class="programs">' + escapeHtml(n.programsTop || '—').split(' | ').join('<br>') + '</div>';
+
+    // Vecindario MVP (paso 3 del backlog): solo disponible para nodos micro cuyo clusterId
+    // esta en el subconjunto precargado (vecindario_preview.v1.json, 10 macros -- ver
+    // development.md). El resto de los 130 macros no tiene este dato en este preview.
+    if (n.level === 'micro' && state.vecindarioPreview) {
+      var ids = (state.vecindarioPreview.byCluster || {})[String(n.clusterId)];
+      if (ids && ids.length) {
+        body += '<div class="section-label">Tesis representativas (' + ids.length + ') — clic para ver vecindario</div>';
+        body += '<div id="theses-list-trigger" class="thesis-row" style="border:1px dashed var(--border);border-radius:6px;padding:10px;text-align:center;">Ver lista completa →</div>';
+      }
+    }
+    document.getElementById('panel-body').innerHTML = body;
+    var trigger = document.getElementById('theses-list-trigger');
+    if (trigger) trigger.addEventListener('click', function () { pushPanel({ type: 'theses', node: n }); });
+  }
+
+  function renderThesesView(microNode) {
+    document.getElementById('panel-title').textContent = 'Tesis representativas';
+    var ids = (state.vecindarioPreview.byCluster || {})[String(microNode.clusterId)] || [];
+    var html = '<div class="vecindario-note">Subconjunto de este preview (' + ids.length + ' tesis) — clic en una para ver su vecindario deduplicado por título.</div>';
+    ids.forEach(function (tid) {
+      var t = state.vecindarioPreview.theses[tid];
+      if (!t) return;
+      html += '<div class="thesis-row" data-thesis="' + tid + '">' +
+        '<span class="th-title">' + escapeHtml(t.title || tid) + '</span>' +
+        '<span class="th-meta">' + (t.year || '?') + ' · ' + tid + '</span></div>';
+    });
+    document.getElementById('panel-body').innerHTML = html;
+    document.querySelectorAll('#panel-body .thesis-row[data-thesis]').forEach(function (row) {
+      row.addEventListener('click', function () { openVecindarioModal(row.getAttribute('data-thesis')); });
+    });
+  }
+
+  // ==================== Modo analytic del vecindario ====================
+  // Grid-of-grids animado, agrupado por categoria, mas cercano primero dentro
+  // de cada grupo -- mismo principio del modo "analytic" del atlas viejo
+  // (ver development.md, "Investigacion: ranking y mecanica de diseno del
+  // modo Explorar/analytic viejo"), recalibrado para este canvas SVG en vez
+  // de copiar las constantes de sigma.js (esas se calibraron para otra
+  // escala de coordenadas).
+  var AREA_COLORS = { 'area 1': '#2a4d7a', 'area 2': '#0f7d5c', 'area 3': '#c98a2e', 'area 4': '#b8412f' };
+  var AREA_COLOR_DEFAULT = '#948d7c';
+  var vm = { history: [], groupBy: 'area', svg: null };
+
+  function areaColor(area) { return AREA_COLORS[(area || '').toLowerCase()] || AREA_COLOR_DEFAULT; }
+  function simT(sim) { return Math.max(0, Math.min(1, (Number(sim || 0) - 0.75) / 0.20)); }
+  function nodeRadius(sim) { return 3.5 + simT(sim) * 7.5; }
+  function nodeOpacity(sim) { return 0.55 + simT(sim) * 0.45; }
+  function edgeWidth(sim) { return 0.5 + simT(sim) * 2.2; }
+  function edgeOpacity(sim) { return 0.08 + simT(sim) * 0.34; }
+  function decadeLabel(year) { return year ? (Math.floor(year / 10) * 10) + 's' : 'sin año'; }
+
+  function groupNeighbors(neighbors, key) {
+    var map = {};
+    neighbors.forEach(function (nb) {
+      var label = key === 'decade' ? decadeLabel(nb.year) : (nb.area || 'sin área');
+      (map[label] = map[label] || []).push(nb);
+    });
+    var labels = Object.keys(map).sort();
+    return labels.map(function (l) { return [l, map[l]]; });
+  }
+
+  function computeAnalyticLayout(neighbors, groupByKey, w, h) {
+    var groups = groupNeighbors(neighbors, groupByKey);
+    var groupCount = groups.length;
+    var cols = Math.min(4, Math.max(1, Math.ceil(Math.sqrt(groupCount))));
+    var rows = Math.ceil(groupCount / cols);
+    var top = 78; // deja espacio para el nodo focal arriba
+    var cellW = w / cols, cellH = (h - top) / rows;
+    var positions = { FOCAL: { x: w / 2, y: 32 } };
+    var labelPositions = {};
+
+    groups.forEach(function (g, gi) {
+      var label = g[0], items = g[1].slice().sort(function (a, b) { return (b.sim || 0) - (a.sim || 0); });
+      var col = gi % cols, row = Math.floor(gi / cols);
+      var cx = cellW * (col + 0.5);
+      var cy = top + cellH * (row + 0.5);
+      var n = items.length;
+      var innerCols = Math.max(1, Math.ceil(Math.sqrt(n)));
+      var innerRows = Math.ceil(n / innerCols);
+      var spacing = Math.min(cellW, cellH) * (n > 16 ? 0.13 : 0.17);
+      var gw = (innerCols - 1) * spacing, gh = (innerRows - 1) * spacing;
+      items.forEach(function (it, i) {
+        var ix = i % innerCols, iy = Math.floor(i / innerCols);
+        positions[it.id] = { x: cx - gw / 2 + ix * spacing, y: cy - gh / 2 + iy * spacing };
+      });
+      labelPositions[label] = { x: cx, y: cy - gh / 2 - 16 };
+    });
+    return { positions: positions, groups: groups, labelPositions: labelPositions };
+  }
+
+  function vmShowTooltip(d, ev) {
+    var tt = document.getElementById('vtooltip');
+    tt.innerHTML = '<span class="vt-title">' + escapeHtml(d.title || d.id) + '</span>' +
+      '<span class="vt-meta">' + (d.year || '?') + ' · ' + (d.area || 'sin área') +
+      (d.isFocal ? '' : ' · ' + (d.sim * 100).toFixed(1) + '% similar') +
+      (d.inSample === false ? ' · fuera de este preview' : '') + '</span>';
+    tt.style.opacity = '1';
+    vmMoveTooltip(ev);
+  }
+  function vmMoveTooltip(ev) {
+    var card = document.querySelector('#vmodal .vm-card').getBoundingClientRect();
+    var tt = document.getElementById('vtooltip');
+    tt.style.transform = 'translate(' + (ev.clientX - card.left + 14) + 'px,' + (ev.clientY - card.top + 14) + 'px)';
+  }
+  function vmHideTooltip() {
+    var tt = document.getElementById('vtooltip');
+    tt.style.opacity = '0'; tt.style.transform = 'translate(-9999px,-9999px)';
+  }
+
+  function renderVecindarioGraph(thesisId) {
+    var t = state.vecindarioPreview.theses[thesisId];
+    var body = document.querySelector('#vmodal .vm-body');
+    var w = body.clientWidth, h = body.clientHeight;
+
+    document.getElementById('vm-title').textContent = t ? t.title : thesisId;
+    document.getElementById('vm-meta').textContent = t ? (t.year || '?') + ' · ' + (t.area || 'sin área') + ' · ' + thesisId : 'sin datos en este preview';
+
+    var crumbs = vm.history.map(function (h, i) {
+      return '<button data-idx="' + i + '">' + escapeHtml((h.title || h.id).slice(0, 28)) + (h.title && h.title.length > 28 ? '…' : '') + '</button> →';
+    }).join(' ');
+    document.getElementById('vm-breadcrumb').innerHTML = crumbs;
+    document.querySelectorAll('#vm-breadcrumb button').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var idx = parseInt(btn.getAttribute('data-idx'), 10);
+        var target = vm.history[idx];
+        vm.history = vm.history.slice(0, idx);
+        openVecindarioModal(target.id, { skipHistoryPush: true });
+      });
+    });
+
+    if (!t) {
+      d3.select(vm.svg).select('.vm-nodes').selectAll('*').remove();
+      d3.select(vm.svg).select('.vm-edges').selectAll('*').remove();
+      d3.select(vm.svg).select('.vm-group-labels').selectAll('*').remove();
+      return;
+    }
+
+    var layout = computeAnalyticLayout(t.neighbors, vm.groupBy, w, h);
+    var positions = layout.positions;
+    var focalNode = { id: 'FOCAL', title: t.title, year: t.year, area: t.area, isFocal: true };
+    var nodesData = [focalNode].concat(t.neighbors);
+    var priorFocal = vm.lastFocalPos || positions.FOCAL;
+
+    var svg = d3.select(vm.svg);
+
+    // group labels -- solo tienen sentido en modo analytic (el universo no agrupa)
+    var labelSel = svg.select('.vm-group-labels').selectAll('text').data(layout.groups.map(function (g) { return g[0]; }), function (d) { return d; });
+    labelSel.exit().remove();
+    labelSel.enter().append('text').attr('class', 'vm-group-label').attr('text-anchor', 'middle')
+      .merge(labelSel)
+      .attr('x', function (d) { return layout.labelPositions[d].x; })
+      .attr('y', function (d) { return layout.labelPositions[d].y; })
+      .text(function (d) { return d + ' (' + t.neighbors.filter(function (n) { return (vm.groupBy === 'decade' ? decadeLabel(n.year) : (n.area || 'sin área')) === d; }).length + ')'; });
+
+    // edges
+    var edgeSel = svg.select('.vm-edges').selectAll('line').data(t.neighbors, function (d) { return d.id; });
+    edgeSel.exit().transition().duration(300).style('opacity', 0).remove();
+    var edgeEnter = edgeSel.enter().append('line').attr('class', 'vm-edge')
+      .attr('x1', priorFocal.x).attr('y1', priorFocal.y).attr('x2', priorFocal.x).attr('y2', priorFocal.y)
+      .style('opacity', 0);
+    edgeEnter.merge(edgeSel).transition().duration(850).ease(d3.easeCubicOut)
+      .attr('x1', positions.FOCAL.x).attr('y1', positions.FOCAL.y)
+      .attr('x2', function (d) { return positions[d.id].x; })
+      .attr('y2', function (d) { return positions[d.id].y; })
+      .style('stroke-width', function (d) { return edgeWidth(d.sim); })
+      .style('opacity', function (d) { return edgeOpacity(d.sim); });
+
+    // nodes
+    var nodeSel = svg.select('.vm-nodes').selectAll('g.vm-node').data(nodesData, function (d) { return d.id; });
+    nodeSel.exit().transition().duration(300).style('opacity', 0).remove();
+
+    var nodeEnter = nodeSel.enter().append('g')
+      .attr('class', function (d) { return 'vm-node' + (d.isFocal ? ' focal' : '') + (d.isFocal || d.inSample ? '' : ' not-in-sample'); })
+      .attr('transform', 'translate(' + priorFocal.x + ',' + priorFocal.y + ')')
+      .style('opacity', 0);
+    nodeEnter.append('circle');
+
+    var merged = nodeEnter.merge(nodeSel);
+    merged.attr('class', function (d) { return 'vm-node' + (d.isFocal ? ' focal' : '') + (d.isFocal || d.inSample ? '' : ' not-in-sample'); });
+    merged.transition().duration(850).ease(d3.easeCubicOut)
+      .attr('transform', function (d) { var p = positions[d.id]; return 'translate(' + p.x + ',' + p.y + ')'; })
+      .style('opacity', 1);
+    merged.select('circle')
+      .attr('r', function (d) { return d.isFocal ? 15 : nodeRadius(d.sim); })
+      .attr('fill', function (d) { return d.isFocal ? 'var(--accent)' : areaColor(d.area); })
+      .attr('fill-opacity', function (d) { return d.isFocal ? 1 : nodeOpacity(d.sim); });
+
+    merged.on('mouseenter', function (ev, d) { vmShowTooltip(d, ev); })
+      .on('mousemove', function (ev) { vmMoveTooltip(ev); })
+      .on('mouseleave', vmHideTooltip)
+      .on('click', function (ev, d) {
+        if (d.isFocal || !d.inSample) return;
+        vmHideTooltip();
+        openVecindarioModal(d.id);
+      });
+
+    vm.lastFocalPos = positions.FOCAL;
+  }
+
+  // ==================== Clic en tesis individual sobre el mapa ====================
+  // A pedido del usuario, replica el efecto del atlas viejo: clic en una tesis
+  // dentro de la vista de vecindario apagaba (gris) todo lo que no fuera vecino
+  // real y dejaba ver, por contraste, el color por area de los que si lo eran
+  // (ver development.md, "Investigacion..."). Aqui se aplica directo sobre el
+  // mapa real (los 609,154 puntos ya tienen posicion semantica real, a
+  // diferencia del grafo en estrella abstracto del atlas viejo) -- clic en
+  // CUALQUIER punto de fondo, no solo desde la lista de tesis representativas.
+  var AREA_STRING_TO_CODE = { 'area 1': 1, 'area 2': 2, 'area 3': 3, 'area 4': 4 };
+  function areaToMapCategory(area) {
+    var code = AREA_STRING_TO_CODE[(area || '').toLowerCase()] || 0;
+    return state.areaMapCategory(code, true); // vecino real -> siempre version vivida, sin importar si es ruido HDBSCAN
+  }
+
+  function applyMapSpotlight(thesisId, idx) {
+    if (!state.scatterplot || !state.chaosCatBase) return;
+    var t = state.vecindarioPreview && state.vecindarioPreview.theses[thesisId];
+    var C = state.mapCategories;
+    var cat = state.chaosCatBase.slice();
+    cat.fill(C.DIMMED);
+    if (idx == null) idx = state.thesisIdToChaosIndex.get(thesisId);
+    if (idx != null) cat[idx] = C.FOCAL;
+
+    var resolved = 0;
+    if (t) {
+      t.neighbors.forEach(function (nb) {
+        var nidx = state.thesisIdToChaosIndex.get(nb.id);
+        if (nidx == null) return;
+        cat[nidx] = areaToMapCategory(nb.area);
+        resolved++;
+      });
+    }
+    // draw() es async (devuelve promesa) -- reaplicar el filtro de densidad
+    // ANTES de que resuelva pisaba el propio draw() en curso (bug real
+    // encontrado 2026-09-23: "Ignoring draw call as the previous draw call
+    // has not yet finished", visto en consola). Encadenar con .then().
+    // v2.2.0: el filtro de densidad viaja DENTRO del mismo draw() (opcion nativa
+    // `filter` del bundle) -- antes se reaplicaba en un .then() aparte, que era la
+    // fuente de "Ignoring draw call as the previous draw call has not yet finished".
+    state.scatterplot.draw({ x: state.chaosNdcX, y: state.chaosNdcY, valueA: cat }, drawFilterOpts());
+    showMapSpotlightInfo(thesisId, t, resolved);
+  }
+
+  function clearMapSpotlight() {
+    if (!state.scatterplot || !state.chaosCatBase) return;
+    state.scatterplot.draw({ x: state.chaosNdcX, y: state.chaosNdcY, valueA: state.chaosCatBase }, drawFilterOpts());
+    document.getElementById('map-selection').hidden = true;
+  }
+
+  // Toggle de densidad del fondo (2026-09-23) -- usa el metodo nativo filter()/
+  // unfilter() de regl-scatterplot (confirmado en su documentacion, no inventado)
+  // en vez de tocar el array de categorias: preserva el alineamiento de indices
+  // 1:1 con state.chaosThesisIds/thesisIdToChaosIndex que el spotlight y el resto
+  // del mapa ya dependen de que nunca cambie. draw() parece resetear el filtro
+  // activo (por eso se reaplica despues de cada draw() en el spotlight arriba) --
+  // mas seguro reaplicar de mas que asumir que persiste.
+  function includedIndicesForPct(pct) {
+    if (state.densityIncludedCache[pct]) return state.densityIncludedCache[pct];
+    var rank = state.densityRank, n = state.chaosN, out = [];
+    for (var i = 0; i < n; i++) if (rank[i] < pct) out.push(i);
+    state.densityIncludedCache[pct] = out;
+    return out;
+  }
+  function drawFilterOpts() {
+    return state.densityPct < 1 ? { filter: includedIndicesForPct(state.densityPct) } : {};
+  }
+  function applyDensityFilter(pct, preventEvent) {
+    if (!state.scatterplot) return;
+    state.densityPct = pct;
+    if (pct >= 1) {
+      state.scatterplot.unfilter({ preventEvent: !!preventEvent });
+    } else {
+      state.scatterplot.filter(includedIndicesForPct(pct), { preventEvent: !!preventEvent });
+    }
+  }
+  document.querySelectorAll('#density-toggle button').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      document.querySelectorAll('#density-toggle button').forEach(function (b) { b.classList.toggle('active', b === btn); });
+      applyDensityFilter(parseFloat(btn.getAttribute('data-pct')));
+    });
+  });
+
+  function showMapSpotlightInfo(thesisId, t, resolvedCount) {
+    document.getElementById('ms-title').textContent = t ? t.title : thesisId;
+    document.getElementById('ms-meta').textContent = (t ? (t.year || '?') + ' · ' + (t.area || 'sin área') + ' · ' : '') + thesisId;
+    var noteEl = document.getElementById('ms-note');
+    var openBtn = document.getElementById('ms-open-vecindario');
+    if (t) {
+      noteEl.textContent = resolvedCount + ' de ' + t.neighbors.length + ' vecinos ubicados en el mapa, coloreados por área. Todo lo demás se apaga para que resalten por contraste.';
+      openBtn.hidden = false;
+      openBtn.onclick = function () { openVecindarioModal(thesisId); };
+    } else {
+      noteEl.textContent = 'Esta tesis no tiene vecindario precargado en este preview (fuera de la muestra de 2,500 tesis representativas de los 10 macros de referencia) — probá desde "Ver lista completa" en un nodo micro.';
+      openBtn.hidden = true;
+    }
+    document.getElementById('map-selection').hidden = false;
+  }
+
+  document.getElementById('map-selection-close').addEventListener('click', function () {
+    clearMapSpotlight();
+    if (state.scatterplot && typeof state.scatterplot.deselect === 'function') state.scatterplot.deselect();
+  });
+
+  function openVecindarioModal(thesisId, opts) {
+    opts = opts || {};
+    var modal = document.getElementById('vmodal');
+    if (!vm.svg) vm.svg = document.getElementById('vm-svg');
+
+    if (!opts.skipHistoryPush) {
+      var t = state.vecindarioPreview.theses[thesisId];
+      vm.history.push({ id: thesisId, title: t ? t.title : thesisId });
+    }
+    if (modal.hidden) { modal.hidden = false; vm.lastFocalPos = null; }
+    renderVecindarioGraph(thesisId);
+  }
+
+  function closeVecindarioModal() {
+    document.getElementById('vmodal').hidden = true;
+    vm.history = [];
+    vm.lastFocalPos = null;
+  }
+
+  document.getElementById('vm-close').addEventListener('click', closeVecindarioModal);
+  document.querySelector('#vmodal .vm-backdrop').addEventListener('click', closeVecindarioModal);
+  document.getElementById('vm-groupby').addEventListener('change', function (ev) {
+    vm.groupBy = ev.target.value;
+    if (vm.history.length) renderVecindarioGraph(vm.history[vm.history.length - 1].id);
+  });
+  window.addEventListener('resize', function () {
+    if (!document.getElementById('vmodal').hidden && vm.history.length) {
+      renderVecindarioGraph(vm.history[vm.history.length - 1].id);
+    }
+  });
+
+  document.getElementById('panel-close').addEventListener('click', function () {
+    panel.classList.remove('open');
+    state.selected = null;
+    state.panelStack = [];
+    document.querySelectorAll('.node.selected').forEach(function (el) { el.classList.remove('selected'); });
+  });
+
+  // Bug real (2026-09-23, reportado por el usuario con captura: XSPAN=55.7 pero
+  // YSPAN=0.6, un dominio Y colapsado que distorsiona todo el overlay). No era un
+  // "arrastrar nodos" -- no existe ningun handler de drag sobre nodos en todo el
+  // codigo (verificado, no se adivino). Causa real: este resize handler mutaba el
+  // RANGO en pixeles de xScale/yScale (`.range(...)`) sin recalcular su DOMINIO,
+  // dejando el dominio (en unidades de datos) inconsistente con el nuevo rango --
+  // si el usuario redimensiona la ventana del navegador (facil de gatillar sin
+  // querer arrastrando el borde o encajandola a media pantalla), regl-scatterplot
+  // recibe el nuevo tamano via `.set()` y recalcula su propia camara, pero
+  // mientras tanto el `state.xScale`/`state.yScale` mutado a mano (con dominio
+  // viejo + rango nuevo) quedaba activo y no se auto-corregia hasta el siguiente
+  // evento 'view' -- que en la practica podia tardar o nunca disparar limpio.
+  // Fix: no tocar los scales a mano en absoluto. El evento 'view' ya existente
+  // (linea ~880) es la UNICA fuente de verdad para xScale/yScale -- se limita el
+  // resize a avisarle a la libreria el nuevo tamano; ella misma emite un 'view'
+  // fresco con scales recalculados correctamente, que el handler ya existente
+  // aplica sin ningun paso manual adicional.
+  function resizeRenderer() {
+    if (!state.renderer) return;
+    var rect = main.getBoundingClientRect();
+    state.renderer.resize(Math.max(window.innerWidth, Math.ceil(rect.width)), Math.max(window.innerHeight, Math.ceil(rect.height)));
+  }
+  window.addEventListener('resize', function () {
+    if (!state.scatterplot) return;
+    var rect = main.getBoundingClientRect();
+    state.W = rect.width; state.H = rect.height;
+    requestAnimationFrame(resizeRenderer); // el renderer registra SU handler de resize despues del nuestro (re-limita a la pantalla): corregir en el frame siguiente
+    state.scatterplot.set({ width: rect.width, height: rect.height });
+  });
+
+  loadEverything().catch(function (err) {
+    console.error(err);
+    subtitle.textContent = 'error cargando el bundle real: ' + err.message;
+    var note = document.createElement('div');
+    note.className = 'empty-note';
+    note.textContent = 'No se pudo inicializar el preview (ver consola).';
+    main.appendChild(note);
+  });
+
+  // Hook de depuracion para desarrollo local (prototipo, no produccion) --
+  // permite probar el modal de vecindario desde la consola sin tener que
+  // navegar el mapa a mano: window.__debugAtlas.openVecindarioModal('TH_...').
+  window.__debugAtlas = {
+    state: state, openVecindarioModal: openVecindarioModal, closeVecindarioModal: closeVecindarioModal,
+    applyMapSpotlight: applyMapSpotlight, clearMapSpotlight: clearMapSpotlight
+  };
+})();
+</script>
+
+</body></html>
