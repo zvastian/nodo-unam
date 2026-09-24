@@ -1,4 +1,4 @@
-# NODO UNAM — Atlas de tesis UNAM
+# NodOs — Atlas de tesis UNAM (proyecto NODO UNAM)
 
 Mapa semántico navegable de 609,154 tesis de la UNAM. El trabajo activo es la **interfaz** en
 `prototypes/atlas_vecindario_mvp/index.html` (un solo archivo: HTML + CSS + JS, sin build).

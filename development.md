@@ -1609,3 +1609,20 @@ Lección: primero se acuerda la estrategia por escrito y después se codifica. D
 - **Herramientas para la nube.**
   - `tools/cdp.mjs`: el harness de capturas, portable con las variables `CHROME`, `SIZE` y `GPU`. Cierra el pendiente «harness a `tools/`».
   - `CLAUDE.md` con instrucciones para sesiones nuevas.
+
+### v4.1.0 — nombres con acentos, siglas y mayúsculas; marca «NodOs» (2026-09-24)
+
+- **Problema.** Los nombres de subtema y tema fino son keywords c-TF-IDF sobre texto normalizado («deficit atencion · hiperactividad»). Lo mismo pasa con programas, planteles y los títulos del vecindario precargado (la búsqueda).
+- **Diccionario de escritura.** `pipeline/generar_atlas_acentos.py` aprende de los 609k títulos originales (teselas) la forma real de cada palabra y genera `data/escritura.v1.json` (6,560 entradas, 73 KB):
+  - **Acentos.** Gana la variante con tilde si aparece en ≥20% de los casos, porque muchos títulos del catálogo vienen sin acentos. Se excluyen los pares donde ambas formas son palabras válidas (esta/está, público/publico, práctica/practica…).
+  - **Siglas.** VIH, COVID, ISO, ADN, IMSS: en mayúsculas en ≥70% de los títulos que no están enteros en mayúsculas.
+  - **Nombres propios.** México, Iztacala, Aragón, Freud: capitalizados a media frase en ≥96.5% de los casos. El umbral deja fuera «Hospital», «Instituto» y «Facultad», que están entre 85% y 94%.
+- **Interfaz.** `escribir()` + `capital()` se aplican solo al mostrar:
+  - nombres de subtema y tema fino, con mayúscula inicial por grupo: «Déficit atención · Hiperactividad»;
+  - palabras clave, programas y planteles;
+  - títulos del vecindario.
+  - Los rótulos del mapa siguen en mayúsculas, ahora con tildes. La búsqueda sigue comparando sin acentos.
+- **Marca.** «NodOs» en la pestaña y en la barra de navegación (con «Atlas de tesis UNAM» como descriptor). Favicon SVG en línea: un punto azul #1d4f91, el color de interfaz.
+- **Método** avisa que la escritura se restituye con un diccionario y puede fallar en alguna palabra.
+- **Verificado** en el harness: pestaña, favicon, panel, tema aislado y búsqueda, sin errores de consola.
+- **Límite.** Los títulos de `tesis_por_micro` y de las teselas se muestran como vienen del catálogo (a veces sin acentos). Son el texto original de cada tesis y no se reescriben.

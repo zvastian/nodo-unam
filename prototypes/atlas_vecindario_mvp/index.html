@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Atlas de tesis UNAM</title>
+<title>NodOs</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6' fill='%231d4f91'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -390,7 +391,7 @@
 <body>
 <div class="app">
   <header class="nav">
-    <a class="brand" href="./" title="Atlas de tesis UNAM: 609,154 tesis ordenadas por lo que dicen sus títulos"><span class="brand-name">Atlas de tesis</span><span class="brand-org">UNAM, 609,154 tesis</span></a>
+    <a class="brand" href="./" title="NodOs: atlas de 609,154 tesis de la UNAM ordenadas por lo que dicen sus títulos"><span class="brand-name">NodOs</span><span class="brand-org">Atlas de tesis UNAM</span></a>
     <nav class="navlinks" aria-label="Secciones">
       <button type="button" id="nav-map" class="active">Mapa</button>
       <button type="button" id="btn-routes" aria-haspopup="true" aria-expanded="false">Rutas</button>
@@ -488,7 +489,7 @@
 
   <footer>
     <span>Proyecto independiente, no oficial. Datos del catálogo público TESIUNAM.</span>
-    <span><button type="button" id="foot-metodo">Cómo se hizo el mapa</button> · versión <span id="app-version">4.0.0</span></span>
+    <span><button type="button" id="foot-metodo">Cómo se hizo el mapa</button> · versión <span id="app-version">4.1.0</span></span>
   </footer>
 </div>
 
@@ -550,11 +551,11 @@
     <ul>
       <li>Las posiciones no tienen unidad: importa quién está cerca de quién, no las coordenadas ni las distancias largas.</li>
       <li>El 67% de las tesis no quedó en ningún grupo claro. Se dibujan en gris tenue en lugar de ocultarse.</li>
-      <li>Los nombres de los 130 territorios son un borrador curado a mano y está pendiente su revisión. Los de subtemas y temas finos son las palabras que más distinguen a cada grupo, sin acentos.</li>
+      <li>Los nombres de los 130 territorios son un borrador curado a mano y está pendiente su revisión. Los de subtemas y temas finos son las palabras que más distinguen a cada grupo; sus acentos, siglas y nombres propios se restituyen con un diccionario aprendido de los títulos del catálogo, así que puede haber alguna palabra mal escrita.</li>
       <li>Las áreas administrativas vienen del catálogo, no del algoritmo; sirven para comparar, no son la estructura del mapa.</li>
     </ul>
     <h3>Sobre el proyecto</h3>
-    <p>Proyecto independiente de tesis (NODO UNAM). No es un sitio oficial de la UNAM ni de la Dirección General de Bibliotecas. Primera edición, versión <span id="metodo-version">4.0.0</span>.</p>
+    <p>Proyecto independiente de tesis (NODO UNAM). No es un sitio oficial de la UNAM ni de la Dirección General de Bibliotecas. Primera edición, versión <span id="metodo-version">4.1.0</span>.</p>
   </article>
 </section>
 
@@ -642,6 +643,15 @@
     dlogLines.push(msg); if (dlogLines.length > 60) dlogLines.shift();
     $('debug-log').textContent = dlogLines.join('\n');
   }
+  // Escritura (v4.1): los nombres de subtema y tema fino, programas, planteles y los
+  // titulos del vecindario vienen normalizados (minusculas, sin acentos). escritura.v1.json
+  // (pipeline/generar_atlas_acentos.py) trae la forma real de cada palabra aprendida de los
+  // titulos del catalogo: acentos (atencion -> atención), siglas (vih -> VIH) y nombres
+  // propios (iztacala -> Iztacala). Solo cambia lo que se muestra, no los datos.
+  var ESCRITURA = {};
+  function escribir(t) { return String(t || '').replace(/[a-z0-9ñü]+/g, function (w) { return ESCRITURA[w] || w; }); }
+  function capital(t) { t = String(t || ''); return t.charAt(0).toUpperCase() + t.slice(1); }
+  function nombreTema(label) { return keywords(label).map(function (k) { return capital(escribir(k)); }).join(' · '); }
   function keywords(label) { return String(label || '').split(' · ').map(function (s) { return s.trim(); }).filter(Boolean); }
   // Nombre corto legible a partir de las keywords c-TF-IDF: descarta keywords
   // redundantes (subconjunto de tokens de otra ya elegida: "unidos" dentro de
@@ -659,7 +669,7 @@
     chosen = chosen.filter(function (c) {
       return !chosen.some(function (o) { return o !== c && o.toks.length > c.toks.length && c.toks.every(function (t) { return o.toks.indexOf(t) >= 0; }); });
     });
-    return chosen.slice(0, max).map(function (c) { return c.kw; }).join(' · ') || String(label || '');
+    return nombreTema(chosen.slice(0, max).map(function (c) { return c.kw; }).join(' · ') || String(label || ''));
   }
   function areaNameFromStr(a) { return AREA_NAMES[AREA_STR_TO_CODE[(a || '').toLowerCase()] || 0]; }
 
@@ -705,10 +715,16 @@
       fetchJson('./data/atlas_chaos_mode.v1.json'),
       fetch('./data/atlas_chaos_mode.v1.bin', { cache: 'no-store' }).then(function (r) { return r.arrayBuffer(); }),
       fetchJson('./data/vecindario_preview.v1.json').catch(function () { return null; }),
-      fetchJson('./data/macro_nombres.v1.json').catch(function () { return null; })
+      fetchJson('./data/macro_nombres.v1.json').catch(function () { return null; }),
+      fetchJson('./data/escritura.v1.json').catch(function () { return null; })
     ]);
+    ESCRITURA = (results[5] && results[5].v) || {};
     var graph = results[0], meta = results[1], buf = results[2];
     state.vecindarioPreview = results[3];
+    if (state.vecindarioPreview) Object.keys(state.vecindarioPreview.theses).forEach(function (k) {
+      var t = state.vecindarioPreview.theses[k]; t.title = capital(escribir(t.title));
+      (t.neighbors || []).forEach(function (nb) { nb.title = capital(escribir(nb.title)); });
+    });
     var curados = (results[4] && results[4].macros) || {};
     state.macroGraph = graph;
     state.macros = graph.nodes.slice().sort(function (a, b) { return a.macroId - b.macroId; });
@@ -1466,8 +1482,7 @@
   // El catalogo trae programas y planteles en minusculas sin acentos: se muestran con
   // mayuscula inicial y siglas en mayusculas (v4: caja normal fuera de los rotulos del mapa).
   function pretty(t) {
-    t = String(t || '').replace(/\s+unam$/, '').replace(/\b(unam|fes|enes|enep|cch|ipn|uam|dgb)\b/g, function (m) { return m.toUpperCase(); });
-    return t.charAt(0).toUpperCase() + t.slice(1);
+    return capital(escribir(String(t || '').replace(/\s+unam$/, '')));
   }
   function rowObj(r) { return { id: r[0], t: r[1], y: r[2], pl: pretty(r[3]), pr: pretty(r[4]), nv: r[5], as: r[6] || [], k: norm(r[1]).replace(/[^a-z0-9 ]/g, '') }; }
   var nodeThesesCache = {};
@@ -1539,7 +1554,7 @@
       '<div class="az-head"><span class="az-mark">A' + AZ_SVG + 'Z</span><span class="az-cap" id="az-cap">Cargando tesis…</span></div>' +
       '<div id="az-list"></div>' +
       '<button type="button" class="btn primary btn-full" id="btn-taller" disabled>Ver listado completo y análisis</button>' +
-      '<div class="section-label">Palabras que lo distinguen</div><div class="kw">' + keywords(n.label).slice(0, 8).map(function (k) { return '<span>' + escapeHtml(k) + '</span>'; }).join('') + '</div>';
+      '<div class="section-label">Palabras que lo distinguen</div><div class="kw">' + keywords(n.label).slice(0, 8).map(function (k) { return '<span>' + escapeHtml(escribir(k)) + '</span>'; }).join('') + '</div>';
     if (lvl !== 'micro') body += '<div class="section-label">' + (lvl === 'macro' ? 'Subtemas' : 'Temas finos') + '</div><div class="children" id="panel-children"><div class="vecindario-note">Cargando…</div></div>';
     if (lvl === 'micro' && state.vecindarioPreview) {
       var ids = (state.vecindarioPreview.byCluster || {})[String(n.clusterId)];
