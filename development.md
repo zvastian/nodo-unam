@@ -1781,3 +1781,73 @@ El énfasis sale de **contraste, tamaño y texto**, sin efectos.
 - **Causa.** La versión 1.16 comparte el estado de transición entre cámara y puntos; una transición de puntos iniciada durante un vuelo destruye una textura que no existe. Además, la promesa de `zoomToLocation` se resuelve al *empezar* el vuelo (medido: 9 ms tras el inicio, contra 1.4 s del evento `transitionEnd`), así que `cameraTransitioning` no servía para saberlo.
 - **Arreglo.** `drawPoints` espera el evento `transitionEnd` de la librería antes de iniciar una transición de puntos. Si mientras espera llega otro dibujo, el que esperaba ya es viejo y no se aplica.
 - **Verificado:** con la línea de tiempo instrumentada, la transición de salida ahora arranca justo en `transitionEnd`. Sin errores de consola en los flujos de escritorio y móvil de v4.3.
+
+### v4.4.0: ficha de tesis y hover con una sola gramática visual (2026-09-24)
+
+**Pedido del usuario:** que la ficha de una tesis se entienda de un vistazo, con nivel, área, programa, plantel y asesoría, y que el hover del mapa diga lo mismo en compacto. Pasó por cinco iteraciones con él. Se descartaron:
+- la franja de segmentos encadenados;
+- los puntos unidos por una línea;
+- los cuadros de color sueltos, porque «no tienen propósito gráfico».
+
+**Datos.** `pipeline/generar_atlas_tesis_meta.py` genera `data/tesis_meta.v1.bin` (3.0 MB) y su `.json` (59 KB):
+- tiene nivel, programa y plantel de las 609,154 tesis, alineados con el orden del mapa;
+- antes solo existían para las ~200 mil tesis de algún tema fino;
+- cobertura: nivel 99.9 %, programa 99.9 %, plantel 100 %;
+- sin autores.
+
+**Gramática visual: el plano de metro de Vignelli.** Cada línea tiene un color y cada parada es un punto, y el color *une* lo que va junto.
+- **Nivel:** 4 puntos sueltos en escala de azul (`#9cc3e6`, `#5b95cf`, `#2d65a8`, `#143a6b`). Se oscurece al avanzar de licenciatura a doctorado.
+- **Ficha:**
+  - encabezado con tinte claro del color del área y franja superior de 4 px;
+  - orden: nivel, título, año;
+  - la línea del área baja desde el encabezado con sus paradas: área (punto lleno), programa (anillo del color del área), plantel (punto gris) y asesoría;
+  - la asesoría es una estación de transbordo: círculo blanco con borde. Es clicable y muestra todas las tesis de esa persona en el mapa;
+  - acciones al pie, tras una regla fina.
+- **Hover:** la misma información a tamaño de palabra (Tufte), en gris. Van los puntos de nivel, el título, el año y la ruta con glifos (trazo del área, anillo más programa, punto más plantel, anillo de tinta más asesor), con el plantel abreviado (FES, ENES, ENP, CCH).
+
+**Quitado:**
+- el registro TH_ de la ficha, porque es de la base de datos;
+- la nota de territorio («Sin territorio: no quedó en ningún grupo claro…»);
+- el punto medio como separador. El usuario lo señaló como patrón de UI generada; ver v4.6.
+
+**Referencias:** Vignelli (MoMA), Bertin, Tufte (sparklines y la mínima diferencia efectiva), fichas de catálogo de biblioteca y retícula suiza (Müller-Brockmann).
+
+**Verificado:** en escritorio y móvil, con tesis de cada nivel y cada área, en el hover real, el tema aislado, el listado y un clic en un asesor (Daniel García Gavito: se resaltan sus 48 tesis). Sin errores de consola.
+
+### v4.5.0: ficha de cluster con perfil de sus tesis (2026-09-24)
+
+**Pedido del usuario:** el orden alfabético no describe un cluster, y el nombre a veces es ambiguo.
+
+**Encabezado:** misma lógica que la ficha de tesis, con el tinte y la franja del color del territorio. Arriba va el nivel jerárquico, luego el título y debajo las 6 a 8 **palabras clave** c-TF-IDF.
+
+**Perfil**, calculado de sus tesis reales y en secciones separadas por reglas finas:
+1. total, rango de años e histograma por año (el 1 % más antiguo va en la primera barra);
+2. áreas en una dona (5 segmentos o menos, según la guía de visualización), con leyenda y porcentajes;
+3. niveles en barra apilada con la escala azul;
+4. los 5 programas principales, en barras del color de su área;
+5. los 5 asesores con más tesis ahí, como estaciones de transbordo clicables;
+6. temas vecinos: los 3 clusters más parecidos, a partir de los enlaces del mapa.
+
+Siguen el A→Z, el taller y los subtemas.
+
+**Bug corregido:** al pasar de un cluster a otro, el panel conservaba el scroll del anterior.
+
+### v4.6.0: subtema y tema fino se distinguen en el mapa; fuera el punto medio (2026-09-24)
+
+**Reporte del usuario:** al explorar no se sabía si se hacía clic en un subtema o en un tema fino.
+
+**Cambio.** Se usa la gramática de las fichas (padre = punto lleno, hijo = anillo) más la convención cartográfica de rango (Axis Maps, Ordnance Survey): mayúsculas para lo grande y minúsculas para lo chico, con al menos 2 px de diferencia.
+- **Subtema:** punto lleno y rótulo en MAYÚSCULAS seminegritas, de 12 a 15 px.
+- **Tema fino:** anillo del color del territorio y rótulo en minúsculas 500, de 10.5 a 12 px, sin espaciado.
+- **Leyenda:** explica los dos rangos.
+- **Descartada la opacidad:** se lee como «desactivado».
+
+**Bug:** la miga de pan seguía diciendo «subtemas» al llegar a temas finos, porque se actualizaba antes de recalcular el nivel. Ahora se actualiza al cambiar de rango.
+
+**Punto medio:** fuera de todo texto visible (22 apariciones).
+- Los nombres de tema usan guion largo («Filosofía – Nietzsche»).
+- Los datos se separan con comas o renglones.
+- El pie de página usa una línea vertical fina.
+- Solo queda en el código que parte las etiquetas de los archivos de datos.
+
+**Verificado:** mapa a nivel subtema y tema fino, búsqueda, fichas y flujos anteriores, en escritorio y móvil. Sin errores de consola.
