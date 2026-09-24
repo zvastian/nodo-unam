@@ -1356,3 +1356,77 @@ Implementa la sección 5 de la "Revisión crítica de la v2.1.1", sobre la base 
 - El resaltado por hover redibuja 609k categorías (serializado, sin carreras); no se midieron FPS.
 
 **Backlog que sigue abierto tras esta sesión** (de la revisión crítica, sección 4): git en la raíz + `.gitignore` para `data/`; correcciones manuales expresadas por `cluster_id` con huella del input; binario de vecindario/títulos con HTTP Range (ADR nuevo que reemplace el cálculo de ADR-0014); nombres humanos (con acentos) para los 130 territorios; conectar Nobel más cercano; mover el harness CDP a `tools/`.
+
+
+### Repo git en la raíz (2026-09-23)
+
+`git init` en la raíz del proyecto, rama `main`, primer commit `ceb7193`: 231 archivos, ~10 MB. Versiona código, pipeline, ADR/RFC/PRD, `development.md`, evidencia visual y prototipos. **Excluye** (ver `.gitignore`, comentado por bloque): `data/` y `atlas_data/` (33 GB, regenerables, `base7_kaggle_clean` con PII), `prototypes/**/data/`, parquet/npy/bin/csv, `pipeline/recovery/` (~960 HTML/JSONL crudos del scraping de TESIUNAM, con autores), los 2 repos anidados (`app/MI-TESIS-UNAM_github`, `app/nodo-unam`), `docs/*` salvo `docs/evidencia_visual/` (había credencial UNAM y constancia de estudios), `notebooks/` (sus outputs pueden tener nombres de autor; pendiente `nbstripout`), instaladores y `_scratch/`.
+
+**Hallazgo al preparar el commit — API keys en el código**: `app/AI Pipeline/Scripts/{ai_bloom, ai_questions, ai_rerank}.py` tienen una key de Groq escrita en el código y `ai_initial_note_cerebras.py` una de Cerebras. Se excluyeron del repo (bloque "TEMPORAL" del `.gitignore`); `git grep` confirma 0 secretos versionados. Verificado que **no** aparecen en la historia de los repos anidados (uno fue público). Siguen en disco: hay que rotarlas y moverlas a variables de entorno (pendiente P0 abajo).
+
+### Hallazgo de privacidad: `titulo_original` trae el nombre del autor (2026-09-23)
+
+Al construir el modo taller se vio que `titulo_original` de `data/public/data_unam.parquet` —el export "público" de ADR-0011, que según ese ADR no tiene autores— incluye la **mención de responsabilidad del catálogo** ("… / tesis que para obtener el título de …, **presenta NOMBRE DEL AUTOR**; asesor …") en el **92.2%** de las filas. `thesis_lookup.parquet` de Taller (regenerado con ADR-0004 desde ese archivo) la expone en `title_raw`, también en el 92.2%. ADR-0011 quitó las columnas de autor, pero no el autor que viene *dentro* del título.
+
+En los datos nuevos se corrige en origen: `pipeline/generar_atlas_tesis_por_micro.py` corta en la mención de responsabilidad. Hubo que generalizar el corte: 1,055 filas usan otras variantes ("/ tesis" sin espacio, o "tesis que para obtener…" sin barra). Una red de seguridad (`AUTOR_RE`) reemplaza por "(título no disponible)" los **12 de 199,623** títulos donde aún parecía haber un nombre. El export público y el lookup de Taller **no se tocaron**: ver P0 abajo.
+
+### v3.1.0 — nombres humanos con jerarquía, resaltado de tesis por tema, listado A→Z y modo taller (2026-09-23)
+
+Pedido del usuario:
+- Destacar de forma sutil los territorios que un visitante promedio reconoce (Filosofía, Medicina…).
+- Al hacer clic en un tema fino, ver destacadas sus tesis en el mapa.
+- Un listado A→Z con marca tipográfica A→Z, las primeras 6 tesis con plantel, programa y asesor, y un botón "ver listado completo".
+- Ese botón abre un modo tipo Taller exclusivo del tema, con stats, vista analítica y red de asesores.
+
+Respaldo de la versión anterior: `index.v3.0.0.html`.
+
+**Datos nuevos**:
+- `pipeline/generar_atlas_tesis_por_micro.py` → `atlas_data/tesis_por_micro/{cluster_id}.json`: 513 archivos, **todas** las 199,623 tesis clusterizadas (no solo las representativas), 44.1 MB, máximo 0.54 MB por archivo. Campos: id, título sin autor, año, plantel, programa, nivel normalizado (el catálogo trae "Maestria"/"Maestría", "licenciatura"/"Licenciatura"), asesores, más `mesoId`. Verificado: la suma por `mesoId` coincide exacto con los tamaños de meso (ej. macro 48: 160/216/1,833/170/2,791/299).
+- `pipeline/curaduria/macro_nombres.v1.json` (versionado en git): **130 nombres legibles con acentos** y **26 hitos** (`destacado`), redactados a partir de las keywords c-TF-IDF y los programas más frecuentes. Es un **borrador escrito por Claude, pendiente de revisión humana**. Cada entrada guarda la primera keyword como huella: si la jerarquía se recalcula y los ids ya no corresponden, el frontend usa las keywords en vez de un nombre equivocado, y avisa en consola.
+
+**Frontend** (`prototypes/atlas_vecindario_mvp/index.html`):
+- **Jerarquía de nombres**: los hitos van en Source Serif 4 (la voz "curaduría" del manifiesto: nombres puestos por una persona), 14–20 px, tinta plena y prioridad al colocar; el resto de los territorios en sans de 9.5–12 px y tinta secundaria. Las etiquetas ya no se colocan debajo del breadcrumb, la leyenda, el minimapa ni las tarjetas.
+- **Resaltado fijado**: al seleccionar territorio, subtema o tema fino se resaltan **todas** sus tesis en el mapa (el resto se atenúa) mientras el panel esté abierto. El hover lo reemplaza temporalmente y luego se restaura. Nota para el usuario: sí se renderizan las 609,154 tesis; lo nuevo es poder resaltarlas por tema.
+- **Panel en los 3 niveles**: KPIs (tesis, años, asesores), marca A→Z, las 6 primeras tesis en orden alfabético (título, año, nivel, programa, plantel, asesoría), botón "Ver las N tesis y su análisis", keywords y subtemas/temas finos clicables. Clic en una tesis → vuela a su punto, la marca y muestra su ficha.
+- **Modo taller** (pantalla completa), con 4 pestañas:
+  - *Listado*: filtro por texto (título, asesor, programa), orden A→Z/Z→A/año, filtros por programa y plantel, páginas de 150.
+  - *Panorama*: frase-resumen con datos calculados; tesis por año; barras de programas, planteles, nivel y asesores. Cada barra filtra el listado. Una medida por gráfica, un solo tono, sin doble eje (guía dataviz).
+  - *Vista analítica*: cada punto es una tesis, agrupadas por década, nivel, programa o plantel, en orden A→Z dentro de cada grupo; tooltip con título y clic para ubicarla en el mapa.
+  - *Red de asesores*: **red de codirección**. Nodo = asesor (tamaño = tesis dirigidas en el tema), enlace = dirigieron juntos al menos una tesis; es una relación real del catálogo, no inferida. Top 70, layout de fuerzas precalculado (sin animación). Clic en un asesor filtra el listado a sus tesis.
+- **Color del área 1** cambiado de `#2a4d7a` a `#3566a8`: el validador de paleta de la guía dataviz marcó el anterior como FAIL (luminosidad y croma, se leía casi gris). Con el nuevo pasan los 4 checks; el ámbar del área 3 queda con aviso de contraste, cubierto porque siempre va con su nombre en texto.
+- Los vuelos a un territorio aterrizan siempre a nivel subtema. Antes, un territorio compacto como Matemáticas llevaba al zoom máximo y se volvía una mancha.
+
+**Verificación** (headless, eventos reales):
+- 18 hitos visibles en la vista inicial, 16 nombres menores.
+- Tema fino 147: resalta **1,199/1,199** tesis, 6 filas A→Z, botón "Ver las 1,199 tesis".
+- Taller: 150 filas de 1,199; filtro "polimorfismo" → 319; panorama con 57 años con tesis; vista analítica con 1,199 puntos; red con 70 asesores y 43 enlaces de codirección; clic en un asesor → 31 tesis filtradas; clic real en una fila → vuelo y ficha de la tesis.
+- Filosofía y letras resalta **5,469/5,469**; su subtema "filosofía · nietzsche" **2,791/2,791**; cerrar el panel quita el resaltado.
+- Esc cierra el taller. Consola sin errores.
+
+**Limitaciones**:
+- Nombres de meso/micro siguen siendo keywords sin acentos: solo se curaron los 130 macro.
+- La red sufre la variación de escritura de nombres de asesor (ADR-0010 corrigió casos puntuales; hay variantes sin unificar): un mismo asesor puede aparecer como dos nodos.
+- No probado en el navegador del usuario.
+
+## Pendientes consolidados (2026-09-23)
+
+Orden de prioridad. **P0 = riesgo de privacidad/seguridad, antes que cualquier feature.**
+
+**P0 — privacidad y seguridad**
+1. **Autor dentro de `titulo_original`** en `data_unam.parquet` (92.2%) y en `thesis_lookup.parquet`/`title_raw` de Taller. Agregar al export una columna de título sin mención de responsabilidad (reusar `RESP_RE` + `AUTOR_RE` de `generar_atlas_tesis_por_micro.py`), quitar o limpiar `titulo_original`, regenerar el lookup y **verificar si el dataset ya se publicó en Kaggle**: si sí, publicar versión corregida y retirar la anterior. Nuevo ADR que corrija la premisa de ADR-0011.
+2. **Rotar las API keys de Groq y Cerebras** escritas en los 4 scripts de `app/AI Pipeline/Scripts/` y leerlas de variables de entorno. Después se pueden quitar del `.gitignore`.
+3. Purgar el historial de Git LFS del repo `MI-TESIS-UNAM` (autores expuestos; ya estaba anotado en Fase 0.5).
+
+**P1 — robustez del pipeline**
+4. Expresar las correcciones manuales de la jerarquía por `cluster_id` de HDBSCAN (no por `macro_id`/`meso_id` derivados) con huella del input que falle ruidosamente si cambia. Mismo principio ya aplicado a `macro_nombres.v1.json`.
+5. `nbstripout` en `notebooks/` para poder versionarlos sin outputs.
+6. CI mínima (tests de normalización de entidades + chequeo de privacidad de títulos) antes de adoptar trunk-based de verdad.
+7. Mover el harness CDP de verificación headless a `tools/` y versionarlo.
+
+**P2 — producto**
+8. **Revisión humana de los 130 nombres y los 26 hitos** (borrador de Claude). Decidir si meso/micro también llevan nombre curado o un nombre derivado mejor que keywords.
+9. Unificar variantes de nombres de asesor: mejora directamente la red de codirección.
+10. Binario de vecindario y títulos con HTTP Range (≈500 B por tesis) + ADR que reemplace el cálculo de ADR-0014. Habilita el buscador de títulos sobre el corpus completo y el vecindario de cualquier tesis, no solo de las 2,500 del preview.
+11. Conectar Nobel más cercano.
+12. Decidir Pages vs. R2 para `tesis_por_micro/` (44 MB) y el resto del bundle.
+13. Prueba en el navegador real del usuario (GPU, trackpad) y del modo taller en móvil.
