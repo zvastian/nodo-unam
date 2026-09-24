@@ -1596,3 +1596,16 @@ Lección: primero se acuerda la estrategia por escrito y después se codifica. D
 - En móvil, el panel ocupa el 100% del ancho y cerrarlo sale del modo aislado (comportamiento heredado de v3.2), así que el tema aislado casi no se ve en móvil. Hay que rediseñar esa interacción.
 - Los nombres de subtema y tema fino siguen en minúsculas sin acentos (dato c-TF-IDF); se corrige en la revisión de nombres (P1).
 - El menú de Rutas se despliega bajo su enlace, pero sobre el mapa. Evaluar si Rutas merece una página propia.
+
+### Repo en GitHub para desarrollar la interfaz desde la nube (2026-09-24)
+
+- **Remoto.** Repo privado `zvastian/nodo-unam`, con la misma historia que `main`. No se mezcla con `MI-TESIS-UNAM`, que tiene otra historia y un LFS con PII pendiente de purgar (P0).
+- **Datos del prototipo versionados.** `prototypes/atlas_vecindario_mvp/data/` (1,634 archivos, ~158 MB) queda como excepción en `.gitignore`: sin esos datos la interfaz no carga.
+- **Limpieza de autores antes de subirlos.**
+  - El escaneo encontró **18 títulos** que aún traían mención de responsabilidad, en `titulos_teselas`, `tesis_por_micro` y `vecindario_preview` («/ Nombre Apellido ; asesora …», «tesis para obtener el título …, presenta …», «trabajo que presenta el alumno NOMBRE»).
+  - El nuevo `pipeline/limpiar_autores_atlas.py` los corta o quita solo el nombre. Solo corta cuando detrás viene una marca de persona, para no mutilar títulos temáticos como «… para obtener el título de licenciado en trabajo social a partir de …».
+  - Un segundo escaneo quedó en 0 cambios; los hits restantes son falsos positivos («por el método sol-gel», «Delegación /Alcaldía», «informe que presenta la institución»).
+  - Hay que correr el script cada vez que se regeneren datos del prototipo, antes de commitear.
+- **Herramientas para la nube.**
+  - `tools/cdp.mjs`: el harness de capturas, portable con las variables `CHROME`, `SIZE` y `GPU`. Cierra el pendiente «harness a `tools/`».
+  - `CLAUDE.md` con instrucciones para sesiones nuevas.

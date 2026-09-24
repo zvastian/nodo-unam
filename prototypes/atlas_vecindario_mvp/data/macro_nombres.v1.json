@@ -1,0 +1,657 @@
+{
+ "version": "macro-nombres-v1",
+ "creado": "2026-09-23",
+ "nota": "Nombres legibles (con acentos) para los 130 territorios, redactados a partir de las keywords c-TF-IDF y los programas mas frecuentes. BORRADOR curado por Claude, pendiente de revision humana. 'destacado' = disciplina reconocible por un visitante promedio (hito del mapa). 'kw' = primera keyword c-TF-IDF: huella para detectar si la jerarquia cambio y los ids ya no corresponden.",
+ "macros": {
+  "1": {
+   "nombre": "Migración y relaciones con EE. UU.",
+   "destacado": false,
+   "kw": "unidos"
+  },
+  "2": {
+   "nombre": "Derechos humanos",
+   "destacado": false,
+   "kw": "derechos humanos"
+  },
+  "3": {
+   "nombre": "Partidos y elecciones",
+   "destacado": true,
+   "kw": "electoral"
+  },
+  "4": {
+   "nombre": "Derecho constitucional y fiscal",
+   "destacado": false,
+   "kw": "articulo"
+  },
+  "5": {
+   "nombre": "Derecho agrario",
+   "destacado": false,
+   "kw": "agraria"
+  },
+  "6": {
+   "nombre": "Derecho internacional",
+   "destacado": false,
+   "kw": "internacional"
+  },
+  "7": {
+   "nombre": "Comercio internacional",
+   "destacado": false,
+   "kw": "comercio"
+  },
+  "8": {
+   "nombre": "Sociedades mercantiles",
+   "destacado": false,
+   "kw": "sociedades"
+  },
+  "9": {
+   "nombre": "Banca y finanzas",
+   "destacado": false,
+   "kw": "financiamiento"
+  },
+  "10": {
+   "nombre": "Códigos penal y civil",
+   "destacado": false,
+   "kw": "codigo"
+  },
+  "11": {
+   "nombre": "Seguridad e higiene industrial",
+   "destacado": false,
+   "kw": "riesgos"
+  },
+  "12": {
+   "nombre": "Derecho laboral",
+   "destacado": true,
+   "kw": "ley federal"
+  },
+  "13": {
+   "nombre": "Seguridad social y pensiones",
+   "destacado": false,
+   "kw": "seguro"
+  },
+  "14": {
+   "nombre": "Impuestos",
+   "destacado": false,
+   "kw": "impuesto"
+  },
+  "15": {
+   "nombre": "Amparo y proceso penal",
+   "destacado": true,
+   "kw": "amparo"
+  },
+  "16": {
+   "nombre": "Arrendamiento",
+   "destacado": false,
+   "kw": "arrendamiento"
+  },
+  "17": {
+   "nombre": "Propiedad intelectual",
+   "destacado": false,
+   "kw": "autor"
+  },
+  "18": {
+   "nombre": "Derecho mercantil",
+   "destacado": false,
+   "kw": "fideicomiso"
+  },
+  "20": {
+   "nombre": "Bioética y derecho de la persona",
+   "destacado": false,
+   "kw": "adopcion"
+  },
+  "21": {
+   "nombre": "Delito y readaptación social",
+   "destacado": false,
+   "kw": "delito"
+  },
+  "22": {
+   "nombre": "Arquitectura cultural y deportiva",
+   "destacado": false,
+   "kw": "cultural"
+  },
+  "23": {
+   "nombre": "Arquitectura y urbanismo",
+   "destacado": true,
+   "kw": "urbano"
+  },
+  "24": {
+   "nombre": "Exploración sanitaria",
+   "destacado": false,
+   "kw": "exploracion sanitaria"
+  },
+  "26": {
+   "nombre": "Agua potable e hidráulica",
+   "destacado": false,
+   "kw": "agua"
+  },
+  "27": {
+   "nombre": "Ingeniería estructural",
+   "destacado": true,
+   "kw": "concreto"
+  },
+  "28": {
+   "nombre": "Caminos y puentes",
+   "destacado": false,
+   "kw": "puente"
+  },
+  "29": {
+   "nombre": "Ganadería",
+   "destacado": false,
+   "kw": "bovinos"
+  },
+  "31": {
+   "nombre": "Política monetaria",
+   "destacado": false,
+   "kw": "1982"
+  },
+  "32": {
+   "nombre": "Industria y exportación",
+   "destacado": false,
+   "kw": "exportacion"
+  },
+  "33": {
+   "nombre": "Administración y recursos humanos",
+   "destacado": true,
+   "kw": "capacitacion"
+  },
+  "34": {
+   "nombre": "El papel del psicólogo",
+   "destacado": false,
+   "kw": "psicologo"
+  },
+  "35": {
+   "nombre": "Servicio social",
+   "destacado": false,
+   "kw": "servicio social"
+  },
+  "36": {
+   "nombre": "Contaduría y auditoría",
+   "destacado": true,
+   "kw": "auditoria"
+  },
+  "37": {
+   "nombre": "Finanzas e inversión",
+   "destacado": false,
+   "kw": "financieros"
+  },
+  "38": {
+   "nombre": "Calidad y normas ISO",
+   "destacado": false,
+   "kw": "iso"
+  },
+  "39": {
+   "nombre": "Computación y redes",
+   "destacado": true,
+   "kw": "red"
+  },
+  "40": {
+   "nombre": "Costos y contabilidad",
+   "destacado": false,
+   "kw": "contable"
+  },
+  "41": {
+   "nombre": "Lenguaje y estimulación temprana",
+   "destacado": false,
+   "kw": "espanol"
+  },
+  "42": {
+   "nombre": "Enseñanza y didáctica",
+   "destacado": false,
+   "kw": "ensenanza"
+  },
+  "43": {
+   "nombre": "Pedagogía",
+   "destacado": true,
+   "kw": "orientacion"
+  },
+  "44": {
+   "nombre": "Comunicación y diseño gráfico",
+   "destacado": true,
+   "kw": "campana"
+  },
+  "45": {
+   "nombre": "Cine y publicidad",
+   "destacado": false,
+   "kw": "cine"
+  },
+  "46": {
+   "nombre": "Historia de la Nueva España",
+   "destacado": true,
+   "kw": "nueva espana"
+  },
+  "47": {
+   "nombre": "Música",
+   "destacado": true,
+   "kw": "obras"
+  },
+  "48": {
+   "nombre": "Filosofía y letras",
+   "destacado": true,
+   "kw": "filosofia"
+  },
+  "49": {
+   "nombre": "Notas al programa (recitales)",
+   "destacado": false,
+   "kw": "programa notas"
+  },
+  "50": {
+   "nombre": "Biodiversidad",
+   "destacado": true,
+   "kw": "golfo"
+  },
+  "51": {
+   "nombre": "Ecosistemas y geología",
+   "destacado": false,
+   "kw": "pedregal san"
+  },
+  "52": {
+   "nombre": "Producción avícola y bovina",
+   "destacado": false,
+   "kw": "engorda"
+  },
+  "53": {
+   "nombre": "Biología molecular",
+   "destacado": true,
+   "kw": "celulas"
+  },
+  "55": {
+   "nombre": "Alimentos y fitoquímica",
+   "destacado": false,
+   "kw": "maiz"
+  },
+  "57": {
+   "nombre": "Plantas industriales",
+   "destacado": false,
+   "kw": "planta"
+  },
+  "59": {
+   "nombre": "Prótesis y endodoncia",
+   "destacado": false,
+   "kw": "protesis"
+  },
+  "60": {
+   "nombre": "Prótesis removible",
+   "destacado": false,
+   "kw": "protesis"
+  },
+  "62": {
+   "nombre": "Patología bucal",
+   "destacado": false,
+   "kw": "cavidad"
+  },
+  "63": {
+   "nombre": "Diabetes y salud bucal",
+   "destacado": false,
+   "kw": "diabetes"
+  },
+  "64": {
+   "nombre": "Odontopediatría",
+   "destacado": false,
+   "kw": "nino"
+  },
+  "65": {
+   "nombre": "Urgencias dentales",
+   "destacado": false,
+   "kw": "fracturas"
+  },
+  "66": {
+   "nombre": "Cirugía bucal",
+   "destacado": false,
+   "kw": "molares"
+  },
+  "67": {
+   "nombre": "Odontología",
+   "destacado": true,
+   "kw": "odontologia"
+  },
+  "68": {
+   "nombre": "Mantenedores de espacio",
+   "destacado": false,
+   "kw": "mantenedores"
+  },
+  "69": {
+   "nombre": "Apicectomía",
+   "destacado": false,
+   "kw": "apicectomia"
+  },
+  "70": {
+   "nombre": "Series de casos clínicos",
+   "destacado": false,
+   "kw": "100"
+  },
+  "71": {
+   "nombre": "Medicina interna",
+   "destacado": true,
+   "kw": "pacientes"
+  },
+  "72": {
+   "nombre": "Instituto de Nutrición",
+   "destacado": false,
+   "kw": "zubiran"
+  },
+  "73": {
+   "nombre": "Leucemia y cáncer infantil",
+   "destacado": false,
+   "kw": "leucemia"
+  },
+  "74": {
+   "nombre": "Oftalmología y rehabilitación",
+   "destacado": false,
+   "kw": "pacientes"
+  },
+  "75": {
+   "nombre": "Salud mental y psiquiatría",
+   "destacado": true,
+   "kw": "trastorno"
+  },
+  "76": {
+   "nombre": "Anestesiología",
+   "destacado": false,
+   "kw": "bupivacaina"
+  },
+  "77": {
+   "nombre": "Cardiología y ortopedia",
+   "destacado": true,
+   "kw": "fracturas"
+  },
+  "78": {
+   "nombre": "Enfermería",
+   "destacado": true,
+   "kw": "enfermeria"
+  },
+  "79": {
+   "nombre": "Embarazo y recién nacidos",
+   "destacado": true,
+   "kw": "recien"
+  },
+  "80": {
+   "nombre": "Virus del papiloma humano",
+   "destacado": false,
+   "kw": "papiloma"
+  },
+  "81": {
+   "nombre": "Lactancia materna",
+   "destacado": false,
+   "kw": "lactancia"
+  },
+  "82": {
+   "nombre": "Rendimiento académico",
+   "destacado": false,
+   "kw": "rendimiento"
+  },
+  "83": {
+   "nombre": "Sexualidad y talleres para padres",
+   "destacado": false,
+   "kw": "taller"
+  },
+  "84": {
+   "nombre": "Terapia cognitivo-conductual",
+   "destacado": false,
+   "kw": "conductual"
+  },
+  "85": {
+   "nombre": "Adultos mayores",
+   "destacado": false,
+   "kw": "mayores"
+  },
+  "86": {
+   "nombre": "Burnout y COVID-19",
+   "destacado": false,
+   "kw": "burnout"
+  },
+  "87": {
+   "nombre": "Diabetes mellitus",
+   "destacado": false,
+   "kw": "diabetes"
+  },
+  "89": {
+   "nombre": "Obesidad y sobrepeso",
+   "destacado": false,
+   "kw": "obesidad"
+  },
+  "90": {
+   "nombre": "Quintana Roo y Cancún",
+   "destacado": false,
+   "kw": "roo"
+  },
+  "91": {
+   "nombre": "Hoteles y turismo de playa",
+   "destacado": false,
+   "kw": "hotel"
+  },
+  "92": {
+   "nombre": "Terminales de autobuses",
+   "destacado": false,
+   "kw": "autobuses"
+  },
+  "93": {
+   "nombre": "Estaciones de bomberos",
+   "destacado": false,
+   "kw": "bomberos"
+  },
+  "94": {
+   "nombre": "Mercados municipales",
+   "destacado": false,
+   "kw": "mercado"
+  },
+  "95": {
+   "nombre": "Contaminación del aire",
+   "destacado": false,
+   "kw": "zona metropolitana"
+  },
+  "96": {
+   "nombre": "Ciclones y lluvias",
+   "destacado": false,
+   "kw": "precipitacion"
+  },
+  "97": {
+   "nombre": "Energía eléctrica",
+   "destacado": false,
+   "kw": "energia"
+  },
+  "98": {
+   "nombre": "Fauna silvestre y derecho ambiental",
+   "destacado": false,
+   "kw": "ambiental"
+  },
+  "99": {
+   "nombre": "Economía regional del sur",
+   "destacado": false,
+   "kw": "guerrero"
+  },
+  "100": {
+   "nombre": "Residuos sólidos",
+   "destacado": false,
+   "kw": "solidos"
+  },
+  "101": {
+   "nombre": "Transporte público",
+   "destacado": false,
+   "kw": "transporte"
+  },
+  "102": {
+   "nombre": "Vivienda",
+   "destacado": false,
+   "kw": "vivienda"
+  },
+  "103": {
+   "nombre": "Turismo",
+   "destacado": false,
+   "kw": "turismo"
+  },
+  "104": {
+   "nombre": "Telecomunicaciones",
+   "destacado": false,
+   "kw": "telecomunicaciones"
+  },
+  "105": {
+   "nombre": "Química analítica",
+   "destacado": false,
+   "kw": "cromatografia"
+  },
+  "106": {
+   "nombre": "Tecnología farmacéutica",
+   "destacado": false,
+   "kw": "disolucion"
+  },
+  "107": {
+   "nombre": "Enfermedades infecciosas",
+   "destacado": false,
+   "kw": "contribucion tratamiento"
+  },
+  "108": {
+   "nombre": "Química sanguínea",
+   "destacado": false,
+   "kw": "dosificacion"
+  },
+  "109": {
+   "nombre": "Veterinaria de perros y gatos",
+   "destacado": true,
+   "kw": "perros"
+  },
+  "110": {
+   "nombre": "Física médica",
+   "destacado": false,
+   "kw": "dosimetria"
+  },
+  "111": {
+   "nombre": "Mecánica de fluidos",
+   "destacado": false,
+   "kw": "flujo"
+  },
+  "113": {
+   "nombre": "Robótica y redes neuronales",
+   "destacado": false,
+   "kw": "robot"
+  },
+  "114": {
+   "nombre": "Estadística",
+   "destacado": false,
+   "kw": "regresion"
+  },
+  "115": {
+   "nombre": "Matemáticas",
+   "destacado": true,
+   "kw": "teorema"
+  },
+  "116": {
+   "nombre": "Medicina crítica",
+   "destacado": false,
+   "kw": "neutrofilo"
+  },
+  "118": {
+   "nombre": "Síndrome de Sjögren",
+   "destacado": false,
+   "kw": "sindrome"
+  },
+  "119": {
+   "nombre": "Caries y salud bucal",
+   "destacado": false,
+   "kw": "caries"
+  },
+  "120": {
+   "nombre": "Desnutrición infantil",
+   "destacado": false,
+   "kw": "desnutricion"
+  },
+  "121": {
+   "nombre": "Enfermería infantil",
+   "destacado": false,
+   "kw": "alteracion"
+  },
+  "122": {
+   "nombre": "Atención médica familiar",
+   "destacado": false,
+   "kw": "modelo sistematico"
+  },
+  "123": {
+   "nombre": "Hipertensión arterial",
+   "destacado": false,
+   "kw": "hipertension arterial"
+  },
+  "124": {
+   "nombre": "Dinámica familiar",
+   "destacado": false,
+   "kw": "dinamica familiar"
+  },
+  "125": {
+   "nombre": "Aguas residuales",
+   "destacado": false,
+   "kw": "residuales"
+  },
+  "126": {
+   "nombre": "Petróleo",
+   "destacado": true,
+   "kw": "pozos"
+  },
+  "127": {
+   "nombre": "Química y materiales",
+   "destacado": true,
+   "kw": "sintesis"
+  },
+  "128": {
+   "nombre": "Pareja y violencia",
+   "destacado": false,
+   "kw": "pareja"
+  },
+  "129": {
+   "nombre": "Derecho de familia",
+   "destacado": false,
+   "kw": "matrimonio"
+  },
+  "130": {
+   "nombre": "Tuberculosis",
+   "destacado": false,
+   "kw": "tuberculosis"
+  },
+  "131": {
+   "nombre": "Notas clínicas breves",
+   "destacado": false,
+   "kw": "breves"
+  },
+  "132": {
+   "nombre": "Física cuántica",
+   "destacado": false,
+   "kw": "bose"
+  },
+  "133": {
+   "nombre": "Astronomía",
+   "destacado": true,
+   "kw": "galaxias"
+  },
+  "134": {
+   "nombre": "Cirugía reconstructiva",
+   "destacado": false,
+   "kw": "colgajo"
+  },
+  "135": {
+   "nombre": "Casos: Centro Médico Siglo XXI",
+   "destacado": false,
+   "kw": "hospital especialidades"
+  },
+  "136": {
+   "nombre": "Casos: Hospital Juárez",
+   "destacado": false,
+   "kw": "hospital juarez"
+  },
+  "137": {
+   "nombre": "Casos: Hospital Rodolfo Nieto Padrón",
+   "destacado": false,
+   "kw": "nieto padron"
+  },
+  "138": {
+   "nombre": "Casos: Hospital Infantil Federico Gómez",
+   "destacado": false,
+   "kw": "clinicas"
+  },
+  "139": {
+   "nombre": "Reportes de caso clínico",
+   "destacado": false,
+   "kw": "presentacion"
+  },
+  "140": {
+   "nombre": "Revisiones de literatura clínica",
+   "destacado": false,
+   "kw": "revision literatura"
+  }
+ }
+}

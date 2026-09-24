@@ -5,10 +5,16 @@
 data/
 atlas_data/
 prototypes/**/data/
+# Excepcion (2026-09-24): los datos del prototipo del atlas se versionan para poder
+# desarrollar la interfaz desde sesiones en la nube. Ya estan limpios de autores:
+# correr pipeline/limpiar_autores_atlas.py despues de regenerarlos y ANTES de commitear.
+!prototypes/atlas_vecindario_mvp/data/
+!prototypes/atlas_vecindario_mvp/data/**
 *.parquet
 *.npy
 *.npz
 *.bin
+!prototypes/atlas_vecindario_mvp/data/*.bin
 *.wasm
 *.joblib
 *.pkl

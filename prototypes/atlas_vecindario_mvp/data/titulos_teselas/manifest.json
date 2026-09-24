@@ -1,0 +1,1 @@
+{"version": "atlas-titulos-teselas-v1", "grid": 64, "x0": -26.43366241455078, "y0": -24.496397018432617, "cell": 0.828377047008276, "n": 609154, "nota": "tesela = floor((x-x0)/cell), floor((y-y0)/cell) sobre x/y crudos de atlas_chaos_mode.v1.bin; titulos sin autor"}

@@ -1,0 +1,36 @@
+{
+  "version": "atlas-chaos-mode-v1",
+  "n": 609154,
+  "note": "El campo thesisIds es un blob de texto separado por \\n, en el MISMO ORDEN que x/y/macroCode/areaCode -- para mapear un punto a su thesis_id, splitear por \\n y usar el mismo indice.",
+  "fields": {
+    "x": {
+      "dtype": "float32",
+      "byteOffset": 0,
+      "count": 609154
+    },
+    "y": {
+      "dtype": "float32",
+      "byteOffset": 2436616,
+      "count": 609154
+    },
+    "macroCode": {
+      "dtype": "int32",
+      "byteOffset": 4873232,
+      "count": 609154,
+      "note": "-1 = ruido HDBSCAN, sin macro"
+    },
+    "areaCode": {
+      "dtype": "int32",
+      "byteOffset": 7309848,
+      "count": 609154,
+      "note": "0 = sin area, 1-4 = area 1-4 (dato de catalogo, no de clustering)"
+    },
+    "thesisIdsBlob": {
+      "dtype": "utf8_newline_separated",
+      "byteOffset": 9746464,
+      "byteLength": 6700693
+    }
+  },
+  "binFile": "atlas_chaos_mode.v1.bin",
+  "totalBytes": 16447157
+}
