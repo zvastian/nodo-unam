@@ -1504,3 +1504,37 @@ Respaldo de la versión anterior: `index.v3.2.0.html`.
 - Ubicación estratégica del botón "Analizar".
 - En temas muy grandes (1,000+ tesis) la grilla de análisis sale del cuadro y hay que desplazarse; evaluar paginar grupos o reducir el paso de la grilla según el tamaño.
 - Medir fps del estado inicial en el navegador real del usuario.
+
+
+### v3.4.0 — animación del tema aislado: solo enlaces + deriva lenta, en WebGL (2026-09-24)
+
+Pedido del usuario: las partículas y los pulsos "se ven en extremo IA, genéricos y baratos". Quiere algo sencillo, sin sofisticación innecesaria: enlaces y un movimiento lento pero notable de los nodos, **sin resplandor**. Respaldo: `index.v3.3.0.html`.
+
+**Investigación** (web, 2026-09-24):
+- **Heer & Robertson, *Animated Transitions in Statistical Data Graphics* (InfoVis 2007)**: el movimiento debe ser simple y predecible, con entrada y salida suaves (slow-in/slow-out), sin varios cambios simultáneos y sin trayectorias imprevisibles, porque suben la carga cognitiva.
+- **Nayuki, *Animated floating graph nodes***: la calma depende de pocos elementos y poca velocidad de deriva; los enlaces que aparecen y desaparecen de golpe se leen como parpadeo.
+- **Accesibilidad (W3C C39, web.dev)**: el movimiento ambiental debe apagarse con `prefers-reduced-motion`; el daño vestibular lo causa el movimiento amplio en el campo visual.
+
+**Decisión**:
+- Fuera partículas y pulsos.
+- Cada tesis **deriva alrededor de su lugar**: suma de dos senoidales con periodo propio de **7–13 s** y fase determinista por tesis, así que la misma tesis se mueve igual cada vez que se abre el tema.
+- Amplitud `DRIFT_PX = 5.5`, con entrada suave de 1.4 s. Con 24 px entre centros y puntos de 15 px, en el peor caso dos vecinas se rozan un instante.
+- Los enlaces siguen a las tesis: se estiran y se relajan.
+- Con `prefers-reduced-motion`, amplitud 0.
+- El tinte del fondo se mantiene: es estático, no es animación.
+
+**Implementación y rendimiento (medido con la GPU real de la máquina, Intel UHD 620, vía Chrome headless con D3D11):**
+- *Primer intento, lienzo 2D*: el JavaScript del cuadro costaba solo 3.3 ms, pero la GPU tardaba en rasterizar miles de líneas con antialiasing. Resultado: 214 tesis a 60 fps, 1,199 a ~12 fps, 2,475 a ~8 fps. Recortar lo que queda fuera de pantalla, usar sprites y agrupar por grosor subió 1,199 a 19 fps: no alcanzaba.
+- *Solución, capa en WebGL* con regl (ya cargado, sin dependencias nuevas). Posiciones, fases y enlaces se suben **una vez** como buffers; la deriva se calcula en el vertex shader; los enlaces son quads con grosor de 0.6–3 px y opacidad según la similitud; por cuadro solo cambian tiempo y cámara.
+
+  | Tema aislado | Tesis | Lienzo 2D | WebGL |
+  |---|---|---|---|
+  | Pareja · marital | 214 | 60 fps | **60 fps** |
+  | Polimorfismos | 1,199 | ~12 fps | **60 fps** |
+  | El más grande | 2,475 | ~8 fps | **~50 fps** |
+
+  Mapa normal: 60 fps.
+- En el WebGL de fondo, las tesis del tema quedan **invisibles pero seleccionables** (slot `C_HIDDEN`): hover y clic reales siguen funcionando (verificado: tooltip con título y año, ficha correcta). La tesis seleccionada se marca en negro en la capa de deriva.
+- Deriva confirmada comparando dos capturas separadas 3 s: cambió el 6.7% de los píxeles del área del tema, con desplazamientos pequeños y sin saltos.
+
+**Nota metodológica**: el harness ahora tiene una variante con GPU real (`--use-angle=d3d11`). Las mediciones anteriores de fps se hicieron con WebGL por software (swiftshader) y **subestiman** el rendimiento real. A partir de aquí, los fps se miden con GPU.

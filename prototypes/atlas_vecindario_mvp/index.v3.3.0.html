@@ -518,7 +518,7 @@
 
   <footer>
     <span>Primera edición · n=609,154 tesis · e5-large · HDBSCAN + Ward · PaCMAP 2D · posiciones sin unidad física</span>
-    <span>Datos: catálogo TESIUNAM · <span id="app-version" title="Versionado semver del prototipo">v3.4.0</span></span>
+    <span>Datos: catálogo TESIUNAM · <span id="app-version" title="Versionado semver del prototipo">v3.3.0</span></span>
   </footer>
 </div>
 
@@ -621,7 +621,7 @@
   //   141 atenuado, 142 foco, 143..147 area 0..4 vivida (vecinos del spotlight)
   //   148 resaltado multiple (color dinamico), 149 resaltado de un territorio
   var NMACRO = 130;
-  var C_NOISE = 130, C_AREA = 131, C_AREA_NOISE = 136, C_DIM = 141, C_FOCAL = 142, C_VIVID = 143, C_HL_MULTI = 148, C_HL = 149, C_GRP = 150, C_HIDDEN = 159, NCAT = 160; // 150..158: grupos del modo analisis; 159: invisible (tesis dibujadas en el canvas de deriva)
+  var C_NOISE = 130, C_AREA = 131, C_AREA_NOISE = 136, C_DIM = 141, C_FOCAL = 142, C_VIVID = 143, C_HL_MULTI = 148, C_HL = 149, C_GRP = 150, NCAT = 159; // 150..158: grupos del modo analisis
 
   var state = {
     macroGraph: null, macros: [], macroById: {}, macroIndex: {},
@@ -808,7 +808,6 @@
     pal[C_HL_MULTI] = '#0f7d5c'; op[C_HL_MULTI] = 0.92;
     pal[C_HL] = '#17181a'; op[C_HL] = 0.62;
     for (var g = 0; g < 9; g++) { pal[C_GRP + g] = '#a79f8d'; op[C_GRP + g] = 0.95; }
-    pal[C_HIDDEN] = '#fbfaf7'; op[C_HIDDEN] = 0;
     state.palette = pal; state.opacities = op;
   }
 
@@ -1319,11 +1318,6 @@
   // vecinas. Antes volaba directo al territorio y la tesis nunca se veia.
   function onPointClick(idx) {
     var tid = state.thesisIds[idx];
-    if (state.iso && state.iso.mode === 'eco' && flow.running && state.iso.posOf[idx] != null) {
-      flow.focus = idx; showPointCard(idx);
-      if (pointInfo(idx) === undefined) titleTileFor(idx).then(function () { showPointCard(idx); });
-      return;
-    }
     showPointCard(idx);
     if (pointInfo(idx) === undefined) titleTileFor(idx).then(function () { showPointCard(idx); });
     var base = state.iso ? state.iso.cats : state.pin ? state.pin.cats : baseCats(), cats = new Float32Array(base);
@@ -1884,7 +1878,7 @@
     }
     $('map-selection').hidden = false;
   }
-  $('map-selection-close').addEventListener('click', function () { flow.focus = -1; state.scatterplot.deselect({ preventEvent: true }); clearSpotlight(); });
+  $('map-selection-close').addEventListener('click', function () { state.scatterplot.deselect({ preventEvent: true }); clearSpotlight(); });
 
   // ==================== buscador (Ctrl/Cmd+K) ====================
   var search = { index: null, results: [], active: 0, loadingAll: null };
@@ -2277,8 +2271,7 @@
       var edges = (raw.edges || []).map(function (e) { return [rowIdx[e[0]], rowIdx[e[1]], e[2]]; })
         .filter(function (e) { return e[0] != null && e[1] != null; });
 
-      var posOf = {}; idxs.forEach(function (i, k) { posOf[i] = k; });
-      state.iso = { node: n, idxs: idxs, byIdx: byIdx, posOf: posOf, cats: cats, ecoCats: cats, X: NX, Y: NY, ecoX: NX, ecoY: NY, cx: cx, cy: cy, D: D, edges: edges, mode: 'eco', groupBy: 'plantel' };
+      state.iso = { node: n, idxs: idxs, byIdx: byIdx, cats: cats, ecoCats: cats, X: NX, Y: NY, ecoX: NX, ecoY: NY, cx: cx, cy: cy, D: D, edges: edges, mode: 'eco', groupBy: 'plantel' };
       document.body.classList.add('iso');
       $('iso-name').textContent = n.name; $('iso-n').textContent = fmtNum(N) + ' tesis';
       setChipMode('eco');
@@ -2321,126 +2314,103 @@
   }
   $('iso-exit').addEventListener('click', function () { exitIsolation(); });
 
-  // ---------- estado 'eco': enlaces + deriva lenta (v3.4, en WebGL) ----------
-  // A pedido del usuario: fuera particulas y pulsos ("resplandor", se veia generico).
-  // Solo enlaces (grosor = similitud e5) y un movimiento lento pero notable: cada tesis
-  // deriva alrededor de su lugar (suma de dos senoidales, periodo propio 7-13 s,
-  // amplitud DRIFT_PX) y los enlaces la siguen, estirandose y relajandose.
-  // Criterios (Heer & Robertson 2007): movimiento simple y predecible, sin cambios
-  // simultaneos; con prefers-reduced-motion no hay deriva.
-  // Rendimiento (medido con GPU real, Intel UHD 620): la version en canvas 2D costaba
-  // 3.3 ms de JS por cuadro pero la GPU tardaba en rasterizar miles de lineas: 2,475
-  // tesis a ~8 fps. Ahora es WebGL (regl, ya cargado): posiciones y fases se suben UNA
-  // vez y la deriva se calcula en el shader; por cuadro solo cambian tiempo y camara.
-  // En WebGL de fondo las tesis del tema quedan INVISIBLES pero seleccionables
-  // (hover/clic funcionan; la deriva es de pocos px).
-  var DRIFT_PX = 5.5;          // amplitud: "lento pero notable"; con 24 px entre centros solo se rozan un instante en el peor caso
-  var flow = { raf: 0, running: false, ampT0: 0, t0: 0, focus: -1, regl: null, draws: null };
+  // ---------- estado 'eco': enlaces + particulas (canvas 2D sobre el WebGL) ----------
+  // Rendimiento (medido, v3.3): redibujar las ~2,800 lineas en cada cuadro bajaba el
+  // mapa de 55-60 fps a ~4 fps. Ahora los enlaces se pintan UNA vez en un lienzo en
+  // cache y solo se repintan si la camara se movio; por cuadro solo se dibujan las
+  // particulas (<=110). El fundido es por tiempo (FLOW_FADE_MS), no por cuadros.
+  var FLOW_FADE_MS = 350;
+  var flow = { raf: 0, running: false, fadeFrom: 0, fadeT0: 0, parts: [], pulses: [], cum: null, edgeCv: null, edgeKey: '' };
   var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   function simW(s) { return Math.max(0, Math.min(1, (s - 0.82) / 0.16)); }
   function resizeFlow() {
     var cv = $('flow'), dpr = window.devicePixelRatio || 1;
     cv.width = Math.round(state.W * dpr); cv.height = Math.round(state.H * dpr);
+    if (!flow.edgeCv) flow.edgeCv = document.createElement('canvas');
+    flow.edgeCv.width = cv.width; flow.edgeCv.height = cv.height; flow.edgeKey = '';
   }
-  function driftAmp(ts) {
-    var u = Math.min(1, (ts - flow.ampT0) / 1400);
-    return u < 0.5 ? 2 * u * u : 1 - Math.pow(-2 * u + 2, 2) / 2;
-  }
-  var DRIFT_GLSL = [
-    'uniform vec2 cam; uniform vec2 view; uniform float scale, amp, t;',
-    'vec2 toPx(vec2 p) { return vec2((p.x - cam.x) * scale + view.x * 0.5, view.y * 0.5 - (p.y - cam.y) * scale); }',
-    'vec2 drift(vec4 f, vec2 q) {',
-    '  return amp * vec2(0.62 * sin(f.x * t + f.z) + 0.38 * sin(f.y * t + f.w), 0.62 * sin(f.y * t + q.x) + 0.38 * sin(f.x * t + q.y));',
-    '}',
-    'vec4 clip(vec2 p) { return vec4(p.x / view.x * 2.0 - 1.0, 1.0 - p.y / view.y * 2.0, 0.0, 1.0); }'
-  ].join('\n');
-  function ensureRegl() {
-    if (flow.regl) return flow.regl;
-    var rg = window.createREGL({ canvas: $('flow'), attributes: { alpha: true, premultipliedAlpha: true, antialias: true } });
-    var blend = { enable: true, func: { src: 'one', dst: 'one minus src alpha' } };
-    var common = { blend: blend, depth: { enable: false }, viewport: function () { return { x: 0, y: 0, width: $('flow').width, height: $('flow').height }; } };
-    var uni = { cam: rg.prop('cam'), view: rg.prop('view'), scale: rg.prop('scale'), amp: rg.prop('amp'), t: rg.prop('t'), color: rg.prop('color'), fade: rg.prop('fade') };
-    flow.drawLines = rg(Object.assign({
-      vert: 'precision highp float;\n' + DRIFT_GLSL + '\nattribute vec2 aA, aB, corner, wa; attribute vec4 fA, fB, q;\nvarying float vA;\n' +
-        'void main() { vec2 pa = toPx(aA) + drift(fA, q.xy), pb = toPx(aB) + drift(fB, q.zw);\n' +
-        '  vec2 d = pb - pa; float L = max(length(d), 1e-4); vec2 n = vec2(-d.y, d.x) / L;\n' +
-        '  vA = wa.y; gl_Position = clip(mix(pa, pb, corner.x) + n * corner.y * wa.x * 0.5); }',
-      frag: 'precision mediump float; uniform vec3 color; uniform float fade; varying float vA;\nvoid main() { float a = vA * fade; gl_FragColor = vec4(color * a, a); }',
-      attributes: { aA: rg.prop('aA'), aB: rg.prop('aB'), fA: rg.prop('fA'), fB: rg.prop('fB'), q: rg.prop('q'), corner: rg.prop('corner'), wa: rg.prop('wa') },
-      uniforms: uni, count: rg.prop('count'), primitive: 'triangles'
-    }, common));
-    flow.drawPoints = rg(Object.assign({
-      vert: 'precision highp float;\n' + DRIFT_GLSL + '\nattribute vec2 aP; attribute vec4 fP; attribute vec2 qP; uniform float size;\n' +
-        'void main() { gl_PointSize = size; gl_Position = clip(toPx(aP) + drift(fP, qP)); }',
-      frag: 'precision mediump float; uniform vec3 color; uniform float fade, alpha;\n' +
-        'void main() { float r = length(gl_PointCoord - 0.5); float a = smoothstep(0.5, 0.42, r) * alpha * fade; gl_FragColor = vec4(color * a, a); }',
-      attributes: { aP: rg.prop('aP'), fP: rg.prop('fP'), qP: rg.prop('qP') },
-      uniforms: Object.assign({ size: rg.prop('size'), alpha: rg.prop('alpha') }, uni),
-      count: rg.prop('count'), offset: rg.prop('offset'), primitive: 'points'
-    }, common));
-    flow.regl = rg;
-    return rg;
-  }
-  function hexRgb(hex) { var v = parseInt(hex.slice(1), 16); return [((v >> 16) & 255) / 255, ((v >> 8) & 255) / 255, (v & 255) / 255]; }
-  function buildFlowBuffers() {
-    var iso = state.iso, rg = ensureRegl(), N = iso.idxs.length;
-    // fase y periodo propios por tesis, deterministas por indice
-    var fP = new Float32Array(N * 4), qP = new Float32Array(N * 2), aP = new Float32Array(N * 2);
-    iso.idxs.forEach(function (i, k) {
-      var h = function (j) { var v = Math.sin(i * 12.9898 + j * 78.233) * 43758.5453; return v - Math.floor(v); };
-      fP.set([2 * Math.PI / (7 + 6 * h(1)), 2 * Math.PI / (9 + 4 * h(2)), h(3) * 6.2832, h(4) * 6.2832], k * 4);
-      qP.set([h(5) * 6.2832, h(6) * 6.2832], k * 2);
-      aP.set([iso.ecoX[i], iso.ecoY[i]], k * 2);
-    });
-    // enlaces como quads (2 triangulos): grosor 0.6-3 px y opacidad segun similitud
-    var E = iso.edges.length, V = E * 6;
-    var aA = new Float32Array(V * 2), aB = new Float32Array(V * 2), fA = new Float32Array(V * 4), fB = new Float32Array(V * 4), q = new Float32Array(V * 4), corner = new Float32Array(V * 2), wa = new Float32Array(V * 2);
-    var C = [[0, -1], [1, -1], [1, 1], [0, -1], [1, 1], [0, 1]];
-    iso.edges.forEach(function (ed, e) {
-      var ka = iso.posOf[ed[0]], kb = iso.posOf[ed[1]], w = simW(ed[2]);
-      for (var v = 0; v < 6; v++) {
-        var o = e * 6 + v;
-        aA.set(aP.subarray(ka * 2, ka * 2 + 2), o * 2); aB.set(aP.subarray(kb * 2, kb * 2 + 2), o * 2);
-        fA.set(fP.subarray(ka * 4, ka * 4 + 4), o * 4); fB.set(fP.subarray(kb * 4, kb * 4 + 4), o * 4);
-        q.set([qP[ka * 2], qP[ka * 2 + 1], qP[kb * 2], qP[kb * 2 + 1]], o * 4);
-        corner.set(C[v], o * 2); wa.set([0.6 + 2.4 * w, 0.12 + 0.34 * w], o * 2);
-      }
-    });
-    if (flow.bufs) flow.bufs.forEach(function (b) { b.destroy(); });
-    var B = function (a) { return rg.buffer(a); };
-    flow.pts = { aP: B(aP), fP: B(fP), qP: B(qP), count: N };
-    flow.lines = { aA: B(aA), aB: B(aB), fA: B(fA), fB: B(fB), q: B(q), corner: B(corner), wa: B(wa), count: V };
-    flow.bufs = [flow.pts.aP, flow.pts.fP, flow.pts.qP, flow.lines.aA, flow.lines.aB, flow.lines.fA, flow.lines.fB, flow.lines.q, flow.lines.corner, flow.lines.wa];
+  function flowAlpha(ts) {
+    var u = Math.min(1, (ts - flow.fadeT0) / FLOW_FADE_MS), target = flow.running ? 1 : 0;
+    return flow.fadeFrom + (target - flow.fadeFrom) * u;
   }
   function startFlow() {
-    var iso = state.iso; if (!iso) return;
-    resizeFlow(); buildFlowBuffers();
-    var hid = new Float32Array(iso.ecoCats);
-    iso.idxs.forEach(function (i) { hid[i] = C_HIDDEN; });
-    iso.cats = hid; state.highlightKey = '';
-    flow.ampT0 = flow.t0 = performance.now(); flow.running = true; flow.focus = -1;
-    restoreView();
+    if (!state.iso || !state.iso.edges.length) return;
+    // particulas eligen enlace con probabilidad ~ similitud^2: fluyen mas por los enlaces fuertes
+    var acc = 0; flow.cum = state.iso.edges.map(function (e) { var w = 0.15 + simW(e[2]); acc += w * w; return acc; });
+    var now = performance.now();
+    flow.fadeFrom = flow.raf ? flowAlpha(now) : 0; flow.fadeT0 = now;
+    flow.running = true; flow.parts = []; flow.pulses = [];
+    resizeFlow();
     if (!flow.raf) flow.raf = requestAnimationFrame(flowFrame);
   }
-  // Apagado inmediato: el que llama redibuja en WebGL de fondo con las tesis visibles.
   function stopFlow() {
-    flow.running = false;
-    if (flow.raf) { cancelAnimationFrame(flow.raf); flow.raf = 0; }
-    if (flow.regl) { flow.regl.poll(); flow.regl.clear({ color: [0, 0, 0, 0] }); }
-    if (state.iso && state.iso.mode !== 'ana') state.iso.cats = state.iso.ecoCats;
+    if (!flow.running) return;
+    var now = performance.now();
+    flow.fadeFrom = flowAlpha(now); flow.fadeT0 = now; flow.running = false;
+    if (!flow.raf) flow.raf = requestAnimationFrame(flowFrame);
+  }
+  function pickEdge() {
+    var c = flow.cum, r = Math.random() * c[c.length - 1], lo = 0, hi = c.length - 1;
+    while (lo < hi) { var mid = (lo + hi) >> 1; if (c[mid] < r) lo = mid + 1; else hi = mid; }
+    return lo;
+  }
+  function spawnPart(ts) {
+    var e = state.iso.edges[pickEdge()], fwd = Math.random() < 0.5, w = simW(e[2]);
+    return { from: fwd ? e[0] : e[1], to: fwd ? e[1] : e[0], t0: ts + Math.random() * 1800, dur: 1300 + 1700 * (1 - w) + Math.random() * 600, w: w };
+  }
+  function paintEdges(c, col) {
+    var cv = flow.edgeCv, ctx = cv.getContext('2d'), dpr = window.devicePixelRatio || 1, iso = state.iso;
+    var X = state.dispX, Y = state.dispY, W2 = state.W / 2, H2 = state.H / 2;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, state.W, state.H);
+    ctx.strokeStyle = col; ctx.lineCap = 'round';
+    for (var b = 0; b < 5; b++) { // 5 grosores: pocos cambios de estado del canvas
+      ctx.beginPath();
+      for (var k = 0; k < iso.edges.length; k++) {
+        var e = iso.edges[k];
+        if (Math.min(4, Math.floor(simW(e[2]) * 5)) !== b) continue;
+        ctx.moveTo((X[e[0]] - c.tx) * c.s + W2, H2 - (Y[e[0]] - c.ty) * c.s);
+        ctx.lineTo((X[e[1]] - c.tx) * c.s + W2, H2 - (Y[e[1]] - c.ty) * c.s);
+      }
+      ctx.globalAlpha = 0.10 + 0.07 * b; ctx.lineWidth = 0.6 + 0.6 * b; ctx.stroke();
+    }
   }
   function flowFrame(ts) {
-    flow.raf = requestAnimationFrame(flowFrame);
-    var iso = state.iso; if (!iso || !flow.running || !flow.pts) return;
-    var rg = flow.regl, c = camXform(), col = hexRgb(state.palette[C_HL_MULTI]), dpr = window.devicePixelRatio || 1;
-    var props = { cam: [c.tx, c.ty], view: [state.W, state.H], scale: c.s, amp: reduceMotion ? 0 : DRIFT_PX * driftAmp(ts), t: (ts - flow.t0) / 1000, color: col, fade: Math.min(1, (ts - flow.ampT0) / 350) };
-    rg.poll();
-    rg.clear({ color: [0, 0, 0, 0] });
-    flow.drawLines(Object.assign({}, props, flow.lines));
-    flow.drawPoints(Object.assign({}, props, flow.pts, { size: ISO_DOT_PX * dpr, alpha: 0.92, offset: 0 }));
-    if (flow.focus >= 0 && iso.posOf[flow.focus] != null) {
-      flow.drawPoints(Object.assign({}, props, flow.pts, { color: [0.09, 0.094, 0.1], size: ISO_DOT_PX * dpr, alpha: 1, offset: iso.posOf[flow.focus], count: 1 }));
+    flow.raf = 0;
+    var cv = $('flow'), ctx = cv.getContext('2d'), dpr = window.devicePixelRatio || 1, iso = state.iso;
+    var alpha = flowAlpha(ts);
+    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, cv.width, cv.height);
+    if (!iso || (!flow.running && alpha <= 0.001)) return;
+    var c = camXform(), col = state.palette[C_HL_MULTI];
+    var key = [c.tx.toFixed(5), c.ty.toFixed(5), c.s.toFixed(2), col, state.W, state.H].join('|');
+    if (key !== flow.edgeKey) { paintEdges(c, col); flow.edgeKey = key; }
+    ctx.globalAlpha = alpha; ctx.drawImage(flow.edgeCv, 0, 0);
+    if (!reduceMotion) {
+      var X = state.dispX, Y = state.dispY, W2 = state.W / 2, H2 = state.H / 2;
+      var px = function (i) { return (X[i] - c.tx) * c.s + W2; }, py = function (i) { return H2 - (Y[i] - c.ty) * c.s; };
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      var maxP = Math.min(110, 8 + Math.ceil(iso.edges.length * 0.05));
+      while (flow.running && flow.parts.length < maxP) flow.parts.push(spawnPart(ts));
+      ctx.fillStyle = col;
+      flow.parts = flow.parts.filter(function (p) {
+        var u = (ts - p.t0) / p.dur;
+        if (u < 0) return true;
+        if (u >= 1) { if (flow.running) flow.pulses.push({ i: p.to, t0: ts }); return false; }
+        var ez = u < 0.5 ? 2 * u * u : 1 - Math.pow(-2 * u + 2, 2) / 2;
+        ctx.globalAlpha = alpha * (0.55 + 0.4 * p.w) * Math.sin(Math.PI * u);
+        ctx.beginPath(); ctx.arc(px(p.from) + (px(p.to) - px(p.from)) * ez, py(p.from) + (py(p.to) - py(p.from)) * ez, 2 + 1.2 * p.w, 0, 6.2832); ctx.fill();
+        return true;
+      });
+      // pulso al llegar: la tesis "recibe" lo que viajo por el enlace
+      ctx.strokeStyle = col; ctx.lineWidth = 1.5;
+      flow.pulses = flow.pulses.filter(function (q) {
+        var u = (ts - q.t0) / 700; if (u >= 1) return false;
+        ctx.globalAlpha = alpha * 0.55 * (1 - u);
+        ctx.beginPath(); ctx.arc(px(q.i), py(q.i), ISO_DOT_PX / 2 + 2 + 10 * u, 0, 6.2832); ctx.stroke();
+        return true;
+      });
     }
+    ctx.globalAlpha = 1;
+    flow.raf = requestAnimationFrame(flowFrame);
   }
 
   // ---------- estado 'ana': reorganizar por grupo ----------
@@ -2666,7 +2636,7 @@
     state: state, flyTo: flyTo, flyToNode: flyToNode, flyHome: flyHome, selectNode: selectNode, setLens: setLens,
     openSearch: openSearch, runSearch: runSearch, pickResult: pickResult, startIntro: startIntro, startRoute: startRoute,
     applySpotlight: applySpotlight, clearSpotlight: clearSpotlight, highlightMacros: highlightMacros, openVecindarioModal: openVecindarioModal,
-    runIntroTransition: runIntroTransition, closeStory: closeStory, live: live, flow: flow
+    runIntroTransition: runIntroTransition, closeStory: closeStory, live: live
   };
 })();
 </script>
