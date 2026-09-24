@@ -98,33 +98,6 @@
   .alabel.minor text { font-weight: 600; fill: var(--ink-2); }
   .alabel.hidden { display: none; }
 
-  /* ---------- barra de filtros (v3.2) ---------- */
-  .filterbar {
-    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
-    padding: 8px 20px; border-bottom: 1px solid var(--border); background: var(--page);
-    position: relative; z-index: 11;
-  }
-  .fb-title { font-size: 9.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-3); }
-  .fb-group { display: flex; align-items: center; gap: 8px; }
-  .fb-label { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-2); }
-  .fb-count { margin-left: auto; font-family: "JetBrains Mono", monospace; font-size: 10.5px; color: var(--ink-3); text-transform: uppercase; }
-  .filterbar .seg button { padding: 5px 10px; }
-
-  /* ---------- modo aislado de tema fino (v3.2) ---------- */
-  #tint { position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 900ms ease; z-index: 1; }
-  #tint.on { opacity: 1; }
-  #iso-chip {
-    position: absolute; top: 14px; left: 50%; transform: translateX(-50%); z-index: 7;
-    display: flex; align-items: center; gap: 10px; max-width: calc(100% - 420px);
-    background: var(--panel-bg); border: 1px solid var(--border); border-radius: 999px; padding: 6px 6px 6px 16px; box-shadow: var(--shadow);
-  }
-  #iso-chip .ic-ey { font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); white-space: nowrap; }
-  #iso-chip b { font-family: "Source Serif 4", Georgia, serif; font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 0.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  #iso-chip .ic-n { font-family: "JetBrains Mono", monospace; font-size: 11px; color: var(--ink-2); white-space: nowrap; }
-  #iso-chip .btn { border-radius: 999px; }
-  body.iso #overlay, body.iso #minimap, body.iso #legend { opacity: 0; pointer-events: none; }
-  #overlay, #minimap, #legend { transition: opacity 400ms ease; }
-
   /* ---------- breadcrumb ---------- */
   #crumbs {
     position: absolute; top: 14px; left: 16px; z-index: 5;
@@ -218,7 +191,6 @@
   #map-selection .ms-meta { font-size: 10.5px; color: var(--ink-2); font-family: "JetBrains Mono", monospace; text-transform: uppercase; margin-bottom: 8px; }
   #map-selection .ms-note { font-size: 11px; color: var(--ink-3); line-height: 1.5; }
   #map-selection .btn { width: 100%; justify-content: center; margin-top: 10px; color: var(--accent); }
-  #map-selection .btn + .btn { margin-top: 6px; }
 
   /* ---------- tarjeta narrativa (intro + rutas) ---------- */
   #story {
@@ -414,31 +386,20 @@
       <button type="button" class="btn" id="btn-search" aria-label="Buscar (Ctrl+K)">Buscar <span class="kbd">Ctrl K</span></button>
       <button type="button" class="btn" id="btn-routes" aria-haspopup="true" aria-expanded="false">Rutas guiadas</button>
       <button type="button" class="btn" id="btn-intro">Introducción</button>
-    </div>
-  </header>
-  <!-- Barra general de filtros (v3.2). Hoy: color. Siguientes: programa, plantel,
-       año, nivel -- cada filtro nuevo es otro .fb-group aqui. -->
-  <div class="filterbar" id="filterbar" role="toolbar" aria-label="Filtros del mapa">
-    <span class="fb-title">Filtros</span>
-    <div class="fb-group">
-      <span class="fb-label">Color</span>
       <div class="seg" id="lens" role="group" aria-label="Color de los puntos">
-        <button type="button" data-lens="territory" class="active">Territorios</button><button type="button" data-lens="area">Áreas administrativas</button>
+        <button type="button" data-lens="territory" class="active">Territorios</button><button type="button" data-lens="area">Áreas UNAM</button>
       </div>
     </div>
-    <span class="fb-count" id="fb-count"></span>
-  </div>
+  </header>
   <div id="debug-log" hidden></div>
 
   <main id="main">
     <div id="wgl-host"></div>
-    <div id="tint" aria-hidden="true"></div>
     <svg id="overlay"><g id="g-grid"></g><g id="g-edges"></g><g id="g-nodes"></g><g id="g-labels"></g></svg>
     <div id="disc-labels"></div>
     <nav id="crumbs" aria-label="Ubicación en el atlas" hidden></nav>
 
     <div class="legend" id="legend" hidden></div>
-    <div id="iso-chip" hidden><span class="ic-ey">Tema fino aislado</span><b id="iso-name"></b><span id="iso-n" class="ic-n"></span><button type="button" class="btn" id="iso-exit">← Volver al mapa</button></div>
 
     <div id="minimap" hidden title="Clic o arrastre para moverte">
       <canvas id="mm-base"></canvas>
@@ -454,7 +415,6 @@
       <div class="ms-title" id="ms-title">—</div>
       <div class="ms-meta" id="ms-meta"></div>
       <div class="ms-note" id="ms-note"></div>
-      <button class="btn" id="ms-go-territory" type="button" hidden>Ir a su territorio →</button>
       <button class="btn" id="ms-open-vecindario" type="button" hidden>Ver vecindario completo →</button>
     </div>
 
@@ -488,7 +448,7 @@
 
   <footer>
     <span>Primera edición · n=609,154 tesis · e5-large · HDBSCAN + Ward · PaCMAP 2D · posiciones sin unidad física</span>
-    <span>Datos: catálogo TESIUNAM · <span id="app-version" title="Versionado semver del prototipo">v3.2.0</span></span>
+    <span>Datos: catálogo TESIUNAM · <span id="app-version" title="Versionado semver del prototipo">v3.1.0</span></span>
   </footer>
 </div>
 
@@ -717,11 +677,6 @@
     state.span = span;
     state.ndcX = new Float32Array(n); state.ndcY = new Float32Array(n);
     for (i = 0; i < n; i++) { state.ndcX[i] = (xs[i] - state.domain.minX) / span * 2 - 1; state.ndcY[i] = (ys[i] - state.domain.minY) / span * 2 - 1; }
-    // rawX/rawY: coordenadas PaCMAP crudas (para ubicar la tesela de titulos);
-    // dispX/dispY: donde esta DIBUJADO cada punto ahora (difiere en modo aislado).
-    state.rawX = xs; state.rawY = ys; state.dispX = state.ndcX; state.dispY = state.ndcY;
-    $('fb-count').textContent = fmtNum(n) + ' tesis';
-    loadTitleManifest();
 
     buildMembership();
     buildPalette();
@@ -775,7 +730,7 @@
     }
     pal[C_DIM] = '#d9d4c7'; op[C_DIM] = 0.10;
     pal[C_FOCAL] = '#17181a'; op[C_FOCAL] = 1;
-    pal[C_HL_MULTI] = '#0f7d5c'; op[C_HL_MULTI] = 0.92;
+    pal[C_HL_MULTI] = '#0f7d5c'; op[C_HL_MULTI] = 0.75;
     pal[C_HL] = '#17181a'; op[C_HL] = 0.62;
     state.palette = pal; state.opacities = op;
   }
@@ -828,9 +783,7 @@
     var plot = window.createScatterplot({
       renderer: state.renderer, canvas: canvas, width: rect.width, height: rect.height,
       xScale: xScale, yScale: yScale,
-      // tamano de punto SOLO lo controla updatePointSize(): por defecto la libreria
-      // ademas lo agranda con el zoom (asinh), y en modo aislado los puntos se tocaban
-      pointSize: 2, pointScaleMode: 'constant', pointColor: state.palette, opacity: state.opacities,
+      pointSize: 2, pointColor: state.palette, opacity: state.opacities,
       colorBy: 'valueA', opacityBy: 'valueA',
       pointColorHover: '#17181a', pointColorActive: '#17181a',
       backgroundColor: '#fbfaf7', cameraDistance: DEFAULT_CAMERA_DISTANCE, lassoOnLongPress: false
@@ -848,7 +801,7 @@
     });
     plot.subscribe('deselect', function () { if (state.spotlightActive) clearSpotlight(); });
     plot.subscribe('pointover', function (idx) { if (!state.introActive) showPointTip(idx); });
-    plot.subscribe('pointout', function () { hoverIdx = -1; hideTip(); });
+    plot.subscribe('pointout', hideTip);
   }
 
   function resizeRenderer() {
@@ -873,7 +826,7 @@
       if (drawNext) { var nx = drawNext; drawNext = null; return drawPoints.apply(null, nx.args).then(nx.resolve); }
     });
   }
-  function redrawCats(cats) { return drawPoints(state.dispX, state.dispY, cats || (state.iso ? state.iso.cats : baseCats())); }
+  function redrawCats(cats) { return drawPoints(state.ndcX, state.ndcY, cats || baseCats()); }
 
   var cameraTransitioning = false;
   function clampAxis(t, half) {
@@ -945,9 +898,7 @@
 
   var lastPointSize = null;
   function updatePointSize() {
-    var t = Math.max(0, Math.min(1, (state.k - K0) / (K_MAX_ZOOM - K0)));
-    var size = Math.round((1.5 + 3.5 * Math.sqrt(t)) * 20) / 20;
-    if (state.iso) size = Math.round(ISO_MIN_PX * 0.47); // ~7 px con ~8 px de aire entre tesis
+    var size = Math.round(Math.max(1.5, Math.min(4, 1.5 + (state.k - K0) * 0.12)) * 20) / 20;
     if (size !== lastPointSize) { lastPointSize = size; state.scatterplot.set({ pointSize: size }); }
   }
 
@@ -973,7 +924,7 @@
     revealTimer = setTimeout(function () { revealTimer = null; maybeReveal(); }, 140);
   }
   function maybeReveal() {
-    if (!state.macroGraph || state.introActive || state.iso) return;
+    if (!state.macroGraph || state.introActive) return;
     var level = updateLevel(), changed = false;
     state.macros.forEach(function (m) {
       var id = m.macroId, cur = state.revealLevel[id], want = inViewport(m.position) ? level : 'macro';
@@ -1087,16 +1038,14 @@
   }
 
   function bindNodeEvents(el, n) {
-    // v3.2: el hover ya NO resalta el territorio en negro (redibujaba 609k puntos y
-    // estorbaba el desplazamiento por el mapa, pedido del usuario). Solo tooltip.
-    el.addEventListener('mouseenter', function (ev) { showNodeTip(n, ev); });
+    el.addEventListener('mouseenter', function (ev) { showNodeTip(n, ev); scheduleHighlight(n); });
     el.addEventListener('mousemove', moveTip);
-    el.addEventListener('mouseleave', hideTip);
+    el.addEventListener('mouseleave', function () { hideTip(); scheduleHighlight(null); });
     el.addEventListener('click', function (ev) { ev.stopPropagation(); selectNode(n, true); });
   }
 
   function updateOverlayPositions() {
-    if (!state.xScale || state.introActive || state.iso) return;
+    if (!state.xScale || state.introActive) return;
     var xs = state.xScale, ys = state.yScale, byId = {};
     live.forEach(function (rec) {
       var px = xs(rec.n.position.x), py = ys(rec.n.position.y);
@@ -1200,7 +1149,6 @@
   }
   function restoreView() {
     if (state.spotlightActive || state.introActive) return Promise.resolve();
-    if (state.iso) return setCats('iso|' + state.iso.node.id, state.iso.cats);
     return state.pin ? setCats(state.pin.key, state.pin.cats) : setCats('base|' + state.lens + '|' + state.densityPct, null);
   }
   function pinIndices(key, idxs) {
@@ -1235,25 +1183,15 @@
       '<span class="t-hint">Clic para acercarte y ver el detalle</span>';
     tooltip.style.opacity = '1'; moveTip(ev);
   }
-  // Tooltip de punto (v3.2): TITULO + anio. Pendiente decidir cuanta info mas cabe
-  // sin saturar (programa, plantel...). El titulo sale de las teselas espaciales
-  // (titulos_teselas/, se piden solo las de la zona bajo el cursor) o, en modo
-  // aislado, de las tesis del tema ya cargadas.
-  var hoverIdx = -1;
   function showPointTip(idx) {
-    hoverIdx = idx;
-    var info = pointInfo(idx);
-    if (info === undefined) {
-      renderPointTip(idx, null);
-      titleTileFor(idx).then(function () { if (hoverIdx === idx) renderPointTip(idx, pointInfo(idx)); });
-    } else renderPointTip(idx, info);
-  }
-  function renderPointTip(idx, info) {
-    var mc = state.macroCode[idx], m = mc >= 0 ? state.macroById[mc] : null;
-    tooltip.innerHTML = '<span class="t-label">' + (info ? escapeHtml(info.t) : '<span style="color:var(--ink-3)">Cargando título…</span>') + '</span>' +
-      '<span class="t-meta">' + (info && info.y ? info.y : '—') + (state.iso ? '' : ' · ' + (m ? escapeHtml(m.name) : 'sin territorio')) + '</span>';
+    var mc = state.macroCode[idx], m = mc >= 0 ? state.macroById[mc] : null, a = state.areaCode[idx];
+    var tid = state.thesisIds[idx], t = state.vecindarioPreview && state.vecindarioPreview.theses[tid];
+    tooltip.innerHTML = (t ? '<span class="t-label">' + escapeHtml(t.title) + '</span>' : '') +
+      '<span class="t-meta">' + (m ? 'Territorio: ' + escapeHtml(m.name) : 'Sin territorio (tesis sin grupo claro)') + '</span>' +
+      '<span class="t-meta">' + escapeHtml(AREA_NAMES[a] || '') + '</span>' +
+      '<span class="t-hint">' + (t ? 'Clic para ver sus vecinos' : m ? 'Clic para ir a su territorio' : tid) + '</span>';
     tooltip.style.opacity = '1';
-    var p = ndcToPx(state.dispX[idx], state.dispY[idx]);
+    var p = ndcToPx(state.ndcX[idx], state.ndcY[idx]);
     tooltip.style.transform = 'translate(' + Math.min(state.W - 280, p[0] + 14) + 'px,' + (p[1] + 14) + 'px)';
   }
   function moveTip(ev) {
@@ -1266,9 +1204,6 @@
   function selectNode(n, fly) {
     if (state.introActive) return;
     hideTip();
-    $('map-selection').hidden = true;
-    if ((n.level || 'macro') === 'micro') { openPanel(n); isolateMicro(n); return; }
-    if (state.iso) exitIsolation(true);
     if (fly) flyToNode(n);
     openPanel(n);
   }
@@ -1281,30 +1216,12 @@
   }
   // Clic en un punto: si es una de las 2,500 tesis con vecindario -> spotlight;
   // si no, volar a su territorio (el mapa entero es clicable, no solo los nombres).
-  // v3.2: clic en un punto = ESA tesis: se marca y se abre su ficha (titulo, anio,
-  // territorio). Desde la ficha: ir a su territorio o, si esta precargado, ver sus
-  // vecinas. Antes volaba directo al territorio y la tesis nunca se veia.
   function onPointClick(idx) {
     var tid = state.thesisIds[idx];
-    showPointCard(idx);
-    if (pointInfo(idx) === undefined) titleTileFor(idx).then(function () { showPointCard(idx); });
-    var base = state.iso ? state.iso.cats : state.pin ? state.pin.cats : baseCats(), cats = new Float32Array(base);
-    cats[idx] = C_FOCAL;
-    setCats('focus|' + tid, cats);
-  }
-  function showPointCard(idx) {
-    var tid = state.thesisIds[idx], info = pointInfo(idx), mc = state.macroCode[idx], m = mc >= 0 ? state.macroById[mc] : null;
-    var t = state.vecindarioPreview && state.vecindarioPreview.theses[tid], row = state.iso && state.iso.byIdx[idx];
-    $('ms-eyebrow').textContent = 'Tesis';
-    $('ms-title').textContent = info ? info.t : 'Cargando título…';
-    $('ms-meta').textContent = ((info && info.y) || '—') + ' · ' + tid;
-    $('ms-note').innerHTML = row ? escapeHtml(row.pr) + '<br>' + escapeHtml(row.pl) + '<br>Asesoría: ' + escapeHtml(fmtAsesores(row.as))
-      : (m ? 'Territorio: ' + escapeHtml(m.name) : 'Sin territorio: no quedó en ningún grupo claro (le pasa al 67% del corpus).') + '<br>' + escapeHtml(AREA_NAMES[state.areaCode[idx]] || '');
-    var go = $('ms-go-territory');
-    go.hidden = !m || !!state.iso; go.onclick = function () { $('map-selection').hidden = true; selectNode(m, true); };
-    var vb = $('ms-open-vecindario');
-    vb.hidden = !t; if (t) vb.onclick = function () { applySpotlight(tid, idx); openVecindarioModal(tid); };
-    $('map-selection').hidden = false;
+    if (state.vecindarioPreview && state.vecindarioPreview.theses[tid]) { applySpotlight(tid, idx); return; }
+    var mc = state.macroCode[idx];
+    if (mc >= 0) { state.scatterplot.deselect({ preventEvent: true }); selectNode(state.macroById[mc], true); return; }
+    showSelectionCard(tid, null, 0, true);
   }
 
   // ==================== breadcrumb ====================
@@ -1402,7 +1319,6 @@
     state.lens = lens;
     document.querySelectorAll('#lens button').forEach(function (b) { b.classList.toggle('active', b.getAttribute('data-lens') === lens); });
     state.highlightKey = '';
-    if (state.iso) recolorIsolation();
     if (!state.introActive && !state.routeActive) restoreView();
     live.forEach(function (rec) { if (rec.dot) rec.dot.firstChild.setAttribute('fill', nodeColor(rec.n)); });
     renderLegend(); paintMinimap();
@@ -1542,7 +1458,6 @@
     });
   }
   function closePanel() {
-    if (state.iso) exitIsolation();
     panel.classList.remove('open'); main.classList.remove('panel-open'); state.selectedId = null; state.panelStack = []; markSelected();
     clearPin();
   }
@@ -1962,7 +1877,6 @@
     }
   }
   function startIntro() {
-    if (state.iso) exitIsolation(true);
     $('story').hidden = true; story = null;
     setChromeForIntro(true);
     state.scatterplot.zoomToLocation([0, 0], DEFAULT_CAMERA_DISTANCE, { transition: false });
@@ -2067,7 +1981,6 @@
     var r = ROUTES.filter(function (x) { return x.id === id; })[0]; if (!r) return;
     stepIdx = stepIdx || 0;
     var st = r.steps[stepIdx];
-    if (state.iso) exitIsolation(true);
     state.routeActive = id;
     if (state.spotlightActive) { state.scatterplot.deselect({ preventEvent: true }); state.spotlightActive = false; $('map-selection').hidden = true; }
     panel.classList.remove('open'); main.classList.remove('panel-open'); state.selectedId = null; markSelected();
@@ -2086,165 +1999,6 @@
       onPrev: function () { startRoute(id, stepIdx - 1); }
     });
   }
-
-  // ==================== titulos por tesela espacial (v3.2) ====================
-  // titulos_teselas/{tx}_{ty}.json: titulo (sin autor) + anio de las 609,154 tesis,
-  // partidas en una grilla 64x64 sobre las coordenadas crudas. El hover solo pide la
-  // tesela bajo el cursor (mediana ~357 titulos, maximo ~0.6 MB) y la guarda en cache.
-  var titleMeta = null, titleMetaP = null, titleTiles = {};
-  function loadTitleManifest() {
-    if (!titleMetaP) titleMetaP = fetchJson('./data/titulos_teselas/manifest.json').then(function (m) { titleMeta = m; return m; }).catch(function () { return null; });
-    return titleMetaP;
-  }
-  function tileKeyOf(idx) {
-    var m = titleMeta; if (!m) return null;
-    var tx = Math.min(m.grid - 1, Math.max(0, Math.floor((state.rawX[idx] - m.x0) / m.cell)));
-    var ty = Math.min(m.grid - 1, Math.max(0, Math.floor((state.rawY[idx] - m.y0) / m.cell)));
-    return tx + '_' + ty;
-  }
-  function titleTileFor(idx) {
-    if (!titleMeta) return loadTitleManifest().then(function (m) { return m ? titleTileFor(idx) : null; });
-    var k = tileKeyOf(idx);
-    if (!titleTiles[k]) {
-      var rec = titleTiles[k] = { map: null, p: null };
-      rec.p = fetchJson('./data/titulos_teselas/' + k + '.json').then(function (d) {
-        var mp = new Map();
-        for (var j = 0; j < d.i.length; j++) mp.set(d.i[j], { t: d.t[j], y: d.y[j] });
-        rec.map = mp; return mp;
-      }).catch(function () { rec.map = new Map(); return rec.map; });
-    }
-    return titleTiles[k].p;
-  }
-  // {t, y} si se conoce, null si se sabe que no hay titulo, undefined si falta cargar
-  function pointInfo(idx) {
-    var r = state.iso && state.iso.byIdx[idx];
-    if (r) return { t: r.t, y: r.y };
-    var pv = state.vecindarioPreview && state.vecindarioPreview.theses[state.thesisIds[idx]];
-    if (pv) return { t: pv.title, y: pv.year };
-    var k = tileKeyOf(idx), rec = k && titleTiles[k];
-    if (!rec || !rec.map) return undefined;
-    return rec.map.get(idx) || null;
-  }
-
-  // ==================== modo aislado de tema fino (v3.2) ====================
-  // Clic en un tema fino: sus tesis se separan entre si (animacion nativa de
-  // regl-scatterplot, igual que la intro), el resto del mapa se abre dejando un
-  // claro y se atenua, y el fondo se tine del color del filtro activo.
-  // La separacion NO es un layout inventado: cada tesis parte de su posicion real
-  // ampliada alrededor del centro del tema (conserva quien esta cerca de quien) y
-  // una relajacion de colisiones garantiza ISO_MIN_PX de separacion en pantalla.
-  var ISO_MIN_PX = 15;      // separacion minima entre dos tesis del tema, en pixeles
-  var ISO_EXPAND = 3.2;     // cuanto se amplia el tema como minimo respecto a su tamano real
-  var isoToken = 0;
-  function hexToRgba(hex, a) {
-    var v = parseInt(hex.slice(1), 16);
-    return 'rgba(' + ((v >> 16) & 255) + ',' + ((v >> 8) & 255) + ',' + (v & 255) + ',' + a + ')';
-  }
-  function isoColor(n) {
-    if (state.lens === 'area') return AREA_HEX[AREA_STR_TO_CODE[(n.dominantArea || '').toLowerCase()] || 0];
-    return (n.parentMacro && n.parentMacro.color) || '#3f4a5c';
-  }
-  function median(arr) { var a = Array.from(arr).sort(function (x, y) { return x - y; }); return a[Math.floor(a.length / 2)]; }
-
-  function isolateMicro(n) {
-    var token = ++isoToken;
-    loadThesesFor(n).then(function (rows) {
-      if (token !== isoToken) return;
-      var idxs = [], byIdx = {};
-      rows.forEach(function (r) { var i = state.thesisIdToIndex.get(r.id); if (i != null) { idxs.push(i); byIdx[i] = r; } });
-      var N = idxs.length; if (!N) return;
-      var X0 = state.ndcX, Y0 = state.ndcY;
-      var cx = median(idxs.map(function (i) { return X0[i]; })), cy = median(idxs.map(function (i) { return Y0[i]; }));
-      var dists = idxs.map(function (i) { return Math.hypot(X0[i] - cx, Y0[i] - cy); }).sort(function (a, b) { return a - b; });
-      var R90 = Math.max(dists[Math.floor(0.9 * (N - 1))], 0.004);
-
-      // 1) cuanto espacio necesita el tema en pantalla y a que zoom se ve
-      var W = state.W, H = state.H;
-      var Rpx = Math.max(0.33 * Math.min(W, H), Math.sqrt(N * ISO_MIN_PX * ISO_MIN_PX * 1.3 / Math.PI));
-      // temas compactos se amplian x3.2; los ya dispersos, lo justo (tope 0.12 NDC):
-      // mejor acercar la camara que empujar medio mapa
-      var Rndc = Math.max(R90 * 1.6, Math.min(R90 * ISO_EXPAND, 0.12));
-      var D = Math.max(1 / K_MAX_ZOOM, Math.min(DEFAULT_CAMERA_DISTANCE, Rndc * (H / 2) / Rpx));
-      var pxPerNdc = (H / 2) / D;
-
-      // 2) layout en pixeles: posicion real ampliada + relajacion de colisiones
-      var GA = Math.PI * (3 - Math.sqrt(5)), sc = (Rpx * 0.8) / R90;
-      var nodes = idxs.map(function (i, k) {
-        var x = (X0[i] - cx) * sc, y = (Y0[i] - cy) * sc;
-        // titulos identicos caen en el MISMO punto: semilla en espiral para que se separen
-        if (Math.hypot(x, y) < 1) { var rr = 3 * Math.sqrt(k + 1); x = rr * Math.cos(k * GA); y = rr * Math.sin(k * GA); }
-        return { x: x, y: y, tx: x, ty: y };
-      });
-      var sim = d3.forceSimulation(nodes)
-        .force('collide', d3.forceCollide(ISO_MIN_PX / 2).iterations(4))
-        .force('x', d3.forceX(function (d) { return d.tx; }).strength(0.035))
-        .force('y', d3.forceY(function (d) { return d.ty; }).strength(0.035))
-        .stop();
-      for (var t = 0; t < 300; t++) sim.tick();
-
-      var NX = new Float32Array(X0), NY = new Float32Array(Y0), radii = [];
-      nodes.forEach(function (d, k) {
-        var i = idxs[k]; NX[i] = cx + d.x / pxPerNdc; NY[i] = cy + d.y / pxPerNdc;
-        radii.push(Math.hypot(d.x, d.y) / pxPerNdc);
-      });
-      radii.sort(function (a, b) { return a - b; });
-      // el claro se mide con el p95 del tema, no con su tesis mas lejana (un punado de
-      // miembros alejados hacia que se empujara medio mapa)
-      var Rmax = radii[Math.floor(0.95 * (radii.length - 1))];
-      // 3) el resto del mapa se abre: claro de radio Rc alrededor del tema, con
-      //    desplazamiento que se desvanece suave hasta 3*Rc (monotono: no cruza puntos)
-      var Rc = Rmax * 1.12, member = new Uint8Array(state.n);
-      idxs.forEach(function (i) { member[i] = 1; });
-      for (var j = 0; j < state.n; j++) {
-        if (member[j]) continue;
-        var dx = X0[j] - cx, dy = Y0[j] - cy, dd = Math.hypot(dx, dy);
-        if (dd >= 3 * Rc) continue;
-        var nd = dd < Rc ? 1.15 * Rc + 0.35 * dd : dd + 0.5 * Rc * (1 - (dd - Rc) / (2 * Rc));
-        if (dd < 1e-9) { var h = Math.sin(j * 12.9898) * 43758.5453, a = (h - Math.floor(h)) * 2 * Math.PI; dx = Math.cos(a); dy = Math.sin(a); dd = 1; }
-        NX[j] = cx + dx / dd * nd; NY[j] = cy + dy / dd * nd;
-      }
-      var cats = new Float32Array(state.n); cats.fill(C_DIM);
-      idxs.forEach(function (i) { cats[i] = C_HL_MULTI; });
-
-      state.iso = { node: n, idxs: idxs, byIdx: byIdx, cats: cats, X: NX, Y: NY, cx: cx, cy: cy, D: D };
-      document.body.classList.add('iso');
-      $('iso-name').textContent = n.name; $('iso-n').textContent = fmtNum(N) + ' tesis';
-      $('iso-chip').hidden = false;
-      applyIsoColor();
-
-      // 4) secuencia: acercarse al tema y luego abrirlo (la camara y los puntos
-      //    comparten el mismo tween en la libreria: no pueden animarse a la vez)
-      flyTo(cx, cy, D, 750).then(function () {
-        if (token !== isoToken) return;
-        state.dispX = NX; state.dispY = NY;
-        state.highlightKey = 'iso|' + n.id;
-        lastPointSize = null; updatePointSize();
-        drawPoints(NX, NY, cats, { transition: true, transitionDuration: 1500, transitionEasing: 'cubicInOut' });
-      });
-    });
-  }
-  function applyIsoColor() {
-    var c = isoColor(state.iso.node);
-    state.palette[C_HL_MULTI] = c; state.scatterplot.set({ pointColor: state.palette });
-    var tint = $('tint');
-    tint.style.background = 'radial-gradient(ellipse at 50% 50%, ' + hexToRgba(c, 0.15) + ' 0%, ' + hexToRgba(c, 0.07) + ' 45%, ' + hexToRgba(c, 0.025) + ' 100%)';
-    tint.classList.add('on');
-  }
-  function recolorIsolation() { if (state.iso) { applyIsoColor(); state.highlightKey = ''; } }
-  function exitIsolation(quick) {
-    isoToken++;
-    if (!state.iso) return Promise.resolve();
-    state.iso = null;
-    document.body.classList.remove('iso');
-    $('iso-chip').hidden = true; $('tint').classList.remove('on');
-    state.dispX = state.ndcX; state.dispY = state.ndcY;
-    var cats = state.pin ? state.pin.cats : baseCats();
-    state.highlightKey = state.pin ? state.pin.key : 'base|' + state.lens + '|' + state.densityPct;
-    lastPointSize = null; updatePointSize();
-    return drawPoints(state.ndcX, state.ndcY, cats, quick ? {} : { transition: true, transitionDuration: 1100, transitionEasing: 'cubicInOut' })
-      .then(function () { scheduleReveal(); syncOverlay(); });
-  }
-  $('iso-exit').addEventListener('click', function () { exitIsolation(); });
 
   // ==================== vecindario (modo analitico, mismo mecanismo que v2) ====================
   var AREA_COLORS = { 'area 1': '#3566a8', 'area 2': '#0f7d5c', 'area 3': '#c98a2e', 'area 4': '#b8412f' };
@@ -2334,7 +2088,6 @@
       else if (!$('routes-menu').hidden) toggleRoutesMenu(false);
       else if (!$('story').hidden) closeStory();
       else if (!$('taller').hidden) closeTaller();
-      else if (state.iso) exitIsolation();
       else if (panel.classList.contains('open')) closePanel();
       else if (state.spotlightActive) $('map-selection-close').click();
     }

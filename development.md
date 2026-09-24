@@ -1430,3 +1430,44 @@ Orden de prioridad. **P0 = riesgo de privacidad/seguridad, antes que cualquier f
 11. Conectar Nobel más cercano.
 12. Decidir Pages vs. R2 para `tesis_por_micro/` (44 MB) y el resto del bundle.
 13. Prueba en el navegador real del usuario (GPU, trackpad) y del modo taller en móvil.
+
+
+### v3.2.0 — visibilidad: sin resaltado por hover, barra de filtros, título en el hover y modo aislado de tema fino (2026-09-24)
+
+Pedido del usuario: "resolver la visibilidad de una vez". Respaldo de la versión anterior: `index.v3.1.0.html`.
+
+1. **Se quitó el resaltado negro por hover sobre territorios.** Cada hover redibujaba 609k puntos y estorbaba el desplazamiento por el mapa. El hover sobre un nombre ahora solo muestra tooltip. Verificado con hover real: `highlightKey` no cambia. El resaltado *fijado* al hacer clic (v3.1) se conserva.
+2. **Barra general de filtros** debajo del header: "Color: Territorios | Áreas administrativas" (antes "Áreas UNAM", arriba a la derecha) y conteo de tesis. Es el lugar donde entran los filtros siguientes (programa, plantel, año, nivel); cada uno será otro `.fb-group`.
+3. **Introducción**: queda como botón aislado en el header. **Decisión del usuario, anotada: el modo introducción NO se usará tal cual está.** Lo que sí gustó es la animación de los discos por área volando al mapa semántico. No se borró nada de la intro todavía; pendiente decidir cómo se reutiliza esa animación.
+4. **Hover sobre cualquier tesis → título + año.** Antes solo decía el territorio, y el título solo existía para las 2,500 del preview.
+   - Datos nuevos: `pipeline/generar_atlas_titulos_teselas.py` → `atlas_data/titulos_teselas/`, con los títulos sin autor y el año de las **609,154** tesis, partidos en una grilla espacial de 64×64 sobre las coordenadas PaCMAP crudas: 855 teselas no vacías, 67.9 MB en total, la mayor de 0.62 MB.
+   - Cargar los 609k títulos de golpe no es viable. Como el hover es local, el navegador solo pide la tesela bajo el cursor y la guarda en caché; mientras llega se muestra "Cargando título…".
+   - Reusa `titulo_sin_autor` y `AUTOR_RE` del generador por tema: 49 títulos con posible autor residual se omiten.
+   - Verificado: cobertura 609,154/609,154, y 2,000/2,000 títulos al azar coinciden con el parquet (alineación índice ↔ título).
+   - **Pendiente, a pedido del usuario:** cuánta información más cabe en el tooltip (programa, plantel…) sin que se vea excesivo.
+5. **Clic en una tesis = esa tesis.** Se marca en negro y abre su ficha: título, año, id, territorio y área; en modo aislado también programa, plantel y asesoría. Desde la ficha: "Ir a su territorio" o, si está precargada, "Ver vecindario". Antes volaba directo al territorio y la tesis nunca se veía.
+6. **Modo aislado de tema fino** (lo principal). Clic en un tema fino:
+   1. La cámara se acerca al tema (750 ms).
+   2. Sus tesis se **separan entre sí** con la transición nativa de puntos de regl-scatterplot (1.5 s, la misma mecánica que la intro). La cámara y los puntos comparten el mismo tween en la librería, así que van en secuencia.
+   3. El resto del mapa se **abre dejando un claro** y se atenúa.
+   4. El fondo se **tiñe tenuemente** del color del filtro activo (territorio o área).
+   5. Un chip arriba indica el tema aislado y ofrece "Volver al mapa"; Esc o cerrar el panel también salen, con la animación inversa.
+   - **Cómo se calcula la separación (no es un layout inventado):** cada tesis parte de su posición real, ampliada alrededor de la mediana del tema. Los temas compactos se amplían ×3.2; los ya dispersos, lo justo (tope 0.12 NDC), porque es mejor acercar la cámara que empujar medio mapa. Después, una relajación de colisiones (d3-force, 300 iteraciones, atracción débil a la posición ampliada) garantiza una separación mínima en pantalla de `ISO_MIN_PX = 15` y conserva quién está cerca de quién. Los títulos idénticos, que caen en el mismo punto (ej. las 292 "notas al programa"), se siembran en espiral para que se separen.
+   - **El claro** se mide con el p95 del radio del tema (no con su tesis más lejana) y el desplazamiento se desvanece suave hasta 3×. Es monótono, así que ningún punto cruza a otro.
+   - **Tamaño de punto:** regl-scatterplot agranda los puntos con el zoom por defecto (`pointScaleMode: 'asinh'`), encima del tamaño manual del atlas; en modo aislado las tesis se tocaban aunque sus centros estaban a 15 px. Se pasó a `pointScaleMode: 'constant'`: el tamaño lo controla solo `updatePointSize()` (1.5 → 5 px con el zoom; 7 px fijo en modo aislado).
+   - **Verificado midiendo píxeles reales en pantalla**, no el parámetro:
+
+     | Tema | Tesis | Separación mínima | Vecino más cercano (media) | Zoom |
+     |---|---|---|---|---|
+     | "Notas al programa" | 325 | **15.0 px** | 16.4 px | ×3.4 |
+     | Polimorfismos | 1,199 | **14.7 px** | 19.0 px | ×8.4 |
+
+     Antes de ajustar la relajación: 12.8 y 9.5 px. Salir restaura posiciones reales, overlay y 36 nombres. Consola sin errores.
+
+**Observación de diseño, abierta**: en temas grandes y densos, garantizar 15 px de separación hace que el núcleo se vea como una retícula casi regular: se gana legibilidad y se pierde algo de organicidad. Palancas: `ISO_MIN_PX`, `ISO_EXPAND` y la fuerza de atracción a la posición real.
+
+**Pendientes nuevos, agregados a la lista consolidada (P2):**
+- Cuánta información extra cabe en el tooltip de tesis (hoy título + año).
+- Qué hacer con la intro: reutilizar la animación área → contenido en otro momento de la experiencia.
+- La ficha de una tesis fuera del modo aislado solo tiene título/año/territorio. Programa, plantel y asesor requieren sumarlos a las teselas o un índice por tesis.
+- Nombres de temas finos siguen siendo keywords sin acentos. Se notan más ahora que el chip del modo aislado los pone al centro.
