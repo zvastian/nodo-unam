@@ -57,6 +57,51 @@ def clave_orden(t: str) -> str:
     return "".join(c for c in s if c.isalnum() or c == " ").strip()
 
 
+VECINDARIO_PATH = Path(os.getenv("VECINDARIO_PATH", "data/vecindario/tesis_vecindario_top100.parquet"))
+EDGES_K = int(os.getenv("EDGES_K", "3"))
+
+
+def aristas_intra_tema(tm: pd.DataFrame) -> dict:
+    """Enlaces REALES entre tesis del mismo tema fino, para el estado "ecosistema" del
+    modo aislado: de los 100 vecinos e5 de cada tesis (tesis_vecindario_top100, FAISS
+    exacto, ADR-0014) se conservan los que caen en su mismo micro-cluster, hasta
+    EDGES_K por tesis (ya vienen ordenados por similitud), sin duplicar a-b / b-a.
+    Devuelve {cluster_id: [(thesis_a, thesis_b, sim), ...]}. Ids como enteros para no
+    materializar 20M strings en Python."""
+    import numpy as np
+    import pyarrow.compute as pc
+    import pyarrow.parquet as pq
+
+    to_int = lambda arr: pc.cast(pc.utf8_slice_codeunits(arr, 3), "int32")  # 'TH_0000123' -> 123
+    t = pq.read_table(VECINDARIO_PATH)
+    src = to_int(t["thesis_id"]).to_numpy()
+    lens = pc.list_value_length(t["neighbor_ids"]).to_numpy()
+    nb = to_int(pc.list_flatten(t["neighbor_ids"])).to_numpy()
+    sim = pc.list_flatten(t["neighbor_similarities"]).to_numpy()
+    src_rep = np.repeat(src, lens)
+    rank = np.concatenate([np.arange(k) for k in lens])
+
+    cl = np.full(int(max(src.max(), nb.max())) + 1, -1, dtype=np.int32)
+    tm_int = tm["thesis_id"].str.slice(3).astype(int).to_numpy()
+    cl[tm_int] = tm["cluster_id"].to_numpy()
+    keep = (cl[src_rep] >= 0) & (cl[src_rep] == cl[nb]) & (src_rep != nb)
+    src_rep, nb, sim, rank = src_rep[keep], nb[keep], sim[keep], rank[keep]
+    # top-EDGES_K por tesis de origen (los vecinos ya vienen en orden de similitud)
+    order = np.lexsort((rank, src_rep))
+    src_rep, nb, sim = src_rep[order], nb[order], sim[order]
+    first = np.r_[True, src_rep[1:] != src_rep[:-1]]
+    pos = np.arange(len(src_rep)) - np.maximum.accumulate(np.where(first, np.arange(len(src_rep)), 0))
+    top = pos < EDGES_K
+    a, b, s = src_rep[top], nb[top], sim[top]
+    lo, hi = np.minimum(a, b), np.maximum(a, b)
+    df = pd.DataFrame({"a": lo, "b": hi, "s": s, "c": cl[lo]}).groupby(["a", "b", "c"], as_index=False)["s"].max()
+    out = {}
+    for c, g in df.groupby("c"):
+        out[int(c)] = list(zip(g["a"].tolist(), g["b"].tolist(), g["s"].round(3).tolist()))
+    print(f"aristas intra-tema: {len(df):,} en {len(out)} temas (k={EDGES_K})")
+    return out
+
+
 def main():
     tm = pd.read_parquet(JERARQUIA_TESIS, columns=["thesis_id", "cluster_id", "macro_id", "meso_id"])
     d = pd.read_parquet(DATA_PATH, columns=["thesis_id", "anio", "titulo_original", "plantel", "programa", "nivel", "asesores"])
@@ -79,10 +124,13 @@ def main():
     df["orden"] = df["titulo"].map(clave_orden)
     df["anio"] = pd.to_numeric(df["anio"], errors="coerce")
 
+    aristas = aristas_intra_tema(tm) if VECINDARIO_PATH.exists() else {}
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     total_bytes = 0
     for cid, g in df.groupby("cluster_id"):
         g = g.sort_values(["orden", "anio"])
+        pos = {int(t[3:]): k for k, t in enumerate(g["thesis_id"])}
+        edges = [[pos[x], pos[y], round(float(s), 3)] for x, y, s in aristas.get(int(cid), []) if x in pos and y in pos]
         rows = [
             [r.thesis_id, r.titulo, None if pd.isna(r.anio) else int(r.anio), r.plantel or "", r.programa or "",
              r.nivel, r.asesores_l]
@@ -97,6 +145,8 @@ def main():
             "fields": ["thesisId", "titulo", "anio", "plantel", "programa", "nivel", "asesores"],
             "note": "titulo sin mencion de responsabilidad (sin autor); orden alfabetico sin acentos",
             "rows": rows,
+            # [fila_a, fila_b, similitud coseno e5] -- vecinas reales dentro del tema
+            "edges": edges,
         }
         p = OUT_DIR / f"{int(cid)}.json"
         p.write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")

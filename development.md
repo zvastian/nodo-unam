@@ -1471,3 +1471,36 @@ Pedido del usuario: "resolver la visibilidad de una vez". Respaldo de la versió
 - Qué hacer con la intro: reutilizar la animación área → contenido en otro momento de la experiencia.
 - La ficha de una tesis fuera del modo aislado solo tiene título/año/territorio. Programa, plantel y asesor requieren sumarlos a las teselas o un índice por tesis.
 - Nombres de temas finos siguen siendo keywords sin acentos. Se notan más ahora que el chip del modo aislado los pone al centro.
+
+
+### v3.3.0 — minimapa de vuelta, más separación, tema fino con dos estados (conexiones y análisis) (2026-09-24)
+
+Respaldo de la versión anterior: `index.v3.2.0.html`.
+
+- **Minimapa**: había desaparecido por un bug. Solo se mostraba al terminar la introducción, así que con la intro ya vista (`localStorage`) nunca aparecía. Ahora se muestra siempre, también en modo aislado, con **"Ocultar"** en su pie y un botón **"Mostrar minimapa"** para recuperarlo; la preferencia se recuerda (`localStorage`, con try/catch). Verificado con la intro ya vista: visible → oculto → visible.
+- **Más separación entre tesis al aislar un tema fino**, a pedido del usuario con captura de referencia. `ISO_MIN_PX` sube de 15 a **24 px entre centros** y el punto de 7 a **15 px**. Medido en píxeles: tema "pareja · marital" (214 tesis) **24.0 px** mínimo (34.4 px mediana); polimorfismos (1,199) **23.7 px** (30.5 px).
+- **Dos estados del tema aislado.** Los nombres "caótico" y "analítico" son solo de desarrollo, **nunca se muestran en la UI**. En el código son `iso.mode = 'eco' | 'ana'`.
+  - **Estado inicial (caótico).**
+    - *Qué conecta*: cada tesis con sus vecinas **reales**. De los 100 vecinos e5 de cada tesis (FAISS exacto, ADR-0014) se conservan los del mismo tema, hasta 3 por tesis, sin duplicados. Es un dato nuevo del pipeline (`aristas_intra_tema()` en `generar_atlas_tesis_por_micro.py`): **480,462 enlaces en los 513 temas**, ~2.4 por tesis, con similitud 0.82–1.0 (polimorfismos: 2,808 enlaces).
+    - *Cómo se ve*: el grosor y la opacidad del enlace codifican la similitud, en 5 niveles.
+    - *Animación*: partículas que viajan por los enlaces, con más probabilidad por los más fuertes (∝ similitud²), y un pulso anular al llegar: la tesis "recibe" lo que viajó.
+    - Se respeta `prefers-reduced-motion`: enlaces estáticos, sin partículas.
+  - **Botón "Analizar"** (bajo el título del chip; su ubicación final queda pendiente, a pedido del usuario): desaparecen los enlaces y las tesis se reorganizan en una grilla por grupo, al estilo del modo analítico del atlas anterior.
+    - Selector: área, plantel, programa, nivel o década.
+    - Color por grupo: las áreas conservan su color de siempre; lo demás usa la paleta categórica validada de la guía dataviz (8 colores + "Otros" en gris).
+    - Etiqueta directa por grupo (nombre y conteo), que compensa usar más de 3 colores.
+    - Orden dentro del grupo: año y luego título. Cambiar de agrupación anima el reacomodo.
+    - "Ver conexiones" regresa al estado inicial.
+- **Rendimiento, encontrado al medir:**
+  - La primera versión de los enlaces redibujaba las ~2,800 líneas en cada cuadro: el mapa pasaba de **60 fps a ~4 fps** con el tema aislado.
+  - La primera hipótesis (tamaño de punto aplicado a las 609k tesis) se **refutó** midiendo: con puntos de 2 px seguía en ~4 fps. WebGL no redibujaba (0 draws/s), así que el costo era la capa 2D.
+  - Además, el desvanecimiento dependía de los cuadros: a 4 fps tardaba ~10 s en apagarse y contaminaba la medición en análisis.
+  - Fix: los enlaces se pintan una vez en un lienzo en caché y solo se repintan si la cámara se mueve; por cuadro solo se dibujan partículas (≤110). El fundido ahora es por tiempo (350 ms).
+  - Resultado en headless (WebGL y canvas **por software**): estado inicial **27–29 fps**; análisis y mapa normal **60 fps**. En GPU real debería ser mejor, pero **no está medido en el navegador del usuario**.
+
+**Nota de diseño del usuario, registrada como pendiente URGENTE: el diseño necesita una identidad propia.** Hoy "se ve muy AI UI genérica": chips redondeados, botones de contorno en mayúsculas, sombras suaves, paneles blancos flotantes. Todo es funcional y correcto, pero sin carácter. Antes de seguir sumando componentes conviene una pasada de identidad: tipografía con personalidad, un sistema de color propio que no sea "neutro + acento verde", y formas y elementos gráficos que remitan a atlas, carta náutica o archivo universitario (ya era el norte del Design Manifest del 22-09 y lo construido se alejó de él). Candidato: usar `impeccable` para una pasada de dirección visual con referencias concretas.
+
+**Pendientes nuevos (P2):**
+- Ubicación estratégica del botón "Analizar".
+- En temas muy grandes (1,000+ tesis) la grilla de análisis sale del cuadro y hay que desplazarse; evaluar paginar grupos o reducir el paso de la grilla según el tamaño.
+- Medir fps del estado inicial en el navegador real del usuario.

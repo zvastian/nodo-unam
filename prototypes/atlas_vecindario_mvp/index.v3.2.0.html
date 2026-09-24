@@ -122,24 +122,7 @@
   #iso-chip b { font-family: "Source Serif 4", Georgia, serif; font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 0.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   #iso-chip .ic-n { font-family: "JetBrains Mono", monospace; font-size: 11px; color: var(--ink-2); white-space: nowrap; }
   #iso-chip .btn { border-radius: 999px; }
-  body.iso #overlay, body.iso #legend { opacity: 0; pointer-events: none; }
-  #flow { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; }
-  #iso-chip { flex-direction: column; align-items: stretch; border-radius: 14px; padding: 10px 12px; gap: 8px; }
-  #iso-chip .ic-head { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
-  #iso-chip .ic-head b { max-width: 460px; }
-  #iso-chip .ic-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-  #iso-chip .ic-actions .seg button { padding: 6px 9px; }
-  #ana-labels { position: absolute; inset: 0; pointer-events: none; z-index: 3; opacity: 0; transition: opacity 400ms ease; }
-  #ana-labels.on { opacity: 1; }
-  .ana-label { position: absolute; left: 0; top: 0; display: flex; align-items: center; gap: 6px; white-space: nowrap;
-    font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink); }
-  .ana-label i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
-  .ana-label span { max-width: 230px; overflow: hidden; text-overflow: ellipsis; }
-  .ana-label b { font-family: "JetBrains Mono", monospace; font-weight: 500; color: var(--ink-3); }
-  #minimap .mm-cap button { border: none; background: none; padding: 0; cursor: pointer; font: inherit; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.07em; }
-  #minimap .mm-cap button:hover { color: var(--accent); }
-  #mm-show { position: absolute; right: 16px; bottom: 14px; z-index: 5; }
-  main.panel-open #mm-show { right: 356px; }
+  body.iso #overlay, body.iso #minimap, body.iso #legend { opacity: 0; pointer-events: none; }
   #overlay, #minimap, #legend { transition: opacity 400ms ease; }
 
   /* ---------- breadcrumb ---------- */
@@ -180,8 +163,7 @@
   #minimap, #map-selection { transition: right 0.24s ease; }
   main.panel-open #minimap, main.panel-open #map-selection { right: 356px; }
   #minimap .mm-view { position: absolute; left: 6px; top: 6px; pointer-events: none; }
-  #minimap .mm-cap { font-size: 9px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink-3); padding: 4px 2px 0; display: flex; justify-content: space-between; gap: 8px; }
-  #minimap .mm-cap #mm-zoom { margin-left: auto; }
+  #minimap .mm-cap { font-size: 9px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink-3); padding: 4px 2px 0; display: flex; justify-content: space-between; }
 
   /* ---------- tooltips ---------- */
   .tip {
@@ -451,29 +433,17 @@
   <main id="main">
     <div id="wgl-host"></div>
     <div id="tint" aria-hidden="true"></div>
-    <canvas id="flow" aria-hidden="true"></canvas>
     <svg id="overlay"><g id="g-grid"></g><g id="g-edges"></g><g id="g-nodes"></g><g id="g-labels"></g></svg>
     <div id="disc-labels"></div>
     <nav id="crumbs" aria-label="Ubicación en el atlas" hidden></nav>
 
     <div class="legend" id="legend" hidden></div>
-    <div id="iso-chip" hidden>
-      <div class="ic-head"><span class="ic-ey">Tema fino aislado</span><b id="iso-name"></b><span id="iso-n" class="ic-n"></span></div>
-      <div class="ic-actions">
-        <button type="button" class="btn primary" id="iso-analyze">Analizar</button>
-        <div class="seg" id="ana-group" hidden role="group" aria-label="Agrupar tesis por">
-          <button type="button" data-g="area">Área</button><button type="button" data-g="plantel" class="active">Plantel</button><button type="button" data-g="programa">Programa</button><button type="button" data-g="nivel">Nivel</button><button type="button" data-g="decada">Década</button>
-        </div>
-        <button type="button" class="btn" id="iso-exit">← Volver al mapa</button>
-      </div>
-    </div>
-    <div id="ana-labels" aria-hidden="true"></div>
-    <button type="button" class="btn" id="mm-show" hidden>Mostrar minimapa</button>
+    <div id="iso-chip" hidden><span class="ic-ey">Tema fino aislado</span><b id="iso-name"></b><span id="iso-n" class="ic-n"></span><button type="button" class="btn" id="iso-exit">← Volver al mapa</button></div>
 
     <div id="minimap" hidden title="Clic o arrastre para moverte">
       <canvas id="mm-base"></canvas>
       <canvas id="mm-view" class="mm-view"></canvas>
-      <div class="mm-cap"><span>Vista general</span><span id="mm-zoom"></span><button type="button" id="mm-hide" title="Ocultar minimapa" aria-label="Ocultar minimapa">Ocultar</button></div>
+      <div class="mm-cap"><span>Vista general</span><span id="mm-zoom"></span></div>
     </div>
 
     <div id="tooltip" class="tip"></div>
@@ -518,7 +488,7 @@
 
   <footer>
     <span>Primera edición · n=609,154 tesis · e5-large · HDBSCAN + Ward · PaCMAP 2D · posiciones sin unidad física</span>
-    <span>Datos: catálogo TESIUNAM · <span id="app-version" title="Versionado semver del prototipo">v3.3.0</span></span>
+    <span>Datos: catálogo TESIUNAM · <span id="app-version" title="Versionado semver del prototipo">v3.2.0</span></span>
   </footer>
 </div>
 
@@ -621,7 +591,7 @@
   //   141 atenuado, 142 foco, 143..147 area 0..4 vivida (vecinos del spotlight)
   //   148 resaltado multiple (color dinamico), 149 resaltado de un territorio
   var NMACRO = 130;
-  var C_NOISE = 130, C_AREA = 131, C_AREA_NOISE = 136, C_DIM = 141, C_FOCAL = 142, C_VIVID = 143, C_HL_MULTI = 148, C_HL = 149, C_GRP = 150, NCAT = 159; // 150..158: grupos del modo analisis
+  var C_NOISE = 130, C_AREA = 131, C_AREA_NOISE = 136, C_DIM = 141, C_FOCAL = 142, C_VIVID = 143, C_HL_MULTI = 148, C_HL = 149, NCAT = 150;
 
   var state = {
     macroGraph: null, macros: [], macroById: {}, macroIndex: {},
@@ -807,7 +777,6 @@
     pal[C_FOCAL] = '#17181a'; op[C_FOCAL] = 1;
     pal[C_HL_MULTI] = '#0f7d5c'; op[C_HL_MULTI] = 0.92;
     pal[C_HL] = '#17181a'; op[C_HL] = 0.62;
-    for (var g = 0; g < 9; g++) { pal[C_GRP + g] = '#a79f8d'; op[C_GRP + g] = 0.95; }
     state.palette = pal; state.opacities = op;
   }
 
@@ -967,7 +936,6 @@
         rafPending = false;
         updateOverlayPositions();
         drawMinimapView();
-        if (state.iso) placeAnaLabels();
         updateCrumbs();
         if (DEBUG) $('zoom-readout').textContent = '×' + state.k.toFixed(2) + ' ' + state.level;
       });
@@ -979,7 +947,7 @@
   function updatePointSize() {
     var t = Math.max(0, Math.min(1, (state.k - K0) / (K_MAX_ZOOM - K0)));
     var size = Math.round((1.5 + 3.5 * Math.sqrt(t)) * 20) / 20;
-    if (state.iso) size = state.iso.mode === 'ana' ? ANA_DOT_PX : ISO_DOT_PX;
+    if (state.iso) size = Math.round(ISO_MIN_PX * 0.47); // ~7 px con ~8 px de aire entre tesis
     if (size !== lastPointSize) { lastPointSize = size; state.scatterplot.set({ pointSize: size }); }
   }
 
@@ -1391,18 +1359,6 @@
     window.addEventListener('mousemove', function (ev) { if (dragging) go(ev); });
     window.addEventListener('mouseup', function () { dragging = false; });
   }
-  // Minimapa con opcion de ocultarlo (v3.3). Bug corregido: solo se mostraba al
-  // terminar la intro, asi que con la intro ya vista nunca aparecia.
-  function minimapHidden() { try { return localStorage.getItem('nodo_mm_hidden') === '1'; } catch (e) { return false; } }
-  function applyMinimapPref() {
-    var hid = minimapHidden();
-    $('minimap').hidden = hid; $('mm-show').hidden = !hid;
-    if (!hid) drawMinimapView();
-  }
-  function setMinimapHidden(h) { try { localStorage.setItem('nodo_mm_hidden', h ? '1' : '0'); } catch (e) { /* sin almacenamiento: solo para esta sesion */ } $('minimap').hidden = h; $('mm-show').hidden = !h; if (!h) drawMinimapView(); }
-  $('mm-hide').addEventListener('mousedown', function (ev) { ev.stopPropagation(); });
-  $('mm-hide').addEventListener('click', function (ev) { ev.stopPropagation(); setMinimapHidden(true); });
-  $('mm-show').addEventListener('click', function () { setMinimapHidden(false); });
   function paintMinimap() {
     var cv = $('mm-base'), ctx = cv.getContext('2d'), dpr = window.devicePixelRatio || 1, s = MM_W * dpr, cats = baseCats();
     ctx.clearRect(0, 0, s, s);
@@ -1998,8 +1954,7 @@
     if (on) state.pin = null;
     if (!on) showDiscLabels(false);
     $('overlay').style.visibility = on ? 'hidden' : 'visible';
-    $('crumbs').hidden = on; $('legend').hidden = on;
-    if (on) { $('minimap').hidden = true; $('mm-show').hidden = true; } else applyMinimapPref();
+    $('crumbs').hidden = on; $('minimap').hidden = on; $('legend').hidden = on;
     state.scatterplot.set({ cameraIsFixed: on });
     if (on) {
       panel.classList.remove('open'); main.classList.remove('panel-open'); $('map-selection').hidden = true; state.spotlightActive = false; state.routeActive = null; hideTip();
@@ -2041,7 +1996,6 @@
     if (state.introActive) setChromeForIntro(false);
     state.highlightKey = '';
     setLens('territory', true);
-    applyMinimapPref();
     syncOverlay(); updateCrumbs(); drawMinimapView();
   }
   $('btn-intro').addEventListener('click', startIntro);
@@ -2172,26 +2126,15 @@
     return rec.map.get(idx) || null;
   }
 
-  // ==================== modo aislado de tema fino (v3.3) ====================
-  // Clic en un tema fino: la camara se acerca, sus tesis se SEPARAN entre si
-  // (transicion nativa de puntos de regl-scatterplot, como la intro), el resto del
-  // mapa se abre dejando un claro y se atenua, y el fondo se tine del color del filtro.
-  // Dos estados internos (nombres solo de desarrollo, NUNCA en la UI):
-  //   'eco' (caotico): enlaces reales entre tesis del tema (vecinas e5 dentro del
-  //         tema, grosor = similitud) con particulas que viajan de una tesis a otra
-  //         y un pulso al llegar -- sensacion de ecosistema vivo.
-  //   'ana' (analitico): sin enlaces; las tesis se reordenan en grilla por grupo
-  //         (area, plantel, programa, nivel, decada) con color por grupo y animacion
-  //         entre agrupaciones, como el modo analitico del atlas anterior.
+  // ==================== modo aislado de tema fino (v3.2) ====================
+  // Clic en un tema fino: sus tesis se separan entre si (animacion nativa de
+  // regl-scatterplot, igual que la intro), el resto del mapa se abre dejando un
+  // claro y se atenua, y el fondo se tine del color del filtro activo.
   // La separacion NO es un layout inventado: cada tesis parte de su posicion real
   // ampliada alrededor del centro del tema (conserva quien esta cerca de quien) y
-  // una relajacion de colisiones garantiza ISO_MIN_PX entre centros en pantalla.
-  var ISO_MIN_PX = 24;      // separacion minima entre centros de dos tesis (v3.3: antes 15; referencia del usuario)
-  var ISO_DOT_PX = 15;      // diametro del punto en estado 'eco'
+  // una relajacion de colisiones garantiza ISO_MIN_PX de separacion en pantalla.
+  var ISO_MIN_PX = 15;      // separacion minima entre dos tesis del tema, en pixeles
   var ISO_EXPAND = 3.2;     // cuanto se amplia el tema como minimo respecto a su tamano real
-  var ANA_STEP_PX = 20, ANA_DOT_PX = 12;
-  var CAT8 = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4', '#008300', '#4a3aa7', '#e34948']; // paleta categorica validada (guia dataviz)
-  var CAT_OTHER = '#a79f8d';
   var isoToken = 0;
   function hexToRgba(hex, a) {
     var v = parseInt(hex.slice(1), 16);
@@ -2202,26 +2145,20 @@
     return (n.parentMacro && n.parentMacro.color) || '#3f4a5c';
   }
   function median(arr) { var a = Array.from(arr).sort(function (x, y) { return x - y; }); return a[Math.floor(a.length / 2)]; }
-  function camXform() {
-    var t = state.scatterplot.get('cameraTarget'), d = state.scatterplot.get('cameraDistance');
-    return { tx: t[0], ty: t[1], s: (state.H / 2) / d };
-  }
 
   function isolateMicro(n) {
     var token = ++isoToken;
-    if (state.iso) { stopFlow(); hideAnaLabels(); }
-    Promise.all([loadThesesFor(n), loadMicroTheses(n.clusterId)]).then(function (res) {
+    loadThesesFor(n).then(function (rows) {
       if (token !== isoToken) return;
-      var rows = res[0], raw = res[1];
-      var idxs = [], byIdx = {}, rowIdx = [];
-      rows.forEach(function (r) { var i = state.thesisIdToIndex.get(r.id); rowIdx.push(i == null ? null : i); if (i != null) { idxs.push(i); byIdx[i] = r; } });
+      var idxs = [], byIdx = {};
+      rows.forEach(function (r) { var i = state.thesisIdToIndex.get(r.id); if (i != null) { idxs.push(i); byIdx[i] = r; } });
       var N = idxs.length; if (!N) return;
       var X0 = state.ndcX, Y0 = state.ndcY;
       var cx = median(idxs.map(function (i) { return X0[i]; })), cy = median(idxs.map(function (i) { return Y0[i]; }));
       var dists = idxs.map(function (i) { return Math.hypot(X0[i] - cx, Y0[i] - cy); }).sort(function (a, b) { return a - b; });
       var R90 = Math.max(dists[Math.floor(0.9 * (N - 1))], 0.004);
 
-      // 1) espacio que necesita el tema en pantalla y zoom al que se ve
+      // 1) cuanto espacio necesita el tema en pantalla y a que zoom se ve
       var W = state.W, H = state.H;
       var Rpx = Math.max(0.33 * Math.min(W, H), Math.sqrt(N * ISO_MIN_PX * ISO_MIN_PX * 1.3 / Math.PI));
       // temas compactos se amplian x3.2; los ya dispersos, lo justo (tope 0.12 NDC):
@@ -2235,7 +2172,7 @@
       var nodes = idxs.map(function (i, k) {
         var x = (X0[i] - cx) * sc, y = (Y0[i] - cy) * sc;
         // titulos identicos caen en el MISMO punto: semilla en espiral para que se separen
-        if (Math.hypot(x, y) < 1) { var rr = 4 * Math.sqrt(k + 1); x = rr * Math.cos(k * GA); y = rr * Math.sin(k * GA); }
+        if (Math.hypot(x, y) < 1) { var rr = 3 * Math.sqrt(k + 1); x = rr * Math.cos(k * GA); y = rr * Math.sin(k * GA); }
         return { x: x, y: y, tx: x, ty: y };
       });
       var sim = d3.forceSimulation(nodes)
@@ -2243,7 +2180,7 @@
         .force('x', d3.forceX(function (d) { return d.tx; }).strength(0.035))
         .force('y', d3.forceY(function (d) { return d.ty; }).strength(0.035))
         .stop();
-      for (var t = 0; t < 320; t++) sim.tick();
+      for (var t = 0; t < 300; t++) sim.tick();
 
       var NX = new Float32Array(X0), NY = new Float32Array(Y0), radii = [];
       nodes.forEach(function (d, k) {
@@ -2251,7 +2188,8 @@
         radii.push(Math.hypot(d.x, d.y) / pxPerNdc);
       });
       radii.sort(function (a, b) { return a - b; });
-      // el claro se mide con el p95 del tema, no con su tesis mas lejana
+      // el claro se mide con el p95 del tema, no con su tesis mas lejana (un punado de
+      // miembros alejados hacia que se empujara medio mapa)
       var Rmax = radii[Math.floor(0.95 * (radii.length - 1))];
       // 3) el resto del mapa se abre: claro de radio Rc alrededor del tema, con
       //    desplazamiento que se desvanece suave hasta 3*Rc (monotono: no cruza puntos)
@@ -2267,14 +2205,10 @@
       }
       var cats = new Float32Array(state.n); cats.fill(C_DIM);
       idxs.forEach(function (i) { cats[i] = C_HL_MULTI; });
-      // enlaces reales (vecinas e5 dentro del tema, ver generar_atlas_tesis_por_micro.py)
-      var edges = (raw.edges || []).map(function (e) { return [rowIdx[e[0]], rowIdx[e[1]], e[2]]; })
-        .filter(function (e) { return e[0] != null && e[1] != null; });
 
-      state.iso = { node: n, idxs: idxs, byIdx: byIdx, cats: cats, ecoCats: cats, X: NX, Y: NY, ecoX: NX, ecoY: NY, cx: cx, cy: cy, D: D, edges: edges, mode: 'eco', groupBy: 'plantel' };
+      state.iso = { node: n, idxs: idxs, byIdx: byIdx, cats: cats, X: NX, Y: NY, cx: cx, cy: cy, D: D };
       document.body.classList.add('iso');
       $('iso-name').textContent = n.name; $('iso-n').textContent = fmtNum(N) + ' tesis';
-      setChipMode('eco');
       $('iso-chip').hidden = false;
       applyIsoColor();
 
@@ -2285,8 +2219,7 @@
         state.dispX = NX; state.dispY = NY;
         state.highlightKey = 'iso|' + n.id;
         lastPointSize = null; updatePointSize();
-        drawPoints(NX, NY, cats, { transition: true, transitionDuration: 1500, transitionEasing: 'cubicInOut' })
-          .then(function () { if (token === isoToken && state.iso && state.iso.mode === 'eco') startFlow(); });
+        drawPoints(NX, NY, cats, { transition: true, transitionDuration: 1500, transitionEasing: 'cubicInOut' });
       });
     });
   }
@@ -2297,11 +2230,10 @@
     tint.style.background = 'radial-gradient(ellipse at 50% 50%, ' + hexToRgba(c, 0.15) + ' 0%, ' + hexToRgba(c, 0.07) + ' 45%, ' + hexToRgba(c, 0.025) + ' 100%)';
     tint.classList.add('on');
   }
-  function recolorIsolation() { if (state.iso) { applyIsoColor(); if (state.iso.mode === 'ana') enterAnalysis(state.iso.groupBy, true); state.highlightKey = ''; } }
+  function recolorIsolation() { if (state.iso) { applyIsoColor(); state.highlightKey = ''; } }
   function exitIsolation(quick) {
     isoToken++;
     if (!state.iso) return Promise.resolve();
-    stopFlow(); hideAnaLabels();
     state.iso = null;
     document.body.classList.remove('iso');
     $('iso-chip').hidden = true; $('tint').classList.remove('on');
@@ -2313,200 +2245,6 @@
       .then(function () { scheduleReveal(); syncOverlay(); });
   }
   $('iso-exit').addEventListener('click', function () { exitIsolation(); });
-
-  // ---------- estado 'eco': enlaces + particulas (canvas 2D sobre el WebGL) ----------
-  // Rendimiento (medido, v3.3): redibujar las ~2,800 lineas en cada cuadro bajaba el
-  // mapa de 55-60 fps a ~4 fps. Ahora los enlaces se pintan UNA vez en un lienzo en
-  // cache y solo se repintan si la camara se movio; por cuadro solo se dibujan las
-  // particulas (<=110). El fundido es por tiempo (FLOW_FADE_MS), no por cuadros.
-  var FLOW_FADE_MS = 350;
-  var flow = { raf: 0, running: false, fadeFrom: 0, fadeT0: 0, parts: [], pulses: [], cum: null, edgeCv: null, edgeKey: '' };
-  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  function simW(s) { return Math.max(0, Math.min(1, (s - 0.82) / 0.16)); }
-  function resizeFlow() {
-    var cv = $('flow'), dpr = window.devicePixelRatio || 1;
-    cv.width = Math.round(state.W * dpr); cv.height = Math.round(state.H * dpr);
-    if (!flow.edgeCv) flow.edgeCv = document.createElement('canvas');
-    flow.edgeCv.width = cv.width; flow.edgeCv.height = cv.height; flow.edgeKey = '';
-  }
-  function flowAlpha(ts) {
-    var u = Math.min(1, (ts - flow.fadeT0) / FLOW_FADE_MS), target = flow.running ? 1 : 0;
-    return flow.fadeFrom + (target - flow.fadeFrom) * u;
-  }
-  function startFlow() {
-    if (!state.iso || !state.iso.edges.length) return;
-    // particulas eligen enlace con probabilidad ~ similitud^2: fluyen mas por los enlaces fuertes
-    var acc = 0; flow.cum = state.iso.edges.map(function (e) { var w = 0.15 + simW(e[2]); acc += w * w; return acc; });
-    var now = performance.now();
-    flow.fadeFrom = flow.raf ? flowAlpha(now) : 0; flow.fadeT0 = now;
-    flow.running = true; flow.parts = []; flow.pulses = [];
-    resizeFlow();
-    if (!flow.raf) flow.raf = requestAnimationFrame(flowFrame);
-  }
-  function stopFlow() {
-    if (!flow.running) return;
-    var now = performance.now();
-    flow.fadeFrom = flowAlpha(now); flow.fadeT0 = now; flow.running = false;
-    if (!flow.raf) flow.raf = requestAnimationFrame(flowFrame);
-  }
-  function pickEdge() {
-    var c = flow.cum, r = Math.random() * c[c.length - 1], lo = 0, hi = c.length - 1;
-    while (lo < hi) { var mid = (lo + hi) >> 1; if (c[mid] < r) lo = mid + 1; else hi = mid; }
-    return lo;
-  }
-  function spawnPart(ts) {
-    var e = state.iso.edges[pickEdge()], fwd = Math.random() < 0.5, w = simW(e[2]);
-    return { from: fwd ? e[0] : e[1], to: fwd ? e[1] : e[0], t0: ts + Math.random() * 1800, dur: 1300 + 1700 * (1 - w) + Math.random() * 600, w: w };
-  }
-  function paintEdges(c, col) {
-    var cv = flow.edgeCv, ctx = cv.getContext('2d'), dpr = window.devicePixelRatio || 1, iso = state.iso;
-    var X = state.dispX, Y = state.dispY, W2 = state.W / 2, H2 = state.H / 2;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, state.W, state.H);
-    ctx.strokeStyle = col; ctx.lineCap = 'round';
-    for (var b = 0; b < 5; b++) { // 5 grosores: pocos cambios de estado del canvas
-      ctx.beginPath();
-      for (var k = 0; k < iso.edges.length; k++) {
-        var e = iso.edges[k];
-        if (Math.min(4, Math.floor(simW(e[2]) * 5)) !== b) continue;
-        ctx.moveTo((X[e[0]] - c.tx) * c.s + W2, H2 - (Y[e[0]] - c.ty) * c.s);
-        ctx.lineTo((X[e[1]] - c.tx) * c.s + W2, H2 - (Y[e[1]] - c.ty) * c.s);
-      }
-      ctx.globalAlpha = 0.10 + 0.07 * b; ctx.lineWidth = 0.6 + 0.6 * b; ctx.stroke();
-    }
-  }
-  function flowFrame(ts) {
-    flow.raf = 0;
-    var cv = $('flow'), ctx = cv.getContext('2d'), dpr = window.devicePixelRatio || 1, iso = state.iso;
-    var alpha = flowAlpha(ts);
-    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, cv.width, cv.height);
-    if (!iso || (!flow.running && alpha <= 0.001)) return;
-    var c = camXform(), col = state.palette[C_HL_MULTI];
-    var key = [c.tx.toFixed(5), c.ty.toFixed(5), c.s.toFixed(2), col, state.W, state.H].join('|');
-    if (key !== flow.edgeKey) { paintEdges(c, col); flow.edgeKey = key; }
-    ctx.globalAlpha = alpha; ctx.drawImage(flow.edgeCv, 0, 0);
-    if (!reduceMotion) {
-      var X = state.dispX, Y = state.dispY, W2 = state.W / 2, H2 = state.H / 2;
-      var px = function (i) { return (X[i] - c.tx) * c.s + W2; }, py = function (i) { return H2 - (Y[i] - c.ty) * c.s; };
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      var maxP = Math.min(110, 8 + Math.ceil(iso.edges.length * 0.05));
-      while (flow.running && flow.parts.length < maxP) flow.parts.push(spawnPart(ts));
-      ctx.fillStyle = col;
-      flow.parts = flow.parts.filter(function (p) {
-        var u = (ts - p.t0) / p.dur;
-        if (u < 0) return true;
-        if (u >= 1) { if (flow.running) flow.pulses.push({ i: p.to, t0: ts }); return false; }
-        var ez = u < 0.5 ? 2 * u * u : 1 - Math.pow(-2 * u + 2, 2) / 2;
-        ctx.globalAlpha = alpha * (0.55 + 0.4 * p.w) * Math.sin(Math.PI * u);
-        ctx.beginPath(); ctx.arc(px(p.from) + (px(p.to) - px(p.from)) * ez, py(p.from) + (py(p.to) - py(p.from)) * ez, 2 + 1.2 * p.w, 0, 6.2832); ctx.fill();
-        return true;
-      });
-      // pulso al llegar: la tesis "recibe" lo que viajo por el enlace
-      ctx.strokeStyle = col; ctx.lineWidth = 1.5;
-      flow.pulses = flow.pulses.filter(function (q) {
-        var u = (ts - q.t0) / 700; if (u >= 1) return false;
-        ctx.globalAlpha = alpha * 0.55 * (1 - u);
-        ctx.beginPath(); ctx.arc(px(q.i), py(q.i), ISO_DOT_PX / 2 + 2 + 10 * u, 0, 6.2832); ctx.stroke();
-        return true;
-      });
-    }
-    ctx.globalAlpha = 1;
-    flow.raf = requestAnimationFrame(flowFrame);
-  }
-
-  // ---------- estado 'ana': reorganizar por grupo ----------
-  var ANA_KEYS = {
-    area: function (i, r) { return AREA_NAMES[state.areaCode[i] || 0]; },
-    plantel: function (i, r) { return r.pl || 'sin plantel'; },
-    programa: function (i, r) { return r.pr || 'sin programa'; },
-    nivel: function (i, r) { return r.nv || 'sin nivel'; },
-    decada: function (i, r) { return r.y ? Math.floor(r.y / 10) * 10 + 's' : 'sin año'; }
-  };
-  function enterAnalysis(groupBy, instant) {
-    var iso = state.iso; if (!iso) return;
-    iso.mode = 'ana'; iso.groupBy = groupBy || iso.groupBy || 'plantel';
-    stopFlow(); setChipMode('ana');
-    var keyFn = ANA_KEYS[iso.groupBy], groups = new Map();
-    iso.idxs.forEach(function (i) { var k = keyFn(i, iso.byIdx[i]); if (!groups.has(k)) groups.set(k, []); groups.get(k).push(i); });
-    var list = Array.from(groups.entries());
-    if (iso.groupBy === 'decada') list.sort(function (a, b) { return a[0] < b[0] ? -1 : 1; });
-    else list.sort(function (a, b) { return b[1].length - a[1].length; });
-    if (list.length > 9) { var rest = []; list.slice(8).forEach(function (g) { rest = rest.concat(g[1]); }); list = list.slice(0, 8).concat([['Otros (' + (list.length - 8) + ')', rest]]); }
-    // color por grupo: areas con su color de siempre; lo demas con la paleta categorica validada
-    list.forEach(function (g, gi) {
-      var col = iso.groupBy === 'area' ? AREA_HEX[Object.keys(AREA_NAMES).filter(function (k) { return AREA_NAMES[k] === g[0]; })[0] || 0]
-        : (/^Otros \(/.test(g[0]) ? CAT_OTHER : CAT8[gi % 8]);
-      g.push(col); state.palette[C_GRP + gi] = col;
-    });
-    state.scatterplot.set({ pointColor: state.palette });
-    // grilla de grillas en pixeles de pantalla, dentro del area visible (sin el panel)
-    var c = camXform(), panelW = panel.classList.contains('open') ? panel.offsetWidth : 0;
-    var visW = state.W - panelW - 48, left = 24, top = 96, S = ANA_STEP_PX;
-    var G = list.length, cols = Math.max(1, Math.min(G, Math.round(Math.sqrt(G * visW / Math.max(1, state.H - 150)))));
-    var cellW = visW / cols, innerCols = Math.max(1, Math.floor((cellW - 28) / S));
-    var NX = new Float32Array(iso.ecoX), NY = new Float32Array(iso.ecoY), cats = new Float32Array(iso.ecoCats), labels = [], y = top, rowH = 0;
-    list.forEach(function (g, gi) {
-      var col = gi % cols; if (col === 0 && gi > 0) { y += rowH + 30; rowH = 0; }
-      var x0 = left + col * cellW, items = g[1].slice().sort(function (a, b) { return ((iso.byIdx[a].y || 0) - (iso.byIdx[b].y || 0)) || (iso.byIdx[a].k < iso.byIdx[b].k ? -1 : 1); });
-      labels.push({ x: (x0 - state.W / 2) / c.s + c.tx, y: c.ty - (y - state.H / 2) / c.s, text: g[0], n: items.length, color: g[2] });
-      items.forEach(function (i, k) {
-        var px = x0 + (k % innerCols) * S + S / 2, py = y + 22 + Math.floor(k / innerCols) * S + S / 2;
-        NX[i] = c.tx + (px - state.W / 2) / c.s; NY[i] = c.ty - (py - state.H / 2) / c.s;
-        cats[i] = C_GRP + gi;
-      });
-      rowH = Math.max(rowH, 22 + Math.ceil(items.length / innerCols) * S);
-    });
-    iso.cats = cats; iso.X = NX; iso.Y = NY; iso.anaLabels = labels;
-    state.dispX = NX; state.dispY = NY;
-    state.highlightKey = 'ana|' + iso.groupBy + '|' + state.lens;
-    lastPointSize = null; updatePointSize();
-    showAnaLabels(false);
-    drawPoints(NX, NY, cats, instant ? {} : { transition: true, transitionDuration: 1200, transitionEasing: 'cubicInOut' })
-      .then(function () { if (state.iso === iso && iso.mode === 'ana') showAnaLabels(true); });
-    document.querySelectorAll('#ana-group button').forEach(function (b) { b.classList.toggle('active', b.getAttribute('data-g') === iso.groupBy); });
-  }
-  function exitAnalysis() {
-    var iso = state.iso; if (!iso) return;
-    iso.mode = 'eco'; iso.cats = iso.ecoCats; iso.X = iso.ecoX; iso.Y = iso.ecoY;
-    hideAnaLabels(); setChipMode('eco');
-    state.dispX = iso.ecoX; state.dispY = iso.ecoY;
-    state.highlightKey = 'iso|' + iso.node.id;
-    lastPointSize = null; updatePointSize();
-    drawPoints(iso.ecoX, iso.ecoY, iso.ecoCats, { transition: true, transitionDuration: 1200, transitionEasing: 'cubicInOut' })
-      .then(function () { if (state.iso === iso && iso.mode === 'eco') startFlow(); });
-  }
-  function showAnaLabels(on) {
-    var host = $('ana-labels'), iso = state.iso;
-    host.innerHTML = '';
-    if (!on || !iso || !iso.anaLabels) return;
-    iso.anaLabels.forEach(function (l) {
-      var d = document.createElement('div'); d.className = 'ana-label';
-      d.innerHTML = '<i style="background:' + l.color + '"></i><span>' + escapeHtml(l.text) + '</span><b>' + fmtNum(l.n) + '</b>';
-      d.setAttribute('data-x', l.x); d.setAttribute('data-y', l.y);
-      host.appendChild(d);
-    });
-    placeAnaLabels();
-    requestAnimationFrame(function () { host.classList.add('on'); });
-  }
-  function hideAnaLabels() { var h = $('ana-labels'); h.classList.remove('on'); h.innerHTML = ''; }
-  function placeAnaLabels() {
-    var host = $('ana-labels'); if (!host.firstChild) return;
-    var c = camXform();
-    host.querySelectorAll('.ana-label').forEach(function (d) {
-      var x = (parseFloat(d.getAttribute('data-x')) - c.tx) * c.s + state.W / 2, y = state.H / 2 - (parseFloat(d.getAttribute('data-y')) - c.ty) * c.s;
-      d.style.transform = 'translate(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px)';
-    });
-  }
-  function setChipMode(mode) {
-    $('iso-analyze').textContent = mode === 'ana' ? 'Ver conexiones' : 'Analizar';
-    $('ana-group').hidden = mode !== 'ana';
-  }
-  $('iso-analyze').addEventListener('click', function () {
-    if (!state.iso) return;
-    if (state.iso.mode === 'ana') exitAnalysis(); else enterAnalysis();
-  });
-  document.querySelectorAll('#ana-group button').forEach(function (b) {
-    b.addEventListener('click', function () { if (state.iso) enterAnalysis(b.getAttribute('data-g')); });
-  });
 
   // ==================== vecindario (modo analitico, mismo mecanismo que v2) ====================
   var AREA_COLORS = { 'area 1': '#3566a8', 'area 2': '#0f7d5c', 'area 3': '#c98a2e', 'area 4': '#b8412f' };
@@ -2606,7 +2344,6 @@
     var rect = main.getBoundingClientRect(); state.W = rect.width; state.H = rect.height;
     requestAnimationFrame(resizeRenderer); // el renderer registra su propio handler (re-limita a la pantalla) despues del nuestro
     state.scatterplot.set({ width: rect.width, height: rect.height });
-    if (state.iso) resizeFlow();
     if (!$('vmodal').hidden && vm.history.length) renderVecindario(vm.history[vm.history.length - 1].id);
     if (state.introActive && !$('story-next').disabled) showDiscLabels(true);
   });
