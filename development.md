@@ -1763,3 +1763,21 @@ El énfasis sale de **contraste, tamaño y texto**, sin efectos.
 **Pendiente:**
 - Probar en el navegador real con GPU: el canvas de marcas repinta hasta 30 mil puntos por cuadro al moverse.
 - Decidir si los grupos de territorio (más de 30 mil tesis) también merecen curvas.
+
+### v4.3.1 — en el tema fino ya no se puede saltar a otro tema por accidente (2026-09-24)
+
+**Reporte del usuario:** en modo tema fino, al hacer clic en tesis individuales, a veces se abría otro tema fino y se iba a otro cluster sin querer. Al pasar el cursor aparecía «Tema fino… Clic para acercarte».
+
+**Causa.** En el tema aislado, la capa de nombres del mapa se oculta con `opacity: 0; pointer-events: none`. Pero sus círculos y rótulos declaran `pointer-events: auto`, y en CSS eso gana al `none` del padre. Los marcadores invisibles de los otros temas seguían recibiendo clics y hover. Medido en v4.2 y en v4.3.0: 28 de 28 marcadores visibles bajo el tema seguían siendo clicables. El bug venía de antes de v4.3.
+
+**Arreglo.** `body.iso #overlay * { pointer-events: none !important; }`.
+
+**Verificado:**
+- en el tema aislado, 0 de 28 marcadores son clicables (`elementFromPoint`);
+- al salir, vuelven a serlo (20 de 22; los otros 2 quedan tapados por otro elemento).
+
+**Segundo bug encontrado al verificar** (también previo a v4.3):
+- **Síntoma.** Salir del tema aislado mientras la cámara aún volaba hacia él lanzaba `TypeError: Cannot read properties of undefined (reading 'destroy')` dentro de regl-scatterplot.
+- **Causa.** La versión 1.16 comparte el estado de transición entre cámara y puntos; una transición de puntos iniciada durante un vuelo destruye una textura que no existe. Además, la promesa de `zoomToLocation` se resuelve al *empezar* el vuelo (medido: 9 ms tras el inicio, contra 1.4 s del evento `transitionEnd`), así que `cameraTransitioning` no servía para saberlo.
+- **Arreglo.** `drawPoints` espera el evento `transitionEnd` de la librería antes de iniciar una transición de puntos. Si mientras espera llega otro dibujo, el que esperaba ya es viejo y no se aplica.
+- **Verificado:** con la línea de tiempo instrumentada, la transición de salida ahora arranca justo en `transitionEnd`. Sin errores de consola en los flujos de escritorio y móvil de v4.3.

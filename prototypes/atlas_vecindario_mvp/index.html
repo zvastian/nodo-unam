@@ -280,6 +280,9 @@
   #iso-chip .ic-n { font-size: 14px; color: var(--ink-3); white-space: nowrap; }
   #iso-chip .ic-actions { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
   body.iso #overlay, body.iso #legend { opacity: 0; pointer-events: none; }
+  /* v4.3.1: los circulos y rotulos declaran pointer-events: auto, que gana al none del padre;
+     sin esto, en el tema aislado los marcadores invisibles de otros temas seguian recibiendo clics */
+  body.iso #overlay * { pointer-events: none !important; }
   #overlay, #legend { transition: opacity 400ms ease; }
   #ana-labels { position: absolute; inset: 0; pointer-events: none; z-index: 3; opacity: 0; transition: opacity 400ms ease; }
   #ana-labels.on { opacity: 1; }
@@ -508,7 +511,7 @@
 
   <footer>
     <span>Proyecto independiente, no oficial. Datos del catálogo público TESIUNAM.</span>
-    <span><button type="button" id="foot-metodo">Cómo se hizo el mapa</button> · versión <span id="app-version">4.3.0</span></span>
+    <span><button type="button" id="foot-metodo">Cómo se hizo el mapa</button> · versión <span id="app-version">4.3.1</span></span>
   </footer>
 </div>
 
@@ -906,6 +909,11 @@
     plot.get('camera').setScaleBounds([[K0 * 0.999, K_MAX_ZOOM], [K0 * 0.999, K_MAX_ZOOM]]);
 
     plot.subscribe('view', onView);
+    plot.subscribe('transitionStart', function () { libTransition = true; });
+    plot.subscribe('transitionEnd', function () {
+      libTransition = false;
+      var q = afterTransition; afterTransition = []; q.forEach(function (f) { f(); });
+    });
     plot.subscribe('select', function (ev) {
       var idx = ev && ev.points && ev.points.length === 1 ? ev.points[0] : null;
       if (idx != null && !state.introActive) onPointClick(idx);
@@ -923,8 +931,17 @@
 
   // draw() serializado: si llega un pedido mientras otro corre, solo se guarda el
   // ultimo (evita "Ignoring draw call as the previous draw call has not yet finished").
-  var drawBusy = false, drawNext = null;
+  var drawBusy = false, drawNext = null, drawSeq = 0;
   function drawPoints(x, y, cats, opts) {
+    // v4.3.1: regl-scatterplot 1.16 comparte el estado de transicion entre camara y puntos;
+    // una transicion de puntos iniciada durante un vuelo truena ("reading 'destroy'"). Pasaba
+    // al salir de un tema fino mientras la camara aun volaba hacia el. Se espera a que la
+    // libreria avise el fin (la promesa de zoomToLocation se resuelve antes de que acabe).
+    var seq = ++drawSeq;
+    if (opts && opts.transition && libTransition) {
+      // si mientras espera llega otro dibujo, este ya es viejo y no se aplica
+      return new Promise(function (res) { afterTransition.push(res); }).then(function () { if (seq === drawSeq) return drawPoints(x, y, cats, opts); });
+    }
     if (drawBusy) {
       if (drawNext) drawNext.resolve();
       return new Promise(function (res) { drawNext = { args: [x, y, cats, opts], resolve: res }; });
@@ -939,7 +956,7 @@
   }
   function redrawCats(cats) { return drawPoints(state.dispX, state.dispY, cats || (state.iso ? state.iso.cats : baseCats())); }
 
-  var cameraTransitioning = false;
+  var cameraTransitioning = false, libTransition = false, afterTransition = [];
   function clampAxis(t, half) {
     var lo = -1 - PAN_MARGIN + half, hi = 1 + PAN_MARGIN - half;
     return lo > hi ? 0 : Math.max(lo, Math.min(hi, t));
