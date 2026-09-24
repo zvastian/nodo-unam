@@ -1538,3 +1538,61 @@ Pedido del usuario: las partículas y los pulsos "se ven en extremo IA, genéric
 - Deriva confirmada comparando dos capturas separadas 3 s: cambió el 6.7% de los píxeles del área del tema, con desplazamientos pequeños y sin saltos.
 
 **Nota metodológica**: el harness ahora tiene una variante con GPU real (`--use-angle=d3d11`). Las mediciones anteriores de fps se hicieron con WebGL por software (swiftshader) y **subestiman** el rendimiento real. A partir de aquí, los fps se miden con GPU.
+
+### v4.0.0 — identidad visual: de plantilla de dashboard a producto web (2026-09-24)
+
+**Antes de esta versión, dos rediseños descartados** (ambos se revirtieron a v3.4.0, commit 095e9a0; respaldo en `index.v4.0.0-senaletica-descartada.html`):
+1. «Señalética de red», inspirado en la señalización del Metro. El usuario: «se ve infantil».
+2. Un canon estilo Gapminder aplicado de inmediato. El usuario: «estás tomando conceptos aleatorios y aplicando sin razón».
+
+Lección: primero se acuerda la estrategia por escrito y después se codifica. De ahí salió la lista de **21 anti-patrones de UI genérica en `PRODUCT.md`**, acordada con el usuario, con las decisiones aprobadas: Libre Franklin, barra de navegación global con página Método, mayúsculas solo en los rótulos del mapa y sin tira de KPIs (#21).
+
+**Cambios en v4.0.0** (entre corchetes, el número del anti-patrón que corrige):
+- **Tipografía [1][14][15]**
+  - Una sola familia, Libre Franklin 400–700, con `tnum` en todas las cifras.
+  - Fuera Public Sans, Source Serif 4, Source Sans 3 y JetBrains Mono.
+- **Color [1][16][17]**
+  - Fondo blanco (incluido el fondo WebGL, `C_HIDDEN` y el relleno del minimapa).
+  - Grises neutros: tinta #1a1a1a, #4d4d4d y #6e6e6e (≥5:1); líneas #e0e0e0.
+  - Un azul tinta #1d4f91 solo para enlaces y foco.
+  - El verde #0f7d5c queda únicamente como color de dato (área 2).
+  - Ruido y atenuado del mapa en gris neutro.
+  - El tinte del modo aislado es plano: sin degradado radial.
+- **Navegación [2][4][12]**
+  - Barra global con la marca «Atlas de tesis», las secciones Mapa, Rutas, Introducción y Método, y la búsqueda como campo real (Ctrl+K y `/` siguen funcionando, sin la pastilla).
+  - En móvil, los enlaces pasan a una segunda fila.
+- **Estructura [3][9]**
+  - La ruta (UNAM › territorio › subtema) sale del mapa y vive en la barra de filtros, que ahora es blanca.
+  - Leyenda y minimapa acoplados a las esquinas, con borde de 1 px.
+  - Ficha de tesis como hoja lateral y relato como hoja inferior.
+  - La cenefa del tema aislado es una segunda barra.
+  - Cero sombras.
+- **Componentes [5][6][7][8][13]**
+  - Botones rectangulares de 2 px en caja normal.
+  - Controles segmentados convertidos en pestañas de texto con subrayado.
+  - Palabras clave como lista de texto (antes chips).
+  - Íconos SVG de un trazo en lugar de ✕ ← → ↑↓.
+  - Sin eyebrows: el nivel pasa a un subtítulo debajo del título.
+  - El CTA punteado pasa a ser un enlace.
+- **Datos [10][11][21]**
+  - Sin KPI tiles en el panel: una frase («Tesis de 1980 a 2026, dirigidas por 435 asesores.»).
+  - Sin tira de KPIs en el taller: «562 tesis, de 1980 a 2026.».
+  - Panorama en secciones separadas por líneas, no en tarjetas.
+  - Programas y planteles en caja normal (`pretty()`: mayúscula inicial, siglas y sin el sufijo redundante «unam»).
+- **Contenido [18][19]**
+  - Página **Método** con datos, modelo, agrupamiento, proyección, vecindarios, cómo leer el mapa y el aviso de proyecto no oficial.
+  - El pie ya no muestra jerga: «Proyecto independiente, no oficial. Datos del catálogo público TESIUNAM.», más un enlace a Método y la versión.
+  - La leyenda ya no dice «el algoritmo».
+- **Rótulos del mapa**: siguen en mayúsculas (convención cartográfica pedida el 23-09), ahora en Libre Franklin 700/600/500.
+
+**Verificación** (harness GPU, escritorio 1600×900 y móvil):
+- Pantallas revisadas: intro, mapa, territorio, tema aislado, análisis, taller (listado y panorama), Método, rutas y búsqueda.
+- 0 errores de consola.
+- Conteo residual: 0 sombras, 0 mono, 0 serif, 0 glifos unicode; `uppercase` solo en rótulos del mapa; radios solo de 2 px y 50% (los puntos).
+- Las capturas headless a veces muestran el panel a medio deslizar; se midió con `getBoundingClientRect` y ya estaba en su lugar. Es un artefacto del compositor, no un bug.
+
+**Pendientes que dejó esta versión**:
+- `design_manifest.md`, solo cuando el usuario apruebe el estilo.
+- En móvil, el panel ocupa el 100% del ancho y cerrarlo sale del modo aislado (comportamiento heredado de v3.2), así que el tema aislado casi no se ve en móvil. Hay que rediseñar esa interacción.
+- Los nombres de subtema y tema fino siguen en minúsculas sin acentos (dato c-TF-IDF); se corrige en la revisión de nombres (P1).
+- El menú de Rutas se despliega bajo su enlace, pero sobre el mapa. Evaluar si Rutas merece una página propia.

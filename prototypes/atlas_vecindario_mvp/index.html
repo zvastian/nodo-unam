@@ -5,72 +5,94 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Atlas de tesis UNAM</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&family=Source+Sans+3:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  /* v3.0.0 -- rediseno "sorprendente pero navegable" (development.md, "Revision
-     critica de la v2.1.1", seccion 5). Principio: el mapa son los puntos; los
-     nombres de territorio son la anotacion, no los circulos. */
+  /* =====================================================================
+     v4.0.0 — de plantilla de dashboard a producto web.
+     Cada decision responde a un anti-patron de PRODUCT.md («Lo que hace ver
+     generica una UI», #1-#21); el numero va entre corchetes en el comentario.
+     ===================================================================== */
   :root {
-    --bg: #fbfaf7;
-    --page: #f7f5f0;
-    --ink: #17181a;
-    --ink-2: #6b6558;
-    --ink-3: #948d7c;
-    --grid: #ebe7dc;
-    --border: rgba(23,24,26,0.12);
-    --accent: #0f7d5c;
+    --bg: #ffffff;          /* [1] blanco neutro, no crema */
+    --surface: #f5f5f5;     /* hover / fondos secundarios, neutro */
+    --ink: #1a1a1a;
+    --ink-2: #4d4d4d;       /* 8.6:1 */
+    --ink-3: #6e6e6e;       /* 5.1:1: minimo para texto chico */
+    --line: #e0e0e0;        /* [17] una sola linea fina neutra */
+    --line-strong: #c2c2c2;
+    --grid: #f0f0f0;
+    --link: #1d4f91;        /* [16] enlaces y foco; color de interfaz sin competir con los datos */
+    --accent: var(--link);
+    --border: var(--line);
     --panel-bg: #ffffff;
-    --shadow: 0 8px 24px rgba(23,24,26,0.10);
+    --nav-h: 56px;
     color-scheme: light;
   }
   [hidden] { display: none !important; }
   * { box-sizing: border-box; }
   html, body { height: 100%; margin: 0; }
   body {
-    background: var(--bg);
-    color: var(--ink);
-    font-family: "Public Sans", -apple-system, "Segoe UI", sans-serif;
-    -webkit-font-smoothing: antialiased;
-    overflow: hidden;
+    background: var(--bg); color: var(--ink);
+    /* [15] una sola familia; [14] cifras tabulares propias en vez de monoespaciada */
+    font-family: "Libre Franklin", "Helvetica Neue", Arial, sans-serif; font-size: 14px; line-height: 1.5;
+    font-feature-settings: "tnum" 1; -webkit-font-smoothing: antialiased; overflow: hidden;
   }
-  button { font-family: inherit; }
+  ::selection { background: rgba(29, 79, 145, 0.16); }
+  * { scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent; }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-thumb { background: var(--line-strong); }
+  :focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+  button, input, select { font-family: inherit; font-feature-settings: "tnum" 1; }
+  a { color: var(--link); }
+  /* [7] iconos dibujados, un solo trazo */
+  .ico { width: 16px; height: 16px; flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
   .app { display: flex; flex-direction: column; height: 100%; }
 
-  /* ---------- header ---------- */
-  header {
-    padding: 14px 20px 12px;
-    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
-    border-bottom: 1px solid var(--border);
-    background: var(--bg);
-    position: relative; z-index: 12;
-  }
-  h1 {
-    font-family: "Source Serif 4", Georgia, serif;
-    font-weight: 600; font-size: 21px; letter-spacing: 0.015em; text-transform: uppercase;
-    margin: 0; line-height: 1.1;
-  }
-  .subtitle { font-size: 12.5px; color: var(--ink-2); margin-top: 3px; }
-  .hdr-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  /* ---------- botones [5][6]: rectangulos de 2 px, caja normal ---------- */
   .btn {
-    font-size: 10.5px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em;
-    padding: 7px 11px; border: 1px solid var(--border); border-radius: 7px;
-    background: var(--panel-bg); color: var(--ink-2); cursor: pointer;
-    display: inline-flex; align-items: center; gap: 7px;
-    transition: border-color 140ms ease, color 140ms ease, background 140ms ease;
+    display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 10px;
+    border: none; border-radius: 2px; background: transparent; color: var(--ink); cursor: pointer;
+    font-size: 14px; font-weight: 500; transition: background 120ms ease;
   }
-  .btn:hover { border-color: var(--accent); color: var(--accent); }
-  .btn:disabled { opacity: 0.5; cursor: default; }
-  .btn:focus-visible, .seg button:focus-visible, .sr-item:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
-  .btn.primary:hover { background: #0c6a4e; color: #fff; }
-  .kbd { font-family: "JetBrains Mono", monospace; font-size: 9.5px; border: 1px solid var(--border); border-radius: 4px; padding: 1px 4px; color: var(--ink-3); text-transform: none; letter-spacing: 0; }
-  .seg { display: inline-flex; border: 1px solid var(--border); border-radius: 7px; overflow: hidden; background: var(--panel-bg); }
-  .seg button {
-    border: none; background: transparent; color: var(--ink-2); cursor: pointer;
-    font-size: 10.5px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; padding: 7px 10px;
-  }
-  .seg button + button { border-left: 1px solid var(--border); }
-  .seg button.active { background: var(--ink); color: #fff; }
+  .btn:hover { background: var(--surface); }
+  .btn:disabled { color: var(--ink-3); cursor: default; background: transparent; }
+  .btn.primary { background: var(--ink); color: #fff; padding: 0 14px; }
+  .btn.primary:hover { background: #000; }
+  .kbd { display: none; } /* [12] sin pastilla de atajo */
+  /* control segmentado [5] -> pestañas de texto con subrayado */
+  .seg { display: inline-flex; gap: 16px; }
+  .seg button { border: none; background: none; padding: 5px 0 4px; cursor: pointer; font-size: 14px; color: var(--ink-3); border-bottom: 2px solid transparent; }
+  .seg button:hover { color: var(--ink); }
+  .seg button.active { color: var(--ink); font-weight: 600; border-bottom-color: var(--ink); }
+
+  /* ---------- navegacion global [2] ---------- */
+  header.nav { display: flex; align-items: center; gap: 28px; height: var(--nav-h); padding: 0 24px; background: #fff; border-bottom: 1px solid var(--line); position: relative; z-index: 14; flex-shrink: 0; }
+  .brand { display: flex; align-items: baseline; gap: 8px; text-decoration: none; color: var(--ink); white-space: nowrap; }
+  .brand-name { font-size: 17px; font-weight: 700; letter-spacing: -0.01em; }  /* [4] sin mayusculas espaciadas */
+  .brand-org { font-size: 14px; color: var(--ink-3); }
+  .navlinks { display: flex; align-items: stretch; gap: 22px; height: 100%; }
+  .navlinks button { border: none; background: none; cursor: pointer; font-size: 14px; color: var(--ink-2); padding: 0; border-bottom: 2px solid transparent; border-top: 2px solid transparent; }
+  .navlinks button:hover { color: var(--ink); }
+  .navlinks button.active { color: var(--ink); font-weight: 600; border-bottom-color: var(--ink); }
+  .navsearch { margin-left: auto; display: flex; align-items: center; gap: 8px; width: min(320px, 34vw); height: 34px; padding: 0 10px; border: 1px solid var(--line-strong); border-radius: 2px; background: #fff; color: var(--ink-3); font-size: 14px; cursor: text; text-align: left; }
+  .navsearch:hover { border-color: var(--ink-3); }
+  .navsearch span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  #debug-bar { display: none; }
+  body.debug #debug-bar { display: flex; gap: 6px; align-items: center; }
+
+  /* ---------- barra de ubicacion y filtros [4]: blanca, con la ruta integrada ---------- */
+  .filterbar { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; min-height: 44px; padding: 6px 24px; background: #fff; border-bottom: 1px solid var(--line); position: relative; z-index: 11; flex-shrink: 0; }
+  .fb-title { display: none; }
+  .fb-group { display: flex; align-items: center; gap: 14px; margin-left: auto; }
+  .fb-label { font-size: 14px; color: var(--ink-3); }
+  .fb-count { font-size: 13px; color: var(--ink-3); }
+  /* [3] la ruta deja de flotar sobre el mapa: vive en la barra */
+  #crumbs { position: static; display: flex; align-items: center; flex-wrap: wrap; gap: 6px; min-width: 0; }
+  #crumbs .sep { color: var(--line-strong); }
+  #crumbs button { border: none; background: none; cursor: pointer; padding: 0; font-size: 14px; color: var(--link); }
+  #crumbs button:hover { text-decoration: underline; text-underline-offset: 3px; }
+  #crumbs button.current { color: var(--ink); font-weight: 600; cursor: default; text-decoration: none; }
+  #crumbs .lvl { font-size: 13px; color: var(--ink-3); margin-left: 8px; }
 
   /* ---------- mapa ---------- */
   main { position: relative; flex: 1; min-height: 0; background: var(--bg); overflow: hidden; }
@@ -78,350 +100,303 @@
   #wgl-host canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
   svg#overlay { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
   .gridline { stroke: var(--grid); stroke-width: 1; }
-  .tick-label { font-family: "JetBrains Mono", monospace; font-size: 9px; fill: var(--ink-3); }
-  .edge { stroke: #c7c2b2; stroke-opacity: 0.35; fill: none; }
+  .tick-label { font-size: 10px; fill: #a0a0a0; }
+  .edge { stroke: #b5b5b5; stroke-opacity: 0.35; fill: none; }
   .anode, .alabel { transition: opacity 240ms ease; }
   .anode.entering, .alabel.entering, .anode.leaving, .alabel.leaving { opacity: 0; }
-  .anode circle { stroke: #fff; stroke-width: 1.2; cursor: pointer; pointer-events: auto; }
-  .anode:hover circle, .anode.selected circle { stroke: var(--ink); stroke-width: 2; }
-  .alabel text {
-    font-family: "Source Sans 3", "Source Sans Pro", "Public Sans", sans-serif;
-    font-weight: 700; text-transform: uppercase; fill: var(--ink);
-    paint-order: stroke; stroke: var(--bg); stroke-width: 3.5px; stroke-linejoin: round;
-    cursor: pointer; pointer-events: auto;
-  }
-  .alabel text:hover, .alabel.selected text { fill: var(--accent); }
-  .alabel.region text { font-weight: 600; fill: var(--ink-3); pointer-events: none; }
-  /* Hitos: voz "curaduria" del manifiesto (serif) -- nombres puestos por una persona. */
-  .alabel.landmark text { font-family: "Source Serif 4", Georgia, serif; font-weight: 600; stroke-width: 4px; }
-  .alabel.region.landmark text { font-weight: 500; fill: var(--ink-3); }
-  .alabel.minor text { font-weight: 600; fill: var(--ink-2); }
+  .anode circle { stroke: #fff; stroke-width: 1; cursor: pointer; pointer-events: auto; }
+  .anode:hover circle, .anode.selected circle { stroke: var(--ink); stroke-width: 1.5; }
+  /* rotulos del mapa: unico lugar con mayusculas (convencion cartografica pedida por el usuario) */
+  .alabel text, .node-label { font-family: "Libre Franklin", sans-serif; font-weight: 600; text-transform: uppercase; fill: #2b2b2b; paint-order: stroke; stroke: #fff; stroke-width: 3.5px; stroke-linejoin: round; cursor: pointer; pointer-events: auto; }
+  .alabel text:hover { fill: var(--link); }
+  .alabel.selected text { fill: var(--ink); text-decoration: underline; text-decoration-thickness: 1.5px; }
+  .alabel.landmark text { font-weight: 700; fill: var(--ink); }
+  .alabel.minor text { font-weight: 500; fill: #5c5c5c; }
+  .alabel.region text { font-weight: 500; fill: #a3a3a3; pointer-events: none; }
   .alabel.hidden { display: none; }
 
-  /* ---------- barra de filtros (v3.2) ---------- */
-  .filterbar {
-    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
-    padding: 8px 20px; border-bottom: 1px solid var(--border); background: var(--page);
-    position: relative; z-index: 11;
-  }
-  .fb-title { font-size: 9.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-3); }
-  .fb-group { display: flex; align-items: center; gap: 8px; }
-  .fb-label { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-2); }
-  .fb-count { margin-left: auto; font-family: "JetBrains Mono", monospace; font-size: 10.5px; color: var(--ink-3); text-transform: uppercase; }
-  .filterbar .seg button { padding: 5px 10px; }
-
-  /* ---------- modo aislado de tema fino (v3.2) ---------- */
-  #tint { position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 900ms ease; z-index: 1; }
-  #tint.on { opacity: 1; }
-  #iso-chip {
-    position: absolute; top: 14px; left: 50%; transform: translateX(-50%); z-index: 7;
-    display: flex; align-items: center; gap: 10px; max-width: calc(100% - 420px);
-    background: var(--panel-bg); border: 1px solid var(--border); border-radius: 999px; padding: 6px 6px 6px 16px; box-shadow: var(--shadow);
-  }
-  #iso-chip .ic-ey { font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); white-space: nowrap; }
-  #iso-chip b { font-family: "Source Serif 4", Georgia, serif; font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 0.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  #iso-chip .ic-n { font-family: "JetBrains Mono", monospace; font-size: 11px; color: var(--ink-2); white-space: nowrap; }
-  #iso-chip .btn { border-radius: 999px; }
-  body.iso #overlay, body.iso #legend { opacity: 0; pointer-events: none; }
-  #flow { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; }
-  #iso-chip { flex-direction: column; align-items: stretch; border-radius: 14px; padding: 10px 12px; gap: 8px; }
-  #iso-chip .ic-head { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
-  #iso-chip .ic-head b { max-width: 460px; }
-  #iso-chip .ic-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-  #iso-chip .ic-actions .seg button { padding: 6px 9px; }
-  #ana-labels { position: absolute; inset: 0; pointer-events: none; z-index: 3; opacity: 0; transition: opacity 400ms ease; }
-  #ana-labels.on { opacity: 1; }
-  .ana-label { position: absolute; left: 0; top: 0; display: flex; align-items: center; gap: 6px; white-space: nowrap;
-    font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink); }
-  .ana-label i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
-  .ana-label span { max-width: 230px; overflow: hidden; text-overflow: ellipsis; }
-  .ana-label b { font-family: "JetBrains Mono", monospace; font-weight: 500; color: var(--ink-3); }
-  #minimap .mm-cap button { border: none; background: none; padding: 0; cursor: pointer; font: inherit; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.07em; }
-  #minimap .mm-cap button:hover { color: var(--accent); }
-  #mm-show { position: absolute; right: 16px; bottom: 14px; z-index: 5; }
-  main.panel-open #mm-show { right: 356px; }
-  #overlay, #minimap, #legend { transition: opacity 400ms ease; }
-
-  /* ---------- breadcrumb ---------- */
-  #crumbs {
-    position: absolute; top: 14px; left: 16px; z-index: 5;
-    display: flex; align-items: center; gap: 2px; flex-wrap: wrap; max-width: calc(100% - 360px);
-    background: rgba(251,250,247,0.92); border: 1px solid var(--border); border-radius: 8px;
-    padding: 5px 8px; box-shadow: 0 2px 8px rgba(23,24,26,0.05);
-  }
-  #crumbs button {
-    border: none; background: none; cursor: pointer; padding: 2px 4px; border-radius: 4px;
-    font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-2);
-  }
-  #crumbs button:hover { color: var(--accent); background: var(--page); }
-  #crumbs button.current { color: var(--ink); cursor: default; background: none; }
-  #crumbs .sep { color: var(--ink-3); font-size: 11px; }
-  #crumbs .lvl { font-family: "JetBrains Mono", monospace; font-size: 9.5px; color: var(--ink-3); margin-left: 6px; text-transform: uppercase; }
-
-  /* ---------- leyenda ---------- */
-  .legend {
-    position: absolute; left: 16px; bottom: 14px; z-index: 5;
-    background: var(--panel-bg); border: 1px solid var(--border); border-radius: 9px;
-    padding: 10px 12px; font-size: 11px; color: var(--ink-2); box-shadow: var(--shadow); max-width: 250px;
-  }
-  .legend .lg-title { font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink-3); margin-bottom: 7px; }
-  .legend .lg-row { display: flex; align-items: center; gap: 7px; margin-top: 4px; line-height: 1.3; }
-  .legend .sw { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-  .legend .spectrum { height: 8px; border-radius: 4px; width: 100%; margin: 2px 0 4px; }
-  .legend .lg-note { font-size: 10.5px; color: var(--ink-3); line-height: 1.45; margin-top: 6px; }
-
-  /* ---------- minimapa ---------- */
-  #minimap {
-    position: absolute; right: 16px; bottom: 14px; z-index: 5;
-    background: var(--panel-bg); border: 1px solid var(--border); border-radius: 9px; box-shadow: var(--shadow);
-    padding: 6px; cursor: crosshair;
-  }
+  /* ---------- leyenda y minimapa: acoplados a los bordes, no flotantes [3][9] ---------- */
+  .legend { position: absolute; left: 0; bottom: 0; z-index: 5; max-width: 300px; background: #fff; border-top: 1px solid var(--line); border-right: 1px solid var(--line); padding: 10px 16px 12px; font-size: 13px; color: var(--ink-2); }
+  .legend .lg-title { font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 6px; }
+  .legend .lg-row { display: flex; align-items: center; gap: 8px; margin-top: 4px; line-height: 1.3; }
+  .legend .sw, .legend .lg-area-bar { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .legend .spectrum { height: 4px; width: 100%; margin: 2px 0 6px; }
+  .legend .lg-note { font-size: 12.5px; color: var(--ink-3); line-height: 1.45; margin-top: 8px; }
+  #minimap { position: absolute; right: 0; bottom: 0; z-index: 5; background: #fff; border-top: 1px solid var(--line); border-left: 1px solid var(--line); cursor: crosshair; }
   #minimap canvas { display: block; }
-  #minimap, #map-selection { transition: right 0.24s ease; }
-  main.panel-open #minimap, main.panel-open #map-selection { right: 356px; }
-  #minimap .mm-view { position: absolute; left: 6px; top: 6px; pointer-events: none; }
-  #minimap .mm-cap { font-size: 9px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink-3); padding: 4px 2px 0; display: flex; justify-content: space-between; gap: 8px; }
+  #minimap .mm-view { position: absolute; left: 0; top: 0; pointer-events: none; }
+  #minimap .mm-cap { display: flex; align-items: center; gap: 8px; padding: 4px 10px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--ink-3); }
   #minimap .mm-cap #mm-zoom { margin-left: auto; }
+  #minimap .mm-cap button { border: none; background: none; padding: 0; cursor: pointer; font: inherit; color: var(--link); }
+  #minimap .mm-cap button:hover { text-decoration: underline; }
+  #minimap, #mm-show { transition: right 0.24s ease; }
+  main.panel-open #minimap, main.panel-open #mm-show { right: 360px; }
+  #mm-show { position: absolute; right: 12px; bottom: 12px; z-index: 5; background: #fff; border: 1px solid var(--line); }
 
-  /* ---------- tooltips ---------- */
-  .tip {
-    position: absolute; left: 0; top: 0; pointer-events: none; z-index: 30;
-    background: var(--panel-bg); border: 1px solid var(--border); border-radius: 8px;
-    padding: 8px 11px; font-size: 12px; line-height: 1.45; box-shadow: var(--shadow); max-width: 270px;
-    opacity: 0; transform: translate(-9999px,-9999px); transition: opacity 0.1s;
-  }
-  .tip .t-label { font-family: "Source Serif 4", Georgia, serif; font-size: 13px; font-weight: 600; letter-spacing: 0.015em; text-transform: uppercase; display: block; margin-bottom: 2px; }
-  .tip .t-meta { color: var(--ink-2); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.03em; display: block; }
-  .tip .t-hint { color: var(--ink-3); font-size: 10.5px; margin-top: 3px; display: block; }
-
-  /* ---------- panel lateral ---------- */
-  aside#panel {
-    position: absolute; top: 0; right: 0; bottom: 0; width: 340px; max-width: 90vw; z-index: 8;
-    background: var(--panel-bg); border-left: 1px solid var(--border); box-shadow: -10px 0 24px rgba(23,24,26,0.06);
-    transform: translateX(100%); transition: transform 0.24s ease; display: flex; flex-direction: column;
-  }
-  aside#panel.open { transform: translateX(0); }
-  #panel .panel-head { padding: 20px 20px 14px; border-bottom: 1px solid var(--border); }
-  #panel .panel-eyebrow { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
-  #panel .back-btn { border: 1px solid var(--border); background: var(--bg); color: var(--ink-2); border-radius: 5px; font-size: 10.5px; padding: 2px 7px; cursor: pointer; }
-  #panel h2 { font-family: "Source Serif 4", Georgia, serif; font-size: 19px; font-weight: 500; letter-spacing: 0.01em; text-transform: uppercase; margin: 0 0 4px; line-height: 1.25; padding-right: 26px; }
-  #panel .panel-body { padding: 14px 20px 20px; overflow-y: auto; flex: 1; }
-  #panel .stat-row { display: flex; justify-content: space-between; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--grid); font-size: 12.5px; }
-  #panel .stat-row span:first-child { color: var(--ink-2); text-transform: uppercase; font-size: 10.5px; letter-spacing: 0.03em; }
-  #panel .stat-row span:last-child { font-family: "JetBrains Mono", monospace; font-variant-numeric: tabular-nums; font-weight: 600; }
-  #panel .section-label { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); margin: 18px 0 8px; }
-  #panel .programs { font-size: 12px; line-height: 1.9; text-transform: uppercase; letter-spacing: 0.02em; }
-  #panel .kw { display: flex; flex-wrap: wrap; gap: 5px; }
-  #panel .kw span { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.03em; background: var(--page); border-radius: 4px; padding: 3px 6px; color: var(--ink-2); }
-  #panel .close-btn { position: absolute; top: 14px; right: 14px; width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--border); background: var(--bg); color: var(--ink-2); font-size: 13px; cursor: pointer; line-height: 1; }
-  #panel .children button { display: flex; justify-content: space-between; width: 100%; text-align: left; gap: 10px; border: none; border-bottom: 1px solid var(--grid); background: none; padding: 8px 0; cursor: pointer; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.03em; color: var(--ink); }
-  #panel .children button:hover { color: var(--accent); }
-  #panel .children button span:last-child { font-family: "JetBrains Mono", monospace; color: var(--ink-3); flex-shrink: 0; }
-  .thesis-row { padding: 9px 0; border-bottom: 1px solid var(--grid); cursor: pointer; }
-  .thesis-row:hover { background: var(--page); }
-  .thesis-row .th-title { font-family: "Source Serif 4", Georgia, serif; font-size: 13px; line-height: 1.35; letter-spacing: 0.01em; text-transform: uppercase; display: block; margin-bottom: 2px; }
-  .thesis-row .th-meta { font-size: 10.5px; color: var(--ink-3); font-family: "JetBrains Mono", monospace; text-transform: uppercase; }
-  .vecindario-note { font-size: 11px; color: var(--ink-3); line-height: 1.5; margin: 4px 0 14px; padding: 8px 10px; background: var(--page); border-radius: 6px; }
-  .cta { border: 1px dashed var(--border); border-radius: 6px; padding: 10px; text-align: center; cursor: pointer; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--accent); margin-top: 6px; }
-  .cta:hover { background: var(--page); }
-
-  /* ---------- seleccion en mapa ---------- */
-  #map-selection {
-    position: absolute; top: 14px; right: 16px; z-index: 7; width: 290px;
-    background: var(--panel-bg); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; box-shadow: var(--shadow);
-  }
-  #map-selection .close-btn-mini { position: absolute; top: 9px; right: 9px; width: 20px; height: 20px; border-radius: 50%; border: 1px solid var(--border); background: var(--bg); color: var(--ink-2); font-size: 11px; cursor: pointer; line-height: 1; }
-  #map-selection .ms-eyebrow { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-3); margin-bottom: 5px; }
-  #map-selection .ms-title { font-family: "Source Serif 4", Georgia, serif; font-size: 14px; line-height: 1.35; text-transform: uppercase; margin-bottom: 4px; padding-right: 16px; }
-  #map-selection .ms-meta { font-size: 10.5px; color: var(--ink-2); font-family: "JetBrains Mono", monospace; text-transform: uppercase; margin-bottom: 8px; }
-  #map-selection .ms-note { font-size: 11px; color: var(--ink-3); line-height: 1.5; }
-  #map-selection .btn { width: 100%; justify-content: center; margin-top: 10px; color: var(--accent); }
-  #map-selection .btn + .btn { margin-top: 6px; }
-
-  /* ---------- tarjeta narrativa (intro + rutas) ---------- */
-  #story {
-    position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%); z-index: 9;
-    width: min(560px, calc(100% - 32px));
-    background: var(--panel-bg); border: 1px solid var(--border); border-radius: 12px;
-    box-shadow: 0 16px 40px rgba(23,24,26,0.16); padding: 18px 20px 16px;
-  }
-  #story .st-eyebrow { font-size: 10px; text-transform: uppercase; letter-spacing: 0.09em; color: var(--ink-3); display: flex; justify-content: space-between; padding-right: 30px; }
-  #story h3 { font-family: "Source Serif 4", Georgia, serif; font-weight: 500; font-size: 20px; line-height: 1.25; margin: 6px 0 8px; }
-  #story p { font-size: 13.5px; line-height: 1.6; color: var(--ink-2); margin: 0; }
-  #story p strong { color: var(--ink); font-weight: 600; }
-  #story .st-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; gap: 10px; }
-  #story .dots { display: flex; gap: 5px; }
-  #story .dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--grid); display: block; }
-  #story .dots i.on { background: var(--ink); }
-  #story .st-close { position: absolute; top: 10px; right: 10px; width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--border); background: var(--bg); color: var(--ink-2); cursor: pointer; font-size: 12px; line-height: 1; }
-  .disc-label { position: absolute; transform: translate(-50%, -100%); text-align: center; pointer-events: none; z-index: 4; white-space: nowrap; }
-  .disc-label b { display: block; font-family: "Source Sans 3", sans-serif; font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; }
-  .disc-label span { font-family: "JetBrains Mono", monospace; font-size: 10.5px; color: var(--ink-2); }
-
-  /* ---------- menu de rutas ---------- */
-  #routes-menu {
-    position: absolute; top: 12px; right: 20px; z-index: 20; width: 340px;
-    background: var(--panel-bg); border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow); padding: 6px;
-  }
-  #routes-menu button { display: block; width: 100%; text-align: left; border: none; background: none; padding: 10px 12px; border-radius: 7px; cursor: pointer; }
-  #routes-menu button:hover, #routes-menu button:focus-visible { background: var(--page); outline: none; }
-  #routes-menu b { display: block; font-family: "Source Serif 4", Georgia, serif; font-weight: 500; font-size: 14.5px; color: var(--ink); }
-  #routes-menu span { display: block; font-size: 11.5px; color: var(--ink-3); margin-top: 2px; line-height: 1.4; }
-
-  /* ---------- buscador ---------- */
-  #search { position: fixed; inset: 0; z-index: 40; display: flex; justify-content: center; align-items: flex-start; padding-top: 12vh; }
-  #search .s-backdrop { position: absolute; inset: 0; background: rgba(23,24,26,0.28); }
-  #search .s-card { position: relative; width: min(620px, calc(100% - 24px)); background: var(--panel-bg); border-radius: 12px; box-shadow: 0 24px 60px rgba(23,24,26,0.28); overflow: hidden; }
-  #search input { width: 100%; border: none; border-bottom: 1px solid var(--border); padding: 16px 18px; font-size: 16px; font-family: "Public Sans", sans-serif; outline: none; background: var(--panel-bg); color: var(--ink); }
-  #search .s-results { max-height: 52vh; overflow-y: auto; padding: 6px; }
-  #search .s-empty { padding: 18px; font-size: 12.5px; color: var(--ink-3); line-height: 1.5; }
-  .sr-item { display: grid; grid-template-columns: 70px 1fr auto; gap: 10px; align-items: center; width: 100%; text-align: left; border: none; background: none; padding: 9px 10px; border-radius: 7px; cursor: pointer; }
-  .sr-item.active, .sr-item:hover { background: var(--page); }
-  .sr-item .lv { font-size: 9px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink-3); border: 1px solid var(--border); border-radius: 4px; padding: 2px 4px; text-align: center; }
-  .sr-item .nm { font-size: 12.5px; text-transform: uppercase; letter-spacing: 0.03em; color: var(--ink); line-height: 1.3; }
-  .sr-item .nm small { display: block; font-size: 10.5px; color: var(--ink-3); text-transform: none; letter-spacing: 0; margin-top: 1px; }
-  .sr-item .ct { font-family: "JetBrains Mono", monospace; font-size: 10.5px; color: var(--ink-3); }
-  #search .s-foot { border-top: 1px solid var(--border); padding: 8px 14px; font-size: 10.5px; color: var(--ink-3); display: flex; gap: 14px; flex-wrap: wrap; }
-
-  /* ---------- modal vecindario (sin cambios de fondo respecto a v2) ---------- */
-  #vmodal { position: fixed; inset: 0; z-index: 35; display: flex; align-items: center; justify-content: center; padding: 26px; }
-  #vmodal .vm-backdrop { position: absolute; inset: 0; background: rgba(23,24,26,0.42); }
-  #vmodal .vm-card { position: relative; width: min(1180px, 100%); height: min(760px, 100%); background: var(--panel-bg); border-radius: 14px; box-shadow: 0 24px 60px rgba(23,24,26,0.28); display: flex; flex-direction: column; overflow: hidden; }
-  #vmodal .vm-head { padding: 16px 20px 12px; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
-  #vmodal .vm-breadcrumb { font-size: 10.5px; color: var(--ink-3); margin-bottom: 5px; font-family: "JetBrains Mono", monospace; text-transform: uppercase; }
-  #vmodal .vm-breadcrumb button { border: none; background: none; color: var(--accent); cursor: pointer; font-family: "JetBrains Mono", monospace; font-size: 10.5px; padding: 0; margin-right: 4px; }
-  #vmodal .vm-title { font-family: "Source Serif 4", Georgia, serif; font-size: 17px; line-height: 1.3; text-transform: uppercase; max-width: 820px; }
-  #vmodal .vm-meta { font-size: 11px; color: var(--ink-2); margin-top: 4px; font-family: "JetBrains Mono", monospace; text-transform: uppercase; }
-  #vmodal .vm-controls { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-  #vmodal select { font-size: 11.5px; padding: 5px 8px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg); color: var(--ink); }
-  #vmodal .vm-close { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--border); background: var(--bg); color: var(--ink-2); cursor: pointer; font-size: 14px; line-height: 1; }
-  #vmodal .vm-body { position: relative; flex: 1; min-height: 0; }
-  #vmodal svg { width: 100%; height: 100%; display: block; }
-  #vmodal .vm-group-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; fill: var(--ink-3); }
-  #vmodal .vm-edge { stroke: var(--ink-3); fill: none; pointer-events: none; }
-  #vmodal .vm-node circle { cursor: pointer; stroke: var(--panel-bg); stroke-width: 1.2px; }
-  #vmodal .vm-node.not-in-sample circle, #vmodal .vm-node.focal circle { cursor: default; }
-  #vmodal .vm-legend { position: absolute; right: 16px; bottom: 14px; background: var(--panel-bg); border: 1px solid var(--border); border-radius: 8px; padding: 9px 12px; font-size: 10.5px; color: var(--ink-2); box-shadow: var(--shadow); }
-  #vmodal .vm-lg-row { display: flex; align-items: center; gap: 6px; margin-top: 3px; }
-  #vmodal .vm-lg-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+  /* ---------- tooltips: borde fino, sin sombra [9] ---------- */
+  .tip { position: absolute; left: 0; top: 0; pointer-events: none; z-index: 30; max-width: 320px; background: #fff; border: 1px solid var(--line-strong); padding: 7px 10px; font-size: 13px; line-height: 1.4; opacity: 0; transform: translate(-9999px, -9999px); transition: opacity 0.1s; }
+  .tip .t-label { display: block; font-weight: 600; color: var(--ink); margin-bottom: 2px; }
+  .tip .t-meta { display: block; color: var(--ink-3); }
+  .tip .t-hint { display: block; color: var(--link); margin-top: 3px; font-size: 12.5px; }
   #vtooltip { position: fixed; z-index: 45; }
 
-  /* ---------- v3.1: listado A->Z en el panel ---------- */
-  .az-head { display: flex; align-items: center; gap: 12px; margin: 20px 0 6px; }
-  .az-mark { display: inline-flex; align-items: center; gap: 6px; font-family: "Source Serif 4", Georgia, serif; font-weight: 600; font-size: 30px; line-height: 1; color: var(--ink); letter-spacing: -0.01em; }
-  .az-mark svg { width: 30px; height: 12px; }
-  .az-cap { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink-3); line-height: 1.4; }
-  .tr { padding: 10px 0; border-bottom: 1px solid var(--grid); cursor: pointer; }
-  .tr:hover .tr-t { color: var(--accent); }
-  .tr-t { font-family: "Source Serif 4", Georgia, serif; font-size: 13px; line-height: 1.35; letter-spacing: 0.01em; text-transform: uppercase; display: block; margin-bottom: 4px; }
-  .tr-m { font-size: 10.5px; color: var(--ink-2); line-height: 1.5; text-transform: uppercase; letter-spacing: 0.02em; }
-  .tr-m b { font-weight: 600; color: var(--ink); }
-  .tr-m .y { font-family: "JetBrains Mono", monospace; color: var(--ink-3); }
-  .btn-full { width: 100%; justify-content: center; margin-top: 14px; padding: 11px; font-size: 11px; }
-  .kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--grid); border: 1px solid var(--grid); border-radius: 8px; overflow: hidden; }
-  .kpis div { background: var(--panel-bg); padding: 9px 10px; }
-  .kpis b { display: block; white-space: nowrap; font-family: "JetBrains Mono", monospace; font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
-  .kpis span { font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-3); }
+  /* ---------- panel lateral acoplado ---------- */
+  aside#panel { position: absolute; top: 0; right: 0; bottom: 0; width: 360px; max-width: 92vw; z-index: 8; background: #fff; border-left: 1px solid var(--line); transform: translateX(100%); transition: transform 0.24s cubic-bezier(0.2, 0.7, 0.2, 1); display: flex; flex-direction: column; }
+  aside#panel.open { transform: translateX(0); }
+  #panel .panel-head { padding: 16px 52px 14px 22px; border-bottom: 1px solid var(--line); }
+  #panel .panel-eyebrow { margin-bottom: 6px; }            /* [8] ahora solo contiene «Volver» */
+  #panel .panel-eyebrow:empty { display: none; }
+  #panel .back-btn { display: inline-flex; align-items: center; gap: 4px; border: none; background: none; color: var(--link); cursor: pointer; font-size: 14px; padding: 0; }
+  #panel .back-btn:hover { text-decoration: underline; }
+  #panel h2 { font-size: 20px; font-weight: 700; line-height: 1.2; margin: 0; letter-spacing: -0.01em; }
+  #panel .panel-sub { font-size: 14px; color: var(--ink-3); margin-top: 4px; }
+  #panel .panel-body { padding: 16px 22px 24px; overflow-y: auto; flex: 1; }
+  #panel .stat-row { display: flex; justify-content: space-between; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--grid); font-size: 14px; }
+  #panel .stat-row span:first-child { color: var(--ink-2); }
+  #panel .section-label { font-size: 14px; font-weight: 600; color: var(--ink); margin: 22px 0 6px; }
+  #panel .programs { font-size: 14px; line-height: 1.7; color: var(--ink-2); }
+  /* [5] palabras clave como lista de texto, no chips */
+  #panel .kw { display: block; font-size: 14px; color: var(--ink-2); line-height: 1.6; }
+  #panel .kw span:not(:last-child)::after { content: ", "; }
+  #panel .close-btn, #map-selection .close-btn-mini, #story .st-close, #vmodal .vm-close, #taller .tl-close, .page-close {
+    /* [7] cerrar: area cuadrada, sin borde ni circulo */
+    position: absolute; top: 12px; right: 12px; width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border: none; border-radius: 2px; background: none; color: var(--ink-2); cursor: pointer; }
+  #panel .close-btn:hover, #map-selection .close-btn-mini:hover, #story .st-close:hover, #vmodal .vm-close:hover, #taller .tl-close:hover, .page-close:hover { background: var(--surface); color: var(--ink); }
+  #panel .children button { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; width: 100%; text-align: left; border: none; border-bottom: 1px solid var(--grid); background: none; padding: 7px 0; cursor: pointer; font-size: 14px; color: var(--ink); }
+  #panel .children button:hover { color: var(--link); }
+  #panel .children button span:last-child { color: var(--ink-3); }
+  .facts { font-size: 14px; color: var(--ink-2); margin: 0; line-height: 1.5; }  /* [10][21] una frase en vez de cuadritos */
+  .thesis-row { padding: 9px 0; border-bottom: 1px solid var(--grid); cursor: pointer; }
+  .thesis-row:hover .th-title { color: var(--link); }
+  .thesis-row .th-title { display: block; font-size: 14px; line-height: 1.4; margin-bottom: 2px; }
+  .thesis-row .th-meta { font-size: 13px; color: var(--ink-3); }
+  .vecindario-note { font-size: 13.5px; color: var(--ink-2); line-height: 1.5; margin: 4px 0 12px; }
+  .cta { display: inline-block; cursor: pointer; font-size: 14px; color: var(--link); margin-top: 4px; }  /* [13] enlace, no caja punteada */
+  .cta:hover { text-decoration: underline; }
+  .az-head { display: flex; align-items: baseline; gap: 10px; margin: 20px 0 4px; }
+  .az-mark { display: inline-flex; align-items: center; gap: 5px; font-weight: 700; font-size: 22px; line-height: 1; color: var(--ink); }
+  .az-mark svg { width: 22px; height: 12px; stroke: var(--ink-2); stroke-width: 1.6; fill: none; }
+  .az-cap { font-size: 13px; color: var(--ink-3); }
+  .tr { padding: 9px 0; border-bottom: 1px solid var(--grid); cursor: pointer; }
+  .tr:hover .tr-t { color: var(--link); }
+  .tr-t { display: block; font-size: 14px; line-height: 1.4; margin-bottom: 3px; color: var(--ink); }
+  .tr-m { font-size: 13px; color: var(--ink-3); line-height: 1.45; }
+  .tr-m b { font-weight: 400; color: var(--ink-2); }
+  .btn-full { width: 100%; justify-content: center; margin-top: 14px; height: 36px; }
 
-  /* ---------- v3.1: modo taller por tema ---------- */
-  #taller { position: fixed; inset: 0; z-index: 36; background: var(--bg); display: flex; flex-direction: column; }
-  #taller .tl-head { padding: 16px 24px 0; border-bottom: 1px solid var(--border); background: var(--bg); }
+  /* ---------- ficha de tesis: hoja acoplada a la derecha [3][9] ---------- */
+  #map-selection { position: absolute; top: 0; right: 0; bottom: 0; z-index: 9; width: 360px; max-width: 92vw; background: #fff; border-left: 1px solid var(--line); padding: 18px 22px; overflow-y: auto; }
+  #map-selection .ms-title { font-size: 18px; font-weight: 700; line-height: 1.3; margin-bottom: 6px; padding-right: 30px; letter-spacing: -0.005em; }
+  #map-selection .ms-meta { font-size: 13.5px; color: var(--ink-3); margin-bottom: 10px; }
+  #map-selection .ms-note { font-size: 14px; color: var(--ink-2); line-height: 1.55; }
+  #map-selection .btn { padding: 0; height: auto; margin-top: 12px; color: var(--link); background: none; display: flex; }
+  #map-selection .btn:hover { text-decoration: underline; background: none; }
+  #map-selection .btn + .btn { margin-top: 6px; }
+
+  /* ---------- relato (intro / rutas): hoja inferior acoplada [3][19] ---------- */
+  #story { position: absolute; left: 0; right: 0; bottom: 0; z-index: 9; background: #fff; border-top: 1px solid var(--line-strong); padding: 16px 24px 14px; }
+  #story > * { max-width: 760px; }
+  #story .st-close { top: 10px; right: 14px; }
+  #story h3 { font-size: 19px; font-weight: 700; line-height: 1.25; margin: 0 40px 6px 0; letter-spacing: -0.01em; }
+  #story p { font-size: 15px; line-height: 1.6; color: var(--ink-2); margin: 0; max-width: 72ch; }
+  #story p strong { color: var(--ink); font-weight: 600; }
+  #story .st-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; gap: 12px; }
+  #story .st-route { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  #story .st-eyebrow { font-size: 13px; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; gap: 8px; }
+  #story .dots { display: flex; gap: 6px; }
+  #story .dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--line-strong); display: block; }
+  #story .dots i.on { background: var(--ink); }
+  .disc-label { position: absolute; transform: translate(-50%, -100%); text-align: center; pointer-events: none; z-index: 4; white-space: nowrap; }
+  .disc-label b { display: block; font-weight: 700; font-size: 14px; }
+  .disc-label span { font-size: 13px; color: var(--ink-3); }
+
+  /* ---------- menu de rutas: desplegable bajo su enlace ---------- */
+  #routes-menu { position: absolute; top: 0; left: 200px; z-index: 20; width: 380px; background: #fff; border: 1px solid var(--line-strong); padding: 4px 0; }
+  #routes-menu button { display: block; width: 100%; text-align: left; border: none; background: none; padding: 9px 16px; cursor: pointer; }
+  #routes-menu button:hover, #routes-menu button:focus-visible { background: var(--surface); outline: none; }
+  #routes-menu b { display: block; font-weight: 600; font-size: 14px; color: var(--ink); }
+  #routes-menu span { display: block; font-size: 13px; color: var(--ink-3); margin-top: 1px; line-height: 1.4; }
+
+  /* ---------- buscador ---------- */
+  #search { position: fixed; inset: 0; z-index: 40; display: flex; justify-content: center; align-items: flex-start; padding-top: 10vh; }
+  #search .s-backdrop { position: absolute; inset: 0; background: rgba(255, 255, 255, 0.8); }
+  #search .s-card { position: relative; width: min(640px, calc(100% - 24px)); background: #fff; border: 1px solid var(--line-strong); }
+  #search input { width: 100%; border: none; border-bottom: 1px solid var(--line); padding: 14px 18px; font-size: 17px; outline: none; background: #fff; color: var(--ink); }
+  #search input::placeholder { color: #8f8f8f; }
+  #search .s-results { max-height: 52vh; overflow-y: auto; padding: 4px 0; }
+  #search .s-empty { padding: 16px 18px; font-size: 14px; color: var(--ink-2); line-height: 1.5; }
+  .sr-item { display: grid; grid-template-columns: 96px 1fr auto; gap: 12px; align-items: baseline; width: 100%; text-align: left; border: none; background: none; padding: 8px 18px; cursor: pointer; }
+  .sr-item.active, .sr-item:hover { background: var(--surface); }
+  .sr-item .lv { font-size: 13px; color: var(--ink-3); }
+  .sr-item .nm { font-size: 14px; color: var(--ink); line-height: 1.35; }
+  .sr-item .nm small { display: block; font-size: 13px; color: var(--ink-3); margin-top: 1px; }
+  .sr-item .ct { font-size: 13px; color: var(--ink-3); }
+  #search .s-foot { border-top: 1px solid var(--line); padding: 7px 18px; font-size: 12.5px; color: var(--ink-3); display: flex; gap: 16px; flex-wrap: wrap; }
+
+  /* ---------- vecindario ---------- */
+  #vmodal { position: fixed; inset: 0; z-index: 35; display: flex; align-items: center; justify-content: center; padding: 24px; }
+  #vmodal .vm-backdrop { position: absolute; inset: 0; background: rgba(255, 255, 255, 0.8); }
+  #vmodal .vm-card { position: relative; width: min(1180px, 100%); height: min(760px, 100%); background: #fff; border: 1px solid var(--line-strong); display: flex; flex-direction: column; overflow: hidden; }
+  #vmodal .vm-head { position: relative; padding: 14px 56px 12px 20px; border-bottom: 1px solid var(--line); display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
+  #vmodal .vm-breadcrumb { font-size: 13px; color: var(--ink-3); margin-bottom: 4px; }
+  #vmodal .vm-breadcrumb button { border: none; background: none; color: var(--link); cursor: pointer; font: inherit; padding: 0; margin-right: 4px; }
+  #vmodal .vm-title { font-size: 18px; font-weight: 700; line-height: 1.3; max-width: 820px; }
+  #vmodal .vm-meta { font-size: 13.5px; color: var(--ink-3); margin-top: 4px; }
+  #vmodal .vm-controls { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+  select { height: 32px; font-size: 14px; padding: 0 6px; border: 1px solid var(--line-strong); border-radius: 2px; background: #fff; color: var(--ink); }
+  #vmodal .vm-body { position: relative; flex: 1; min-height: 0; }
+  #vmodal svg { width: 100%; height: 100%; display: block; }
+  #vmodal .vm-group-label { font-family: "Libre Franklin", sans-serif; font-size: 13px; font-weight: 600; fill: var(--ink-2); }
+  #vmodal .vm-edge { stroke: #9a9a9a; fill: none; pointer-events: none; }
+  #vmodal .vm-node circle { cursor: pointer; stroke: #fff; stroke-width: 1px; }
+  #vmodal .vm-node.not-in-sample circle, #vmodal .vm-node.focal circle { cursor: default; }
+  #vmodal .vm-legend { position: absolute; left: 0; bottom: 0; background: #fff; border-top: 1px solid var(--line); border-right: 1px solid var(--line); padding: 8px 14px; font-size: 13px; color: var(--ink-2); }
+  #vmodal .vm-lg-row { display: flex; align-items: center; gap: 7px; margin-top: 3px; }
+  #vmodal .vm-lg-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+
+  /* ---------- modo aislado: segunda barra acoplada, no pildora [5][8] ---------- */
+  #tint { position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 900ms ease; z-index: 1; }
+  #tint.on { opacity: 1; }
+  #flow { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; }
+  #iso-chip { position: absolute; top: 0; left: 0; right: 0; z-index: 7; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; background: #fff; border-bottom: 1px solid var(--line); padding: 8px 24px; }
+  main.panel-open #iso-chip { right: 360px; }
+  #iso-chip .ic-ey { display: none; }
+  #iso-chip .ic-head { display: flex; align-items: baseline; gap: 10px; min-width: 0; flex: 1; }
+  #iso-chip b { font-size: 17px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 520px; }
+  #iso-chip .ic-n { font-size: 14px; color: var(--ink-3); white-space: nowrap; }
+  #iso-chip .ic-actions { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+  body.iso #overlay, body.iso #legend { opacity: 0; pointer-events: none; }
+  #overlay, #legend { transition: opacity 400ms ease; }
+  #ana-labels { position: absolute; inset: 0; pointer-events: none; z-index: 3; opacity: 0; transition: opacity 400ms ease; }
+  #ana-labels.on { opacity: 1; }
+  .ana-label { position: absolute; left: 0; top: 0; display: flex; align-items: center; gap: 6px; white-space: nowrap; font-size: 13.5px; font-weight: 600; color: var(--ink); }
+  .ana-label i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  .ana-label span { max-width: 240px; overflow: hidden; text-overflow: ellipsis; }
+  .ana-label b { font-weight: 400; color: var(--ink-3); }
+
+  /* ---------- modo taller ---------- */
+  #taller, #metodo { position: fixed; inset: 0; z-index: 36; background: #fff; display: flex; flex-direction: column; }
+  #taller .tl-head { position: relative; padding: 18px 32px 0; border-bottom: 1px solid var(--line); }
   #taller .tl-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
-  #taller .tl-crumb { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink-3); }
-  #taller h2 { font-family: "Source Serif 4", Georgia, serif; font-weight: 500; font-size: 26px; text-transform: uppercase; letter-spacing: 0.01em; margin: 4px 0 12px; line-height: 1.15; }
-  #taller .tl-kpis { display: flex; gap: 26px; flex-wrap: wrap; margin-bottom: 12px; }
-  #taller .tl-kpis div b { display: block; font-family: "JetBrains Mono", monospace; font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; }
-  #taller .tl-kpis div span { font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink-3); }
-  #taller .tabs { display: flex; gap: 4px; }
-  #taller .tabs button { border: none; background: none; padding: 10px 12px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-3); cursor: pointer; border-bottom: 2px solid transparent; }
-  #taller .tabs button.active { color: var(--ink); border-bottom-color: var(--ink); }
-  #taller .tl-body { flex: 1; min-height: 0; overflow: auto; padding: 18px 24px 30px; }
-  #taller .tl-close { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border); background: var(--panel-bg); cursor: pointer; font-size: 14px; color: var(--ink-2); flex-shrink: 0; }
-  .tl-controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
-  .tl-controls input, .tl-controls select { font: 12px "Public Sans", sans-serif; padding: 7px 9px; border: 1px solid var(--border); border-radius: 7px; background: var(--panel-bg); color: var(--ink); }
-  .tl-controls input { min-width: 240px; flex: 1; max-width: 420px; }
-  .tl-count { font-size: 11px; color: var(--ink-3); font-family: "JetBrains Mono", monospace; }
-  table.tl-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-  .tl-table th { text-align: left; font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink-3); font-weight: 600; padding: 8px 10px 8px 0; border-bottom: 1px solid var(--border); position: sticky; top: -18px; background: var(--bg); }
-  .tl-table td { padding: 9px 10px 9px 0; border-bottom: 1px solid var(--grid); vertical-align: top; color: var(--ink-2); text-transform: uppercase; font-size: 10.5px; letter-spacing: 0.02em; line-height: 1.4; }
-  .tl-table td.t { font-family: "Source Serif 4", Georgia, serif; font-size: 12.5px; color: var(--ink); letter-spacing: 0.01em; width: 42%; }
-  .tl-table td.y { font-family: "JetBrains Mono", monospace; color: var(--ink-3); }
+  #taller .tl-crumb { font-size: 14px; color: var(--ink-3); }
+  #taller h2 { font-size: 26px; font-weight: 700; margin: 2px 0 4px; line-height: 1.15; letter-spacing: -0.015em; }
+  /* [21] sin tira de KPIs: una frase que responde «qué es esto» */
+  #taller .tl-kpis { font-size: 15px; color: var(--ink-2); margin-bottom: 14px; }
+  #taller .tabs { display: flex; gap: 24px; }
+  #taller .tabs button { border: none; background: none; padding: 8px 0 9px; font-size: 15px; color: var(--ink-3); cursor: pointer; border-bottom: 2px solid transparent; }
+  #taller .tabs button:hover { color: var(--ink); }
+  #taller .tabs button.active { color: var(--ink); font-weight: 600; border-bottom-color: var(--ink); }
+  #taller .tl-body { flex: 1; min-height: 0; overflow: auto; padding: 20px 32px 32px; }
+  .tl-controls { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+  .tl-controls input { height: 32px; font-size: 14px; padding: 0 10px; border: 1px solid var(--line-strong); border-radius: 2px; background: #fff; color: var(--ink); min-width: 240px; flex: 1; max-width: 420px; }
+  .tl-count { font-size: 13.5px; color: var(--ink-3); }
+  table.tl-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .tl-table th { text-align: left; font-size: 13.5px; font-weight: 600; color: var(--ink-2); padding: 7px 16px 7px 0; border-bottom: 1px solid var(--line-strong); position: sticky; top: -20px; background: #fff; }
+  .tl-table td { padding: 8px 16px 8px 0; border-bottom: 1px solid var(--grid); vertical-align: top; color: var(--ink-2); line-height: 1.4; }
+  .tl-table td.t { color: var(--ink); width: 42%; }
   .tl-table tr { cursor: pointer; }
-  .tl-table tr:hover td.t { color: var(--accent); }
+  .tl-table tr:hover td.t { color: var(--link); }
   .tl-more { margin: 14px auto 0; display: flex; }
-  .tl-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 18px; }
-  .card { background: var(--panel-bg); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
-  .card h4 { margin: 0 0 2px; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink-3); font-weight: 600; }
-  .card .sub { font-size: 12px; color: var(--ink-2); margin-bottom: 10px; }
+  /* [11] panorama: secciones separadas por lineas, no rejilla de tarjetas */
+  .tl-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); column-gap: 48px; }
+  .card { background: none; border: none; border-top: 1px solid var(--line); padding: 16px 0 24px; }
+  .card h4 { margin: 0 0 2px; font-size: 16px; font-weight: 600; }
+  .card .sub { font-size: 13.5px; color: var(--ink-3); margin-bottom: 12px; }
   .card.wide { grid-column: 1 / -1; }
-  .hbar { display: grid; grid-template-columns: minmax(120px, 42%) 1fr 44px; gap: 8px; align-items: center; margin: 5px 0; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.02em; color: var(--ink); }
+  .hbar { display: grid; grid-template-columns: minmax(120px, 42%) 1fr 52px; gap: 10px; align-items: center; margin: 5px 0; font-size: 13.5px; color: var(--ink-2); }
   .hbar .lbl { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .hbar .trk { height: 10px; }
-  .hbar .bar { height: 10px; background: #3f4a5c; border-radius: 0 4px 4px 0; min-width: 2px; }
-  .hbar:hover .bar { background: var(--accent); }
-  .hbar .val { font-family: "JetBrains Mono", monospace; color: var(--ink-2); text-align: right; font-variant-numeric: tabular-nums; }
+  .hbar .trk { height: 8px; }
+  .hbar .bar { height: 8px; background: #7a7a7a; min-width: 2px; }
+  .hbar:hover .bar { background: var(--link); }
+  .hbar .val { color: var(--ink-3); text-align: right; }
   .hbar.click { cursor: pointer; }
-  svg.years .col { fill: #3f4a5c; }
-  svg.years .col:hover { fill: var(--accent); }
-  svg.years text { font-family: "JetBrains Mono", monospace; font-size: 9.5px; fill: var(--ink-3); }
+  .hbar.click:hover .lbl { color: var(--link); }
+  svg.years .col { fill: #7a7a7a; }
+  svg.years .col:hover { fill: var(--link); }
+  svg.years text { font-size: 11px; fill: #8a8a8a; }
   svg.years line { stroke: var(--grid); }
-  .insight { font-size: 13px; line-height: 1.55; color: var(--ink-2); }
+  .insight { font-size: 16px; line-height: 1.6; color: var(--ink-2); max-width: 90ch; }
   .insight b { color: var(--ink); font-weight: 600; }
-  #tl-analytic svg .dot { fill: #3f4a5c; fill-opacity: 0.75; cursor: pointer; }
-  #tl-analytic svg .dot:hover { fill: var(--accent); fill-opacity: 1; }
-  #tl-analytic svg .glabel { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; fill: var(--ink-2); font-weight: 600; }
-  #tl-net svg .lnk { stroke: var(--accent); stroke-opacity: 0.45; }
-  #tl-net svg .nd { fill: #3f4a5c; stroke: #fff; stroke-width: 1.5; cursor: pointer; }
-  #tl-net svg .nd.co { fill: var(--accent); }
-  #tl-net svg .nd:hover { stroke: var(--ink); stroke-width: 2; }
-  #tl-net svg text { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; fill: var(--ink); paint-order: stroke; stroke: var(--bg); stroke-width: 3px; pointer-events: none; }
-  .net-wrap { display: grid; grid-template-columns: 1fr 280px; gap: 18px; }
-  @media (max-width: 900px) { .net-wrap { grid-template-columns: 1fr; } #taller h2 { font-size: 20px; } .tl-table td:nth-child(n+4), .tl-table th:nth-child(n+4) { display: none; } }
+  #tl-analytic svg .dot { fill: #6a6a6a; fill-opacity: 0.75; cursor: pointer; }
+  #tl-analytic svg .dot:hover { fill: var(--link); fill-opacity: 1; }
+  #tl-analytic svg .glabel { font-family: "Libre Franklin", sans-serif; font-size: 13px; font-weight: 600; fill: var(--ink-2); }
+  #tl-net svg .lnk { stroke: #9a9a9a; stroke-opacity: 0.5; }
+  #tl-net svg .nd { fill: #b8b8b8; stroke: #fff; stroke-width: 1.5; cursor: pointer; }
+  #tl-net svg .nd.co { fill: #6a6a6a; }
+  #tl-net svg .nd:hover { fill: var(--link); }
+  #tl-net svg text { font-family: "Libre Franklin", sans-serif; font-size: 12px; fill: var(--ink-2); paint-order: stroke; stroke: #fff; stroke-width: 3px; pointer-events: none; }
+  .net-wrap { display: grid; grid-template-columns: 1fr 300px; gap: 48px; }
 
-  footer {
-    border-top: 1px solid var(--border); background: var(--bg); padding: 8px 20px;
-    font-family: "JetBrains Mono", monospace; font-size: 10px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.03em;
-    display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px; position: relative; z-index: 12;
-  }
-  .loading-note { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 10px; font-size: 13px; color: var(--ink-3); z-index: 10; background: var(--bg); transition: opacity 400ms ease; }
-  .loading-note .bar { width: 180px; height: 2px; background: var(--grid); overflow: hidden; border-radius: 2px; }
-  .loading-note .bar i { display: block; height: 100%; width: 40%; background: var(--ink-3); animation: slide 1.1s ease-in-out infinite; }
+  /* ---------- pagina Metodo [18]: aqui vive la informacion tecnica ---------- */
+  #metodo { overflow-y: auto; }
+  #metodo article { position: relative; max-width: 720px; margin: 0 auto; padding: 40px 24px 64px; }
+  #metodo h2 { font-size: 30px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.15; margin: 0 0 8px; }
+  #metodo .lead { font-size: 17px; color: var(--ink-2); line-height: 1.6; margin: 0 0 28px; }
+  #metodo h3 { font-size: 18px; font-weight: 600; margin: 32px 0 8px; }
+  #metodo p, #metodo li { font-size: 15.5px; line-height: 1.7; color: var(--ink-2); }
+  #metodo ul { padding-left: 20px; }
+  #metodo dl { display: grid; grid-template-columns: 200px 1fr; gap: 6px 20px; font-size: 15px; margin: 12px 0; }
+  #metodo dt { color: var(--ink-3); }
+  #metodo dd { margin: 0; color: var(--ink); }
+  #metodo .page-close { top: 20px; right: 0; }
+
+  /* ---------- pie [18]: sin jerga ---------- */
+  footer { border-top: 1px solid var(--line); background: #fff; padding: 7px 24px; font-size: 12.5px; color: var(--ink-3); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px; position: relative; z-index: 12; flex-shrink: 0; }
+  footer button { border: none; background: none; padding: 0; color: var(--link); font: inherit; cursor: pointer; }
+  footer button:hover { text-decoration: underline; }
+  .loading-note { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 12px; font-size: 15px; color: var(--ink-3); z-index: 10; background: #fff; transition: opacity 400ms ease; }
+  .loading-note .bar { width: 160px; height: 2px; background: var(--grid); overflow: hidden; }
+  .loading-note .bar i { display: block; height: 100%; width: 40%; background: #8c8c8c; animation: slide 1.1s ease-in-out infinite; }
   @keyframes slide { 0% { transform: translateX(-100%); } 100% { transform: translateX(260%); } }
-  #debug-bar { display: none; }
-  body.debug #debug-bar { display: flex; gap: 6px; align-items: center; }
   #debug-log { font: 10px monospace; background: #fffbe6; border-bottom: 1px solid #ddd; padding: 4px 10px; max-height: 140px; overflow: auto; white-space: pre-wrap; }
 
-  @media (max-width: 760px) {
-    header { padding: 10px 12px; }
-    h1 { font-size: 17px; }
-    .subtitle { display: none; }
-    #minimap { display: none !important; }
-    #crumbs { max-width: calc(100% - 32px); }
-    .legend { max-width: 190px; padding: 8px 10px; }
-    aside#panel { width: 100vw; max-width: 100vw; }
-    #routes-menu { right: 12px; left: 12px; width: auto; }
-    #vmodal { padding: 0; }
-    #vmodal .vm-card { width: 100%; height: 100%; border-radius: 0; }
+  @media (max-width: 860px) {
+    header.nav { gap: 16px; padding: 0 14px; }
+    .brand-org { display: none; }
+    .navlinks { gap: 14px; }
+    .navsearch { width: 40px; padding: 0; justify-content: center; }
+    .navsearch span { display: none; }
+    .filterbar { padding: 6px 14px; gap: 12px; }
+    .fb-count { display: none; }
+    #minimap, #mm-show { display: none !important; }
+    .legend { max-width: 200px; }
     .legend .lg-note { display: none; }
-    .disc-label b { font-size: 9.5px; white-space: normal; width: 130px; }
-    .disc-label span { font-size: 9.5px; }
-    #story { bottom: 12px; padding: 14px 16px 12px; }
+    aside#panel, #map-selection { width: 100vw; max-width: 100vw; }
+    main.panel-open #iso-chip { right: 0; }
+    #routes-menu { left: 12px !important; right: 12px; width: auto; }
+    #vmodal { padding: 0; }
+    #vmodal .vm-card { width: 100%; height: 100%; }
+    .disc-label b { font-size: 12px; white-space: normal; width: 130px; }
+    #story { padding: 14px 16px 12px; }
     #story h3 { font-size: 17px; }
-    #story p { font-size: 12.5px; }
+    #story p { font-size: 14px; }
+    .net-wrap { grid-template-columns: 1fr; }
+    #taller h2 { font-size: 21px; }
+    #metodo dl { grid-template-columns: 1fr; }
+    .tl-table td:nth-child(n+4), .tl-table th:nth-child(n+4) { display: none; }
   }
   @media (prefers-reduced-motion: reduce) {
-    .anode, .alabel, aside#panel { transition: none; }
+    .anode, .alabel, aside#panel, #tint { transition: none; }
+  }
+  body.iso #map-selection { top: 50px; }
+  #iso-chip { z-index: 10; }
+  @media (max-width: 860px) {
+    header.nav { flex-wrap: wrap; height: auto; row-gap: 0; padding-top: 8px; }
+    header.nav .navlinks { order: 3; width: 100%; height: 38px; overflow-x: auto; }
+    body.iso #map-selection { top: 0; }
   }
 </style>
 </head>
 <body>
 <div class="app">
-  <header>
-    <div>
-      <h1>Atlas de tesis UNAM</h1>
-      <div class="subtitle" id="subtitle">609,154 tesis, ordenadas por lo que dicen sus títulos</div>
-    </div>
-    <div class="hdr-actions">
+  <header class="nav">
+    <a class="brand" href="./" title="Atlas de tesis UNAM: 609,154 tesis ordenadas por lo que dicen sus títulos"><span class="brand-name">Atlas de tesis</span><span class="brand-org">UNAM, 609,154 tesis</span></a>
+    <nav class="navlinks" aria-label="Secciones">
+      <button type="button" id="nav-map" class="active">Mapa</button>
+      <button type="button" id="btn-routes" aria-haspopup="true" aria-expanded="false">Rutas</button>
+      <button type="button" id="btn-intro">Introducción</button>
+      <button type="button" id="nav-metodo">Método</button>
+    </nav>
       <div id="debug-bar">
         <span class="kbd" id="zoom-readout"></span>
         <div class="seg" id="density-toggle" title="Densidad del fondo (experimental)">
@@ -429,15 +404,12 @@
         </div>
         <button type="button" class="btn" id="debug-log-toggle">Log</button>
       </div>
-      <button type="button" class="btn" id="btn-search" aria-label="Buscar (Ctrl+K)">Buscar <span class="kbd">Ctrl K</span></button>
-      <button type="button" class="btn" id="btn-routes" aria-haspopup="true" aria-expanded="false">Rutas guiadas</button>
-      <button type="button" class="btn" id="btn-intro">Introducción</button>
-    </div>
+    <button type="button" class="navsearch" id="btn-search" aria-label="Buscar (Ctrl+K)"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5"/><path d="M10.4 10.4L14 14"/></svg><span>Buscar tema, disciplina o título</span></button>
   </header>
   <!-- Barra general de filtros (v3.2). Hoy: color. Siguientes: programa, plantel,
        año, nivel -- cada filtro nuevo es otro .fb-group aqui. -->
   <div class="filterbar" id="filterbar" role="toolbar" aria-label="Filtros del mapa">
-    <span class="fb-title">Filtros</span>
+    <nav id="crumbs" aria-label="Ubicación en el atlas" hidden></nav>
     <div class="fb-group">
       <span class="fb-label">Color</span>
       <div class="seg" id="lens" role="group" aria-label="Color de los puntos">
@@ -454,21 +426,19 @@
     <canvas id="flow" aria-hidden="true"></canvas>
     <svg id="overlay"><g id="g-grid"></g><g id="g-edges"></g><g id="g-nodes"></g><g id="g-labels"></g></svg>
     <div id="disc-labels"></div>
-    <nav id="crumbs" aria-label="Ubicación en el atlas" hidden></nav>
-
     <div class="legend" id="legend" hidden></div>
     <div id="iso-chip" hidden>
-      <div class="ic-head"><span class="ic-ey">Tema fino aislado</span><b id="iso-name"></b><span id="iso-n" class="ic-n"></span></div>
+      <div class="ic-head"><b id="iso-name"></b><span id="iso-n" class="ic-n"></span></div>
       <div class="ic-actions">
         <button type="button" class="btn primary" id="iso-analyze">Analizar</button>
         <div class="seg" id="ana-group" hidden role="group" aria-label="Agrupar tesis por">
           <button type="button" data-g="area">Área</button><button type="button" data-g="plantel" class="active">Plantel</button><button type="button" data-g="programa">Programa</button><button type="button" data-g="nivel">Nivel</button><button type="button" data-g="decada">Década</button>
         </div>
-        <button type="button" class="btn" id="iso-exit">← Volver al mapa</button>
+        <button type="button" class="btn" id="iso-exit"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M12.5 8h-9M7 4.5L3.5 8 7 11.5"/></svg>Volver al mapa</button>
       </div>
     </div>
     <div id="ana-labels" aria-hidden="true"></div>
-    <button type="button" class="btn" id="mm-show" hidden>Mostrar minimapa</button>
+    <button type="button" class="btn" id="mm-show" hidden>Mostrar vista general</button>
 
     <div id="minimap" hidden title="Clic o arrastre para moverte">
       <canvas id="mm-base"></canvas>
@@ -479,20 +449,21 @@
     <div id="tooltip" class="tip"></div>
 
     <div id="map-selection" hidden>
-      <button class="close-btn-mini" id="map-selection-close" type="button" aria-label="Cerrar">✕</button>
-      <div class="ms-eyebrow" id="ms-eyebrow">Tesis seleccionada</div>
+      <button class="close-btn-mini" id="map-selection-close" type="button" aria-label="Cerrar"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg></button>
+      <div id="ms-eyebrow" hidden></div>
       <div class="ms-title" id="ms-title">—</div>
       <div class="ms-meta" id="ms-meta"></div>
       <div class="ms-note" id="ms-note"></div>
-      <button class="btn" id="ms-go-territory" type="button" hidden>Ir a su territorio →</button>
-      <button class="btn" id="ms-open-vecindario" type="button" hidden>Ver vecindario completo →</button>
+      <button class="btn" id="ms-go-territory" type="button" hidden>Ir a su territorio</button>
+      <button class="btn" id="ms-open-vecindario" type="button" hidden>Ver vecindario completo</button>
     </div>
 
     <aside id="panel" aria-label="Detalle">
-      <button class="close-btn" id="panel-close" aria-label="Cerrar">✕</button>
+      <button class="close-btn" id="panel-close" aria-label="Cerrar"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg></button>
       <div class="panel-head">
-        <div class="panel-eyebrow" id="panel-eyebrow">Territorio</div>
+        <div class="panel-eyebrow" id="panel-eyebrow"></div>
         <h2 id="panel-title">—</h2>
+        <div class="panel-sub" id="panel-sub"></div>
       </div>
       <div class="panel-body" id="panel-body"></div>
     </aside>
@@ -500,15 +471,14 @@
     <div id="routes-menu" hidden role="menu"></div>
 
     <section id="story" hidden aria-live="polite">
-      <button class="st-close" id="story-close" type="button" aria-label="Cerrar">✕</button>
-      <div class="st-eyebrow"><span id="story-eyebrow"></span><span id="story-count"></span></div>
+      <button class="st-close" id="story-close" type="button" aria-label="Cerrar"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg></button>
       <h3 id="story-title"></h3>
       <p id="story-text"></p>
       <div class="st-actions">
-        <div class="dots" id="story-dots"></div>
+        <div class="st-route"><div class="dots" id="story-dots"></div><div class="st-eyebrow"><span id="story-eyebrow"></span><span id="story-count"></span></div></div>
         <div style="display:flex;gap:8px;">
-          <button type="button" class="btn" id="story-prev">← Anterior</button>
-          <button type="button" class="btn primary" id="story-next">Siguiente →</button>
+          <button type="button" class="btn" id="story-prev">Anterior</button>
+          <button type="button" class="btn primary" id="story-next">Siguiente</button>
         </div>
       </div>
     </section>
@@ -517,8 +487,8 @@
   </main>
 
   <footer>
-    <span>Primera edición · n=609,154 tesis · e5-large · HDBSCAN + Ward · PaCMAP 2D · posiciones sin unidad física</span>
-    <span>Datos: catálogo TESIUNAM · <span id="app-version" title="Versionado semver del prototipo">v3.4.0</span></span>
+    <span>Proyecto independiente, no oficial. Datos del catálogo público TESIUNAM.</span>
+    <span><button type="button" id="foot-metodo">Cómo se hizo el mapa</button> · versión <span id="app-version">4.0.0</span></span>
   </footer>
 </div>
 
@@ -527,7 +497,7 @@
   <div class="s-card">
     <input id="search-input" type="search" placeholder="Busca un tema, disciplina o título… (ej. «amparo», «diabetes», «bach»)" autocomplete="off" spellcheck="false">
     <div class="s-results" id="search-results"></div>
-    <div class="s-foot"><span>↑↓ navegar</span><span>Enter ir</span><span>Esc cerrar</span><span id="search-scope"></span></div>
+    <div class="s-foot"><span>Flechas para navegar</span><span>Enter para ir</span><span>Esc para cerrar</span><span id="search-scope"></span></div>
   </div>
 </div>
 
@@ -545,14 +515,13 @@
           <option value="area">Agrupar por área</option>
           <option value="decade">Agrupar por década</option>
         </select>
-        <button class="vm-close" id="vm-close" type="button" aria-label="Cerrar">✕</button>
+        <button class="vm-close" id="vm-close" type="button" aria-label="Cerrar"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg></button>
       </div>
     </div>
     <div class="vm-body">
       <svg id="vm-svg"><g class="vm-edges"></g><g class="vm-nodes"></g><g class="vm-group-labels"></g></svg>
       <div class="vm-legend">
-        <div><strong>Color</strong> = área administrativa</div>
-        <div><strong>Tamaño/opacidad</strong> = similitud</div>
+        <div>Color: área administrativa. Tamaño: parecido con la tesis central.</div>
         <div class="vm-lg-row"><span class="vm-lg-dot" style="background:#3566a8"></span>Físico-Matemáticas e Ingenierías</div>
         <div class="vm-lg-row"><span class="vm-lg-dot" style="background:#0f7d5c"></span>Biológicas, Químicas y de la Salud</div>
         <div class="vm-lg-row"><span class="vm-lg-dot" style="background:#c98a2e"></span>Ciencias Sociales</div>
@@ -563,6 +532,32 @@
 </div>
 <div id="vtooltip" class="tip"></div>
 
+<section id="metodo" hidden aria-label="Método">
+  <article>
+    <button class="page-close" id="metodo-close" type="button" aria-label="Volver al mapa"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg></button>
+    <h2>Cómo se hizo el mapa</h2>
+    <p class="lead">El atlas ordena 609,154 tesis de la UNAM por lo que dicen sus títulos. Dos tesis quedan cerca cuando tratan temas parecidos, aunque vengan de facultades distintas.</p>
+    <h3>Datos</h3>
+    <p>Títulos, año, plantel, programa, nivel y asesores del catálogo público TESIUNAM. El atlas no muestra el nombre de quien escribió la tesis: se retira del título cuando el catálogo lo incluye. Sí muestra a los asesores.</p>
+    <h3>Del texto al mapa</h3>
+    <dl>
+      <dt>Representación</dt><dd>Cada título se convierte en un vector numérico con el modelo de lenguaje e5-large.</dd>
+      <dt>Agrupamiento</dt><dd>HDBSCAN encuentra grupos densos de títulos parecidos; Ward los organiza en tres niveles: 130 territorios, unos 440 subtemas y 513 temas finos.</dd>
+      <dt>Proyección</dt><dd>PaCMAP lleva los vectores a dos dimensiones para dibujarlos.</dd>
+      <dt>Vecindarios</dt><dd>Para una tesis, sus vecinas son las de título más parecido en todo el corpus. Dentro de un tema fino, cada tesis se une a sus tres más parecidas.</dd>
+    </dl>
+    <h3>Cómo leerlo</h3>
+    <ul>
+      <li>Las posiciones no tienen unidad: importa quién está cerca de quién, no las coordenadas ni las distancias largas.</li>
+      <li>El 67% de las tesis no quedó en ningún grupo claro. Se dibujan en gris tenue en lugar de ocultarse.</li>
+      <li>Los nombres de los 130 territorios son un borrador curado a mano y está pendiente su revisión. Los de subtemas y temas finos son las palabras que más distinguen a cada grupo, sin acentos.</li>
+      <li>Las áreas administrativas vienen del catálogo, no del algoritmo; sirven para comparar, no son la estructura del mapa.</li>
+    </ul>
+    <h3>Sobre el proyecto</h3>
+    <p>Proyecto independiente de tesis (NODO UNAM). No es un sitio oficial de la UNAM ni de la Dirección General de Bibliotecas. Primera edición, versión <span id="metodo-version">4.0.0</span>.</p>
+  </article>
+</section>
+
 <section id="taller" hidden aria-label="Modo taller">
   <div class="tl-head">
     <div class="tl-top">
@@ -570,7 +565,7 @@
         <div class="tl-crumb" id="tl-crumb"></div>
         <h2 id="tl-title">—</h2>
       </div>
-      <button class="tl-close" id="tl-close" type="button" aria-label="Volver al mapa">✕</button>
+      <button class="tl-close" id="tl-close" type="button" aria-label="Volver al mapa"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg></button>
     </div>
     <div class="tl-kpis" id="tl-kpis"></div>
     <div class="tabs" role="tablist">
@@ -609,7 +604,8 @@
     3: 'Ciencias Sociales',
     4: 'Humanidades y Artes'
   };
-  var AREA_HEX = { 0: '#948d7c', 1: '#3566a8', 2: '#0f7d5c', 3: '#c98a2e', 4: '#b8412f' };
+  var ICO_X = '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg>', ICO_L = '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M12.5 8h-9M7 4.5L3.5 8 7 11.5"/></svg>';
+  var AREA_HEX = { 0: '#9a9a9a', 1: '#3566a8', 2: '#0f7d5c', 3: '#c98a2e', 4: '#b8412f' };
   var AREA_STR_TO_CODE = { 'area 1': 1, 'area 2': 2, 'area 3': 3, 'area 4': 4 };
 
   // Paleta del fondo WebGL: todas las categorias se declaran de entrada (colorBy /
@@ -797,18 +793,18 @@
       op[o.i] = 0.42;
       ms[o.i].color = pal[o.i]; ms[o.i].hueRank = rank;
     });
-    pal[C_NOISE] = '#a79f8d'; op[C_NOISE] = 0.10;
+    pal[C_NOISE] = '#a8a8a8'; op[C_NOISE] = 0.10;
     for (var a = 0; a <= 4; a++) {
       pal[C_AREA + a] = AREA_HEX[a]; op[C_AREA + a] = 0.40;
       pal[C_AREA_NOISE + a] = AREA_HEX[a]; op[C_AREA_NOISE + a] = 0.13;
       pal[C_VIVID + a] = AREA_HEX[a]; op[C_VIVID + a] = 0.95;
     }
-    pal[C_DIM] = '#d9d4c7'; op[C_DIM] = 0.10;
+    pal[C_DIM] = '#d4d4d4'; op[C_DIM] = 0.10;
     pal[C_FOCAL] = '#17181a'; op[C_FOCAL] = 1;
     pal[C_HL_MULTI] = '#0f7d5c'; op[C_HL_MULTI] = 0.92;
     pal[C_HL] = '#17181a'; op[C_HL] = 0.62;
-    for (var g = 0; g < 9; g++) { pal[C_GRP + g] = '#a79f8d'; op[C_GRP + g] = 0.95; }
-    pal[C_HIDDEN] = '#fbfaf7'; op[C_HIDDEN] = 0;
+    for (var g = 0; g < 9; g++) { pal[C_GRP + g] = '#a8a8a8'; op[C_GRP + g] = 0.95; }
+    pal[C_HIDDEN] = '#ffffff'; op[C_HIDDEN] = 0;
     state.palette = pal; state.opacities = op;
   }
 
@@ -865,7 +861,7 @@
       pointSize: 2, pointScaleMode: 'constant', pointColor: state.palette, opacity: state.opacities,
       colorBy: 'valueA', opacityBy: 'valueA',
       pointColorHover: '#17181a', pointColorActive: '#17181a',
-      backgroundColor: '#fbfaf7', cameraDistance: DEFAULT_CAMERA_DISTANCE, lassoOnLongPress: false
+      backgroundColor: '#ffffff', cameraDistance: DEFAULT_CAMERA_DISTANCE, lassoOnLongPress: false
     });
     state.scatterplot = plot;
     // Sin rotacion (causa raiz del bug de zoom, v2.2.0): solo .set() aplica el
@@ -1056,7 +1052,7 @@
   function labelStyle(n, role) {
     if (role === 'region') return { fs: n.landmark ? 20 : 17, ls: 0.2 };
     // Jerarquia (v3.1): hitos = disciplinas reconocibles (Filosofia, Medicina interna...)
-    // en serif, mas grandes y en tinta plena; el resto en sans chico y tinta secundaria.
+    // mas grandes, en 700 y tinta plena; el resto chico, en 500 y tinta secundaria (v4: una sola familia).
     if (role === 'macro') {
       var t = Math.sqrt(n.size / MAX_MACRO_SIZE);
       return n.landmark ? { fs: Math.round(14 + 6 * t), ls: 0.03 } : { fs: Math.round(9.5 + 2.5 * t), ls: 0.06 };
@@ -1154,7 +1150,7 @@
     var W = state.W, H = state.H, placed = [], cands = [], regions = [];
     // las etiquetas no se colocan debajo del chrome flotante (breadcrumb, leyenda, minimapa, ficha)
     var mr = main.getBoundingClientRect();
-    ['crumbs', 'legend', 'minimap', 'map-selection', 'story'].forEach(function (id) {
+    ['legend', 'minimap', 'map-selection', 'story', 'iso-chip'].forEach(function (id) {
       var el = $(id); if (!el || el.hidden) return;
       var r = el.getBoundingClientRect(); if (!r.width) return;
       placed.push({ x0: r.left - mr.left - 4, y0: r.top - mr.top - 4, x1: r.right - mr.left + 4, y1: r.bottom - mr.top + 4 });
@@ -1378,7 +1374,7 @@
       if (i === parts.length - 1 && i > 0) b.className = 'current'; else b.addEventListener('click', p.act);
       c.appendChild(b);
     });
-    var l = document.createElement('span'); l.className = 'lvl'; l.textContent = '· ' + lvlTxt; c.appendChild(l);
+    var l = document.createElement('span'); l.className = 'lvl'; l.textContent = lvlTxt; c.appendChild(l);
   }
 
   // ==================== minimapa ====================
@@ -1426,7 +1422,7 @@
     var t = state.scatterplot.get('cameraTarget'), d = state.scatterplot.get('cameraDistance'), aspect = state.W / Math.max(1, state.H);
     var x0 = (t[0] - aspect * d + 1) / 2 * s, x1 = (t[0] + aspect * d + 1) / 2 * s, y0 = (1 - (t[1] + d)) / 2 * s, y1 = (1 - (t[1] - d)) / 2 * s;
     ctx.clearRect(0, 0, s, s);
-    ctx.fillStyle = 'rgba(251,250,247,0.55)'; ctx.fillRect(0, 0, s, s);
+    ctx.fillStyle = 'rgba(255,255,255,0.6)'; ctx.fillRect(0, 0, s, s);
     ctx.clearRect(x0, y0, x1 - x0, y1 - y0);
     ctx.strokeStyle = '#17181a'; ctx.lineWidth = 1.5 * dpr; ctx.strokeRect(x0, y0, x1 - x0, y1 - y0);
     $('mm-zoom').textContent = '×' + (state.k / K0).toFixed(1);
@@ -1437,14 +1433,14 @@
     var L = $('legend'); L.hidden = false;
     if (state.lens === 'territory') {
       var stops = state.macros.slice().sort(function (a, b) { return a.hueRank - b.hueRank; }).filter(function (_, i) { return i % 7 === 0; }).map(function (m) { return m.color; });
-      L.innerHTML = '<div class="lg-title">Color = territorio</div>' +
+      L.innerHTML = '<div class="lg-title">Color: territorio</div>' +
         '<div class="spectrum" style="background:linear-gradient(to right,' + stops.join(',') + ')"></div>' +
-        '<div class="lg-row"><span class="sw" style="background:#a79f8d;opacity:.55"></span>Gris tenue: tesis sin territorio (67%)</div>' +
-        '<div class="lg-note">130 territorios que el algoritmo encontró agrupando títulos parecidos. No son las áreas oficiales de la UNAM: cambia arriba a «Áreas UNAM» para compararlas.</div>';
+        '<div class="lg-row"><span class="sw" style="background:#c4c4c4"></span>Sin territorio (67% de las tesis)</div>' +
+        '<div class="lg-note">Cada territorio reúne tesis con títulos parecidos; no son las áreas oficiales. <a href="#" data-metodo>Cómo se hizo</a></div>';
     } else {
-      L.innerHTML = '<div class="lg-title">Color = área administrativa</div>' +
+      L.innerHTML = '<div class="lg-title">Color: área administrativa</div>' +
         [1, 2, 3, 4, 0].map(function (a) { return '<div class="lg-row"><span class="sw" style="background:' + AREA_HEX[a] + '"></span>' + AREA_NAMES[a] + '</div>'; }).join('') +
-        '<div class="lg-note">Tenue = tesis sin grupo claro (67%). El área es un dato del catálogo, no del algoritmo.</div>';
+        '<div class="lg-note">El área viene del catálogo. Los puntos tenues no quedaron en ningún grupo (67%).</div>';
     }
   }
   function setLens(lens, force) {
@@ -1467,7 +1463,13 @@
     if (!microThesesCache[cid]) microThesesCache[cid] = fetchJson('./data/tesis_por_micro/' + cid + '.json').then(function (d) { microMeso[cid] = d.mesoId; return d; });
     return microThesesCache[cid];
   }
-  function rowObj(r) { return { id: r[0], t: r[1], y: r[2], pl: r[3], pr: r[4], nv: r[5], as: r[6] || [], k: norm(r[1]).replace(/[^a-z0-9 ]/g, '') }; }
+  // El catalogo trae programas y planteles en minusculas sin acentos: se muestran con
+  // mayuscula inicial y siglas en mayusculas (v4: caja normal fuera de los rotulos del mapa).
+  function pretty(t) {
+    t = String(t || '').replace(/\s+unam$/, '').replace(/\b(unam|fes|enes|enep|cch|ipn|uam|dgb)\b/g, function (m) { return m.toUpperCase(); });
+    return t.charAt(0).toUpperCase() + t.slice(1);
+  }
+  function rowObj(r) { return { id: r[0], t: r[1], y: r[2], pl: pretty(r[3]), pr: pretty(r[4]), nv: r[5], as: r[6] || [], k: norm(r[1]).replace(/[^a-z0-9 ]/g, '') }; }
   var nodeThesesCache = {};
   function loadThesesFor(n) {
     var lvl = n.level || 'macro', key = lvl + ':' + (lvl === 'macro' ? n.macroId : n.clusterId);
@@ -1520,27 +1522,28 @@
   }
   function renderPanel() {
     var top = state.panelStack[state.panelStack.length - 1];
-    var back = state.panelStack.length > 1 ? '<button class="back-btn" id="panel-back">← volver</button>' : '';
+    var back = state.panelStack.length > 1 ? '<button class="back-btn" id="panel-back">' + ICO_L + 'Volver</button>' : '';
     var lvl = top.node.level || 'macro';
     if (top.type === 'node') {
-      $('panel-eyebrow').innerHTML = back + '<span>' + LEVEL_NAME[lvl] + (top.node.parentMacro ? ' · en ' + escapeHtml(top.node.parentMacro.name) : '') + '</span>';
+      $('panel-eyebrow').innerHTML = back;
+      $('panel-sub').textContent = LEVEL_NAME[lvl] + (top.node.parentMacro ? ' en ' + top.node.parentMacro.name : '') + ' · ' + fmtNum(top.node.size) + ' tesis';
       renderNodeView(top.node);
-    } else { $('panel-eyebrow').innerHTML = back + '<span>Tesis representativas</span>'; renderThesesView(top.node); }
+    } else { $('panel-eyebrow').innerHTML = back; $('panel-sub').textContent = 'Tesis representativas'; renderThesesView(top.node); }
     var bb = $('panel-back'); if (bb) bb.addEventListener('click', function () { state.panelStack.pop(); renderPanel(); });
   }
   function isCurrent(n) { return state.panelStack.length && state.panelStack[state.panelStack.length - 1].node === n; }
   function renderNodeView(n) {
     var lvl = n.level || 'macro';
     $('panel-title').textContent = n.name;
-    var body = '<div class="kpis" id="panel-kpis"><div><b>' + fmtNum(n.size) + '</b><span>Tesis</span></div><div><b>…</b><span>Años</span></div><div><b>…</b><span>Asesores</span></div></div>' +
+    var body = '<p class="facts" id="panel-facts"></p>' +
       '<div class="az-head"><span class="az-mark">A' + AZ_SVG + 'Z</span><span class="az-cap" id="az-cap">Cargando tesis…</span></div>' +
       '<div id="az-list"></div>' +
-      '<button type="button" class="btn primary btn-full" id="btn-taller" disabled>Ver listado completo y análisis →</button>' +
+      '<button type="button" class="btn primary btn-full" id="btn-taller" disabled>Ver listado completo y análisis</button>' +
       '<div class="section-label">Palabras que lo distinguen</div><div class="kw">' + keywords(n.label).slice(0, 8).map(function (k) { return '<span>' + escapeHtml(k) + '</span>'; }).join('') + '</div>';
     if (lvl !== 'micro') body += '<div class="section-label">' + (lvl === 'macro' ? 'Subtemas' : 'Temas finos') + '</div><div class="children" id="panel-children"><div class="vecindario-note">Cargando…</div></div>';
     if (lvl === 'micro' && state.vecindarioPreview) {
       var ids = (state.vecindarioPreview.byCluster || {})[String(n.clusterId)];
-      if (ids && ids.length) body += '<div class="section-label">Vecindarios precargados</div><div class="cta" id="theses-trigger">' + ids.length + ' tesis de referencia y sus 50 vecinas →</div>';
+      if (ids && ids.length) body += '<div class="section-label">Vecindarios precargados</div><div class="cta" id="theses-trigger">' + ids.length + ' tesis de referencia y sus 50 vecinas</div>';
     }
     $('panel-body').innerHTML = body;
     var tr = $('theses-trigger'); if (tr) tr.addEventListener('click', function () { state.panelStack.push({ type: 'theses', node: n }); renderPanel(); });
@@ -1548,12 +1551,12 @@
     loadThesesFor(n).then(function (rows) {
       if (!isCurrent(n)) return;
       var yr = yearRange(rows), nAs = countBy(rows, function (r) { return r.as; }).length;
-      $('panel-kpis').innerHTML = '<div><b>' + fmtNum(rows.length) + '</b><span>Tesis</span></div><div><b>' + (yr ? yr[0] + '–' + yr[1] : '—') + '</b><span>Años</span></div><div><b>' + fmtNum(nAs) + '</b><span>Asesores</span></div>';
-      $('az-cap').innerHTML = 'Orden alfabético<br>' + Math.min(6, rows.length) + ' de ' + fmtNum(rows.length);
+      $('panel-facts').textContent = yr ? 'Tesis de ' + yr[0] + ' a ' + yr[1] + ', dirigidas por ' + fmtNum(nAs) + ' asesores.' : '';
+      $('az-cap').textContent = 'Orden alfabético, ' + Math.min(6, rows.length) + ' de ' + fmtNum(rows.length);
       $('az-list').innerHTML = rows.slice(0, 6).map(thesisRowHtml).join('');
       bindThesisRows($('az-list'), rows);
       var bt = $('btn-taller'); bt.disabled = false;
-      bt.textContent = 'Ver las ' + fmtNum(rows.length) + ' tesis y su análisis →';
+      bt.textContent = 'Ver las ' + fmtNum(rows.length) + ' tesis y su análisis';
       bt.addEventListener('click', function () { openTaller(n, rows); });
 
       if (lvl !== 'micro') {
@@ -1627,10 +1630,8 @@
     crumb.push(LEVEL_NAME[lvl]);
     $('tl-crumb').textContent = crumb.join(' › ');
     $('tl-title').textContent = n.name;
-    var yr = yearRange(rows), nAs = countBy(rows, function (r) { return r.as; }).length;
-    var kp = [[fmtNum(rows.length), 'Tesis'], [yr ? yr[0] + '–' + yr[1] : '—', 'Periodo'], [fmtNum(countBy(rows, function (r) { return r.pl; }).length), 'Planteles'],
-      [fmtNum(countBy(rows, function (r) { return r.pr; }).length), 'Programas'], [fmtNum(nAs), 'Asesores']];
-    $('tl-kpis').innerHTML = kp.map(function (k) { return '<div><b>' + k[0] + '</b><span>' + k[1] + '</span></div>'; }).join('');
+    var yr = yearRange(rows);
+    $('tl-kpis').textContent = fmtNum(rows.length) + ' tesis' + (yr ? ', de ' + yr[0] + ' a ' + yr[1] : '') + '.';
     $('taller').hidden = false;
     setTab('lista');
   }
@@ -1650,13 +1651,13 @@
   // --- Listado: buscar, ordenar, filtrar; 150 filas por pagina ---
   function renderLista() {
     var rows = taller.rows, pls = countBy(rows, function (r) { return r.pl; }), prs = countBy(rows, function (r) { return r.pr; });
-    var opt = function (list, sel, all) { return '<option value="">' + all + '</option>' + list.slice(0, 60).map(function (e) { return '<option value="' + escapeHtml(e[0]) + '"' + (e[0] === sel ? ' selected' : '') + '>' + escapeHtml(e[0].toUpperCase()) + ' (' + e[1] + ')</option>'; }).join(''); };
+    var opt = function (list, sel, all) { return '<option value="">' + all + '</option>' + list.slice(0, 60).map(function (e) { return '<option value="' + escapeHtml(e[0]) + '"' + (e[0] === sel ? ' selected' : '') + '>' + escapeHtml(e[0]) + ' (' + e[1] + ')</option>'; }).join(''); };
     $('tl-body').innerHTML = '<div class="tl-controls">' +
       '<input id="tl-q" type="search" placeholder="Filtrar por título, asesor o programa…" value="' + escapeHtml(taller.q) + '">' +
-      '<select id="tl-sort"><option value="az">A → Z</option><option value="za">Z → A</option><option value="new">Más recientes</option><option value="old">Más antiguas</option></select>' +
+      '<select id="tl-sort"><option value="az">Título, A–Z</option><option value="za">Título, Z–A</option><option value="new">Más recientes</option><option value="old">Más antiguas</option></select>' +
       '<select id="tl-fpr">' + opt(prs, taller.fpr, 'Todos los programas') + '</select>' +
       '<select id="tl-fpl">' + opt(pls, taller.fpl, 'Todos los planteles') + '</select>' +
-      (taller.fas ? '<button type="button" class="btn" id="tl-fas">Asesor: ' + escapeHtml(taller.fas) + ' ✕</button>' : '') +
+      (taller.fas ? '<button type="button" class="btn" id="tl-fas" aria-label="Quitar filtro de asesor">Asesor: ' + escapeHtml(taller.fas) + ICO_X + '</button>' : '') +
       '<span class="tl-count" id="tl-count"></span></div>' +
       '<table class="tl-table"><thead><tr><th>Título</th><th>Año</th><th>Nivel</th><th>Programa</th><th>Plantel</th><th>Asesoría</th></tr></thead><tbody id="tl-tbody"></tbody></table>' +
       '<button type="button" class="btn tl-more" id="tl-more">Mostrar más</button>';
@@ -1725,14 +1726,14 @@
     var dec = countBy(rows, function (r) { return r.y ? Math.floor(r.y / 10) * 10 + 's' : ''; });
     var multi = rows.filter(function (r) { return r.as.length > 1; }).length, sinAs = rows.filter(function (r) { return !r.as.length; }).length;
     var insight = '<b>' + fmtNum(n) + ' tesis</b>. La década con más producción es <b>' + (dec[0] ? dec[0][0] : '—') + '</b> (' + (dec[0] ? fmtNum(dec[0][1]) : 0) + '). ' +
-      'El programa más frecuente es <b>' + escapeHtml((prs[0] || ['—'])[0].toUpperCase()) + '</b> (' + Math.round(100 * ((prs[0] || [0, 0])[1]) / n) + '%). ' +
+      'El programa más frecuente es <b>' + escapeHtml((prs[0] || ['—'])[0]) + '</b> (' + Math.round(100 * ((prs[0] || [0, 0])[1]) / n) + '%). ' +
       (ases[0] ? 'Quien más tesis dirigió aquí es <b>' + escapeHtml(ases[0][0]) + '</b> (' + ases[0][1] + '). ' : '') +
       Math.round(100 * multi / n) + '% tiene más de un asesor; ' + Math.round(100 * sinAs / n) + '% no tiene asesor registrado.';
     $('tl-body').innerHTML = '<div class="tl-grid">' +
-      '<div class="card wide"><h4>En una frase</h4><div class="insight">' + insight + '</div></div>' +
-      '<div class="card wide"><h4>Tesis por año</h4><div class="sub">Cada barra es un año · pasa el cursor para ver el total</div><div id="tl-years"></div></div>' +
-      '<div class="card"><h4>Programas</h4><div class="sub">Los 10 más frecuentes · clic para filtrar el listado</div>' + hbarsHtml(prs.slice(0, 10), n, 'pr') + '</div>' +
-      '<div class="card"><h4>Planteles</h4><div class="sub">Los 8 más frecuentes · clic para filtrar el listado</div>' + hbarsHtml(pls.slice(0, 8), n, 'pl') + '</div>' +
+      '<div class="card wide" style="border-top:none;padding-top:0"><div class="insight">' + insight + '</div></div>' +
+      '<div class="card wide"><h4>Tesis por año</h4><div class="sub">Cada barra es un año; pasa el cursor para ver el total</div><div id="tl-years"></div></div>' +
+      '<div class="card"><h4>Programas</h4><div class="sub">Los 10 más frecuentes; clic para filtrar el listado</div>' + hbarsHtml(prs.slice(0, 10), n, 'pr') + '</div>' +
+      '<div class="card"><h4>Planteles</h4><div class="sub">Los 8 más frecuentes; clic para filtrar el listado</div>' + hbarsHtml(pls.slice(0, 8), n, 'pl') + '</div>' +
       '<div class="card"><h4>Nivel</h4><div class="sub">Grado obtenido</div>' + hbarsHtml(nvs, n) + '</div>' +
       '<div class="card"><h4>Asesores con más tesis</h4><div class="sub">Clic para ver sus tesis</div>' + hbarsHtml(ases.slice(0, 8), n, 'as') + '</div>' +
       '</div>';
@@ -1778,7 +1779,7 @@
     var cols = Math.max(1, Math.floor((W - 20) / step)), y = 0, svg = '';
     anaRows = [];
     list.forEach(function (g) {
-      svg += '<text class="glabel" x="0" y="' + (y + 12) + '">' + escapeHtml(String(g[0]).toUpperCase()) + ' · ' + fmtNum(g[1].length) + '</text>';
+      svg += '<text class="glabel" x="0" y="' + (y + 12) + '">' + escapeHtml(pretty(g[0])) + ' · ' + fmtNum(g[1].length) + '</text>';
       y += 22;
       g[1].forEach(function (row, i) {
         anaRows.push(row);
@@ -1812,7 +1813,7 @@
     co.forEach(function (w, k) { var p = k.split('||'); if (inTop.has(p[0]) && inTop.has(p[1])) links.push({ source: p[0], target: p[1], w: w }); });
     var withCo = new Set(); links.forEach(function (l) { withCo.add(l.source); withCo.add(l.target); });
     var multi = rows.filter(function (r) { return r.as.length > 1; }).length;
-    $('tl-body').innerHTML = '<div class="net-wrap"><div class="card"><h4>Red de codirección</h4><div class="sub">Cada círculo es un asesor (tamaño = tesis que dirigió en este tema). Una línea une a dos asesores que dirigieron juntos al menos una tesis. En verde, quienes codirigieron.</div><div id="tl-net"></div></div>' +
+    $('tl-body').innerHTML = '<div class="net-wrap"><div class="card"><h4>Red de codirección</h4><div class="sub">Cada círculo es un asesor (tamaño = tesis que dirigió en este tema). Una línea une a dos asesores que dirigieron juntos al menos una tesis. En gris oscuro, quienes codirigieron.</div><div id="tl-net"></div></div>' +
       '<div class="card"><h4>Lectura</h4><div class="insight"><b>' + fmtNum(cnt.size) + ' asesores</b> dirigieron las ' + fmtNum(rows.length) + ' tesis de este tema. ' +
       '<b>' + Math.round(100 * multi / Math.max(1, rows.length)) + '%</b> de las tesis tiene más de un asesor. Se muestran los ' + top.length + ' con más tesis y ' + links.length + ' pares de codirección entre ellos.' +
       (links.length < 3 ? '<br><br>Casi no hay codirección: en este tema cada tesis suele tener un solo asesor.' : '') +
@@ -2024,7 +2025,7 @@
       eyebrow: 'Introducción', count: '1 / 2',
       title: 'Así clasifica la UNAM sus 609,154 tesis',
       text: 'Cada punto es una tesis. El catálogo las reparte en <strong>cuatro áreas administrativas</strong>, según dónde se tituló cada estudiante y no según de qué trata su trabajo.',
-      next: 'Reordenar por contenido →', dots: [1, 0],
+      next: 'Reordenar por contenido', dots: [1, 0],
       onNext: runIntroTransition
     });
   }
@@ -2060,7 +2061,7 @@
     $('story-eyebrow').textContent = s.eyebrow; $('story-count').textContent = s.count || '';
     $('story-title').textContent = s.title; $('story-text').innerHTML = s.text;
     var nx = $('story-next'), pv = $('story-prev');
-    nx.disabled = false; nx.textContent = s.next || 'Siguiente →';
+    nx.disabled = false; nx.textContent = s.next || 'Siguiente';
     pv.hidden = !s.prev; pv.textContent = s.prev || '';
     $('story-dots').innerHTML = (s.dots || []).map(function (d) { return '<i class="' + (d ? 'on' : '') + '"></i>'; }).join('');
   }
@@ -2111,6 +2112,7 @@
   }
   function toggleRoutesMenu(show) {
     var m = $('routes-menu'); m.hidden = show === undefined ? !m.hidden : !show;
+    if (!m.hidden && window.innerWidth > 860) m.style.left = Math.max(12, $('btn-routes').getBoundingClientRect().left - main.getBoundingClientRect().left - 16) + 'px';
     $('btn-routes').setAttribute('aria-expanded', String(!m.hidden));
   }
   $('btn-routes').addEventListener('click', function (ev) { ev.stopPropagation(); if (!state.introActive) toggleRoutesMenu(); });
@@ -2132,7 +2134,7 @@
     text = text.replace('{n}', ids.length);
     showStory({
       eyebrow: 'Ruta · ' + r.title, count: (stepIdx + 1) + ' / ' + r.steps.length, title: st.title, text: text,
-      next: stepIdx < r.steps.length - 1 ? 'Siguiente →' : 'Terminar', prev: stepIdx > 0 ? '← Anterior' : null,
+      next: stepIdx < r.steps.length - 1 ? 'Siguiente' : 'Terminar', prev: stepIdx > 0 ? 'Anterior' : null,
       dots: r.steps.map(function (_, i) { return i === stepIdx ? 1 : 0; }),
       onNext: function () { if (stepIdx < r.steps.length - 1) startRoute(id, stepIdx + 1); else closeStory(); },
       onPrev: function () { startRoute(id, stepIdx - 1); }
@@ -2197,7 +2199,7 @@
   var ISO_EXPAND = 3.2;     // cuanto se amplia el tema como minimo respecto a su tamano real
   var ANA_STEP_PX = 20, ANA_DOT_PX = 12;
   var CAT8 = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4', '#008300', '#4a3aa7', '#e34948']; // paleta categorica validada (guia dataviz)
-  var CAT_OTHER = '#a79f8d';
+  var CAT_OTHER = '#a8a8a8';
   var isoToken = 0;
   function hexToRgba(hex, a) {
     var v = parseInt(hex.slice(1), 16);
@@ -2301,7 +2303,7 @@
     var c = isoColor(state.iso.node);
     state.palette[C_HL_MULTI] = c; state.scatterplot.set({ pointColor: state.palette });
     var tint = $('tint');
-    tint.style.background = 'radial-gradient(ellipse at 50% 50%, ' + hexToRgba(c, 0.15) + ' 0%, ' + hexToRgba(c, 0.07) + ' 45%, ' + hexToRgba(c, 0.025) + ' 100%)';
+    tint.style.background = hexToRgba(c, 0.05); // tono plano, sin degradado (v4)
     tint.classList.add('on');
   }
   function recolorIsolation() { if (state.iso) { applyIsoColor(); if (state.iso.mode === 'ana') enterAnalysis(state.iso.groupBy, true); state.highlightKey = ''; } }
@@ -2572,7 +2574,7 @@
     var t = state.vecindarioPreview.theses[tid], body = document.querySelector('#vmodal .vm-body'), w = body.clientWidth, h = body.clientHeight;
     $('vm-title').textContent = t ? t.title : tid;
     $('vm-meta').textContent = t ? (t.year || '?') + ' · ' + areaNameFromStr(t.area) + ' · ' + tid : 'sin datos en este preview';
-    $('vm-breadcrumb').innerHTML = vm.history.map(function (x, i) { return '<button data-idx="' + i + '">' + escapeHtml((x.title || x.id).slice(0, 28)) + ((x.title || '').length > 28 ? '…' : '') + '</button> →'; }).join(' ');
+    $('vm-breadcrumb').innerHTML = vm.history.map(function (x, i) { return '<button data-idx="' + i + '">' + escapeHtml((x.title || x.id).slice(0, 28)) + ((x.title || '').length > 28 ? '…' : '') + '</button> ›'; }).join(' ');
     document.querySelectorAll('#vm-breadcrumb button').forEach(function (b) { b.addEventListener('click', function () { var i = +b.getAttribute('data-idx'), tg = vm.history[i]; vm.history = vm.history.slice(0, i); openVecindarioModal(tg.id); }); });
     var svg = d3.select(vm.svg);
     if (!t) { svg.selectAll('g > *').remove(); return; }
@@ -2614,6 +2616,19 @@
   document.querySelector('#vmodal .vm-backdrop').addEventListener('click', closeVecindario);
   $('vm-groupby').addEventListener('change', function (ev) { vm.groupBy = ev.target.value; if (vm.history.length) renderVecindario(vm.history[vm.history.length - 1].id); });
 
+  // ==================== pagina Metodo (v4) ====================
+  function showMetodo(on) {
+    $('metodo').hidden = !on;
+    $('metodo').style.top = document.querySelector('header.nav').offsetHeight + 'px'; // Metodo es una seccion: la navegacion queda visible
+    $('nav-metodo').classList.toggle('active', on); $('nav-map').classList.toggle('active', !on);
+    if (on) { toggleRoutesMenu(false); $('metodo').scrollTop = 0; $('metodo-close').focus(); }
+  }
+  $('nav-metodo').addEventListener('click', function () { showMetodo(true); });
+  $('foot-metodo').addEventListener('click', function () { showMetodo(true); });
+  $('metodo-close').addEventListener('click', function () { showMetodo(false); });
+  $('nav-map').addEventListener('click', function () { showMetodo(false); if (!$('taller').hidden) closeTaller(); });
+  $('legend').addEventListener('click', function (ev) { if (ev.target.hasAttribute('data-metodo')) { ev.preventDefault(); showMetodo(true); } });
+
   // ==================== teclado, resize, debug ====================
   document.addEventListener('keydown', function (ev) {
     var k = ev.key, typing = document.activeElement && document.activeElement.tagName === 'INPUT';
@@ -2623,6 +2638,7 @@
       if (!$('search').hidden) closeSearch();
       else if (!$('vmodal').hidden) closeVecindario();
       else if (!$('taller').hidden) closeTaller();
+      else if (!$('metodo').hidden) showMetodo(false);
       else if (!$('routes-menu').hidden) toggleRoutesMenu(false);
       else if (!$('story').hidden) closeStory();
       else if (!$('taller').hidden) closeTaller();
