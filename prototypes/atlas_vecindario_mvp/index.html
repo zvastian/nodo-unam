@@ -115,6 +115,7 @@
   .alabel.minor text { font-weight: 500; fill: #5c5c5c; }
   .alabel.region text { font-weight: 500; fill: #a3a3a3; pointer-events: none; }
   .alabel.hidden { display: none; }
+  .alabel.note-under, .anode.note-under { opacity: 0.12; } /* v4.3: rotulo debajo de la anotacion de una tesis */
 
   /* ---------- leyenda y minimapa: acoplados a los bordes, no flotantes [3][9] ---------- */
   .legend { position: absolute; left: 0; bottom: 0; z-index: 5; max-width: 300px; background: #fff; border-top: 1px solid var(--line); border-right: 1px solid var(--line); padding: 10px 16px 12px; font-size: 13px; color: var(--ink-2); }
@@ -268,6 +269,9 @@
   #tint { position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 900ms ease; z-index: 1; }
   #tint.on { opacity: 1; }
   #flow { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; }
+  /* v4.3: tesis elegidas por encima del mapa (puntos, anotacion, curvas de densidad) */
+  #marks { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; }
+  svg#overlay { z-index: 3; } /* los rotulos del mapa, siempre sobre los puntos marcados */
   #iso-chip { position: absolute; top: 0; left: 0; right: 0; z-index: 7; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; background: #fff; border-bottom: 1px solid var(--line); padding: 8px 24px; }
   main.panel-open #iso-chip { right: 360px; }
   #iso-chip .ic-ey { display: none; }
@@ -395,6 +399,11 @@
     header.nav .navlinks { order: 3; width: 100%; height: 38px; overflow-x: auto; }
     body.iso #map-selection { top: 0; }
   }
+  /* v4.3: en movil la ficha de una tesis es una hoja inferior; a pantalla completa tapaba la tesis que describe */
+  @media (max-width: 860px) {
+    aside#panel.peek { display: none; }
+    #map-selection, body.iso #map-selection { top: auto; max-height: 46%; border-left: none; border-top: 1px solid var(--line-strong); padding: 14px 16px; }
+  }
 </style>
 </head>
 <body>
@@ -434,6 +443,7 @@
     <div id="wgl-host"></div>
     <div id="tint" aria-hidden="true"></div>
     <canvas id="flow" aria-hidden="true"></canvas>
+    <canvas id="marks" aria-hidden="true"></canvas>
     <svg id="overlay"><g id="g-grid"></g><g id="g-edges"></g><g id="g-nodes"></g><g id="g-labels"></g></svg>
     <div id="disc-labels"></div>
     <div class="legend" id="legend" hidden></div>
@@ -498,7 +508,7 @@
 
   <footer>
     <span>Proyecto independiente, no oficial. Datos del catálogo público TESIUNAM.</span>
-    <span><button type="button" id="foot-metodo">Cómo se hizo el mapa</button> · versión <span id="app-version">4.2.0</span></span>
+    <span><button type="button" id="foot-metodo">Cómo se hizo el mapa</button> · versión <span id="app-version">4.3.0</span></span>
   </footer>
 </div>
 
@@ -923,7 +933,7 @@
     var o = Object.assign({}, opts || {});
     if (state.densityPct < 1) o.filter = densityIndices(state.densityPct);
     return Promise.resolve(state.scatterplot.draw({ x: x, y: y, valueA: cats }, o)).then(function () {
-      drawBusy = false;
+      drawBusy = false; drawMarks();
       if (drawNext) { var nx = drawNext; drawNext = null; return drawPoints.apply(null, nx.args).then(nx.resolve); }
     });
   }
@@ -989,6 +999,7 @@
       requestAnimationFrame(function () {
         rafPending = false;
         updateOverlayPositions();
+        paintMarks();
         drawMinimapView();
         if (state.iso) placeAnaLabels();
         updateCrumbs();
@@ -1208,6 +1219,7 @@
     var shown = 0;
     for (var i = 0; i < cands.length && shown < MAX_LABELS; i++) if (tryPlace(cands[i])) shown++;
     for (var j = 0; j < regions.length && j < 12; j++) tryPlace(regions[j]);
+    if (state.focus >= 0) drawMarks(); // la anotacion se reacomoda a los rotulos nuevos
   }
 
   function niceStep(raw) { var p = Math.pow(10, Math.floor(Math.log10(raw))), f = raw / p; return (f < 1.5 ? 1 : f < 3 ? 2 : f < 7 ? 5 : 10) * p; }
@@ -1321,7 +1333,7 @@
   function selectNode(n, fly) {
     if (state.introActive) return;
     hideTip();
-    $('map-selection').hidden = true;
+    $('map-selection').hidden = true; clearFocus();
     if ((n.level || 'macro') === 'micro') { openPanel(n); isolateMicro(n); return; }
     if (state.iso) exitIsolation(true);
     if (fly) flyToNode(n);
@@ -1339,18 +1351,11 @@
   // v3.2: clic en un punto = ESA tesis: se marca y se abre su ficha (titulo, anio,
   // territorio). Desde la ficha: ir a su territorio o, si esta precargado, ver sus
   // vecinas. Antes volaba directo al territorio y la tesis nunca se veia.
-  function onPointClick(idx) {
-    var tid = state.thesisIds[idx];
-    if (state.iso && state.iso.mode === 'eco' && flow.running && state.iso.posOf[idx] != null) {
-      flow.focus = idx; showPointCard(idx);
-      if (pointInfo(idx) === undefined) titleTileFor(idx).then(function () { showPointCard(idx); });
-      return;
-    }
+  // v4.3: la tesis se marca con focusThesis (tinta, anotacion, resto atenuado); dist opcional = volar a ella
+  function onPointClick(idx, dist) {
     showPointCard(idx);
-    if (pointInfo(idx) === undefined) titleTileFor(idx).then(function () { showPointCard(idx); });
-    var base = state.iso ? state.iso.cats : state.pin ? state.pin.cats : baseCats(), cats = new Float32Array(base);
-    cats[idx] = C_FOCAL;
-    setCats('focus|' + tid, cats);
+    if (pointInfo(idx) === undefined) titleTileFor(idx).then(function () { showPointCard(idx); drawMarks(); });
+    focusThesis(idx, null, dist);
   }
   function showPointCard(idx) {
     var tid = state.thesisIds[idx], info = pointInfo(idx), mc = state.macroCode[idx], m = mc >= 0 ? state.macroById[mc] : null;
@@ -1545,6 +1550,7 @@
 
   // ==================== panel lateral ====================
   function openPanel(n) {
+    panel.classList.remove('peek');
     state.selectedId = n.id; markSelected();
     state.panelStack = [{ type: 'node', node: n }];
     renderPanel(); panel.classList.add('open'); main.classList.add('panel-open');
@@ -1640,11 +1646,9 @@
   function showThesisOnMap(r) {
     if (!r) return;
     closeTaller();
+    // en movil el panel ocupa toda la pantalla: se aparta mientras la ficha este abierta
+    if (panel.classList.contains('open') && window.matchMedia('(max-width: 860px)').matches) panel.classList.add('peek');
     var idx = state.thesisIdToIndex.get(r.id); if (idx == null) return;
-    var base = state.pin ? state.pin.cats : baseCats(), cats = new Float32Array(base);
-    cats[idx] = C_FOCAL;
-    setCats('focus|' + r.id, cats);
-    flyTo(state.ndcX[idx], state.ndcY[idx], Math.min(state.scatterplot.get('cameraDistance'), 1 / (K_MICRO * 1.1)));
     var t = state.vecindarioPreview && state.vecindarioPreview.theses[r.id];
     $('ms-eyebrow').textContent = 'Tesis';
     $('ms-title').textContent = r.t;
@@ -1652,7 +1656,12 @@
     $('ms-note').innerHTML = escapeHtml(r.pr) + '<br>' + escapeHtml(r.pl) + '<br>Asesoría: ' + escapeHtml(fmtAsesores(r.as));
     var btn = $('ms-open-vecindario');
     btn.hidden = !t; if (t) btn.onclick = function () { openVecindarioModal(r.id); };
+    $('ms-go-territory').hidden = true;
     $('map-selection').hidden = false;
+    // antes volaba a la posicion ORIGINAL aunque el tema estuviera aislado (y desplazado),
+    // y la marcaba con el mismo negro que el resto del tema
+    var cur = state.scatterplot.get('cameraDistance');
+    focusThesis(idx, { t: r.t, y: r.y }, state.iso ? cur : Math.min(cur, 1 / (K_MICRO * 1.1)));
   }
 
   // ==================== modo taller ====================
@@ -1895,7 +1904,7 @@
       var j = state.thesisIdToIndex.get(nb.id); if (j == null) return;
       cats[j] = C_VIVID + (AREA_STR_TO_CODE[(nb.area || '').toLowerCase()] || 0); resolved++;
     });
-    if (idx != null) cats[idx] = C_FOCAL;
+    if (idx != null) { cats[idx] = C_FOCAL; state.focus = idx; state.focusInfo = t ? { t: t.title, y: t.year } : null; }
     state.spotlightActive = true; state.highlightKey = 'spot';
     redrawCats(cats);
     showSelectionCard(tid, t, resolved, false);
@@ -1920,7 +1929,8 @@
     $('map-selection').hidden = false;
   }
   $('map-selection-close').addEventListener('click', function () {
-    flow.focus = -1; state.scatterplot.deselect({ preventEvent: true });
+    clearFocus(); state.scatterplot.deselect({ preventEvent: true });
+    panel.classList.remove('peek');
     if (state.searchPin) { state.searchPin = false; state.pin = null; } // quita el resaltado de busqueda/asesor
     clearSpotlight();
   });
@@ -2146,16 +2156,18 @@
     xs.sort(function (a, b) { return a - b; }); ys.sort(function (a, b) { return a - b; });
     var q = function (a, p) { return a[Math.min(a.length - 1, Math.floor(p * a.length))]; };
     var x0 = q(xs, 0.05), x1 = q(xs, 0.95), y0 = q(ys, 0.05), y1 = q(ys, 0.95);
-    var aspect = state.W / Math.max(1, state.H);
-    flyTo((x0 + x1) / 2, (y0 + y1) / 2, Math.max((x1 - x0) / 2 / aspect, (y1 - y0) / 2) * 1.35 + 0.02);
+    // v4.3: se encuadra en la zona que no tapa la ficha (antes quedaba parte detras de ella)
+    var bx = visibleBox(), vw = Math.max(1, bx.r - bx.l), vh = Math.max(1, bx.b - bx.t);
+    flyToVisible((x0 + x1) / 2, (y0 + y1) / 2, Math.max((x1 - x0) / 2 * state.H / vw, (y1 - y0) / 2 * state.H / vh) * 1.35 + 0.02);
   }
   function verEnMapa(idxs, titulo, nota) {
     closeSearch();
     if (state.iso) exitIsolation();
     idxs = Array.prototype.slice.call(idxs);
     state.searchPin = true; state.spotlightActive = false;
+    clearFocus();
     pinIndices('busq|' + titulo, idxs);
-    encuadrar(idxs);
+    state.pin.contour = buildContour(idxs);
     var cnt = {}, tops = [];
     idxs.forEach(function (i) { var mc = state.macroCode[i]; if (mc >= 0) cnt[mc] = (cnt[mc] || 0) + 1; });
     tops = Object.keys(cnt).sort(function (a, b) { return cnt[b] - cnt[a]; }).slice(0, 3);
@@ -2169,6 +2181,7 @@
     $('ms-go-territory').onclick = function () { $('map-selection').hidden = true; selectNode(state.macroById[tops[0]], true); };
     $('ms-open-vecindario').hidden = true;
     $('map-selection').hidden = false;
+    encuadrar(idxs);
   }
   function verAsesor(aid) {
     var ts = tesisDeAsesor(aid);
@@ -2179,9 +2192,7 @@
     if (r.type === 'asesor') return verAsesor(r.aid);
     closeSearch();
     if (r.type === 'tesis') {
-      var idx = r.idx;
-      flyTo(state.ndcX[idx], state.ndcY[idx], 1 / (K_MICRO * 1.2));
-      onPointClick(idx);
+      onPointClick(r.idx, 1 / (K_MICRO * 1.2));
       return;
     }
     var e = r.e;
@@ -2467,6 +2478,199 @@
     return { tx: t[0], ty: t[1], s: (state.H / 2) / d };
   }
 
+  // ==================== marcas: tesis elegidas por encima del mapa (v4.3) ====================
+  // Pedido del usuario: una tesis o un grupo elegidos no se distinguian del ruido. Causas:
+  // la tesis sola usaba el mismo negro y tamano que su grupo; el grupo tenia el tamano del
+  // ruido y los 600k puntos atenuados se dibujaban ENCIMA (orden de indice en WebGL).
+  // Solucion en el lenguaje del mapa (tinta, gris, rotulos, lineas finas), sin anillos,
+  // brillos ni pulsos (el usuario descarto el halo: "se ve muy IA"). Referencias: Gapminder
+  // (lo elegido en color, lo demas gris), FT/NYT (anotacion con linea guia) y Embedding
+  // Atlas (curvas de densidad para resumir un conjunto disperso).
+  //   - grupo (pin): sus puntos se repintan aqui, encima de todo y 1.5 px mas grandes;
+  //     si viene de busqueda o asesor, curvas de densidad que se desvanecen al acercarse;
+  //   - tesis (state.focus): punto de tinta del doble de tamano + anotacion (titulo, anio).
+  var MARK_MAX = 30000, INK = '#17181a', TAU = 2 * Math.PI;
+  state.focus = -1; state.focusInfo = null;
+  var marksRaf = 0;
+  function drawMarks() { if (!marksRaf) marksRaf = requestAnimationFrame(function () { marksRaf = 0; paintMarks(); }); }
+  function paintMarks() {
+    var cv = $('marks'); if (!state.scatterplot || !state.dispX) return;
+    var dpr = window.devicePixelRatio || 1, W = state.W, H = state.H;
+    if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
+    var ctx = cv.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
+    if (state.introActive) return;
+    var c = camXform(), X = state.dispX, Y = state.dispY;
+    var pin = !state.iso && !state.spotlightActive ? state.pin : null;
+    if (pin && pin.contour) paintContour(ctx, c, pin.contour);
+    var focusOn = state.focus >= 0 && !$('map-selection').hidden;
+    if (pin && pin.idxs.length <= MARK_MAX) {
+      // con una tesis elegida el grupo baja un escalon: atenuado > grupo > tesis
+      var r = Math.max(3, (lastPointSize || 2) + 1.5) / 2, ids = pin.idxs;
+      ctx.fillStyle = INK; ctx.globalAlpha = focusOn ? 0.3 : 0.85; ctx.beginPath();
+      for (var i = 0; i < ids.length; i++) {
+        var p = ids[i], sx = (X[p] - c.tx) * c.s + W / 2, sy = H / 2 - (Y[p] - c.ty) * c.s;
+        if (sx < -r || sy < -r || sx > W + r || sy > H + r) continue;
+        ctx.moveTo(sx + r, sy); ctx.arc(sx, sy, r, 0, TAU);
+      }
+      ctx.fill(); ctx.globalAlpha = 1;
+    }
+    if (focusOn) paintFocus(ctx, c); else if (noteDimmed.size) clearNoteDimmed();
+  }
+  // Zona del mapa que no tapan la ficha ni el panel (coordenadas de main).
+  function visibleBox() {
+    var mr = main.getBoundingClientRect(), box = { l: 0, t: 0, r: state.W, b: state.H };
+    [$('map-selection'), panel.classList.contains('open') ? panel : null].forEach(function (el) {
+      if (!el || el.hidden) return;
+      var e = el.getBoundingClientRect(); if (!e.width || !e.height) return;
+      if (e.width >= mr.width * 0.9) box.b = Math.min(box.b, e.top - mr.top); // hoja inferior (movil)
+      else box.r = Math.min(box.r, e.left - mr.left);
+    });
+    return box;
+  }
+  // Vuela de modo que (x, y) quede al centro de la zona visible, no detras de la ficha.
+  function flyToVisible(x, y, dist) {
+    var b = visibleBox(), s = (state.H / 2) / dist;
+    return flyTo(x - ((b.l + b.r) / 2 - state.W / 2) / s, y + ((b.t + b.b) / 2 - state.H / 2) / s, dist);
+  }
+  function wrapText(ctx, text, maxW, maxLines) {
+    var words = String(text).split(/\s+/), lines = [], cur = '', i;
+    for (i = 0; i < words.length; i++) {
+      var tryL = cur ? cur + ' ' + words[i] : words[i];
+      if (!cur || ctx.measureText(tryL).width <= maxW) { cur = tryL; continue; }
+      lines.push(cur); cur = words[i];
+      if (lines.length === maxLines) break;
+    }
+    var cut = lines.length === maxLines;
+    if (!cut && cur) lines.push(cur);
+    if (cut) {
+      var last = lines[maxLines - 1];
+      while (last.length > 1 && ctx.measureText(last + '…').width > maxW) last = last.slice(0, -1);
+      lines[maxLines - 1] = last.replace(/[\s,.;:]+$/, '') + '…';
+    }
+    return lines;
+  }
+  // Anotacion al estilo de las graficas de prensa: linea guia corta en diagonal y texto
+  // con el mismo filo blanco que los rotulos del mapa (.alabel), en caja normal.
+  function paintFocus(ctx, c) {
+    var i = state.focus, W = state.W, H = state.H;
+    var sx = (state.dispX[i] - c.tx) * c.s + W / 2, sy = H / 2 - (state.dispY[i] - c.ty) * c.s;
+    var b = visibleBox();
+    if (sx < b.l - 10 || sy < b.t - 10 || sx > b.r + 10 || sy > b.b + 10) return;
+    var eco = state.iso && state.iso.mode === 'eco' && flow.running && state.iso.posOf[i] != null;
+    var r = eco ? ISO_DOT_PX * 0.8 + DRIFT_PX : Math.max(8, (lastPointSize || 2) * 2) / 2;
+    if (!eco) { ctx.fillStyle = INK; ctx.beginPath(); ctx.arc(sx, sy, r, 0, TAU); ctx.fill(); } // en deriva el punto lo pinta flow
+    var info = state.focusInfo || pointInfo(i);
+    var title = info ? info.t : 'Cargando título…', year = info && info.y ? String(info.y) : '';
+    var TW = Math.min(230, Math.max(110, (b.r - b.l) * 0.36));
+    var F1 = '600 13px "Libre Franklin", "Helvetica Neue", Arial, sans-serif', F2 = '400 12px "Libre Franklin", "Helvetica Neue", Arial, sans-serif';
+    ctx.font = F1;
+    var lines = wrapText(ctx, title, TW, TW < 200 ? 3 : 2), nrows = lines.length + (year ? 1 : 0), g = (r + 3) * 0.7071;
+    var tw = Math.max.apply(null, lines.map(function (l) { return ctx.measureText(l).width; }));
+    // cuatro posiciones posibles (diagonales); gana la que menos pisa los rotulos del mapa
+    // y no se sale de la zona visible. Los rotulos que aun quedan debajo se aclaran
+    // (prioridad de rotulado: la anotacion manda mientras la ficha este abierta).
+    var labs = noteLabelRects(), best = null;
+    [[1, -1], [1, 1], [-1, -1], [-1, 1]].forEach(function (d, k) {
+      var L = noteLayout(sx, sy, g, d[0], d[1], tw, nrows);
+      // salirse de la zona visible pesa mas que pisar rotulos; si ninguna cabe, gana la que menos se sale
+      var out = Math.max(0, b.l + 4 - L.x0) + Math.max(0, L.x1 - b.r + 4) + Math.max(0, b.t + 4 - L.y0) + Math.max(0, L.y1 - b.b + 4);
+      var cost = k * 0.5 + out * 1e5;
+      labs.forEach(function (lr) { cost += Math.max(0, Math.min(L.x1, lr.x1) - Math.max(L.x0, lr.x0)) * Math.max(0, Math.min(L.y1, lr.y1) - Math.max(L.y0, lr.y0)); });
+      if (!best || cost < best.cost) { best = L; best.cost = cost; }
+    });
+    labs.forEach(function (lr) {
+      var over = lr.x0 < best.x1 + 4 && lr.x1 > best.x0 - 4 && lr.y0 < best.y1 + 4 && lr.y1 > best.y0 - 4;
+      [lr.el, lr.dot].forEach(function (el) {
+        if (!el) return;
+        el.classList.toggle('note-under', over);
+        if (over) noteDimmed.add(el); else noteDimmed.delete(el);
+      });
+    });
+    var dx = best.dx;
+    ctx.strokeStyle = '#4d4d4d'; ctx.lineWidth = 1; ctx.lineJoin = 'round';
+    ctx.beginPath(); ctx.moveTo(best.ax, best.ay); ctx.lineTo(best.bx, best.by); ctx.lineTo(best.ex, best.by); ctx.stroke();
+    ctx.textAlign = dx > 0 ? 'left' : 'right'; ctx.textBaseline = 'middle';
+    var tx = best.ex + dx * 5, ty = best.ty;
+    var rows = lines.map(function (l) { return { t: l, f: F1, c: INK }; });
+    if (year) rows.push({ t: year, f: F2, c: '#6e6e6e' });
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 4;
+    rows.forEach(function (row, k) {
+      ctx.font = row.f; ctx.fillStyle = row.c;
+      ctx.strokeText(row.t, tx, ty + 16 * k); ctx.fillText(row.t, tx, ty + 16 * k);
+    });
+  }
+  // Geometria de la anotacion en una de las cuatro diagonales: arriba, el bloque de texto
+  // termina en la linea guia; abajo, empieza en ella.
+  function noteLayout(sx, sy, g, dx, dy, tw, nrows) {
+    var ax = sx + dx * g, ay = sy + dy * g, bx = ax + dx * 16, by = ay + dy * 16, ex = bx + dx * 10;
+    var ty = dy < 0 ? by - 16 * (nrows - 1) : by, tx = ex + dx * 5;
+    return { dx: dx, ax: ax, ay: ay, bx: bx, by: by, ex: ex, ty: ty,
+      x0: Math.min(ax, dx > 0 ? ax : tx - tw) - 2, x1: Math.max(ax, dx > 0 ? tx + tw : ax) + 2,
+      y0: Math.min(ay, ty - 9) - 2, y1: Math.max(ay, ty + 16 * (nrows - 1) + 9) + 2 };
+  }
+  var noteDimmed = new Set();
+  function noteLabelRects() {
+    var mr = main.getBoundingClientRect(), out = [];
+    live.forEach(function (rec) {
+      if (rec.lab.classList.contains('hidden')) return;
+      var e = rec.lab.getBoundingClientRect(); if (!e.width) return;
+      out.push({ el: rec.lab, dot: rec.dot, x0: e.left - mr.left, y0: e.top - mr.top, x1: e.right - mr.left, y1: e.bottom - mr.top });
+    });
+    return out;
+  }
+  function clearNoteDimmed() { noteDimmed.forEach(function (el) { el.classList.remove('note-under'); }); noteDimmed.clear(); }
+  // Curvas de densidad de un conjunto (busqueda, asesor): dos niveles relativos al maximo,
+  // en un espacio fijo de 1000 x 1000 sobre NDC; se calculan una vez por conjunto.
+  var CONTOUR_G = 1000;
+  function buildContour(idxs) {
+    if (idxs.length < 8 || !d3.contourDensity) return null;
+    var X = state.ndcX, Y = state.ndcY, step = Math.max(1, Math.floor(idxs.length / 20000)), pts = [];
+    for (var i = 0; i < idxs.length; i += step) pts.push(idxs[i]);
+    var cs = d3.contourDensity()
+      .x(function (p) { return (X[p] + 1) * CONTOUR_G / 2; }).y(function (p) { return (1 - Y[p]) * CONTOUR_G / 2; })
+      .size([CONTOUR_G, CONTOUR_G]).cellSize(4).bandwidth(7).contours(pts);
+    return [0.1, 0.35].map(function (f) { return cs(cs.max * f); });
+  }
+  function paintContour(ctx, c, levels) {
+    // plenas en la vista general; se desvanecen al acercarse, cuando los puntos ya se leen solos
+    var a = Math.max(0, Math.min(1, (K_MESO * 1.6 - state.k) / (K_MESO * 1.6 - K0 * 1.3)));
+    if (a < 0.02) return;
+    var W = state.W, H = state.H, u = 2 / CONTOUR_G;
+    levels.forEach(function (geo, lv) {
+      ctx.beginPath();
+      geo.coordinates.forEach(function (poly) {
+        poly.forEach(function (ring) {
+          ring.forEach(function (pt, k) {
+            var sx = (pt[0] * u - 1 - c.tx) * c.s + W / 2, sy = H / 2 - (1 - pt[1] * u - c.ty) * c.s;
+            if (k) ctx.lineTo(sx, sy); else ctx.moveTo(sx, sy);
+          });
+          ctx.closePath();
+        });
+      });
+      ctx.strokeStyle = lv ? INK : '#4d4d4d'; ctx.lineWidth = lv ? 1.4 : 1; ctx.globalAlpha = a * (lv ? 0.9 : 0.7);
+      ctx.stroke();
+    });
+    ctx.globalAlpha = 1;
+  }
+  // Una tesis elegida (clic en el mapa, busqueda, listado del tema): punto de tinta encima
+  // del resto atenuado; en el tema aislado usa sus posiciones desplazadas (dispX).
+  function focusThesis(idx, info, dist) {
+    state.focus = idx; state.focusInfo = info || null;
+    if (state.iso && state.iso.mode === 'eco' && flow.running && state.iso.posOf[idx] != null) flow.focus = idx;
+    else {
+      var cats;
+      if (state.iso) cats = new Float32Array(state.iso.cats);
+      else if (state.pin && state.pin.idxs.length > MARK_MAX) cats = new Float32Array(state.pin.cats);
+      else { cats = new Float32Array(state.n); cats.fill(C_DIM); } // el grupo (si hay) lo pinta paintMarks, un escalon abajo
+      cats[idx] = C_FOCAL;
+      setCats('focus|' + idx, cats);
+    }
+    if (dist) flyToVisible(state.dispX[idx], state.dispY[idx], dist);
+    drawMarks();
+  }
+  function clearFocus() { state.focus = -1; state.focusInfo = null; flow.focus = -1; drawMarks(); }
+
   function isolateMicro(n) {
     var token = ++isoToken;
     if (state.iso) { stopFlow(); hideAnaLabels(); }
@@ -2693,7 +2897,7 @@
     flow.drawLines(Object.assign({}, props, flow.lines));
     flow.drawPoints(Object.assign({}, props, flow.pts, { size: ISO_DOT_PX * dpr, alpha: 0.92, offset: 0 }));
     if (flow.focus >= 0 && iso.posOf[flow.focus] != null) {
-      flow.drawPoints(Object.assign({}, props, flow.pts, { color: [0.09, 0.094, 0.1], size: ISO_DOT_PX * dpr, alpha: 1, offset: iso.posOf[flow.focus], count: 1 }));
+      flow.drawPoints(Object.assign({}, props, flow.pts, { color: [0.09, 0.094, 0.1], size: ISO_DOT_PX * 1.6 * dpr, alpha: 1, offset: iso.posOf[flow.focus], count: 1 }));
     }
   }
 
@@ -2905,6 +3109,7 @@
     requestAnimationFrame(resizeRenderer); // el renderer registra su propio handler (re-limita a la pantalla) despues del nuestro
     state.scatterplot.set({ width: rect.width, height: rect.height });
     if (state.iso) resizeFlow();
+    drawMarks();
     if (!$('vmodal').hidden && vm.history.length) renderVecindario(vm.history[vm.history.length - 1].id);
     if (state.introActive && !$('story-next').disabled) showDiscLabels(true);
   });
@@ -2934,6 +3139,7 @@
     state: state, flyTo: flyTo, flyToNode: flyToNode, flyHome: flyHome, selectNode: selectNode, setLens: setLens,
     openSearch: openSearch, runSearch: runSearch, pickResult: pickResult, startIntro: startIntro, startRoute: startRoute,
     applySpotlight: applySpotlight, clearSpotlight: clearSpotlight, highlightMacros: highlightMacros, openVecindarioModal: openVecindarioModal,
+    verEnMapa: verEnMapa, focusThesis: focusThesis, loadMicro: loadMicro,
     runIntroTransition: runIntroTransition, closeStory: closeStory, live: live, flow: flow,
     onPointClick: onPointClick, loadAsesores: loadAsesores, asesoresDe: asesoresDe, tesisDeAsesor: tesisDeAsesor
   };

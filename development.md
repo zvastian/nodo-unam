@@ -1716,3 +1716,50 @@ Lección: primero se acuerda la estrategia por escrito y después se codifica. D
 - **Bug encontrado al hacer commit.** En Windows, «con», «prn», «aux» y «nul» son nombres de archivo reservados. `con.json` se «escribía» a la consola sin error y todas las palabras que empiezan con «con…» (contaminación, conducta, constitución…) quedaban sin resultados.
   - **Arreglo:** los repartos se llaman `t{xx}.json` y el generador verifica que estén todos en disco.
   - **Verificado:** «contaminacion» da 905 tesis, «conducta» 2,376 y «nulidad» 440.
+
+### v4.3.0 — tesis elegidas que se distinguen del ruido (2026-09-24)
+
+**Pedido del usuario:** al elegir una tesis o un grupo (búsqueda, asesor, listado de un tema fino), no se destacaba en el mapa.
+
+**Diagnóstico:**
+- **Tesis sola.** Se pintaba con `C_FOCAL`, el mismo negro `#17181a` que el resaltado de su grupo (`C_HL`) y del mismo tamaño (1.5 a 5 px). Desde el listado de un tema era un punto negro entre cientos. Desde la búsqueda, el resto del mapa ni siquiera se atenuaba (partía de `baseCats()`).
+- **Tema aislado.** `showThesisOnMap` volaba a la posición *original* de la tesis, no a la desplazada del tema abierto, y redibujaba con las categorías del resaltado, no con las del aislamiento.
+- **Grupo.** Tenía el tamaño del ruido, 62 % de opacidad, y los 600 mil puntos atenuados se dibujaban *encima* (orden de índice en WebGL).
+- **Móvil.** La ficha y el panel ocupan el 100 % del ancho, así que la tesis descrita quedaba tapada.
+
+**Estrategia acordada.** El usuario descartó el halo o anillo porque «se ve muy IA». Revisé referencias:
+- el aura difusa es el recurso de «la IA está pensando» (Gemini, Apple Intelligence);
+- Gapminder pone lo elegido en color y lo demás en gris;
+- FT/NYT anotan el punto con una línea guía;
+- Embedding Atlas resume un conjunto con curvas de densidad.
+
+El énfasis sale de **contraste, tamaño y texto**, sin efectos.
+
+**Cambios:**
+- **Capa `#marks`** (canvas 2D encima del WebGL, debajo de los rótulos):
+  - los puntos del grupo (hasta 30,000) se repintan encima de todo, 1.5 px más grandes, en tinta al 85 %;
+  - en búsquedas y asesores se añaden **curvas de densidad**: `d3.contourDensity` a dos niveles, 10 % y 35 % del máximo. Están plenas en la vista general y se desvanecen al acercarse (hasta `K_MESO`×1.6).
+- **Tesis elegida:**
+  - una sola función, `focusThesis`, para clic, búsqueda, listado y tema aislado;
+  - punto de tinta del doble de tamaño sobre el resto atenuado;
+  - **anotación** con línea guía diagonal: título en 2 o 3 líneas y año, en Libre Franklin, con el mismo filo blanco que los rótulos del mapa.
+  - Colocación de la anotación: prueba las cuatro diagonales, prefiere la que no se sale de la zona visible y la que menos pisa rótulos. Los rótulos que siguen debajo bajan al 12 % mientras la ficha esté abierta.
+  - Si la tesis pertenece a un grupo marcado, el grupo baja un escalón (tinta al 30 %): atenuado, luego grupo, luego tesis.
+  - En el tema aislado, el punto elegido es 1.6 veces más grande que sus vecinos.
+- **Vuelos a la zona visible** (`flyToVisible`, `visibleBox`). La tesis o el grupo quedan centrados en lo que no tapan la ficha ni el panel.
+- **Rótulos del mapa por encima** de los puntos marcados (`svg#overlay` con z-index 3).
+- **Móvil (≤ 860 px):**
+  - la ficha de tesis es una hoja inferior (46 % de alto máximo);
+  - al abrir una tesis desde el listado, el panel se aparta (`.peek`) y vuelve al cerrar la ficha.
+
+**Verificado** en Chrome headless, escritorio (1600×900) y móvil (390×844), sin errores de consola:
+- «freud», ver las 125: la curva de densidad rodea la concentración en Filosofía y letras;
+- una tesis desde la búsqueda: resto atenuado y anotación que evita el rótulo «Filosofía · Nietzsche»;
+- una tesis desde el listado del tema aislado: vuela a su posición desplazada;
+- una tesis desde el A→Z de un subtema: el grupo en gris y la tesis en tinta;
+- clic directo en el mapa;
+- en móvil, panel que se aparta y vuelve.
+
+**Pendiente:**
+- Probar en el navegador real con GPU: el canvas de marcas repinta hasta 30 mil puntos por cuadro al moverse.
+- Decidir si los grupos de territorio (más de 30 mil tesis) también merecen curvas.
