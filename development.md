@@ -2001,3 +2001,114 @@ Dice «tema dentro de Filosofía y letras» sin escribirlo. Se aplica en la fich
 **Cambio:** se quitaron de la ficha del cluster, del Perfil del taller y del tooltip del mapa, con su código (`palabrasHtml` y sus manejadores). La marca de rango de v4.13.0 se queda.
 
 **Verificado:** ficha, taller y tooltip; flujos anteriores en escritorio y móvil. Sin errores de consola.
+
+### v4.14.0: menos es más; fuera Analizar, vecindario, leyenda y rutas (2026-09-24)
+
+**Decisiones del usuario sobre la lista de partes genéricas:**
+- **Bug 4 confirmado:** en «Analizar», la cuadrícula de un subtema grande salía por debajo de la pantalla y esas tesis no se alcanzaban.
+- **Modo «Analizar» retirado:** sus funciones, sus rótulos, el selector de agrupación y la paleta de grupos. Con esto desaparece el bug 4. El botón de la barra del subtema aislado pasa a «Ver tesis y análisis» y abre el taller del subtema, que ya organiza sus tesis por nivel, programa, plantel y década.
+- **Modal «Ver vecindario completo» retirado,** junto con el resaltado de vecinas (spotlight), la lista «Vecindarios precargados» y su botón en la ficha. El archivo `vecindario_preview` se sigue cargando porque aporta títulos.
+- **Leyenda retirada.**
+- **Rutas guiadas retiradas:** el usuario no las pidió y no le gustaron. Se quitaron el botón de la barra, el menú, los pasos y sus funciones auxiliares.
+- **Introducción:** se rehará como onboarding más adelante, quizá con inicio de sesión.
+- **Página de método:** la figura del proceso queda para después.
+
+**Correcciones de paso:**
+- **Escape:** cierra primero la ficha de tesis y luego el subtema aislado; antes salía del subtema con la ficha abierta.
+- **Verificación de funciones:** respaldo en `index.v4.13.1.html`. Se compararon las funciones de antes y después; las 26 retiradas son todas de estas partes y ninguna se sigue llamando. Una línea del cuerpo de la ficha de cluster se había ido con el bloque de vecindarios y se restituyó.
+
+**Verificado:**
+- en el DOM ya no existen rutas, leyenda ni modal;
+- el botón del subtema abre su taller (Filosofía – Nietzsche, 1,856 tesis);
+- Escape cierra taller y ficha;
+- los flujos anteriores pasan en escritorio y móvil;
+- sin errores de consola.
+
+### v4.15.0: controles del sistema, parte 1 (2026-09-24)
+
+**Punto 11 de la lista de partes genéricas.** El usuario aprobó los puntos 1, 3 y 4; el 2 (estados de carga) y el 5 (iconos de cierre) quedan para después.
+
+**1. Un solo estilo de acción.** `.btn.primary` deja de ser una caja negra: es texto en tinta, seminegritas, con una flecha dibujada (máscara SVG, no un glifo unicode). Al pasar el cursor se subraya 2 px con el color del contexto (`--c`: el campo del subtema aislado). Aplica a «Ver tesis y análisis» y a la acción de la introducción.
+
+**3. El control de color explica los colores.** Al retirarse la leyenda, el botón «Áreas administrativas» lleva cinco puntos, uno por área y uno para «sin área». Al pasar el cursor por un punto:
+- el conteo de la barra dice qué área es y cuántas tesis tiene («Ciencias Sociales 177,268 tesis»);
+- sus tesis se resaltan en el mapa, en cualquiera de los dos modos de color.
+
+Es una leyenda integrada al control, no un recuadro flotante.
+
+**4. Minimapa.** «Ocultar» pasa a ser un icono de plegar. Plegado, queda una pestaña delgada pegada al borde inferior derecho, «Mostrar minimapa», que lo despliega.
+
+**Verificado:** hover de área (Ciencias Sociales), plegar y desplegar el minimapa, la acción del subtema aislado y la de la introducción; flujos anteriores en escritorio y móvil. Sin errores de consola.
+
+### v4.16.0: Ajustes y leyenda de áreas (2026-09-24)
+
+**Bug reportado:** al pasar el cursor por los puntos de área del botón «Áreas administrativas», el mapa «se volvía loco». Cada hover redibujaba los 609 mil puntos, y el punto crecía con el hover, así que el cursor entraba y salía de él en cadena. Se quitaron esos puntos y su código.
+
+**Ajustes:**
+- botón en la barra, a la derecha del buscador;
+- abre un panel anclado bajo la barra, sin sombra;
+- se cierra con clic fuera o con Escape;
+- «Color de los puntos: Campos / Áreas administrativas» sale de la barra de filtros y vive aquí.
+
+**Leyenda de áreas:** discreta, en la esquina inferior izquierda, pegada al borde. Solo aparece con el color por áreas y se oculta en el subtema aislado.
+
+### v4.17.0: modo noche del mapa, con las ventanas de la Biblioteca Central (2026-09-24)
+
+**Idea del usuario:** un selector de día y noche con las ventanas de ónix de la planta baja de la Biblioteca Central, que de día se ven tostadas y de noche se encienden en ámbar. Es un homenaje sutil a la UNAM.
+
+**Decisión:** el modo noche es **solo del mapa**. Paneles, fichas y taller siguen claros, y el claro es el predeterminado. Se actualizaron las reglas de CLAUDE.md y PRODUCT.md, que decían «fondo claro obligatorio».
+
+**Iconos** (`ventanas-dia.svg`, `ventanas-noche.svg`, 40×40):
+- dibujo propio y abstracto de la retícula de placas; no se trazó ninguna foto, por los derechos de las fotos y del mural;
+- las placas conservan su lugar en los dos iconos; solo cambia la luz (tostado y rosado de día, ámbar y dorado con algunas en azul frío de noche);
+- el usuario pidió una sola ventana por modo, sin la franja de vidrio.
+
+**Mapa de noche:**
+- fondo `#0f1422`;
+- paleta de campos con los mismos tonos más luminosos (OKLCH L 0.72, 0.80, 0.87) y opacidad 0.5;
+- áreas en versión luminosa (`AREA_HEX_NOCHE`);
+- ruido y atenuado en azul pizarra;
+- resaltados, tesis enfocada, anotación y curvas de densidad en tinta clara con filo oscuro;
+- rótulos claros con filo oscuro, retícula y enlaces tenues.
+
+`m.color`, que usan fichas y paneles claros, sigue siendo el tono de día (`m.colorNoche` es el del mapa). La preferencia se guarda en el navegador.
+
+**Bug encontrado:** tras cerrar una ficha, la anotación de la tesis podía quedar dibujada un momento, porque la capa se limpiaba en el siguiente cuadro. Ahora `clearFocus` limpia al instante.
+
+**Verificado:** noche en vista general, temas, grupo de búsqueda, tesis, subtema aislado y áreas, en escritorio y móvil; los flujos anteriores pasan de día. Sin errores de consola.
+
+### v4.18.0: modo noche de toda la interfaz y Ajustes al centro (2026-09-24)
+
+**Pedido del usuario:**
+- el modo noche para todo, no solo el mapa;
+- Ajustes en una ventana al centro con el fondo difuminado y las ventanas grandes;
+- revisar la legibilidad en ambos modos, del mapa al taller.
+
+**Tokens.** Todo color de interfaz sale de variables CSS:
+- `--bg` (lienzo del mapa), `--paper` (paneles, fichas, taller, barras), `--surface`;
+- `--ink`, `--ink-2`, `--ink-3`, `--line`, `--line-strong`, `--grid`, `--link`;
+- los tokens del mapa: `--map-label`, `--map-minor`, `--map-region`, `--map-edge`, `--map-tick`.
+
+`body.noche` solo redefine sus valores (con `color-scheme: dark`). Quedaron cero `#fff` fijos en el CSS. En el JS, las gráficas usan `style="fill/stroke:var(--…)"` y los lienzos leen el token vigente (`tok()`). El localizador mezcla su tinte con el papel, no con blanco.
+
+**Contraste de texto (WCAG, sobre papel):**
+- de día: ink 17.4, ink-2 8.5, ink-3 5.1, link 8.1;
+- de noche (`#161c2a`): ink 14.2, ink-2 9.5, ink-3 5.9, link 8.4.
+
+Todos pasan AA para texto chico.
+
+**Colores de datos por modo:**
+- `AREA_HEX` cambia de valores: la paleta de noche `#5b93e6`, `#27a97c`, `#b0801c`, `#e0567a` pasó las cinco pruebas del validador de la guía de visualización sobre `#161c2a`. La primera propuesta, más clara, fallaba por luminosidad y por el ocre y el rojo demasiado parecidos;
+- `m.color` usa la versión de noche de cada campo;
+- `NIVEL_COLOR` de noche va de oscuro a luminoso: más avanzado, más luminoso.
+
+Al cambiar de modo se vuelven a pintar la ficha abierta (tesis o grupo), el panel del cluster, el taller, la leyenda y el minimapa.
+
+**Ajustes:** ventana centrada (400 px) con el fondo difuminado (`backdrop-filter: blur(7px)`) y las ventanas de ónix de 96 px; en una primera versión medían 180 px y el usuario las pidió más chicas. Tiene «Modo» (Día o Noche) y «Color de los puntos del mapa». Se cierra con la X, con clic fuera o con Escape.
+
+**Corrección:** al abrir la introducción con un cluster seleccionado, su resaltado quedaba sobre las esferas de áreas; ahora se cierra el panel.
+
+**Verificado:**
+- de noche en Ajustes, mapa, búsqueda, ficha de asesor con hover, ficha de tesis, ficha de cluster, las tres pestañas del taller, método e introducción, en escritorio y móvil;
+- los flujos de día pasan igual que antes;
+- sin errores de consola.

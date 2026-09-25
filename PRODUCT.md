@@ -23,13 +23,13 @@ Los catálogos de tesis (TESIUNAM) se consultan por búsqueda de palabras y list
 ## Operating Context
 
 - Prototipo web estático servido localmente (`prototypes/atlas_vecindario_mvp/`), regl-scatterplot (WebGL) + d3; datos precalculados (`atlas_data/`), sin backend.
-- Flujos: explorar el mapa (territorio → subtema → tema fino), buscar (Ctrl+K), aislar un tema fino (conexiones / análisis), ficha de tesis, modo taller (listado, panorama, vista analítica, red de asesores), rutas guiadas.
+- Flujos: explorar el mapa (campo → tema → subtema), buscar (Ctrl+K), aislar un subtema (conexiones), ficha de tesis, ficha de asesor o búsqueda, ficha de cluster y taller (tesis, perfil, asesores). Se retiraron en v4.14 las rutas guiadas, el modal de vecindario, el modo «Analizar» y la leyenda.
 - Datos derivados del catálogo público TESIUNAM; títulos sin mención de autor; asesor sí se muestra.
 
 ## Capabilities and Constraints
 
 - Proyecto propio, **no oficial**: puede citar a la UNAM y su catálogo, pero no usa escudo, logotipos ni la identidad institucional (azul Pantone 294 / oro 130), ni debe parecer sitio oficial.
-- Fondo claro obligatorio (decisión del usuario, 22-09: "fondo oscuro hoy parece AI slop").
+- Fondo claro obligatorio (decisión del usuario, 22-09: "fondo oscuro hoy parece AI slop"). Actualizado el 2026-09-24: el claro sigue siendo el predeterminado y el único para paneles y fichas; toda la interfaz tiene un modo noche opcional (Ajustes, v4.18; en v4.17 era solo el mapa), homenaje a las ventanas de ónix de la Biblioteca Central que se iluminan al anochecer.
 - Las posiciones del mapa no tienen unidad física; los nombres de temas finos y subtemas son keywords c-TF-IDF sin acentos; los 130 nombres de territorio son un borrador curado pendiente de revisión humana.
 - 67% del corpus no pertenece a ningún territorio (ruido HDBSCAN) y debe seguir siendo visible y honesto.
 

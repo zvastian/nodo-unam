@@ -46,7 +46,7 @@ CHROME=/usr/bin/chromium SIZE=390,844  node tools/cdp.mjs ...   # móvil
 - **Secretos.** Hay 4 scripts en `app/AI Pipeline/Scripts/` fuera de git porque tienen API keys.
   Las keys se leen de variables de entorno.
 - **Identidad.** El proyecto es independiente y no oficial: no usar escudo, logotipos ni colores
-  institucionales de la UNAM. Fondo claro obligatorio.
+  institucionales de la UNAM. Modo día (claro) predeterminado y modo noche opcional para toda la interfaz, en Ajustes, con los iconos de las ventanas de ónix de la Biblioteca Central (v4.18). Todo color de interfaz sale de tokens CSS (`--paper`, `--ink`…); no escribir colores fijos.
 - **Diseño.** Acordar la estrategia visual con el usuario **antes** de codificar; nada de aplicar
   conceptos o plantillas por gusto. Referencia: Gapminder (serio, discreto, sencillo).
   Tipografía: solo Libre Franklin. Mayúsculas solo en los rótulos del mapa.
