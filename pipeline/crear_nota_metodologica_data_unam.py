@@ -35,8 +35,8 @@ FROM read_parquet('{p}')
 COLUMNS_INFO = [
     ("thesis_id", "Identificador único global de la tesis (mismo que en el corpus interno, compatible para referencia cruzada)."),
     ("anio", "Año de la tesis o registro de titulación."),
-    ("titulo_original", "Título en forma cercana al registro bibliográfico original, sin limpiar."),
-    ("titulo", "**Título normalizado** — sin acentos ni puntuación, en minúsculas. Pensado para búsqueda, comparación y deduplicación, no para lectura directa. Para el título legible, usar `titulo_original`."),
+    ("titulo_legible", "Título legible, con acentos y mayúsculas del registro bibliográfico, sin la mención de responsabilidad: se cortó todo lo que seguía al título (\"/ tesis que para obtener..., presenta ...\"), porque traía el nombre del autor."),
+    ("titulo", "**Título normalizado** — sin acentos ni puntuación, en minúsculas. Pensado para búsqueda, comparación y deduplicación, no para lectura directa. Para el título legible, usar `titulo_legible`."),
     ("num_autores", "Número de autores detectados (sin exponer identidad, ver nota de privacidad)."),
     ("asesor", "Asesor principal, en formato legible (Nombre Apellido)."),
     ("asesores", "Lista completa de asesores/comité, separada por `|`, formato legible."),
@@ -105,7 +105,7 @@ lines.append("5. La normalización de nombres (`asesor`) es conservadora — no 
 lines.append("")
 lines.append("## 6. Recomendaciones de uso")
 lines.append("")
-lines.append("- Para búsqueda o comparación de títulos: usar `titulo` (ya normalizado). Para mostrar el título a un lector: usar `titulo_original`.")
+lines.append("- Para búsqueda o comparación de títulos: usar `titulo` (ya normalizado). Para mostrar el título a un lector: usar `titulo_legible`.")
 lines.append("- Para agrupar/contar por institución: usar `plantel` (forma consistente). No existe una versión \"legible\" de plantel en este export — para presentación, capitalizar/formatear en el momento de mostrarlo.")
 lines.append("- Para análisis de redes de asesoría: usar `asesor`/`asesores`. No hay campo equivalente para autores (ver sección 3).")
 lines.append("- Este archivo se deriva de `base7_kaggle_clean.parquet` (dataset interno) mediante `pipeline/generar_data_unam.py` — cualquier corrección futura al corpus interno debe re-ejecutar ese script para propagarse aquí.")

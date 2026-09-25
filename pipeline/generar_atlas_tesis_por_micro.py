@@ -104,11 +104,11 @@ def aristas_intra_tema(tm: pd.DataFrame) -> dict:
 
 def main():
     tm = pd.read_parquet(JERARQUIA_TESIS, columns=["thesis_id", "cluster_id", "macro_id", "meso_id"])
-    d = pd.read_parquet(DATA_PATH, columns=["thesis_id", "anio", "titulo_original", "plantel", "programa", "nivel", "asesores"])
+    d = pd.read_parquet(DATA_PATH, columns=["thesis_id", "anio", "titulo_legible", "plantel", "programa", "nivel", "asesores"])
     df = tm.merge(d, on="thesis_id", how="left", validate="one_to_one")
     assert len(df) == len(tm), "merge perdio filas"
 
-    df["titulo"] = df["titulo_original"].fillna("").map(titulo_sin_autor)
+    df["titulo"] = df["titulo_legible"].fillna("").map(titulo_sin_autor)
     # Red de seguridad: si tras el corte aun parece haber autor, se omite ESE titulo
     # (mejor "no disponible" que filtrar un nombre) y se reporta cuantos.
     fugas = df["titulo"].map(lambda t: bool(AUTOR_RE.search(t)))

@@ -44,9 +44,9 @@ def main():
     ids = ids_blob.decode("utf-8").split("\n")
     assert len(ids) == n
 
-    d = pd.read_parquet(DATA_PATH, columns=["thesis_id", "anio", "titulo_original"]).set_index("thesis_id")
+    d = pd.read_parquet(DATA_PATH, columns=["thesis_id", "anio", "titulo_legible"]).set_index("thesis_id")
     d = d.reindex(ids)
-    titulos = d["titulo_original"].fillna("").map(titulo_sin_autor)
+    titulos = d["titulo_legible"].fillna("").map(titulo_sin_autor)
     fugas = titulos.map(lambda t: bool(AUTOR_RE.search(t)))
     print(f"titulos con posible autor tras el corte: {int(fugas.sum())} (se omiten)")
     titulos[fugas] = "(título no disponible)"

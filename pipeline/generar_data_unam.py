@@ -17,6 +17,8 @@ from pathlib import Path
 
 import pandas as pd
 
+from titulo_sin_autor import titulo_legible
+
 ROOT = Path(r"C:\Users\sebas\Desktop\UNAM Tesis")
 SOURCE_PATH = ROOT / "data" / "clean" / "base7_kaggle_clean.parquet"
 OUT_DIR = ROOT / "data" / "public"
@@ -62,6 +64,11 @@ def main():
     nuevo_nombres = {c: n for c, n in COLUMN_MAP}
 
     out = df[origen_cols].rename(columns=nuevo_nombres)
+
+    # El título del catálogo trae pegado al autor ("... / tesis que ..., presenta
+    # NOMBRE"): se publica solo el título, sin la mención de responsabilidad.
+    out["titulo_original"] = out["titulo_original"].fillna("").map(titulo_legible)
+    out = out.rename(columns={"titulo_original": "titulo_legible"})
 
     assert len(out) == n_before
     assert out["thesis_id"].nunique() == ids_before
