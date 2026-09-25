@@ -2112,3 +2112,386 @@ Al cambiar de modo se vuelven a pintar la ficha abierta (tesis o grupo), el pane
 - de noche en Ajustes, mapa, búsqueda, ficha de asesor con hover, ficha de tesis, ficha de cluster, las tres pestañas del taller, método e introducción, en escritorio y móvil;
 - los flujos de día pasan igual que antes;
 - sin errores de consola.
+
+### P0 nº 1 cerrado: `data_unam.parquet` sin autores en el título (2026-09-25)
+
+**Decisión del usuario:** el dataset no se publicó en ningún lado (ni Kaggle); solo existe local, así que basta limpiarlo. Las API keys **no** se rotan (P0 nº 2 descartado por el usuario).
+
+**Qué cambió:**
+- `titulo_original` → **`titulo_legible`**: el título con acentos y mayúsculas, sin la mención de responsabilidad (MARC 245 $c). Nuevo módulo `pipeline/titulo_sin_autor.py`: corta en la primera barra cuyo texto siguiente arranca como mención («tesis», «que para…», «presenta», «Lic.», un nombre propio…); si ninguna arranca así, en la última barra seguida de una marca fuerte («presenta», «asesor», «examen profesional»…); también sin barra («… tesis que para obtener…»). Una barra dentro del título («estireno / butadieno», «y/ o», «FIV/ICSI») no se corta. Después pasa `limpiar_autores_atlas.limpiar`.
+- `generar_data_unam.py` aplica el corte al exportar; `generar_atlas_tesis_por_micro.py`, `generar_atlas_titulos_teselas.py` y la nota metodológica leen `titulo_legible`.
+
+**Verificado:** 609,156 filas; 564,608 títulos cortados (92.7 %). Las 5 «fugas» que quedan en el detector son falsos positivos («… que presenta Síndrome de Down»), sin nombres. 11 títulos quedan muy cortos pero son reales («Asma», «Dolo», «HDTV»). Se revisaron a mano las 219 tesis con barra que no se cortaron: todas son barras del título.
+
+**Pendiente:** `thesis_lookup.parquet` de `MI-TESIS-UNAM` sigue teniendo columna `author` y `title_raw` con autor (P0 nº 3, purga del LFS).
+
+## Laboratorio: revisión crítica y decisiones (2026-09-25)
+
+Contexto: el Lab funcionaba en `app/MI-TESIS-UNAM_github/scripts/` (FastAPI + `lab_orchestrator.py` + 6 módulos con Groq/Cerebras), sin diseño. `app/AI Pipeline/` es una copia incompleta (sin `validators.py`, `ai_advisors.py`, `ai_bibliography.py`); **esos archivos solo existen en el repo `MI-TESIS-UNAM`: rescatarlos antes de borrarlo** (opción B de la purga del LFS, decidida y pospuesta). Hay un fixture con salidas reales: `deploy/static/dev/lab_context_fixture.json` (caso «Sistema bancario de México y China 1850-2009»).
+
+### Errores encontrados en el código
+
+1. **Caso de desarrollo escrito en el código.** `build_questions_payload.py` manda a todo usuario tres `known_gaps_or_tensions` fijas sobre México-China; el prompt de bibliografía también lista «banca, sistema financiero… México, China». Los prompts se ajustaron a un solo caso.
+2. **Preguntas sin nota inicial.** `compact_initial_note` lee el esquema viejo (`paragraph`, `possible_angles`, `one_sentence_reframe`); el prompt actual produce `central_problem`, `main_objects`… La nota llega vacía. `contracts.py` todavía exige el esquema viejo. Probable causa de que `questions` salga `null` en el fixture.
+3. **«Confianza» de ubicación mal definida.** Mide la concentración del voto de las 50 vecinas, no la similitud absoluta: una idea sin antecedentes puede salir «clara» (0.96 en el fixture). Falta un umbral de similitud e5.
+4. **Léxico de Bloom defectuoso** (`thesis.py`, `BLOOM_VERBS`): verbos en dos niveles («diagnosticar», «categorizar»), cuenta cualquier verbo en cualquier parte del objetivo y no el verbo rector.
+5. **Cifras de asesores sobre la muestra de 50k** (`global_advised_count_sample`): subestiman ~12×.
+6. **Sin control de consistencia.** La nota del fixture advierte sobre China «en la primera mitad del siglo XIX» con un periodo que empieza en 1850.
+7. **Ubicación y asesores sobre el modelo viejo** (MiniLM, muestra de 50k, clusters viejos). El atlas nuevo es e5-large sobre 609k con campo, tema y subtema: hay que rehacerlos.
+8. **llama-3.1-8b ya no es gratuito en Groq** (rerank y asesores lo usaban).
+9. El «0 % de tesis desde 2020» del fixture era un **hueco del muestreo de 50k**, no del tema (confirmado por el usuario).
+
+### Decisiones del usuario
+
+- **Entrada pedagógica:** el formulario debe ayudar a plantear la tesis, no solo recogerla. Se agrega **«Problematiza»**: en pocas palabras, en qué consiste tu problema o pregunta de investigación. Cada campo da retroalimentación en vivo.
+- **Objetivos:** pensar los casos límite del análisis Bloom (ver abajo).
+- **IA y datos se distinguen** en la interfaz: ubicación, tesis cercanas, saturación y asesores son datos; nota, Bloom y preguntas son interpretación de IA.
+- **Nivel de estudios** pesa en Bloom (nivel cognitivo esperado por grado).
+- **Seguridad:** el texto del usuario va al prompt como dato (defensa contra inyección) y toda salida del modelo se escapa al pintarla (XSS).
+- **Saturación del tema:** sí (tesis del subtema, tendencia por década, recencia de antecedentes, distancia a la tesis más parecida). Sin IA.
+- **«Aplicar objetivos revisados»: no** (llamada innecesaria).
+- **Todo en vivo y animado,** no solo la escalera de Bloom: cada sección aparece cuando está lista.
+- **Asesores sin IA:** justificación armada con datos («asesoró 4 de tus 50 tesis más cercanas; la última en 2021»). Se muestra el último año en activo.
+- **Tesis cercanas enlazan a su ficha en el atlas.**
+- **Mi tesis en el mapa:** con sesión, la tesis analizada se guarda como un nodo especial en el atlas con una flecha permanente que dice MI TESIS. Desde el análisis se pueden guardar otras tesis para consulta rápida, como las ubicaciones guardadas de Google Maps.
+- **Límites:** **2 análisis guardados** por usuario (para hacer otro hay que borrar uno de los dos) y **2 análisis nuevos al día**. Las tesis del atlas guardadas son **ilimitadas** (en la práctica, un tope alto contra abuso).
+- **Entrada final:** título, **Problematiza** (el problema o la pregunta en pocas palabras), objetivos (cómo lo resuelves), palabras clave, programa, grado y periodo. Se descartó el campo «tu idea en 3 a 5 líneas»: Problematiza y los objetivos cubren ese papel.
+- **Reordenamiento con IA: fuera.** Quedan 3 llamadas: nota, Bloom y preguntas.
+- **Bibliografía: fuera** (inviable técnicamente).
+- **Bloom:** escalera horizontal, no pirámide.
+- **Mascota:** el personaje del usuario (esfera de perfil, brazos de manguera, piernas largas), recreado en SVG en `prototypes/atlas_vecindario_mvp/bocetos/mascota.html`; poses Saluda, Señala, Investiga (lupa) y Celebra. Azul por omisión; al terminar toma el color del campo de la tesis. Solo aparece en el Laboratorio y nunca encima de datos.
+
+### Cambios a los prompts (por hacer)
+
+- **Nota:** quitar `intro` (el fixture la llenó con relleno genérico); permitir «no aplica» en el alcance; quitar sesgos del caso de desarrollo; recibir Problematiza.
+- **Bloom:** por objetivo, `verbo`, `nivel` y `confianza` estructurados; nivel de cada objetivo revisado (para la escalera antes/después); nivel esperado por grado; tratamiento de los casos límite de abajo.
+- **Preguntas:** tipos fijos (comparativa, histórica, prospectiva, causal, evaluativa, exploratoria); factibilidad para el nivel; tesis del corpus que sirve de antecedente.
+- **Todos:** recibir Problematiza, grado y señales reales del corpus (saturación, tendencia) en lugar de texto fijo. Conjunto de evaluación de 6 a 8 casos de campos distintos antes de cambiar de modelo.
+
+### Casos límite del análisis Bloom
+
+El léxico (sin IA, en vivo en el formulario) propone y el modelo decide con contexto; la interfaz marca cuándo la clasificación es de IA.
+
+| Caso | Ejemplo | Qué hace |
+|---|---|---|
+| Verbo fuera del léxico | «visibilizar», «coadyuvar», «abonar a», «problematizar» | Queda «sin nivel» en gris en la escalera; pista: ¿qué harás exactamente? con verbos observables sugeridos. El modelo lo clasifica y la escalera lo marca como interpretación. |
+| Verbo ambiguo | «determinar» (medir o decidir), «identificar», «diagnosticar» | El léxico da un rango de niveles (banda en la escalera); el modelo elige por contexto. |
+| Verbo vago, no observable | «conocer», «entender», «saber», «profundizar», «abordar» | Se avisa que no se puede evaluar si se cumplió; se proponen alternativas. |
+| Varios verbos | «identificar y analizar…» | Rige el primero; se sugiere partir en dos objetivos. |
+| Sin verbo | «Análisis de…», «El estudio de…» | Se detecta el sustantivo y se sugiere el verbo (análisis → analizar). |
+| Verbo conjugado | «analizaré», «se analizará», «analizando» | Se lematiza por raíz antes de buscar. |
+| Actividad de método, no objetivo | «realizar entrevistas», «aplicar encuestas», «revisar bibliografía» | Se avisa: es un método, no un objetivo. |
+| Tarea escolar o trámite | «hacer mi tesis», «titularme» | Se avisa y no se clasifica. |
+| Otro idioma | «to analyze» | Se pide redactarlo en español. |
+| Estructura | 1 objetivo, más de 6, todos en un nivel, salto de Recordar a Crear | Retroalimentación sobre la progresión, no sobre cada verbo. |
+| Inyección | «ignora las instrucciones…» | El texto viaja como dato delimitado; no se ejecuta. |
+
+### Plantilla del análisis terminado (boceto, 2026-09-25)
+
+`prototypes/atlas_vecindario_mvp/bocetos/lab/analisis.html`, servida en `http://127.0.0.1:8765/bocetos/lab/analisis.html`. Un solo caso (México-China), con las secciones apareciendo en vivo en el orden real de llegada: primero los datos (ubicación y asesores), luego la IA (nota, Bloom, preguntas). La mascota investiga mientras tanto y celebra al final con el color del campo.
+
+- **Datos reales** (`datos_ejemplo.json`), calculados con el nuevo `pipeline/lab_contexto.py`: e5-large sobre las 609,154 tesis (modelo descargado en esta PC; 2.1 GB), voto ponderado por similitud² para campo/tema/subtema, saturación por década, recencia, cobertura de palabras clave y asesores sobre el corpus completo.
+- **IA de ejemplo** (`ia_ejemplo.json`) en el esquema nuevo: texto del fixture donde existía; lo demás redactado a mano y marcado `a_mano` (las preguntas no tienen salida real).
+
+**Qué exige la plantilla a los prompts** (campos nuevos):
+- Nota: `relations` (mapa de conceptos), alcance estructurado (`start`, `end`, `subperiods`, `units`, `fields`), `cautions` con `type`. Fuera `intro`.
+- Bloom: por objetivo `verb`, `level` (enumeración de 6), `confidence`, `flags` (retroceso, sin_evaluar_antes, vago, metodo, fuera_lexico); `expected` por grado; `missing_step` con nivel; `revised` con nivel.
+- Preguntas: `type` de una lista fija, `feasibility` (alta, media, baja) y `antecedent` elegido **entre las tesis cercanas que se le pasan** (no inventado).
+- Todos: recibir la cobertura de palabras clave, para fundamentar «dónde está tu aporte».
+
+**Hallazgos de datos:**
+- La similitud e5 está comprimida: las 100 vecinas quedan entre 0.86 y 0.91. Los umbrales absolutos no sirven; la barra de «parecido» se muestra relativa a la lista. Calibrar con el conjunto de evaluación.
+- 24 de las 50 vecinas no tienen subtema (ruido HDBSCAN): la ubicación vota con 26.
+- **Cobertura de palabras clave:** México aparece en 65 de las 100 vecinas; China en 5 y «desarrollo económico» en 3. Es la señal más útil del análisis y no gasta tokens.
+- `nivel` en `data_unam` mezcla mayúsculas («licenciatura» y «Licenciatura»); el script lo normaliza al mostrar.
+- Los enlaces a tesis usan `index.html?tesis=TH_…`: **el atlas todavía no lee ese parámetro**.
+
+### Plantilla v2 del análisis (2026-09-25), tras la revisión del usuario
+
+**Cambios pedidos y aplicados:**
+- **Orden:** el mapa «Aquí se encuentra tu tesis» va arriba, a todo el ancho; debajo, la ficha de la tesis del usuario; luego Comprendí tu tesis así, Tu tesis podría… (preguntas), Tus objetivos, Las 100 tesis más parecidas, Asesores y Las tesis más cercanas.
+- **Color de área administrativa** en el mapa (cada tesis en su área; las de los dos campos de la tesis, plenas), en la dona de áreas, en los programas y en el punto de cada tesis.
+- **Mascota:** cambia de color en cada hallazgo (gris al buscar, color del área al ubicarla, color del campo después) y celebra solo al final.
+- **Fuera:** mapa de conceptos, marcas de IA y datos (no importa si no se distinguen), subtítulos como «Problema central», subperiodos, «Aporte posible», «Antes de seguir, cuida esto», «Tu tesis queda entre dos campos», «¿Qué tan explorado está tu tema?», la cobertura de palabras clave («mal construida», queda para repensar) y el aviso bajo los asesores.
+- **Periodo:** una línea de tiempo con dos puntos unidos.
+- **Las 100 más parecidas:** el mismo perfil que el taller de cluster (años con títulos al pasar el cursor, áreas, niveles, campos, temas, subtemas, programas, planteles). Auditable y sin IA.
+- **Bloom: dos escaleras** (tus objetivos y la propuesta). Cada verbo va en su peldaño; sin números ni tabla. Los tramos entre niveles con objetivo son continuos si son contiguos y punteados con «sin Evaluar» si se salta alguno. **El nivel lo pone un léxico en la interfaz (determinista); la IA solo aporta el riesgo principal, los diagnósticos (al pasar el cursor por el verbo) y los objetivos propuestos.**
+- **Preguntas:** el verbo de cada una en grande y en el color del campo (comparar, rastrear, explicar, evaluar, anticipar); antecedente con punto de área, año y plantel.
+- **Asesores:** plantel y programa más frecuentes de cada asesor (del corpus completo), cifras en línea y su trayectoria como puntos por año con las tesis cercanas resaltadas.
+- **Tesis más cercanas:** al final, agrupadas por campo con su color, y un **CTA para guardar las 15**.
+- **Guardado automático:** la tesis analizada se guarda al crearse y aparece en el mapa como MI TESIS; ya no hay botón para guardarla.
+
+**Datos nuevos de `lab_contexto.py`:** las 100 vecinas compactas (área, nivel, programa, plantel, campo, tema, subtema), nombres de campo/tema/subtema y plantel, programa y área de cada asesor.
+
+### Laboratorio: plantilla del análisis v3 (boceto, 25-sep-2026)
+
+`prototypes/atlas_vecindario_mvp/bocetos/lab/analisis.html`, a partir de los comentarios del usuario sobre la v2.
+
+- **Dos columnas.** A la izquierda van el título y el análisis. A la derecha, el mapa reducido, fijo (`sticky`) mientras se lee. Debajo del mapa van la leyenda de áreas en nombre corto, «Análisis guardados: 1 de 2» y «Abrir en el mapa».
+  - Al pasar el cursor por una de las tesis cercanas enlazadas en el análisis, su punto crece en el mapa.
+  - Se quitó el índice lateral.
+  - En pantallas de hasta 860 px, el mapa pasa arriba y deja de estar fijo.
+- **Meta de la ficha con la gramática de las fichas del atlas.**
+  - El programa lleva la barra del área y el anillo del programa, en el color del área. Esa área es la más común entre las parecidas del mismo programa.
+  - El grado lleva los cuatro puntos de nivel, en la escala azul.
+- **Comprendí tu tesis así sin repetir el problema.** La Problematiza ya está en la ficha, así que la sección arranca con objetos, periodo, espacio, disciplinas y enfoque.
+  - Consecuencia para el prompt de la nota: `central_problem` sale del esquema.
+- **Preguntas de investigación sugeridas** (antes «Tu tesis podría…»).
+  - Cada tipo tiene nombre sustantivo y un diagrama SVG fijo en el color del campo: Comparación, Rastreo, Explicación, Evaluación, Prospectiva y Exploración.
+  - El enfoque metodológico se muestra como «Método: …».
+  - Se quitaron las tesis antecedentes de cada pregunta.
+  - Consecuencia para el prompt de preguntas: `antecedent` y `why_it_matters` salen del esquema; quedan `type` (lista cerrada), `question` y `methodological_angle`.
+- **Verificación:** capturas headless en escritorio (1440×900, día y noche, hover de una tesis cercana) y móvil (390×844). Consola sin errores.
+- **Ajuste:** el mapa ya no se queda fijo. Solo acompaña el inicio (ficha y «Comprendí tu tesis así») en la columna derecha, y desde las preguntas el análisis ocupa todo el ancho. En móvil el mapa sigue arriba. Se verificó con capturas en escritorio y móvil.
+- **Ajuste:** la ficha inicial queda en título, meta y aviso de guardado. La Problematiza pasa a encabezar «Comprendí tu tesis así». Se quitó la mascota de la ficha: solo queda la de la barra de estado, así que ya no celebra dos veces.
+- **Ajuste:**
+  - En la ficha, las palabras clave se cambian por los objetos de estudio: lista compacta en flujo, cada objeto con un guion del color del campo que se dibuja al aparecer, uno tras otro. Se usa guion y no anillo para no confundirlo con el glifo de programa.
+  - Se quitaron la fila «Disciplinas» (repetía programa y enfoque) y «Análisis guardados: 1 de 2».
+
+### Laboratorio: tesis parecidas en una sola sección (boceto, 25-sep-2026)
+
+- **Objetos de estudio.** Llevan su rótulo explícito en la ficha. Aparece junto con la lista.
+- **Una sola sección.** «Las 100 tesis más parecidas a la tuya» y «Las tesis más cercanas» se fusionaron. La sección va al final, después de los asesores, para que el llamado a guardar siga cerrando el análisis.
+- **Las gráficas son filtros.**
+  - A la izquierda: años, áreas, niveles, campos, temas, subtemas, programas y planteles. Cualquier barra, año o renglón de leyenda filtra; los filtros se combinan.
+  - Cada gráfica cuenta con los demás filtros, pero no con el suyo, así que se puede cambiar de valor sin quitar el filtro.
+  - La barra tenue es el total entre las 100 y la llena, lo que queda. Aparece «n de total».
+- **La lista de la derecha.**
+  - Queda fija mientras se recorren las gráficas.
+  - Muestra las tesis que cumplen los filtros, de la más a la menos parecida. Usa la gramática de las fichas del atlas: puntos de nivel, año, barra del área, anillo del programa y punto del plantel.
+  - Cada filtro activo tiene su botón para quitarlo, y hay un «Quitar todos».
+  - El botón para guardar se adapta: «Guardar las 2», «Guardar esta tesis».
+  - Ejemplo: al tocar «Humanidades y Artes 2» se ven esas dos tesis, de Historia y de Estudios latinoamericanos, ambas de Filosofía y Letras.
+- **Móvil.** Una columna. Al tocar un filtro, la página baja hasta la lista.
+- **Verificación:**
+  - capturas en escritorio (sin filtro; un área; programa más año, que da 0 resultados; noche) y en móvil;
+  - consola sin errores.
+- **Banda gris de inicio.**
+  - El usuario sentía el fondo vacío. Le propuse cuatro recursos: banda gris, puntos del atlas de fondo, línea de metro y mascota por sección. Eligió solo la banda.
+  - La ficha, «Comprendí tu tesis así» y el mapa van sobre `--surface` a todo el ancho, con un `::before` de sangrado completo y `overflow-x: clip` en `body`. El mapa conserva su fondo `--paper` y resalta como tarjeta.
+  - Verificado en día, noche y móvil, sin desplazamiento horizontal.
+- **Fuera la banda gris (se veía «hecha por IA»); inicio como lámina de atlas.**
+  - Referencias:
+    - la maquetación del FT: filetes finos que se leen como textura y rigor de retícula;
+    - la reacción de 2026 contra el diseño «liso de IA»: grano de papel, retículas y texturas táctiles.
+  - Cuatro recursos:
+    1. Retícula de papel cuadriculado detrás del inicio, a todo el ancho: menor cada 24 px, mayor cada 120 px, token `--reticula`. Se desvanece hacia abajo con `mask-image`.
+    2. Grano de papel en toda la página: `feTurbulence` en SVG `data:`, fijo, opacidad por token `--grano`, de día y de noche.
+    3. Cabecera de lámina con filete doble de prensa: «Laboratorio Análisis de tesis» y la fecha. El título del mapa lleva el mismo filete grueso.
+    4. El mapa como plancha: marcas de coordenadas cada 42 px en el marco.
+  - Todo es tinta a baja opacidad, sin colores nuevos.
+  - Verificado en día, noche y móvil, sin desplazamiento horizontal.
+
+### Laboratorio: lomo, títulos sin voz de chat y barra de estado como cabecera (boceto, 25-sep-2026)
+
+El usuario sentía que el laboratorio «se ve muy IA» y pidió quitar la cuadrícula y buscar elementos laterales, profundidad y textura sutil.
+
+**Diagnóstico** (con capturas y referencias):
+- La retícula es un patrón catalogado como slop («Decorative grid-line background», impeccable.style/slop).
+- Las marcas de coordenadas del marco fingían una precisión que el mapa no tiene: sus posiciones no tienen unidades.
+- Los títulos tenían voz de asistente («Comprendí tu tesis así», «Estos son los asesores con los trabajos más similares al tuyo»).
+- Al terminar, la barra fija gastaba 54 px en decir «Análisis listo.».
+
+**Propuestas.** Hoja sobre mesa, lomo, notas al margen y barra como cabecera. Se probaron con CSS inyectado. La textura de la nube del atlas en los márgenes se descartó: con unos 100 px solo se veían motas sueltas.
+
+**El usuario eligió el lomo, los títulos y la barra de estado.** Cambios:
+- **Fuera la retícula** (`.inicio::before`, token `--reticula`) y las marcas de coordenadas del marco del mapa.
+- **Grano detrás del contenido.** `body::after` pasa de `z-index: 50` a `-1`. Ya no ensucia texto ni mapa, y las barras y el mapa, con fondo propio, quedan lisos encima.
+- **Lomo.**
+  - Una columna de 36 px con filete en el borde izquierdo de `.page`. Como en una tesis empastada, el título corre en vertical y se lee de abajo arriba, seguido de grado y programa y el año.
+  - Es fijo (`sticky`) y usa tinta, no color, para no caer en el anti-patrón 23.
+  - Aparece con un fundido cuando el título de la ficha sale de la vista (IntersectionObserver), para no repetirlo en la primera pantalla.
+  - Se oculta en pantallas de hasta 640 px.
+- **Títulos.**
+  - «Aquí se encuentra tu tesis» pasa a «Ubicación en el atlas».
+  - «Comprendí tu tesis así» pasa a «Planteamiento».
+  - «Tus objetivos, analizados» pasa a «Objetivos».
+  - «Estos son los asesores…» pasa a «Asesores de tesis parecidas».
+  - «Las 100 tesis más parecidas a la tuya» pasa a «Las 100 tesis más parecidas».
+  - Los mensajes de carga se ajustan igual: «Leyendo el planteamiento», «Revisando los objetivos».
+- **Barra de estado como cabecera de página.**
+  - Los 6 guiones de pasos pasan a ser 5 botones, uno por sección en el orden de la página: Planteamiento y ubicación, Preguntas, Objetivos, Asesores y Tesis parecidas.
+  - Mientras se prepara el análisis, cada guion se llena cuando su sección está lista, en el orden en que llegan, y desde ese momento lleva a ella.
+  - La mascota celebra con «Análisis listo.» y, 1.8 s después, la barra dice en qué sección vas y llena los guiones hasta ella.
+  - Un contador de corridas evita que un «Repetir» a media secuencia active la cabecera antes de tiempo.
+
+**Verificación:**
+- Capturas headless en escritorio (1440×900) durante la carga, al inicio, en Preguntas, en Asesores, al final y de noche; también en móvil (390×844).
+- El salto desde un guion deja la sección bajo las barras (`scroll-padding-top`) y la cabecera cambia a «Asesores de tesis parecidas».
+- Sin desplazamiento horizontal. Consola sin errores.
+
+### Laboratorio: pie de página y logo NodOS v1 vectorizado (boceto, 25-sep-2026)
+
+**Logo.**
+- `NodOS logo v1.png`, una imagen de 1320×1191 sobre blanco, se vectorizó a `prototypes/atlas_vecindario_mvp/nodos-logo-v1.svg` (8 KB).
+  - Se usó potracer por capas de color.
+  - Cada píxel se proyecta sobre la recta blanco→color para que los bordes suavizados no creen capas falsas.
+  - Se descartó el contorno del lienzo que potrace devuelve en cada capa.
+- **Colores: 4, todos del sistema, que el usuario pidió cambiar.**
+  - Azul del laboratorio `#1d4f91`: el nodo grande, «Nod» y el punto central.
+  - Rojo de Humanidades y Artes: el segundo nodo y «OS».
+  - Verde de Biológicas y ocre de Sociales: los puntos.
+  - Se comparó con el verde como color dominante y se descartó, porque cae en el acento esmeralda genérico (anti-patrón 16).
+- Salen de los tokens `--marca-azul`, `--marca-rojo`, `--marca-verde` y `--marca-ocre`, con valores de noche iguales a los del mapa. El SVG independiente trae los valores de día por defecto.
+
+**Pie.**
+- Va sobre `--surface` a todo el ancho, alineado con la columna del contenido (después del lomo).
+- Tres columnas:
+  - el logo con el lema «Las 609,154 tesis de la UNAM, ordenadas por lo que tratan.»;
+  - Explorar: Mapa, Laboratorio y Método;
+  - El proyecto: Aviso de privacidad, Contacto y «Apoya este proyecto» (Buy Me a Coffee), con un ícono de taza en ocre.
+- Abajo, tras un filete, el aviso: proyecto independiente y no oficial, sin afiliación con la UNAM; datos del catálogo público TESIUNAM; tesis sin el nombre de quien las escribió. Al lado, © 2026.
+- En móvil, el logo va arriba y los dos grupos de enlaces en dos columnas.
+- **Pendiente:** los tres enlaces del proyecto apuntan a `#` con `data-pendiente`, hasta tener:
+  - la página del aviso de privacidad;
+  - el correo de contacto;
+  - el usuario de Buy Me a Coffee.
+- **Verificación:** capturas en escritorio (1440×900, día y noche) y en móvil (390×844). Sin desplazamiento horizontal y consola sin errores.
+
+### Laboratorio: pie compacto (boceto, 25-sep-2026)
+
+El usuario pidió un pie más compacto. Además, el lema («Las 609,154 tesis de la UNAM, ordenadas por lo que tratan») «se ve horrible, muy IA»: solo deben quedar el logo y el texto con enlaces, algo más grande.
+
+- **Una sola banda de 144 px en escritorio**, antes unos 300. El logo va a la izquierda con 88 px de ancho. A su lado van dos renglones:
+  - los enlaces, en 16 px: Mapa, Laboratorio y Método a la izquierda; Aviso de privacidad, Contacto y «Apoya este proyecto» a la derecha;
+  - tras un filete, el aviso en 14 px: «Proyecto independiente y no oficial, sin afiliación con la UNAM. Datos del catálogo público TESIUNAM.», con © 2026 NodOS a la derecha.
+- **Fuera:** el lema y los encabezados «Explorar» y «El proyecto».
+- **Móvil:** el logo va arriba; debajo, los dos grupos de enlaces y el aviso.
+- **La clase raíz pasa de `.pie` a `.pie-pag`**, porque `.pie` ya nombraba los pies de la mascota.
+- **Verificación:** capturas en 1440×900 (día y noche), 1000×800 y 390×844. Sin desplazamiento horizontal y consola sin errores.
+
+### v4.18.1: el nombre es NodOS (2026-09-25)
+
+El usuario fijó el nombre: **NodOS**, como en el logo, y no «NodOs».
+
+- Se cambió en la pestaña y la barra de navegación del atlas (`index.html`), en la barra y el pie del laboratorio, en `CLAUDE.md` y en `PRODUCT.md`.
+- Las entradas anteriores de esta bitácora conservan la grafía de su momento.
+- **Verificación:** el atlas carga con título «NodOS», la marca «NodOS» y la versión 4.18.1, sin errores en consola.
+
+### Laboratorio: pie azul marino, logo en blanco y paleta nueva del logo (boceto, 25-sep-2026)
+
+**Lo que pidió el usuario:**
+- letras más pequeñas y texto más junto;
+- un pie algo más grande;
+- nada del «horrible fondo gris genérico de UI»: lista negra en todo diseño;
+- el pie en azul marino con el logo en blanco;
+- cambiar los colores del logo, que «parecen los de Art Attack».
+
+**Pie:**
+- Fondo `--pie-fondo` (`#12294d`), igual de día y de noche, con el logo en blanco a 112 px y 44 px de relleno vertical: 199 px de alto en escritorio.
+- Los enlaces van en 14 px y juntos: Mapa, Laboratorio y Método, y a 40 px Aviso de privacidad, Contacto y «Apoya este proyecto», con la taza en ocre.
+- Debajo, tras un filete blanco al 18 %, el aviso en 12.5 px y el © NodOS, en el mismo renglón.
+- Tokens nuevos: `--pie-fondo`, `--pie-tinta`, `--pie-tinta-2` y `--pie-linea`.
+
+**Paleta del logo.** Se compararon 4 paletas con el logo real y se eligió la 1:
+- azul del laboratorio `#1d4f91` en el nodo grande y «Nod»;
+- azul medio `#5b95cf` de la escala de niveles del mapa en el segundo nodo y «OS»;
+- celeste `#9cc3e6` de la misma escala en dos puntos;
+- ocre `#c98a2e` de Sociales en un solo punto, de acento.
+
+Se descartaron:
+- solo la escala azul, sin acento;
+- azul marino y cobre, cuyos dos azules no se distinguían;
+- tonos profundos de área, que seguían siendo multicolor.
+
+En `nodos-logo-v1.svg` los colores se cambian con `--marca-azul`, `--marca-azul-2`, `--marca-celeste` y `--marca-ocre`. El punto central tiene su propia subruta.
+
+**Fuera el gris de fondo.**
+- Se quitó el token `--surface` del laboratorio.
+- Las escaleras de Bloom pierden el relleno gris (`--grid`) y quedan solo con el contorno de los peldaños.
+- Se añadió el anti-patrón 24 en `PRODUCT.md`.
+
+**Verificación:**
+- Capturas en 1440×900 (día y noche) y 390×844.
+- Escaleras de Bloom revisadas.
+- Sin desplazamiento horizontal y consola sin errores.
+
+### v4.18.2: sin fondos grises en el atlas (2026-09-25)
+
+Se aplica la lista negra del fondo gris (anti-patrón 24) al atlas:
+- **Botones (`.btn`):** el *hover* subraya en vez de pintar el fondo.
+- **Cierres de paneles, fichas, relato, taller y páginas:** el *hover* solo oscurece la tinta.
+- **Resultados de búsqueda:** el activo o el que tiene el cursor subraya su nombre. El renglón secundario pasa a `inline-block` para que el subrayado no lo alcance.
+- Se eliminó el token `--surface` de día y de noche.
+
+**Verificación:** el atlas carga sin errores en consola. Al buscar «banca» en la búsqueda, el primer resultado subraya solo «Banca y finanzas».
+
+### Marca: logo oficial de NodOS (2026-09-25)
+
+El usuario eligió como **logo oficial** la variante 2 de la comparación, «solo la escala azul», y la versión **en blanco sobre azul marino**.
+
+**Paleta oficial:** los azules de la escala de niveles del mapa, sin otros colores.
+
+| Pieza | Color |
+|---|---|
+| Nodo grande y «Nod» | `#143a6b` |
+| Segundo nodo y «OS» | `#2d65a8` |
+| Punto izquierdo | `#9cc3e6` |
+| Punto derecho | `#5b95cf` |
+| Punto central | `#5b95cf` |
+| Fondo de la versión en blanco | `#12294d`, azul marino del pie |
+
+**Archivos en `marca/`** (SVG, unos 9 KB cada uno):
+- `nodos-logo.svg`: el oficial en color, con fondo transparente.
+- `nodos-logo-blanco.svg`: en blanco con fondo transparente, para fondos oscuros.
+- `nodos-logo-blanco-sobre-marino.svg`: en blanco sobre `#12294d`, con margen.
+
+**Puntos cambiables.**
+- Los puntos quedan libres en la identidad: en el video de introducción y en el branding cambiarán para dar dinamismo. El logo oficial es el de arriba.
+- Cada forma tiene su `id`: `nodo-1`, `nodo-2`, `punto-izq`, `punto-der`, `punto-centro`, `palabra-nod` y `palabra-os`.
+- Su color sale de una variable CSS con valor por defecto: `--nodos-azul-1`, `--nodos-azul-2`, `--nodos-punto-izq`, `--nodos-punto-der`, `--nodos-punto-centro` y `--nodos-fondo`.
+- Los puntos se animan o recolorean sin tocar el trazo.
+
+**Cambios en el repositorio.**
+- Se retira `prototypes/atlas_vecindario_mvp/nodos-logo-v1.svg`, la paleta azul, azul medio, celeste y ocre de la entrada anterior.
+- El pie del laboratorio ya usa la versión en blanco sobre `--pie-fondo` (`#12294d`).
+- El PNG original, `NodOS logo v1.png`, sigue en la raíz como fuente.
+
+**Verificación:**
+- Los tres SVG son XML válido. Los comentarios no llevan `--`, que rompía el archivo al cargarlo como imagen.
+- Se ven bien como `<img>` en Chrome.
+- En línea, redefinir `--nodos-punto-izq`, `--nodos-punto-der` y `--nodos-punto-centro` cambia solo los puntos.
+
+### Marca: exploración del puma como guiño (2026-09-25, descartada)
+
+El usuario pidió dos cosas:
+- un guiño sutil al puma de la UNAM en el espacio libre sobre la «d» del logo;
+- una reformulación del logo en la que se intuya la silueta del puma, «como la flecha de FedEx».
+
+**Puma redibujado.** No se usó el logo original. Se redibujó una versión propia y simplificada, con esquinas redondeadas:
+- el contorno con la joroba central y las orejas;
+- el hueco en «U», formado por los ojos en cuarto de círculo, los canales y la abertura inferior;
+- la barbilla.
+
+**Propuestas en `marca/exploracion-puma/`:** cada una en color y en blanco sobre azul marino, más `comparacion.png` con la vista a 112 px.
+1. `1_guino`: una cabeza de puma de 90 unidades sobre el asta de la «d», en el hueco entre los dos nodos, con el color de los puntos (`#5b95cf`). A 112 px apenas se ve; funciona en tamaños grandes y en video.
+2. `2a_calado`: el hueco en «U» del puma calado en el cuerpo del nodo grande. El nodo hace de cabeza. Es lo más cercano a la idea de FedEx y se sigue viendo a 112 px.
+3. `2b_red`: el símbolo se rehace como una red de nodos bulbosos con cuellos delgados, fundidos con desenfoque y umbral y vectorizados con potrace. Primero se ve una red y luego se intuye el puma.
+   - Una primera versión maciza se descartó por demasiado literal: era el logo de Pumas en azul.
+
+**Conflicto abierto.**
+- `CLAUDE.md` y `PRODUCT.md` prohíben los logotipos de la UNAM y que el proyecto parezca oficial.
+- El puma es una marca registrada vinculada a la UNAM.
+- Adoptar cualquiera de estas propuestas exige cambiar esa regla a conciencia y valorar el riesgo de marca.
+- Mientras tanto, los archivos se quedan fuera del logo oficial.
+
+**Resultado:** el usuario la descartó («no me gustó, mantengamos el original»). Se borró `marca/exploracion-puma/` y queda el logo oficial de `marca/`.
+
+### Laboratorio: título con jerarquía, filete único, secciones subrayadas y pie (boceto, 25-sep-2026)
+
+**Cambios pedidos por el usuario:**
+- **Título de la tesis.**
+  - «Es EL título de la tesis»: no debía verse genérico.
+  - Pasa de 30 px en peso 700 a `clamp(34px, 3.3vw, 46px)` en peso **800**, que se añade a la carga de Libre Franklin.
+  - Interletrado −0.025em, interlineado 1.06, `text-wrap: balance` y hasta 22 caracteres por renglón.
+  - En móvil, 30 px.
+- **Un solo filete grueso sobre el título**, igual que el del mapa. Se quitó la línea fina de abajo (el doble filete de prensa).
+- **Subrayado sutil en los títulos de sección**, «Ubicación en el atlas» incluida: 2 px en `--line-strong`, separado 8 px de la letra.
+- **Pie.**
+  - Los dos grupos de enlaces van a los extremos: Mapa, Laboratorio y Método a la izquierda; Aviso de privacidad, Contacto y «Apoya este proyecto» a la derecha.
+  - El © 2026 NodOS pasa a la esquina derecha.
+  - El aviso queda en «Proyecto independiente y no oficial. Datos del catálogo público TESIUNAM.»; se quitó «sin afiliación con la UNAM», que se sobrentiende.
+
+**Pendiente:** el titular del © y la licencia. El usuario quiere licencia MIT.
+
+**Verificación:** capturas en 1440×900 (inicio, sección, pie y noche) y en 390×844. El título mide 46 px en escritorio y 30 px en móvil. Sin desplazamiento horizontal y consola sin errores.

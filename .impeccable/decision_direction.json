@@ -1,0 +1,128 @@
+{
+  "title": "Dirección visual del Atlas de tesis UNAM",
+  "question": "El sorteo asignó «Señalética de red». Quédate con ella, toma una alternativa o vuelve a sortear.",
+  "options": [
+    {
+      "id": "assigned",
+      "label": "Señalética de red",
+      "kicker": "THE ROLL",
+      "lineage": "Sistema de señalética del Metro CDMX (Lance Wyman, 1969) y diagramas de red de transporte",
+      "thesis": "El atlas como una red pública: cada territorio es una línea con color propio y cada tema fino una estación con nombre; siempre sabes en qué línea y estación estás.",
+      "palette": ["#f4f4f1", "#16181d", "#e4572e", "#2f6fb3", "#1f8a5b", "#d9a21b", "#b8412f"],
+      "materials": ["esmalte plano sobre lámina, sin sombras", "franjas de color de línea como estructura", "rótulos en sans de trazo grueso y terminal recta"],
+      "viewport": "Mapa a pantalla completa bajo una cenefa de andén: franja del color de la línea actual con el nombre de la estación en grande; controles como placas cuadradas; «usted está aquí» en naranja señal.",
+      "risk": "Si los rótulos o pictogramas se vuelven caricaturescos se lee turístico o infantil; exige disciplina tipográfica y evitar pictogramas decorativos.",
+      "raised": [
+        { "from": "Emission-line rail", "raise": "El estado se codifica con la forma de la línea (sólida, punteada, tachada), no con chips de color." },
+        { "from": "Miura orbit sheet", "raise": "Cada entidad lleva su código de catálogo visible (M48, U147) como número de estación." },
+        { "from": "Game Boy four-shade", "raise": "Paleta estructural cerrada: papel, tinta y un naranja señal; el color de línea vive solo en los datos." }
+      ]
+    },
+    {
+      "id": "model-pick",
+      "label": "Carta topográfica",
+      "kicker": "IMPECCABLE’S PICK",
+      "lineage": "Cartas nacionales suizas (swisstopo) y la tipografía cartográfica de Eduard Imhof",
+      "thesis": "El corpus como terreno cartografiado: densidad como relieve, territorios rotulados con la jerarquía de una carta impresa y un cuadro de leyenda con escala y ficha técnica.",
+      "palette": ["#f6f6f3", "#1d2126", "#7c8a73", "#3f6e8c", "#b5563a"],
+      "materials": ["curvas de nivel en línea de pelo", "sombreado de relieve", "cuadro de leyenda impreso con escala"],
+      "viewport": "Mapa a sangre con rótulos de carta (mayúsculas espaciadas para regiones, versalitas para lugares), retícula de coordenadas en el marco y un cuadro de leyenda en la esquina.",
+      "risk": "Es la lectura literal de «atlas» y la dirección en la que aterrizan casi todos los intentos para este tipo de producto."
+    },
+    {
+      "id": "challenger-emission-rail",
+      "label": "Emission-line rail",
+      "verdict": "declined",
+      "lineage": "espectrogramas sobre caja de luz",
+      "palette": ["#2b2d30", "#e8e4da", "#f5c518"],
+      "materials": ["continuo carbón", "líneas de emisión de un pixel"],
+      "thesis": "Todo cuelga de un riel calibrado; el color solo existe como líneas finas.",
+      "viewport": "Placa de trabajo gris carbón con un riel descentrado.",
+      "risk": "Fondo carbón: contradice el fondo claro obligatorio.",
+      "case": "Descartado: rompe el fondo claro y los estudiantes no se reconocen en un espectrograma.",
+      "kept": "El estado como forma de línea, no como color.",
+      "hero": "https://impeccable.style/worlds/cards/operate-c-emission-line-rail-hero.webp"
+    },
+    {
+      "id": "challenger-darkroom",
+      "label": "Darkroom safelight",
+      "verdict": "declined",
+      "lineage": "cuarto oscuro fotográfico",
+      "palette": ["#c8741e", "#6b6b6b", "#f1efe9"],
+      "materials": ["luz ámbar de seguridad", "plata húmeda"],
+      "thesis": "Estaciones fijas en orden: componer, exponer, revelar, fijar.",
+      "viewport": "Bandejas bajo luz ámbar.",
+      "risk": "Ambiente oscuro y ámbar: contradice el fondo claro y el tono institucional.",
+      "case": "Descartado en ambos ejes: ni identificación ni claridad para explorar tesis.",
+      "kept": "Niveles del mapa como estaciones fijas y ordenadas.",
+      "hero": "https://impeccable.style/worlds/cards/signals-instruments-darkroom-safelight-bay-hero.webp"
+    },
+    {
+      "id": "challenger-miura",
+      "label": "Miura orbit sheet",
+      "verdict": "declined",
+      "lineage": "pliegue Miura desplegable",
+      "palette": ["#fafaf8", "#c9a23a", "#8a8f99", "#9cc1e0"],
+      "materials": ["hoja blanca mate", "pliegues marcados"],
+      "thesis": "Un tirón despliega un campo preciso de pliegues enlazados.",
+      "viewport": "Paquete compacto que se despliega en hoja completa.",
+      "risk": "La metáfora del pliegue no la reconoce un estudiante que busca tesis.",
+      "case": "Descartado: compatible con fondo claro pero pierde en identificación y claridad.",
+      "kept": "Todo elemento lleva un identificador técnico preciso.",
+      "hero": "https://impeccable.style/worlds/cards/paper-folds-pleats-deployable-miura-orbit-sheet-hero.webp"
+    },
+    {
+      "id": "challenger-tensegrity",
+      "label": "Tensegrity column",
+      "verdict": "declined",
+      "lineage": "escultura cinética de tensegridad",
+      "palette": ["#1c1c1c", "#d9d6cf", "#c23a2b"],
+      "materials": ["varillas de carbono", "cordón rojo"],
+      "thesis": "Fuerzas opuestas que hacen respirar una columna rígida.",
+      "viewport": "Diagrama de fuerzas con rótulos en líneas guía.",
+      "risk": "Lenguaje de ingeniería ajeno al usuario.",
+      "case": "Descartado en ambos ejes.",
+      "kept": "Rótulos anclados a sus nodos con líneas guía.",
+      "hero": "https://impeccable.style/worlds/cards/kinetic-sculpture-automata-tensegrity-breathing-column-hero.webp"
+    },
+    {
+      "id": "challenger-gameboy",
+      "label": "Game Boy four-shade",
+      "verdict": "declined",
+      "lineage": "pantalla de cuatro verdes",
+      "palette": ["#9bbc0f", "#8bac0f", "#306230", "#0f380f"],
+      "materials": ["tramado", "píxel 8×8"],
+      "thesis": "Cuatro tonos, una cuadrícula, cero degradados.",
+      "viewport": "Marco fijo de 160×144.",
+      "risk": "Lúdico y retro: contradice el tono serio.",
+      "case": "Descartado en ambos ejes.",
+      "kept": "Compromiso total con una paleta cerrada.",
+      "hero": "https://impeccable.style/worlds/cards/digital-design-canon-gameboy-four-shade-field-hero.webp"
+    },
+    {
+      "id": "challenger-busytown",
+      "label": "Busytown cross-section",
+      "verdict": "declined",
+      "lineage": "libro ilustrado en corte",
+      "palette": ["#fbf8f1", "#b8412f", "#e8b81c", "#5a9a3c"],
+      "materials": ["gouache plano", "contorno café"],
+      "thesis": "Todo objeto lleva su etiqueta impresa.",
+      "viewport": "Escena continua en corte.",
+      "risk": "Infantil: contradice el tono serio.",
+      "case": "Descartado en ambos ejes.",
+      "kept": "Etiquetas a escala constante, ninguna grita más que otra.",
+      "hero": "https://impeccable.style/worlds/cards/graphic-worlds-publishing-busytown-cross-section-hero.webp"
+    }
+  ],
+  "reroll": { "registers": ["safer", "bolder"] },
+  "canon": true,
+  "canonCard": {
+    "label": "Instrumento de datos estándar (tipo Gapminder)",
+    "thesis": "Lo que esta categoría hace bien: fondo blanco, ejes grises finos, burbujas planas por color, rótulos grandes y pálidos de fondo, un solo control protagonista.",
+    "palette": ["#ffffff", "#333333", "#b3b3b3", "#00b4d8", "#ff5872"],
+    "materials": ["plano, sin sombras", "tipografía sans neutra"],
+    "viewport": "El mapa como gráfica: marco de ejes, leyenda como mini-mapa de colores, controles pegados a los bordes.",
+    "risk": "Indistinguible del resto de herramientas de datos, por diseño."
+  },
+  "steer": true
+}

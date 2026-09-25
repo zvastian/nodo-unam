@@ -1,0 +1,130 @@
+{
+ "_nota": "Salidas de IA para la plantilla, en el ESQUEMA NUEVO propuesto. Donde el fixture real (lab_context_fixture.json) tenía el dato, se reutiliza su texto ('fixture'). Lo marcado 'a_mano' se redactó para mostrar los campos nuevos; no es salida de un modelo.",
+ "nota": {
+  "_origen": {
+   "central_problem": "fixture",
+   "main_objects": "fixture",
+   "interpretive_angle": "fixture",
+   "scope": "fixture"
+  },
+  "central_problem": "¿En qué medida las diferencias estructurales e históricas entre los sistemas bancarios de México y China han condicionado sus trayectorias de desarrollo económico entre 1850 y 2009?",
+  "main_objects": [
+   "sistema bancario mexicano",
+   "sistema bancario chino",
+   "desarrollo económico nacional",
+   "procesos históricos institucionales",
+   "políticas financieras"
+  ],
+  "interpretive_angle": "Comparativo histórico-institucional",
+  "scope": {
+   "temporal": {
+    "text": "Periodo amplio: conviene fijar subperiodos coherentes para cada país.",
+    "start": 1850,
+    "end": 2009
+   },
+   "geographic": {
+    "text": "Comparación de dos países.",
+    "units": [
+     "México",
+     "China"
+    ]
+   },
+   "disciplinary": {
+    "text": "Economía, con historia económica y finanzas.",
+    "fields": [
+     "Economía",
+     "Historia económica",
+     "Finanzas"
+    ]
+   }
+  }
+ },
+ "bloom": {
+  "_origen": {
+   "main_risk": "fixture",
+   "objectives.diagnosis/improvement": "fixture",
+   "revised": "fixture",
+   "final_note": "fixture",
+   "niveles": "los calcula el léxico en la interfaz, no la IA"
+  },
+  "main_risk": "La ausencia de una etapa de evaluación impide validar la pertinencia de las mejoras sugeridas.",
+  "objectives": [
+   {
+    "original": "Analizar las diferencias entre ambos sistemas bancarios",
+    "diagnosis": "Buen nivel de análisis, pero carece de criterios claros de comparación.",
+    "improvement": "Especificar los criterios y métricas de comparación."
+   },
+   {
+    "original": "Reconocer diferencias en los procesos históricos",
+    "diagnosis": "El verbo indica memorización, sin profundizar en causas y efectos.",
+    "improvement": "Reformular como comprender las causas y consecuencias de los procesos históricos."
+   },
+   {
+    "original": "Sugerir mejoras para el sistema bancario mexicano",
+    "diagnosis": "Promesa creativa sin un paso previo de evaluación.",
+    "improvement": "Añadir un objetivo que evalúe la viabilidad y el impacto de las mejoras."
+   }
+  ],
+  "revised": [
+   {
+    "text": "Comprender las causas y efectos de los procesos históricos que moldearon los sistemas bancarios de México y China entre 1850 y 2009."
+   },
+   {
+    "text": "Analizar las diferencias clave entre ambos sistemas bancarios con criterios comparativos definidos."
+   },
+   {
+    "text": "Evaluar la viabilidad y el impacto potencial de mejoras para el sistema bancario mexicano."
+   },
+   {
+    "text": "Proponer mejoras factibles para el sistema bancario mexicano basadas en el análisis y la evaluación."
+   }
+  ],
+  "final_note": "Asegúrate de que cada objetivo tenga un producto verificable: una tabla comparativa, un criterio, una propuesta."
+ },
+ "preguntas": {
+  "_origen": "a_mano (el fixture tiene questions = null)",
+  "items": [
+   {
+    "type": "Comparativa",
+    "question": "¿Qué rasgos institucionales distinguen a la banca mexicana de la china en sus etapas de apertura financiera?",
+    "methodological_angle": "Comparación de casos con indicadores de profundidad financiera y marco regulatorio.",
+    "why_it_matters": "Es el eje de tu tesis y el aspecto con menos antecedentes en la UNAM.",
+    "antecedent": "TH_0540393"
+   },
+   {
+    "type": "Histórica",
+    "question": "¿Cómo transformaron las nacionalizaciones bancarias la relación entre Estado y crédito en ambos países?",
+    "methodological_angle": "Análisis histórico-institucional con fuentes legislativas y series de crédito.",
+    "why_it_matters": "Ordena el periodo largo en torno a un hecho comparable.",
+    "antecedent": "TH_0169628"
+   },
+   {
+    "type": "Causal",
+    "question": "¿En qué medida la orientación del crédito bancario explica las diferencias de crecimiento industrial?",
+    "methodological_angle": "Series de tiempo de crédito por sector y producción industrial.",
+    "why_it_matters": "Convierte la comparación descriptiva en una explicación.",
+    "antecedent": "TH_0166997"
+   },
+   {
+    "type": "Evaluativa",
+    "question": "¿Qué reformas bancarias mexicanas posteriores a 1994 fueron eficaces según criterios de estabilidad y acceso al crédito?",
+    "methodological_angle": "Evaluación de políticas con criterios explícitos y comparación antes y después.",
+    "why_it_matters": "Es la etapa de Evaluar que falta antes de proponer mejoras.",
+    "antecedent": "TH_0043350"
+   },
+   {
+    "type": "Prospectiva",
+    "question": "¿Qué elementos del modelo bancario chino serían trasladables a México y bajo qué condiciones?",
+    "methodological_angle": "Análisis de escenarios con base en los hallazgos comparativos.",
+    "why_it_matters": "Da sustento a la propuesta final sin convertirla en recomendación genérica.",
+    "antecedent": null
+   }
+  ]
+ },
+ "tokens": {
+  "_nota": "Uso medido en el fixture (Cerebras gpt-oss-120b y Groq gpt-oss-20b).",
+  "nota": 2636,
+  "bloom": 1699,
+  "preguntas": null
+ }
+}

@@ -1,0 +1,9 @@
+{
+ "title": "Análisis del sistema bancario de México y China 1850-2009",
+ "problematiza": "México y China partieron de sistemas bancarios frágiles y llegaron a resultados de desarrollo muy distintos. ¿Qué diferencias institucionales de su banca explican esa divergencia?",
+ "keywords": ["México", "China", "banca", "sistema financiero", "desarrollo económico"],
+ "objectives": ["Analizar las diferencias entre ambos sistemas bancarios", "Reconocer diferencias en los procesos históricos", "Sugerir mejoras para el sistema bancario mexicano"],
+ "program": "Economía",
+ "degree": "Licenciatura",
+ "study_period": {"applies": true, "start_year": 1850, "end_year": 2009, "label": "1850-2009"}
+}

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>NodOS</title>
+<title>NodOs</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6' fill='%231d4f91'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -13,33 +13,21 @@
      Cada decision responde a un anti-patron de PRODUCT.md («Lo que hace ver
      generica una UI», #1-#21); el numero va entre corchetes en el comentario.
      ===================================================================== */
-  /* v4.18: modo noche holistico. Toda la interfaz lee estos tokens; body.noche solo cambia
-     sus valores. Contraste verificado (WCAG): de dia ink 17.4, ink-2 8.5, ink-3 5.1, link 8.1 sobre
-     papel; de noche ink 14.2, ink-2 9.5, ink-3 5.9, link 8.4. */
   :root {
-    --bg: #ffffff;          /* [1] blanco neutro, no crema; lienzo del mapa */
-    --paper: #ffffff;       /* paneles, fichas, taller, barras */
+    --bg: #ffffff;          /* [1] blanco neutro, no crema */
+    --surface: #f5f5f5;     /* hover / fondos secundarios, neutro */
     --ink: #1a1a1a;
-    --ink-2: #4d4d4d;       /* 8.5:1 */
+    --ink-2: #4d4d4d;       /* 8.6:1 */
     --ink-3: #6e6e6e;       /* 5.1:1: minimo para texto chico */
     --line: #e0e0e0;        /* [17] una sola linea fina neutra */
     --line-strong: #c2c2c2;
     --grid: #f0f0f0;
     --link: #1d4f91;        /* [16] enlaces y foco; color de interfaz sin competir con los datos */
-    --map-edge: #b5b5b5; --map-tick: #a0a0a0; --map-region: #a3a3a3; --map-label: #2b2b2b; --map-minor: #5c5c5c;
     --accent: var(--link);
     --border: var(--line);
-    --panel-bg: var(--paper);
+    --panel-bg: #ffffff;
     --nav-h: 56px;
     color-scheme: light;
-  }
-  body.noche {
-    --bg: #0f1422; --paper: #161c2a;
-    --ink: #eceae4; --ink-2: #bcc2cf; --ink-3: #8f98ab;
-    --line: #283044; --line-strong: #3b4559; --grid: #1a2030;
-    --link: #8fb8f2;
-    --map-edge: #6d7890; --map-tick: #4c566d; --map-region: #59627a; --map-label: #d9dbe2; --map-minor: #a3aabb;
-    color-scheme: dark;
   }
   [hidden] { display: none !important; }
   * { box-sizing: border-box; }
@@ -65,18 +53,12 @@
   .btn {
     display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 10px;
     border: none; border-radius: 2px; background: transparent; color: var(--ink); cursor: pointer;
-    font-size: 14px; font-weight: 500;
+    font-size: 14px; font-weight: 500; transition: background 120ms ease;
   }
-  /* sin fondos grises: el hover subraya (lista negra del usuario, 25-09) */
-  .btn:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .btn:hover { background: var(--surface); }
   .btn:disabled { color: var(--ink-3); cursor: default; background: transparent; }
-  /* v4.15: la accion principal ya no es una caja negra. Es texto en tinta, seminegritas, con una
-     flecha dibujada; al pasar el cursor se subraya con el color del contexto (--c: campo o area). */
-  .btn.primary { background: none; color: var(--ink); font-weight: 600; padding: 0; height: auto; border-radius: 0; border-bottom: 2px solid transparent; transition: border-color 120ms ease; }
-  .btn.primary::after { content: ""; width: 14px; height: 14px; background: currentColor; -webkit-mask: var(--ico-flecha) center / contain no-repeat; mask: var(--ico-flecha) center / contain no-repeat; }
-  .btn.primary:hover { background: none; border-bottom-color: var(--c, var(--ink)); }
-  .btn.primary:disabled { color: var(--ink-3); border-bottom-color: transparent; }
-  :root { --ico-flecha: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8h9M9 4.5L12.5 8 9 11.5' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+  .btn.primary { background: var(--ink); color: #fff; padding: 0 14px; }
+  .btn.primary:hover { background: #000; }
   .kbd { display: none; } /* [12] sin pastilla de atajo */
   /* control segmentado [5] -> pestañas de texto con subrayado */
   .seg { display: inline-flex; gap: 16px; }
@@ -85,7 +67,7 @@
   .seg button.active { color: var(--ink); font-weight: 600; border-bottom-color: var(--ink); }
 
   /* ---------- navegacion global [2] ---------- */
-  header.nav { display: flex; align-items: center; gap: 28px; height: var(--nav-h); padding: 0 24px; background: var(--paper); border-bottom: 1px solid var(--line); position: relative; z-index: 14; flex-shrink: 0; }
+  header.nav { display: flex; align-items: center; gap: 28px; height: var(--nav-h); padding: 0 24px; background: #fff; border-bottom: 1px solid var(--line); position: relative; z-index: 14; flex-shrink: 0; }
   .brand { display: flex; align-items: baseline; gap: 8px; text-decoration: none; color: var(--ink); white-space: nowrap; }
   .brand-name { font-size: 17px; font-weight: 700; letter-spacing: -0.01em; }  /* [4] sin mayusculas espaciadas */
   .brand-org { font-size: 14px; color: var(--ink-3); }
@@ -93,31 +75,16 @@
   .navlinks button { border: none; background: none; cursor: pointer; font-size: 14px; color: var(--ink-2); padding: 0; border-bottom: 2px solid transparent; border-top: 2px solid transparent; }
   .navlinks button:hover { color: var(--ink); }
   .navlinks button.active { color: var(--ink); font-weight: 600; border-bottom-color: var(--ink); }
-  .navsearch { margin-left: auto; display: flex; align-items: center; gap: 8px; width: min(320px, 34vw); height: 34px; padding: 0 10px; border: 1px solid var(--line-strong); border-radius: 2px; background: var(--paper); color: var(--ink-3); font-size: 14px; cursor: text; text-align: left; }
+  .navsearch { margin-left: auto; display: flex; align-items: center; gap: 8px; width: min(320px, 34vw); height: 34px; padding: 0 10px; border: 1px solid var(--line-strong); border-radius: 2px; background: #fff; color: var(--ink-3); font-size: 14px; cursor: text; text-align: left; }
   .navsearch:hover { border-color: var(--ink-3); }
-  /* v4.16: Ajustes. Panel anclado bajo la barra (no una tarjeta flotante con sombra) */
-  .navajustes { display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 2px; border: 0; background: none; font: inherit; font-size: 14px; color: var(--ink-2); cursor: pointer; }
-  .navajustes:hover, .navajustes[aria-expanded="true"] { color: var(--ink); }
-  #ajustes { position: absolute; top: 100%; right: 24px; z-index: 30; width: 320px; background: var(--paper); border: 1px solid var(--line-strong); border-top: 0; padding: 14px 18px 16px; }
-  #ajustes h4 { margin: 0 0 8px; font-size: 13.5px; font-weight: 600; color: var(--ink); }
-  #ajustes h4 + * { margin-bottom: 16px; }
-  #ajustes > :last-child { margin-bottom: 0; }
-  /* las ventanas de onix de la Biblioteca Central, de dia y de noche */
-  #modo-mapa { display: flex; gap: 14px; }
-  #modo-mapa button { display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 0; border: 0; background: none; font: inherit; font-size: 13px; color: var(--ink-3); cursor: pointer; }
-  #modo-mapa img { display: block; outline: 1px solid var(--line); outline-offset: 2px; opacity: 0.55; transition: opacity 150ms ease; }
-  #modo-mapa button:hover img { opacity: 0.85; }
-  #modo-mapa button.active { color: var(--ink); font-weight: 600; }
-  #modo-mapa button.active img { opacity: 1; outline: 2px solid var(--ink); }
   .navsearch span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
   #debug-bar { display: none; }
   body.debug #debug-bar { display: flex; gap: 6px; align-items: center; }
 
   /* ---------- barra de ubicacion y filtros [4]: blanca, con la ruta integrada ---------- */
-  .filterbar { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; min-height: 44px; padding: 6px 24px; background: var(--paper); border-bottom: 1px solid var(--line); position: relative; z-index: 11; flex-shrink: 0; }
+  .filterbar { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; min-height: 44px; padding: 6px 24px; background: #fff; border-bottom: 1px solid var(--line); position: relative; z-index: 11; flex-shrink: 0; }
   .fb-title { display: none; }
   .fb-group { display: flex; align-items: center; gap: 14px; margin-left: auto; }
-  .filterbar .fb-count { margin-left: auto; }
   .fb-label { font-size: 14px; color: var(--ink-3); }
   .fb-count { font-size: 13px; color: var(--ink-3); }
   /* [3] la ruta deja de flotar sobre el mapa: vive en la barra */
@@ -134,59 +101,61 @@
   #wgl-host canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
   svg#overlay { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
   .gridline { stroke: var(--grid); stroke-width: 1; }
-  .tick-label { font-size: 10px; fill: var(--map-tick); }
-  .edge { stroke: var(--map-edge); stroke-opacity: 0.35; fill: none; }
+  .tick-label { font-size: 10px; fill: #a0a0a0; }
+  .edge { stroke: #b5b5b5; stroke-opacity: 0.35; fill: none; }
   .anode, .alabel { transition: opacity 240ms ease; }
   .anode.entering, .alabel.entering, .anode.leaving, .alabel.leaving { opacity: 0; }
-  .anode circle { stroke: var(--bg); stroke-width: 1; cursor: pointer; pointer-events: auto; }
+  .anode circle { stroke: #fff; stroke-width: 1; cursor: pointer; pointer-events: auto; }
   .anode:hover circle, .anode.selected circle { stroke: var(--ink); stroke-width: 1.5; }
   /* v4.6: rango del cluster con la gramatica de las fichas (padre = punto lleno, hijo = anillo)
      y la convencion cartografica (mayusculas para lo grande, minusculas para lo chico):
      tema = punto lleno + MAYUSCULAS; subtema = anillo del color del campo + minusculas. */
-  .anode.micro circle { fill: var(--bg); fill-opacity: 1; stroke: var(--c); stroke-width: 2; }
+  .anode.micro circle { fill: #fff; fill-opacity: 1; stroke: var(--c); stroke-width: 2; }
   .anode.micro:hover circle, .anode.micro.selected circle { stroke: var(--ink); stroke-width: 2; }
   .alabel.micro text { text-transform: none; font-weight: 500; }
   /* rotulos del mapa: unico lugar con mayusculas (convencion cartografica pedida por el usuario) */
-  .alabel text, .node-label { font-family: "Libre Franklin", sans-serif; font-weight: 600; text-transform: uppercase; fill: var(--map-label); paint-order: stroke; stroke: var(--bg); stroke-width: 3.5px; stroke-linejoin: round; cursor: pointer; pointer-events: auto; }
+  .alabel text, .node-label { font-family: "Libre Franklin", sans-serif; font-weight: 600; text-transform: uppercase; fill: #2b2b2b; paint-order: stroke; stroke: #fff; stroke-width: 3.5px; stroke-linejoin: round; cursor: pointer; pointer-events: auto; }
   .alabel text:hover { fill: var(--link); }
   .alabel.selected text { fill: var(--ink); text-decoration: underline; text-decoration-thickness: 1.5px; }
   .alabel.landmark text { font-weight: 700; fill: var(--ink); }
-  .alabel.minor text { font-weight: 500; fill: var(--map-minor); }
-  .alabel.region text { font-weight: 500; fill: var(--map-region); pointer-events: none; }
+  .alabel.minor text { font-weight: 500; fill: #5c5c5c; }
+  .alabel.region text { font-weight: 500; fill: #a3a3a3; pointer-events: none; }
   .alabel.hidden { display: none; }
-  body.noche .alabel text:hover { fill: #9fc8ff; }
   .alabel.note-under, .anode.note-under { opacity: 0.12; } /* v4.3: rotulo debajo de la anotacion de una tesis */
 
   /* ---------- leyenda y minimapa: acoplados a los bordes, no flotantes [3][9] ---------- */
-  #minimap { position: absolute; right: 0; bottom: 0; z-index: 5; background: var(--paper); border-top: 1px solid var(--line); border-left: 1px solid var(--line); cursor: crosshair; }
+  .legend { position: absolute; left: 0; bottom: 0; z-index: 5; max-width: 300px; background: #fff; border-top: 1px solid var(--line); border-right: 1px solid var(--line); padding: 10px 16px 12px; font-size: 13px; color: var(--ink-2); }
+  .legend .lg-title { font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 6px; }
+  .legend .lg-row { display: flex; align-items: center; gap: 8px; margin-top: 4px; line-height: 1.3; }
+  .legend .sw, .legend .lg-area-bar { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .legend .spectrum { height: 4px; width: 100%; margin: 2px 0 6px; }
+  .legend .lg-rank { display: flex; gap: 16px; margin-top: 8px; font-size: 12.5px; color: var(--ink-2); }
+  .legend .lg-rank span { display: inline-flex; align-items: center; gap: 6px; }
+  .legend .lg-rank span:first-child { font-weight: 600; letter-spacing: 0.05em; font-size: 11.5px; }
+  .legend .lg-dot, .legend .lg-ring { width: 9px; height: 9px; border-radius: 50%; }
+  .legend .lg-dot { background: var(--ink-2); }
+  .legend .lg-ring { box-shadow: inset 0 0 0 2px var(--ink-2); }
+  .legend .lg-note { font-size: 12.5px; color: var(--ink-3); line-height: 1.45; margin-top: 8px; }
+  #minimap { position: absolute; right: 0; bottom: 0; z-index: 5; background: #fff; border-top: 1px solid var(--line); border-left: 1px solid var(--line); cursor: crosshair; }
   #minimap canvas { display: block; }
   #minimap .mm-view { position: absolute; left: 0; top: 0; pointer-events: none; }
   #minimap .mm-cap { display: flex; align-items: center; gap: 8px; padding: 4px 10px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--ink-3); }
   #minimap .mm-cap #mm-zoom { margin-left: auto; }
   #minimap .mm-cap button { border: none; background: none; padding: 0; cursor: pointer; font: inherit; color: var(--link); }
-  #minimap .mm-cap button:hover { text-decoration: none; color: var(--ink); }
-  #minimap .mm-cap #mm-hide { display: inline-flex; color: var(--ink-3); }
-  #minimap .mm-cap #mm-hide .ico { width: 14px; height: 14px; }
+  #minimap .mm-cap button:hover { text-decoration: underline; }
   #minimap, #mm-show { transition: right 0.24s ease; }
   main.panel-open #minimap, main.panel-open #mm-show { right: 360px; }
-  /* plegado, el minimapa queda como una pestana delgada pegada al borde inferior */
-  #mm-show { position: absolute; right: 0; bottom: 0; z-index: 5; display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 12px; border: 0; border-top: 1px solid var(--line); border-left: 1px solid var(--line); background: var(--paper); font: inherit; font-size: 12.5px; color: var(--ink-2); cursor: pointer; }
-  #mm-show:hover { color: var(--ink); }
-  /* v4.16: leyenda de areas, solo con el color por area; anclada a la esquina como el minimapa */
-  #ley-areas { position: absolute; left: 0; bottom: 0; z-index: 5; display: grid; grid-template-columns: 9px auto; column-gap: 8px; row-gap: 3px; align-items: center; padding: 9px 14px 10px 12px; background: var(--paper); border-top: 1px solid var(--line); border-right: 1px solid var(--line); font-size: 12.5px; color: var(--ink-2); }
-  #ley-areas i { width: 9px; height: 9px; border-radius: 50%; background: var(--c); }
-  body.iso #ley-areas { display: none; }
-  #mm-show .ico { width: 14px; height: 14px; }
+  #mm-show { position: absolute; right: 12px; bottom: 12px; z-index: 5; background: #fff; border: 1px solid var(--line); }
 
   /* ---------- tooltips: borde fino, sin sombra [9] ---------- */
-  .tip { position: absolute; left: 0; top: 0; pointer-events: none; z-index: 30; max-width: 320px; background: var(--paper); border: 1px solid var(--line-strong); padding: 7px 10px; font-size: 13px; line-height: 1.4; opacity: 0; transform: translate(-9999px, -9999px); transition: opacity 0.1s; }
+  .tip { position: absolute; left: 0; top: 0; pointer-events: none; z-index: 30; max-width: 320px; background: #fff; border: 1px solid var(--line-strong); padding: 7px 10px; font-size: 13px; line-height: 1.4; opacity: 0; transform: translate(-9999px, -9999px); transition: opacity 0.1s; }
   .tip .t-label { display: block; font-weight: 600; color: var(--ink); margin-bottom: 2px; }
   .tip .t-meta { display: block; color: var(--ink-3); }
   .tip .t-hint { display: block; color: var(--link); margin-top: 3px; font-size: 12.5px; }
   #vtooltip { position: fixed; z-index: 45; }
 
   /* ---------- panel lateral acoplado ---------- */
-  aside#panel { position: absolute; top: 0; right: 0; bottom: 0; width: 360px; max-width: 92vw; z-index: 8; background: var(--paper); border-left: 1px solid var(--line); transform: translateX(100%); transition: transform 0.24s cubic-bezier(0.2, 0.7, 0.2, 1); display: flex; flex-direction: column; }
+  aside#panel { position: absolute; top: 0; right: 0; bottom: 0; width: 360px; max-width: 92vw; z-index: 8; background: #fff; border-left: 1px solid var(--line); transform: translateX(100%); transition: transform 0.24s cubic-bezier(0.2, 0.7, 0.2, 1); display: flex; flex-direction: column; }
   aside#panel.open { transform: translateX(0); }
   #panel .panel-head { padding: 16px 52px 14px 22px; border-bottom: 1px solid var(--line); }
   #panel .panel-eyebrow { margin-bottom: 6px; }            /* [8] ahora solo contiene «Volver» */
@@ -199,12 +168,12 @@
   /* marca de rango: tres glifos del mapa, el nivel actual en su color */
   .rango { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-2); }
   .rango .rg { display: inline-flex; align-items: center; gap: 3px; }
-  .rango .rg i { border-radius: 50%; background: var(--line-strong); }
+  .rango .rg i { border-radius: 50%; background: #d4d4d4; }
   .rango .rg .rg-0 { width: 10px; height: 10px; }
   .rango .rg .rg-1 { width: 8px; height: 8px; }
-  .rango .rg .rg-2 { width: 8px; height: 8px; background: var(--paper); box-shadow: inset 0 0 0 1.8px var(--line-strong); }
+  .rango .rg .rg-2 { width: 8px; height: 8px; background: #fff; box-shadow: inset 0 0 0 1.8px #d4d4d4; }
   .rango .rg i.on { background: var(--c); }
-  .rango .rg .rg-2.on { background: var(--paper); box-shadow: inset 0 0 0 1.8px var(--c); }
+  .rango .rg .rg-2.on { background: #fff; box-shadow: inset 0 0 0 1.8px var(--c); }
   .rango button { border: 0; padding: 0; background: none; font: inherit; color: var(--ink-2); cursor: pointer; }
   .rango button:hover { color: var(--link); text-decoration: underline; }
   #panel .panel-kw { font-size: 13.5px; color: var(--ink-2); margin-top: 6px; line-height: 1.45; }
@@ -229,7 +198,7 @@
   .cs-hist.hov .hb { opacity: 0.3; }
   .cs-hist.hov .hb.on { opacity: 1; }
   /* etiqueta del hover: numero en grande, anio debajo; encima de la barra, sin caja */
-  .cs-hl { position: absolute; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; pointer-events: none; line-height: 1.1; padding: 0 3px; background: color-mix(in srgb, var(--paper) 85%, transparent); }
+  .cs-hl { position: absolute; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; pointer-events: none; line-height: 1.1; padding: 0 3px; background: rgba(255,255,255,0.85); }
   .cs-hl b { font-size: 13px; font-weight: 700; color: var(--ink); }
   .cs-hl span { font-size: 11px; color: var(--ink-3); }
   .cs-yax { position: relative; min-width: 14px; font-size: 11px; color: var(--ink-3); }
@@ -264,10 +233,10 @@
   /* [5] palabras clave como lista de texto, no chips */
   #panel .kw { display: block; font-size: 14px; color: var(--ink-2); line-height: 1.6; }
   #panel .kw span:not(:last-child)::after { content: ", "; }
-  #panel .close-btn, #map-selection .close-btn-mini, #story .st-close, #taller .tl-close, .page-close {
+  #panel .close-btn, #map-selection .close-btn-mini, #story .st-close, #vmodal .vm-close, #taller .tl-close, .page-close {
     /* [7] cerrar: area cuadrada, sin borde ni circulo */
     position: absolute; top: 12px; right: 12px; width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border: none; border-radius: 2px; background: none; color: var(--ink-2); cursor: pointer; }
-  #panel .close-btn:hover, #map-selection .close-btn-mini:hover, #story .st-close:hover, #taller .tl-close:hover, .page-close:hover { color: var(--ink); }
+  #panel .close-btn:hover, #map-selection .close-btn-mini:hover, #story .st-close:hover, #vmodal .vm-close:hover, #taller .tl-close:hover, .page-close:hover { background: var(--surface); color: var(--ink); }
   #panel .children button { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; width: 100%; text-align: left; border: none; border-bottom: 1px solid var(--grid); background: none; padding: 7px 0; cursor: pointer; font-size: 14px; color: var(--ink); }
   #panel .children button:hover { color: var(--link); }
   #panel .children button span:last-child { color: var(--ink-3); }
@@ -282,7 +251,7 @@
   .btn-full { width: 100%; justify-content: center; margin-top: 14px; height: 36px; }
 
   /* ---------- ficha de tesis: hoja acoplada a la derecha [3][9] ---------- */
-  #map-selection { --msy: 18px; --msx: 22px; position: absolute; top: 0; right: 0; bottom: 0; z-index: 9; width: 360px; max-width: 92vw; background: var(--paper); border-left: 1px solid var(--line); padding: var(--msy) var(--msx); overflow-y: auto; }
+  #map-selection { --msy: 18px; --msx: 22px; position: absolute; top: 0; right: 0; bottom: 0; z-index: 9; width: 360px; max-width: 92vw; background: #fff; border-left: 1px solid var(--line); padding: var(--msy) var(--msx); overflow-y: auto; }
   #map-selection .ms-head { display: flex; flex-direction: column; }
   #map-selection .close-btn-mini { z-index: 1; }
   #map-selection .ms-title { font-size: 18px; font-weight: 700; line-height: 1.3; margin-bottom: 6px; padding-right: 30px; letter-spacing: -0.005em; }
@@ -322,7 +291,7 @@
   /* tooltip de campo, tema o subtema: la version compacta de su ficha */
   .tip .tn-ctx { display: flex; align-items: center; gap: 6px; }
   .tip .tn-g { width: 8px; height: 8px; border-radius: 50%; background: var(--c); flex-shrink: 0; }
-  .tip .tn-g.ring { background: var(--paper); box-shadow: inset 0 0 0 2px var(--c); }
+  .tip .tn-g.ring { background: #fff; box-shadow: inset 0 0 0 2px var(--c); }
   .tip .tn-g.big { width: 10px; height: 10px; }
   .tip .tn-bar { display: flex; gap: 2px; height: 4px; margin: 7px 0 4px; }
   .tip .tn-bar i { display: block; height: 100%; }
@@ -335,7 +304,7 @@
   .tf-c { padding: 6px 0; min-width: 0; }
   .tf-gap { height: 8px; }
   .tf-dots { display: flex; gap: 4px; }
-  .tf-dots i { width: 7px; height: 7px; border-radius: 50%; box-shadow: inset 0 0 0 1.2px var(--line-strong); }
+  .tf-dots i { width: 7px; height: 7px; border-radius: 50%; box-shadow: inset 0 0 0 1.2px #bdbdbd; }
   .tf-v { color: var(--ink); font-weight: 500; }
   .tf-ar .tf-v { font-weight: 600; }
   .tf-sub { display: block; font-size: 12.5px; color: var(--ink-3); }
@@ -345,9 +314,9 @@
   /* tramo que baja del encabezado junto al nivel, hasta la primera parada */
   .tf-m.tf-l::after { content: ""; position: absolute; left: 6px; width: 2px; top: 0; height: calc(100% + var(--dt) - 2px); background: var(--c); }
   .tf-m.tf-p::before { content: ""; position: absolute; left: 2.5px; top: var(--dt); width: 9px; height: 9px; border-radius: 50%; background: var(--c); }
-  .tf-m.tf-p.programa::before { background: var(--paper); box-shadow: inset 0 0 0 2px var(--c); }
+  .tf-m.tf-p.programa::before { background: #fff; box-shadow: inset 0 0 0 2px var(--c); }
   .tf-m.tf-p.plantel::before { background: var(--ink-2); }
-  .tf-m.tf-p.asesor::before { left: 1.5px; top: calc(var(--dt) - 1px); width: 11px; height: 11px; background: var(--paper); box-shadow: inset 0 0 0 2.2px var(--ink); }
+  .tf-m.tf-p.asesor::before { left: 1.5px; top: calc(var(--dt) - 1px); width: 11px; height: 11px; background: #fff; box-shadow: inset 0 0 0 2.2px var(--ink); }
   .tf-m.tf-p.sigue::after { content: ""; position: absolute; left: 6px; width: 2px; top: calc(var(--dt) + 11px); height: calc(100% - 13px); background: var(--c); }
   .tf-as { border: 0; padding: 0; background: none; font: inherit; color: var(--ink); font-weight: 500; text-align: left; cursor: pointer; }
   .tf-as:hover { color: var(--link); text-decoration: underline; }
@@ -360,13 +329,13 @@
   .tc .tc-l { width: 5px; height: 5px; border-radius: 50%; background: var(--ink-2); flex-shrink: 0; }
   .tc .tc-i { display: inline-flex; align-items: center; gap: 4px; min-width: 0; }
   .tip .tc-nv { display: flex; gap: 2px; margin-bottom: 5px; }
-  .tip .tc-nv i { width: 5px; height: 5px; border-radius: 50%; box-shadow: inset 0 0 0 1px var(--line-strong); }
+  .tip .tc-nv i { width: 5px; height: 5px; border-radius: 50%; box-shadow: inset 0 0 0 1px #bdbdbd; }
   #map-selection .btn { padding: 0; height: auto; margin-top: 12px; color: var(--link); background: none; display: flex; }
   #map-selection .btn:hover { text-decoration: underline; background: none; }
   #map-selection .btn + .btn { margin-top: 6px; }
 
   /* ---------- relato (intro / rutas): hoja inferior acoplada [3][19] ---------- */
-  #story { position: absolute; left: 0; right: 0; bottom: 0; z-index: 9; background: var(--paper); border-top: 1px solid var(--line-strong); padding: 16px 24px 14px; }
+  #story { position: absolute; left: 0; right: 0; bottom: 0; z-index: 9; background: #fff; border-top: 1px solid var(--line-strong); padding: 16px 24px 14px; }
   #story > * { max-width: 760px; }
   #story .st-close { top: 10px; right: 14px; }
   #story h3 { font-size: 19px; font-weight: 700; line-height: 1.25; margin: 0 40px 6px 0; letter-spacing: -0.01em; }
@@ -383,13 +352,18 @@
   .disc-label span { font-size: 13px; color: var(--ink-3); }
 
   /* ---------- menu de rutas: desplegable bajo su enlace ---------- */
+  #routes-menu { position: absolute; top: 0; left: 200px; z-index: 20; width: 380px; background: #fff; border: 1px solid var(--line-strong); padding: 4px 0; }
+  #routes-menu button { display: block; width: 100%; text-align: left; border: none; background: none; padding: 9px 16px; cursor: pointer; }
+  #routes-menu button:hover, #routes-menu button:focus-visible { background: var(--surface); outline: none; }
+  #routes-menu b { display: block; font-weight: 600; font-size: 14px; color: var(--ink); }
+  #routes-menu span { display: block; font-size: 13px; color: var(--ink-3); margin-top: 1px; line-height: 1.4; }
 
   /* ---------- buscador ---------- */
   #search { position: fixed; inset: 0; z-index: 40; display: flex; justify-content: center; align-items: flex-start; padding-top: 10vh; }
-  #search .s-backdrop { position: absolute; inset: 0; background: color-mix(in srgb, var(--paper) 80%, transparent); }
-  #search .s-card { position: relative; width: min(640px, calc(100% - 24px)); background: var(--paper); border: 1px solid var(--line-strong); }
-  #search input { width: 100%; border: none; border-bottom: 1px solid var(--line); padding: 14px 18px; font-size: 17px; outline: none; background: var(--paper); color: var(--ink); }
-  #search input::placeholder { color: var(--ink-3); }
+  #search .s-backdrop { position: absolute; inset: 0; background: rgba(255, 255, 255, 0.8); }
+  #search .s-card { position: relative; width: min(640px, calc(100% - 24px)); background: #fff; border: 1px solid var(--line-strong); }
+  #search input { width: 100%; border: none; border-bottom: 1px solid var(--line); padding: 14px 18px; font-size: 17px; outline: none; background: #fff; color: var(--ink); }
+  #search input::placeholder { color: #8f8f8f; }
   #search .s-results { max-height: 52vh; overflow-y: auto; padding: 4px 0; }
   #search .s-empty { padding: 16px 18px; font-size: 14px; color: var(--ink-2); line-height: 1.5; }
   /* v4.2: barra de color = territorio (tono) y granularidad (intensidad) */
@@ -402,16 +376,33 @@
   .s-sec .s-all { margin-left: auto; border: none; background: none; padding: 0; font: inherit; font-weight: 400; color: var(--link); cursor: pointer; }
   .s-sec .s-all:hover { text-decoration: underline; }
   .s-load { color: var(--ink-3); }
-  .sr-item.active .nm, .sr-item:hover .nm { text-decoration: underline; text-underline-offset: 2px; }
+  .sr-item.active, .sr-item:hover { background: var(--surface); }
   .sr-item .lv { font-size: 13px; color: var(--ink-3); }
   .sr-item .nm { font-size: 14px; color: var(--ink); line-height: 1.35; }
-  /* inline-block a todo el ancho: el subrayado del activo no alcanza a este renglón */
-  .sr-item .nm small { display: inline-block; width: 100%; font-size: 13px; color: var(--ink-3); margin-top: 1px; }
+  .sr-item .nm small { display: block; font-size: 13px; color: var(--ink-3); margin-top: 1px; }
   .sr-item .ct { font-size: 13px; color: var(--ink-3); }
   #search .s-foot { border-top: 1px solid var(--line); padding: 7px 18px; font-size: 12.5px; color: var(--ink-3); display: flex; gap: 16px; flex-wrap: wrap; }
 
   /* ---------- vecindario ---------- */
-  select { height: 32px; font-size: 14px; padding: 0 6px; border: 1px solid var(--line-strong); border-radius: 2px; background: var(--paper); color: var(--ink); }
+  #vmodal { position: fixed; inset: 0; z-index: 35; display: flex; align-items: center; justify-content: center; padding: 24px; }
+  #vmodal .vm-backdrop { position: absolute; inset: 0; background: rgba(255, 255, 255, 0.8); }
+  #vmodal .vm-card { position: relative; width: min(1180px, 100%); height: min(760px, 100%); background: #fff; border: 1px solid var(--line-strong); display: flex; flex-direction: column; overflow: hidden; }
+  #vmodal .vm-head { position: relative; padding: 14px 56px 12px 20px; border-bottom: 1px solid var(--line); display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
+  #vmodal .vm-breadcrumb { font-size: 13px; color: var(--ink-3); margin-bottom: 4px; }
+  #vmodal .vm-breadcrumb button { border: none; background: none; color: var(--link); cursor: pointer; font: inherit; padding: 0; margin-right: 4px; }
+  #vmodal .vm-title { font-size: 18px; font-weight: 700; line-height: 1.3; max-width: 820px; }
+  #vmodal .vm-meta { font-size: 13.5px; color: var(--ink-3); margin-top: 4px; }
+  #vmodal .vm-controls { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+  select { height: 32px; font-size: 14px; padding: 0 6px; border: 1px solid var(--line-strong); border-radius: 2px; background: #fff; color: var(--ink); }
+  #vmodal .vm-body { position: relative; flex: 1; min-height: 0; }
+  #vmodal svg { width: 100%; height: 100%; display: block; }
+  #vmodal .vm-group-label { font-family: "Libre Franklin", sans-serif; font-size: 13px; font-weight: 600; fill: var(--ink-2); }
+  #vmodal .vm-edge { stroke: #9a9a9a; fill: none; pointer-events: none; }
+  #vmodal .vm-node circle { cursor: pointer; stroke: #fff; stroke-width: 1px; }
+  #vmodal .vm-node.not-in-sample circle, #vmodal .vm-node.focal circle { cursor: default; }
+  #vmodal .vm-legend { position: absolute; left: 0; bottom: 0; background: #fff; border-top: 1px solid var(--line); border-right: 1px solid var(--line); padding: 8px 14px; font-size: 13px; color: var(--ink-2); }
+  #vmodal .vm-lg-row { display: flex; align-items: center; gap: 7px; margin-top: 3px; }
+  #vmodal .vm-lg-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
 
   /* ---------- modo aislado: segunda barra acoplada, no pildora [5][8] ---------- */
   #tint { position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 900ms ease; z-index: 1; }
@@ -420,18 +411,24 @@
   /* v4.3: tesis elegidas por encima del mapa (puntos, anotacion, curvas de densidad) */
   #marks { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; }
   svg#overlay { z-index: 3; } /* los rotulos del mapa, siempre sobre los puntos marcados */
-  #iso-chip { position: absolute; top: 0; left: 0; right: 0; z-index: 7; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; background: var(--paper); border-bottom: 1px solid var(--line); padding: 8px 24px; }
+  #iso-chip { position: absolute; top: 0; left: 0; right: 0; z-index: 7; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; background: #fff; border-bottom: 1px solid var(--line); padding: 8px 24px; }
   main.panel-open #iso-chip { right: 360px; }
   #iso-chip .ic-ey { display: none; }
   #iso-chip .ic-head { display: flex; align-items: baseline; gap: 10px; min-width: 0; flex: 1; }
   #iso-chip b { font-size: 17px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 520px; }
   #iso-chip .ic-n { font-size: 14px; color: var(--ink-3); white-space: nowrap; }
   #iso-chip .ic-actions { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
-  body.iso #overlay { opacity: 0; pointer-events: none; }
+  body.iso #overlay, body.iso #legend { opacity: 0; pointer-events: none; }
   /* v4.3.1: los circulos y rotulos declaran pointer-events: auto, que gana al none del padre;
      sin esto, en el tema aislado los marcadores invisibles de otros temas seguian recibiendo clics */
   body.iso #overlay * { pointer-events: none !important; }
-  #overlay { transition: opacity 400ms ease; }
+  #overlay, #legend { transition: opacity 400ms ease; }
+  #ana-labels { position: absolute; inset: 0; pointer-events: none; z-index: 3; opacity: 0; transition: opacity 400ms ease; }
+  #ana-labels.on { opacity: 1; }
+  .ana-label { position: absolute; left: 0; top: 0; display: flex; align-items: center; gap: 6px; white-space: nowrap; font-size: 13.5px; font-weight: 600; color: var(--ink); }
+  .ana-label i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  .ana-label span { max-width: 240px; overflow: hidden; text-overflow: ellipsis; }
+  .ana-label b { font-weight: 400; color: var(--ink-3); }
 
   /* ---------- modo taller (v4.8): la vista completa de un campo, tema o subtema ----------
      Mismo sistema que las fichas: encabezado con tinte y franja del color del campo, gramatica
@@ -439,7 +436,7 @@
      asesoria), reglas finas entre secciones. Tres pestanas: Tesis (lista de fichas compactas con
      facetas de catalogo), Perfil (las graficas de la ficha del cluster, en grande) y Asesores
      (transbordos ordenados + red de codireccion). Se retiro la vista analitica. */
-  #taller, #metodo { position: fixed; inset: 0; z-index: 36; background: var(--paper); display: flex; flex-direction: column; }
+  #taller, #metodo { position: fixed; inset: 0; z-index: 36; background: #fff; display: flex; flex-direction: column; }
   #taller .tl-head { position: relative; padding: 18px 32px 0; }
   #taller .tl-top > .loc { flex-shrink: 0; margin-right: 4px; }
   #taller .tl-top > div { flex: 1; min-width: 0; }
@@ -475,8 +472,8 @@
   .fc-list button b { font-weight: 400; color: var(--ink-3); }
   .fc-list .n { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .fc-list i { width: 8px; height: 8px; border-radius: 50%; background: var(--g); }
-  .fc-list i.ring { background: var(--paper); box-shadow: inset 0 0 0 2px var(--g); }
-  .fc-list i.tb { width: 10px; height: 10px; background: var(--paper); box-shadow: inset 0 0 0 2px var(--ink); }
+  .fc-list i.ring { background: #fff; box-shadow: inset 0 0 0 2px var(--g); }
+  .fc-list i.tb { width: 10px; height: 10px; background: #fff; box-shadow: inset 0 0 0 2px var(--ink); }
   .fc-more { border: 0; background: none; padding: 4px 0 0; font: inherit; font-size: 13px; color: var(--link); cursor: pointer; }
   .fc-clear { border: 0; background: none; padding: 0; font: inherit; font-size: 13px; color: var(--link); cursor: pointer; margin-top: 12px; }
   .tl-list { padding-top: 12px; min-width: 0; }
@@ -488,7 +485,7 @@
   .tt:hover .tt-t { color: var(--link); }
   .tt-a { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--ink-3); }
   .tt-a .tc-nv { display: inline-flex; gap: 2px; margin: 0; }
-  .tt-a .tc-nv i { width: 6px; height: 6px; border-radius: 50%; box-shadow: inset 0 0 0 1px var(--line-strong); }
+  .tt-a .tc-nv i { width: 6px; height: 6px; border-radius: 50%; box-shadow: inset 0 0 0 1px #bdbdbd; }
   .tt .hl { font-weight: 700; color: var(--ink); }
   .tt-t { display: block; margin: 3px 0 5px; font-size: 15px; font-weight: 500; line-height: 1.35; color: var(--ink); }
   .tt .tc { font-size: 13px; color: var(--ink-3); }
@@ -536,9 +533,9 @@
   .red-ley .ring { width: 11px; height: 11px; border-radius: 50%; box-shadow: inset 0 0 0 2.2px var(--ink); }
   .red-ley .ln { width: 18px; height: 3px; background: var(--c); }
   #tl-net svg .lnk { stroke: var(--c, #9a9a9a); stroke-linecap: round; }
-  #tl-net svg .nd { fill: var(--paper); stroke: var(--ink); cursor: pointer; }
+  #tl-net svg .nd { fill: #fff; stroke: var(--ink); cursor: pointer; }
   #tl-net svg .nd:hover { stroke: var(--link); }
-  #tl-net svg text { font-family: "Libre Franklin", sans-serif; font-size: 12.5px; fill: var(--ink); paint-order: stroke; stroke: var(--paper); stroke-width: 3.5px; stroke-linejoin: round; pointer-events: none; }
+  #tl-net svg text { font-family: "Libre Franklin", sans-serif; font-size: 12.5px; fill: var(--ink); paint-order: stroke; stroke: #fff; stroke-width: 3.5px; stroke-linejoin: round; pointer-events: none; }
 
   /* ---------- pagina Metodo [18]: aqui vive la informacion tecnica ---------- */
   #metodo { overflow-y: auto; }
@@ -554,13 +551,13 @@
   #metodo .page-close { top: 20px; right: 0; }
 
   /* ---------- pie [18]: sin jerga ---------- */
-  footer { border-top: 1px solid var(--line); background: var(--paper); padding: 7px 24px; font-size: 12.5px; color: var(--ink-3); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px; position: relative; z-index: 12; flex-shrink: 0; }
+  footer { border-top: 1px solid var(--line); background: #fff; padding: 7px 24px; font-size: 12.5px; color: var(--ink-3); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px; position: relative; z-index: 12; flex-shrink: 0; }
   footer button { border: none; background: none; padding: 0; color: var(--link); font: inherit; cursor: pointer; }
   footer button:hover { text-decoration: underline; }
   footer .foot-sep { display: inline-block; width: 1px; height: 11px; background: var(--line-strong); margin: 0 10px; vertical-align: -1px; }
-  .loading-note { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 12px; font-size: 15px; color: var(--ink-3); z-index: 10; background: var(--paper); transition: opacity 400ms ease; }
+  .loading-note { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 12px; font-size: 15px; color: var(--ink-3); z-index: 10; background: #fff; transition: opacity 400ms ease; }
   .loading-note .bar { width: 160px; height: 2px; background: var(--grid); overflow: hidden; }
-  .loading-note .bar i { display: block; height: 100%; width: 40%; background: var(--ink-3); animation: slide 1.1s ease-in-out infinite; }
+  .loading-note .bar i { display: block; height: 100%; width: 40%; background: #8c8c8c; animation: slide 1.1s ease-in-out infinite; }
   @keyframes slide { 0% { transform: translateX(-100%); } 100% { transform: translateX(260%); } }
   #debug-log { font: 10px monospace; background: #fffbe6; border-bottom: 1px solid #ddd; padding: 4px 10px; max-height: 140px; overflow: auto; white-space: pre-wrap; }
 
@@ -570,12 +567,16 @@
     .navlinks { gap: 14px; }
     .navsearch { width: 40px; padding: 0; justify-content: center; }
     .navsearch span { display: none; }
-    .navajustes span { display: none; }
     .filterbar { padding: 6px 14px; gap: 12px; }
     .fb-count { display: none; }
     #minimap, #mm-show { display: none !important; }
+    .legend { max-width: 200px; }
+    .legend .lg-note { display: none; }
     aside#panel, #map-selection { width: 100vw; max-width: 100vw; }
     main.panel-open #iso-chip { right: 0; }
+    #routes-menu { left: 12px !important; right: 12px; width: auto; }
+    #vmodal { padding: 0; }
+    #vmodal .vm-card { width: 100%; height: 100%; }
     .disc-label b { font-size: 12px; white-space: normal; width: 130px; }
     #story { padding: 14px 16px 12px; }
     #story h3 { font-size: 17px; }
@@ -604,26 +605,15 @@
     aside#panel.peek { display: none; }
     #map-selection, body.iso #map-selection { --msy: 14px; --msx: 16px; top: auto; max-height: 46%; border-left: none; border-top: 1px solid var(--line-strong); }
   }
-  /* v4.18: Ajustes al centro, con el fondo difuminado; las ventanas en grande */
-  #ajustes-capa { position: fixed; inset: 0; z-index: 45; background: color-mix(in srgb, var(--bg) 35%, transparent); -webkit-backdrop-filter: blur(7px); backdrop-filter: blur(7px); }
-  #ajustes { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 46; width: min(400px, calc(100vw - 32px)); max-height: calc(100vh - 32px); overflow-y: auto; background: var(--paper); border: 1px solid var(--line-strong); padding: 24px 28px 26px; }
-  #ajustes .aj-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
-  #ajustes .aj-head h3 { margin: 0; font-size: 20px; font-weight: 700; color: var(--ink); }
-  #ajustes .aj-head button { border: 0; background: none; padding: 4px; color: var(--ink-2); cursor: pointer; display: inline-flex; }
-  #ajustes .aj-head button:hover { color: var(--ink); }
-  #ajustes h4 { margin: 0 0 12px; font-size: 14px; font-weight: 600; color: var(--ink); }
-  #ajustes section + section { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--line); }
-  #modo-mapa { display: flex; gap: 22px; }
-  #modo-mapa button { gap: 10px; font-size: 14px; }
-  #modo-mapa img { width: 96px; height: 96px; }
 </style>
 </head>
 <body>
 <div class="app">
   <header class="nav">
-    <a class="brand" href="./" title="NodOS: atlas de 609,154 tesis de la UNAM ordenadas por lo que dicen sus títulos"><span class="brand-name">NodOS</span><span class="brand-org">Atlas de tesis UNAM</span></a>
+    <a class="brand" href="./" title="NodOs: atlas de 609,154 tesis de la UNAM ordenadas por lo que dicen sus títulos"><span class="brand-name">NodOs</span><span class="brand-org">Atlas de tesis UNAM</span></a>
     <nav class="navlinks" aria-label="Secciones">
       <button type="button" id="nav-map" class="active">Mapa</button>
+      <button type="button" id="btn-routes" aria-haspopup="true" aria-expanded="false">Rutas</button>
       <button type="button" id="btn-intro">Introducción</button>
       <button type="button" id="nav-metodo">Método</button>
     </nav>
@@ -635,12 +625,17 @@
         <button type="button" class="btn" id="debug-log-toggle">Log</button>
       </div>
     <button type="button" class="navsearch" id="btn-search" aria-label="Buscar (Ctrl+K)"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5"/><path d="M10.4 10.4L14 14"/></svg><span>Buscar tema, título o asesor</span></button>
-    <button type="button" class="navajustes" id="btn-ajustes" aria-haspopup="dialog" aria-expanded="false" title="Ajustes"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h11"/><circle cx="10" cy="4.5" r="1.6" fill="#fff"/><circle cx="5.5" cy="8" r="1.6" fill="#fff"/><circle cx="11" cy="11.5" r="1.6" fill="#fff"/></svg><span>Ajustes</span></button>
   </header>
   <!-- Barra general de filtros (v3.2). Hoy: color. Siguientes: programa, plantel,
        año, nivel -- cada filtro nuevo es otro .fb-group aqui. -->
   <div class="filterbar" id="filterbar" role="toolbar" aria-label="Filtros del mapa">
     <nav id="crumbs" aria-label="Ubicación en el atlas" hidden></nav>
+    <div class="fb-group">
+      <span class="fb-label">Color</span>
+      <div class="seg" id="lens" role="group" aria-label="Color de los puntos">
+        <button type="button" data-lens="territory" class="active">Campos</button><button type="button" data-lens="area">Áreas administrativas</button>
+      </div>
+    </div>
     <span class="fb-count" id="fb-count"></span>
   </div>
   <div id="debug-log" hidden></div>
@@ -652,20 +647,24 @@
     <canvas id="marks" aria-hidden="true"></canvas>
     <svg id="overlay"><g id="g-grid"></g><g id="g-edges"></g><g id="g-nodes"></g><g id="g-labels"></g></svg>
     <div id="disc-labels"></div>
+    <div class="legend" id="legend" hidden></div>
     <div id="iso-chip" hidden>
       <div class="ic-head"><b id="iso-name"></b><span id="iso-n" class="ic-n"></span></div>
       <div class="ic-actions">
-        <button type="button" class="btn primary" id="iso-analyze">Ver tesis y análisis</button>
+        <button type="button" class="btn primary" id="iso-analyze">Analizar</button>
+        <div class="seg" id="ana-group" hidden role="group" aria-label="Agrupar tesis por">
+          <button type="button" data-g="area">Área</button><button type="button" data-g="plantel" class="active">Plantel</button><button type="button" data-g="programa">Programa</button><button type="button" data-g="nivel">Nivel</button><button type="button" data-g="decada">Década</button>
+        </div>
         <button type="button" class="btn" id="iso-exit"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M12.5 8h-9M7 4.5L3.5 8 7 11.5"/></svg>Volver al mapa</button>
       </div>
     </div>
-    <div id="ley-areas" hidden aria-label="Colores por área administrativa"></div>
-    <button type="button" id="mm-show" hidden><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 9.5l4-4 4 4"/></svg>Mostrar minimapa</button>
+    <div id="ana-labels" aria-hidden="true"></div>
+    <button type="button" class="btn" id="mm-show" hidden>Mostrar minimapa</button>
 
     <div id="minimap" hidden title="Clic o arrastre para moverte">
       <canvas id="mm-base"></canvas>
       <canvas id="mm-view" class="mm-view"></canvas>
-      <div class="mm-cap"><span>Minimapa</span><span id="mm-zoom"></span><button type="button" id="mm-hide" title="Ocultar minimapa" aria-label="Ocultar minimapa"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 6.5l4 4 4-4"/></svg></button></div>
+      <div class="mm-cap"><span>Minimapa</span><span id="mm-zoom"></span><button type="button" id="mm-hide" title="Ocultar minimapa" aria-label="Ocultar minimapa">Ocultar</button></div>
     </div>
 
     <div id="tooltip" class="tip"></div>
@@ -683,6 +682,7 @@
       <div class="ms-note" id="ms-note"></div>
       <div class="ms-actions">
         <button class="btn" id="ms-go-territory" type="button" hidden>Ir a su campo</button>
+        <button class="btn" id="ms-open-vecindario" type="button" hidden>Ver vecindario completo</button>
       </div>
     </div>
 
@@ -698,6 +698,7 @@
       <div class="panel-body" id="panel-body"></div>
     </aside>
 
+    <div id="routes-menu" hidden role="menu"></div>
 
     <section id="story" hidden aria-live="polite">
       <button class="st-close" id="story-close" type="button" aria-label="Cerrar"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg></button>
@@ -717,7 +718,7 @@
 
   <footer>
     <span>Proyecto independiente, no oficial. Datos del catálogo público TESIUNAM.</span>
-    <span><button type="button" id="foot-metodo">Cómo se hizo el mapa</button><span class="foot-sep"></span>versión <span id="app-version">4.18.2</span></span>
+    <span><button type="button" id="foot-metodo">Cómo se hizo el mapa</button><span class="foot-sep"></span>versión <span id="app-version">4.13.1</span></span>
   </footer>
 </div>
 
@@ -730,22 +731,34 @@
   </div>
 </div>
 
-<div id="ajustes-capa" hidden></div>
-<div id="ajustes" hidden role="dialog" aria-modal="true" aria-labelledby="aj-titulo">
-  <div class="aj-head"><h3 id="aj-titulo">Ajustes</h3><button type="button" id="aj-cerrar" aria-label="Cerrar ajustes"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg></button></div>
-  <section>
-    <h4>Modo</h4>
-    <div id="modo-mapa" role="group" aria-label="Día o noche">
-      <button type="button" data-modo="dia" class="active"><img src="ventanas-dia.svg" width="96" height="96" alt=""><span>Día</span></button>
-      <button type="button" data-modo="noche"><img src="ventanas-noche.svg" width="96" height="96" alt=""><span>Noche</span></button>
+<div id="vmodal" hidden>
+  <div class="vm-backdrop"></div>
+  <div class="vm-card">
+    <div class="vm-head">
+      <div>
+        <div class="vm-breadcrumb" id="vm-breadcrumb"></div>
+        <div class="vm-title" id="vm-title">—</div>
+        <div class="vm-meta" id="vm-meta"></div>
+      </div>
+      <div class="vm-controls">
+        <select id="vm-groupby">
+          <option value="area">Agrupar por área</option>
+          <option value="decade">Agrupar por década</option>
+        </select>
+        <button class="vm-close" id="vm-close" type="button" aria-label="Cerrar"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg></button>
+      </div>
     </div>
-  </section>
-  <section>
-    <h4>Color de los puntos del mapa</h4>
-    <div class="seg" id="lens" role="group" aria-label="Color de los puntos">
-      <button type="button" data-lens="territory" class="active">Campos</button><button type="button" data-lens="area">Áreas administrativas</button>
+    <div class="vm-body">
+      <svg id="vm-svg"><g class="vm-edges"></g><g class="vm-nodes"></g><g class="vm-group-labels"></g></svg>
+      <div class="vm-legend">
+        <div>Color: área administrativa. Tamaño: parecido con la tesis central.</div>
+        <div class="vm-lg-row"><span class="vm-lg-dot" style="background:#3566a8"></span>Físico-Matemáticas e Ingenierías</div>
+        <div class="vm-lg-row"><span class="vm-lg-dot" style="background:#0f7d5c"></span>Biológicas, Químicas y de la Salud</div>
+        <div class="vm-lg-row"><span class="vm-lg-dot" style="background:#c98a2e"></span>Ciencias Sociales</div>
+        <div class="vm-lg-row"><span class="vm-lg-dot" style="background:#b8412f"></span>Humanidades y Artes</div>
+      </div>
     </div>
-  </section>
+  </div>
 </div>
 <div id="vtooltip" class="tip"></div>
 
@@ -825,11 +838,7 @@
   };
   var ICO_R = '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8h9M9 4.5L12.5 8 9 11.5"/></svg>';
   var ICO_X = '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg>', ICO_L = '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M12.5 8h-9M7 4.5L3.5 8 7 11.5"/></svg>';
-  // AREA_HEX cambia de valores con el modo (setNoche). La de noche paso el validador de la guia de
-  // visualizacion sobre #161c2a: banda L 0.48-0.67, croma, separacion CVD y normal, contraste >= 3:1.
-  var AREA_DIA = { 0: '#9a9a9a', 1: '#3566a8', 2: '#0f7d5c', 3: '#c98a2e', 4: '#b8412f' };
-  var AREA_NOCHE = { 0: '#8c93a3', 1: '#5b93e6', 2: '#27a97c', 3: '#b0801c', 4: '#e0567a' };
-  var AREA_HEX = Object.assign({}, AREA_DIA);
+  var AREA_HEX = { 0: '#9a9a9a', 1: '#3566a8', 2: '#0f7d5c', 3: '#c98a2e', 4: '#b8412f' };
   var AREA_STR_TO_CODE = { 'area 1': 1, 'area 2': 2, 'area 3': 3, 'area 4': 4 };
 
   // Paleta del fondo WebGL: todas las categorias se declaran de entrada (colorBy /
@@ -852,7 +861,7 @@
     catTerritory: null, catArea: null, lens: 'territory', memberStart: null, memberIdx: null,
     palette: [], opacities: [],
     vecindarioPreview: null, panelStack: [], selectedId: null,
-    introActive: false, highlightKey: '',
+    introActive: false, spotlightActive: false, highlightKey: '', routeActive: null,
     densityPct: 1
   };
 
@@ -994,12 +1003,12 @@
     loadTitleManifest();
 
     buildMembership();
-    setNoche(nocheGuardada(), true);
     buildPalette();
     buildCategoryArrays();
     buildMacroBoxes();
     initScatterplot();
     buildMinimapBase();
+    buildRoutesMenu();
 
     $('loading').style.opacity = '0';
     setTimeout(function () { $('loading').hidden = true; }, 450);
@@ -1029,28 +1038,24 @@
     ms.forEach(function (m) { mx += m.position.x; my += m.position.y; });
     mx /= ms.length; my /= ms.length;
     var order = ms.map(function (m, i) { return { i: i, a: Math.atan2(m.position.y - my, m.position.x - mx) }; }).sort(function (a, b) { return a.a - b.a; });
-    // de dia: tonos profundos sobre blanco; de noche: los mismos tonos mas luminosos, que se
-    // «encienden» sobre el fondo oscuro. m.color (fichas, paneles claros) es siempre el de dia.
-    var Ls = [0.50, 0.60, 0.69], Cs = [0.13, 0.135, 0.12], LsN = [0.66, 0.73, 0.80], CsN = [0.14, 0.13, 0.115];
-    var noche = !!state.noche, pal = new Array(NCAT), op = new Array(NCAT);
+    var Ls = [0.50, 0.60, 0.69], Cs = [0.13, 0.135, 0.12];
+    var pal = new Array(NCAT), op = new Array(NCAT);
     order.forEach(function (o, rank) {
       var hue = (o.a * 180 / Math.PI + 360 + 150 + [0, 14, -14][rank % 3]) % 360;
-      var dia = oklch(Ls[rank % 3], Cs[rank % 3], hue), nch = oklch(LsN[rank % 3], CsN[rank % 3], hue);
-      pal[o.i] = noche ? nch : dia;
-      op[o.i] = noche ? 0.5 : 0.42;
-      ms[o.i].color = noche ? nch : dia; ms[o.i].colorDia = dia; ms[o.i].colorNoche = nch; ms[o.i].hueRank = rank;
+      pal[o.i] = oklch(Ls[rank % 3], Cs[rank % 3], hue);
+      op[o.i] = 0.42;
+      ms[o.i].color = pal[o.i]; ms[o.i].hueRank = rank;
     });
-    var AH = AREA_HEX;
-    pal[C_NOISE] = noche ? '#5b6479' : '#a8a8a8'; op[C_NOISE] = noche ? 0.2 : 0.10;
+    pal[C_NOISE] = '#a8a8a8'; op[C_NOISE] = 0.10;
     for (var a = 0; a <= 4; a++) {
-      pal[C_AREA + a] = AH[a]; op[C_AREA + a] = noche ? 0.5 : 0.40;
-      pal[C_AREA_NOISE + a] = AH[a]; op[C_AREA_NOISE + a] = noche ? 0.18 : 0.13;
-      pal[C_VIVID + a] = AH[a]; op[C_VIVID + a] = 0.95;
+      pal[C_AREA + a] = AREA_HEX[a]; op[C_AREA + a] = 0.40;
+      pal[C_AREA_NOISE + a] = AREA_HEX[a]; op[C_AREA_NOISE + a] = 0.13;
+      pal[C_VIVID + a] = AREA_HEX[a]; op[C_VIVID + a] = 0.95;
     }
-    pal[C_DIM] = noche ? '#3a4256' : '#d4d4d4'; op[C_DIM] = noche ? 0.18 : 0.10;
-    pal[C_FOCAL] = noche ? '#f6f3ec' : '#17181a'; op[C_FOCAL] = 1;
+    pal[C_DIM] = '#d4d4d4'; op[C_DIM] = 0.10;
+    pal[C_FOCAL] = '#17181a'; op[C_FOCAL] = 1;
     pal[C_HL_MULTI] = '#0f7d5c'; op[C_HL_MULTI] = 0.92;
-    pal[C_HL] = noche ? '#f1ede4' : '#17181a'; op[C_HL] = noche ? 0.7 : 0.62;
+    pal[C_HL] = '#17181a'; op[C_HL] = 0.62;
     for (var g = 0; g < 9; g++) { pal[C_GRP + g] = '#a8a8a8'; op[C_GRP + g] = 0.95; }
     pal[C_HIDDEN] = '#ffffff'; op[C_HIDDEN] = 0;
     state.palette = pal; state.opacities = op;
@@ -1108,8 +1113,8 @@
       // ademas lo agranda con el zoom (asinh), y en modo aislado los puntos se tocaban
       pointSize: 2, pointScaleMode: 'constant', pointColor: state.palette, opacity: state.opacities,
       colorBy: 'valueA', opacityBy: 'valueA',
-      pointColorHover: state.noche ? '#f1ede4' : '#17181a', pointColorActive: state.noche ? '#f1ede4' : '#17181a',
-      backgroundColor: state.noche ? '#0f1422' : '#ffffff', cameraDistance: DEFAULT_CAMERA_DISTANCE, lassoOnLongPress: false
+      pointColorHover: '#17181a', pointColorActive: '#17181a',
+      backgroundColor: '#ffffff', cameraDistance: DEFAULT_CAMERA_DISTANCE, lassoOnLongPress: false
     });
     state.scatterplot = plot;
     // Sin rotacion (causa raiz del bug de zoom, v2.2.0): solo .set() aplica el
@@ -1128,7 +1133,7 @@
       if (idx != null && !state.introActive) onPointClick(idx);
     });
     // v4.8.1: clic en una zona vacia del mapa = cerrar la ficha de la tesis (o el vecindario)
-    plot.subscribe('deselect', function () { cerrarFichaTesis(); });
+    plot.subscribe('deselect', function () { if (!cerrarFichaTesis() && state.spotlightActive) clearSpotlight(); });
     // v4.12: la libreria calcula el hover por coordenadas aunque el mapa este tapado por una ficha
     // o un panel; solo se muestra si el cursor esta de verdad sobre el mapa
     var sobreMapa = true;
@@ -1240,6 +1245,7 @@
         updateOverlayPositions();
         paintMarks();
         drawMinimapView();
+        if (state.iso) placeAnaLabels();
         updateCrumbs();
         if (DEBUG) $('zoom-readout').textContent = '×' + state.k.toFixed(2) + ' ' + state.level;
       });
@@ -1251,7 +1257,7 @@
   function updatePointSize() {
     var t = Math.max(0, Math.min(1, (state.k - K0) / (K_MAX_ZOOM - K0)));
     var size = Math.round((1.5 + 3.5 * Math.sqrt(t)) * 20) / 20;
-    if (state.iso) size = ISO_DOT_PX;
+    if (state.iso) size = state.iso.mode === 'ana' ? ANA_DOT_PX : ISO_DOT_PX;
     if (size !== lastPointSize) { lastPointSize = size; state.scatterplot.set({ pointSize: size }); }
   }
 
@@ -1427,7 +1433,7 @@
     var W = state.W, H = state.H, placed = [], cands = [], regions = [];
     // las etiquetas no se colocan debajo del chrome flotante (breadcrumb, leyenda, minimapa, ficha)
     var mr = main.getBoundingClientRect();
-    ['minimap', 'map-selection', 'story', 'iso-chip', 'ley-areas'].forEach(function (id) {
+    ['legend', 'minimap', 'map-selection', 'story', 'iso-chip'].forEach(function (id) {
       var el = $(id); if (!el || el.hidden) return;
       var r = el.getBoundingClientRect(); if (!r.width) return;
       placed.push({ x0: r.left - mr.left - 4, y0: r.top - mr.top - 4, x1: r.right - mr.left + 4, y1: r.bottom - mr.top + 4 });
@@ -1491,7 +1497,7 @@
   function scheduleHighlight(n) {
     if (hlTimer) clearTimeout(hlTimer);
     hlTimer = setTimeout(function () {
-      if (state.introActive) return;
+      if (state.routeActive || state.spotlightActive || state.introActive) return;
       var m = n ? (n.level === 'macro' ? n : n.parentMacro) : null;
       if (m) highlightMacros([m.macroId]); else restoreView();
     }, n ? 160 : 220);
@@ -1506,7 +1512,7 @@
     return redrawCats(cats || null);
   }
   function restoreView() {
-    if (state.introActive) return Promise.resolve();
+    if (state.spotlightActive || state.introActive) return Promise.resolve();
     if (state.iso) return setCats('iso|' + state.iso.node.id, state.iso.cats);
     return state.pin ? setCats(state.pin.key, state.pin.cats) : setCats('base|' + state.lens + '|' + state.densityPct, null);
   }
@@ -1541,7 +1547,7 @@
   function showNodeTip(n, ev) {
     var lvl = n.level || 'macro', c = colorNodo(n), segs = [];
     if (n.areaMix) [['area 1', 1], ['area 2', 2], ['area 3', 3], ['area 4', 4], ['sin_area', 0]].forEach(function (a) { if (n.areaMix[a[0]]) segs.push([n.areaMix[a[0]], AREA_HEX[a[1]]]); });
-    else { var da = AREA_STR_TO_CODE[(n.dominantArea || '').toLowerCase()] || 0, sh = n.dominantAreaShare || 0; segs.push([sh, AREA_HEX[da]]); if (sh < 1) segs.push([1 - sh, tok('--line')]); }
+    else { var da = AREA_STR_TO_CODE[(n.dominantArea || '').toLowerCase()] || 0, sh = n.dominantAreaShare || 0; segs.push([sh, AREA_HEX[da]]); if (sh < 1) segs.push([1 - sh, '#dcdcdc']); }
     segs.sort(function (a, b) { return b[0] - a[0]; });
     tooltip.innerHTML = '<span class="t-label">' + escapeHtml(n.name) + '</span><span class="t-meta tn-ctx">' + rangoHtml(n, false) + '</span>' +
       '<span class="tn-bar">' + segs.map(function (g) { return '<i style="flex:' + g[0].toFixed(3) + ';background:' + g[1] + '"></i>'; }).join('') + '</span>' +
@@ -1599,7 +1605,7 @@
       rec.lab.classList.toggle('selected', on);
     });
   }
-  // Clic en un punto:
+  // Clic en un punto: si es una de las 2,500 tesis con vecindario -> spotlight;
   // si no, volar a su territorio (el mapa entero es clicable, no solo los nombres).
   // v3.2: clic en un punto = ESA tesis: se marca y se abre su ficha (titulo, anio,
   // territorio). Desde la ficha: ir a su territorio o, si esta precargado, ver sus
@@ -1621,6 +1627,8 @@
     $('ms-note').innerHTML = '';
     var go = $('ms-go-territory');
     go.hidden = !m || !!state.iso; go.onclick = function () { $('map-selection').hidden = true; selectNode(m, true); };
+    var vb = $('ms-open-vecindario');
+    vb.hidden = !t; if (t) vb.onclick = function () { applySpotlight(tid, idx); openVecindarioModal(tid); };
     $('map-selection').hidden = false;
   }
 
@@ -1686,12 +1694,9 @@
   // v4.12, tonal (pedido del usuario: el recuadro con el color de fondo): fondo en un tinte claro
   // del color, la silueta del mapa en un tono medio y lo que describe la ficha en el color pleno.
   function mezclaBlanco(hex, f) {
-    var v = parseInt(String(hex).slice(1), 16), base = parseInt(tok('--paper').slice(1), 16);
-    var m = function (c, k) { return Math.round(c * f + ((base >> k) & 255) * (1 - f)); };
-    return 'rgb(' + m((v >> 16) & 255, 16) + ',' + m((v >> 8) & 255, 8) + ',' + m(v & 255, 0) + ')';
+    var v = parseInt(String(hex).slice(1), 16), m = function (c) { return Math.round(c * f + 255 * (1 - f)); };
+    return 'rgb(' + m((v >> 16) & 255) + ',' + m((v >> 8) & 255) + ',' + m(v & 255) + ')';
   }
-  // valor actual de un token de color (cambia con el modo)
-  function tok(nombre) { return getComputedStyle(document.body).getPropertyValue(nombre).trim() || '#000000'; }
   function pintaLocator(cv, size, idxs, color) {
     if (!cv || !state.ndcX) return;
     var dpr = window.devicePixelRatio || 1, px = Math.round(size * dpr), tono = color || '#8c8c8c';
@@ -1707,9 +1712,9 @@
     var P = function (i) { return locXY(i, px); };
     if (idxs.length === 1) {
       var q = P(idxs[0]);
-      ctx.strokeStyle = tok('--ink'); ctx.globalAlpha = 0.55; ctx.lineWidth = dpr; ctx.beginPath();
+      ctx.strokeStyle = '#17181a'; ctx.globalAlpha = 0.55; ctx.lineWidth = dpr; ctx.beginPath();
       ctx.moveTo(0, q[1]); ctx.lineTo(px, q[1]); ctx.moveTo(q[0], 0); ctx.lineTo(q[0], px); ctx.stroke(); ctx.globalAlpha = 1;
-      ctx.fillStyle = tok('--ink'); ctx.beginPath(); ctx.arc(q[0], q[1], 3.2 * dpr, 0, 2 * Math.PI); ctx.fill();
+      ctx.fillStyle = '#17181a'; ctx.beginPath(); ctx.arc(q[0], q[1], 3.2 * dpr, 0, 2 * Math.PI); ctx.fill();
       return;
     }
     var t = idxs.length < 30 ? 4 * dpr : Math.max(1.5 * dpr, px / 80), st = Math.max(1, Math.floor(idxs.length / 6000)); // pocos puntos: mas grandes
@@ -1763,72 +1768,40 @@
     var t = state.scatterplot.get('cameraTarget'), d = state.scatterplot.get('cameraDistance'), aspect = state.W / Math.max(1, state.H);
     var x0 = (t[0] - aspect * d + 1) / 2 * s, x1 = (t[0] + aspect * d + 1) / 2 * s, y0 = (1 - (t[1] + d)) / 2 * s, y1 = (1 - (t[1] - d)) / 2 * s;
     ctx.clearRect(0, 0, s, s);
-    ctx.fillStyle = state.noche ? 'rgba(22,28,42,0.6)' : 'rgba(255,255,255,0.6)'; ctx.fillRect(0, 0, s, s);
+    ctx.fillStyle = 'rgba(255,255,255,0.6)'; ctx.fillRect(0, 0, s, s);
     ctx.clearRect(x0, y0, x1 - x0, y1 - y0);
-    ctx.strokeStyle = tok('--ink'); ctx.lineWidth = 1.5 * dpr; ctx.strokeRect(x0, y0, x1 - x0, y1 - y0);
+    ctx.strokeStyle = '#17181a'; ctx.lineWidth = 1.5 * dpr; ctx.strokeRect(x0, y0, x1 - x0, y1 - y0);
     $('mm-zoom').textContent = '×' + (state.k / K0).toFixed(1);
   }
 
   // ==================== leyenda + lente ====================
-  function leyendaAreas() {
-    var L = $('ley-areas');
-    L.innerHTML = [1, 2, 3, 4, 0].map(function (a) { return '<i style="--c:' + AREA_HEX[a] + '"></i><span>' + AREA_CORTO[a] + '</span>'; }).join('');
-    L.hidden = state.lens !== 'area' || state.introActive;
-    if (!L.hidden) L.innerHTML = [1, 2, 3, 4, 0].map(function (a) { return '<i style="--c:' + AREA_HEX[a] + '"></i><span>' + AREA_CORTO[a] + '</span>'; }).join('');
+  function renderLegend() {
+    var L = $('legend'); L.hidden = false;
+    if (state.lens === 'territory') {
+      var stops = state.macros.slice().sort(function (a, b) { return a.hueRank - b.hueRank; }).filter(function (_, i) { return i % 7 === 0; }).map(function (m) { return m.color; });
+      L.innerHTML = '<div class="lg-title">Color: campo</div>' +
+        '<div class="spectrum" style="background:linear-gradient(to right,' + stops.join(',') + ')"></div>' +
+        '<div class="lg-row"><span class="sw" style="background:#c4c4c4"></span>Sin campo (67% de las tesis)</div>' +
+        '<div class="lg-rank"><span><i class="lg-dot"></i>TEMA</span><span><i class="lg-ring"></i>Subtema</span></div>' +
+        '<div class="lg-note">Cada campo reúne tesis con títulos parecidos; no son las áreas oficiales.</div>';
+    } else {
+      L.innerHTML = '<div class="lg-title">Color: área administrativa</div>' +
+        [1, 2, 3, 4, 0].map(function (a) { return '<div class="lg-row"><span class="sw" style="background:' + AREA_HEX[a] + '"></span>' + AREA_NAMES[a] + '</div>'; }).join('') +
+        '<div class="lg-note">El área viene del catálogo. Los puntos tenues no quedaron en ningún grupo (67%).</div>';
+    }
   }
   function setLens(lens, force) {
     if (lens === state.lens && !force) return;
     state.lens = lens;
-    leyendaAreas();
     document.querySelectorAll('#lens button').forEach(function (b) { b.classList.toggle('active', b.getAttribute('data-lens') === lens); });
     state.highlightKey = '';
     if (state.iso) recolorIsolation();
-    if (!state.introActive) restoreView();
+    if (!state.introActive && !state.routeActive) restoreView();
     live.forEach(function (rec) { if (rec.dot) { rec.dot.firstChild.setAttribute('fill', nodeColor(rec.n)); rec.dot.firstChild.style.setProperty('--c', nodeColor(rec.n)); } });
-    paintMinimap();
+    renderLegend(); paintMinimap();
   }
   document.querySelectorAll('#lens button').forEach(function (b) { b.addEventListener('click', function () { if (!state.introActive) setLens(b.getAttribute('data-lens')); }); });
-  // Dia / noche del mapa. Se guarda en el navegador; el claro es el predeterminado.
-  function setNoche(on, inicial) {
-    state.noche = !!on;
-    try { localStorage.setItem('nodo_noche', on ? '1' : '0'); } catch (e) { /* sin almacenamiento */ }
-    document.body.classList.toggle('noche', state.noche);
-    Object.assign(AREA_HEX, state.noche ? AREA_NOCHE : AREA_DIA);
-    (state.noche ? NIVEL_NOCHE : NIVEL_DIA).forEach(function (c, k) { NIVEL_COLOR[k] = c; });
-    document.querySelectorAll('#modo-mapa button').forEach(function (b) { b.classList.toggle('active', (b.getAttribute('data-modo') === 'noche') === state.noche); });
-    tintasMapa();
-    if (inicial || !state.scatterplot || !state.macros.length) return;
-    buildPalette();
-    var tinta = state.noche ? '#f1ede4' : '#17181a';
-    state.scatterplot.set({ backgroundColor: state.noche ? '#0f1422' : '#ffffff', pointColor: state.palette, opacity: state.opacities, pointColorHover: tinta, pointColorActive: tinta });
-    if (state.iso) applyIsoColor();
-    state.highlightKey = '';
-    setLens(state.lens, true);
-    drawMarks(); drawMinimapView();
-    repintarAbiertos();
-  }
-  // Las fichas y el taller llevan colores de datos en su HTML: se vuelven a pintar al cambiar de modo.
-  var ultimaFicha = null;
-  function repintarAbiertos() {
-    if (panel.classList.contains('open') && state.panelStack.length) renderPanel();
-    var ms = $('map-selection');
-    if (!ms.hidden && ultimaFicha) ultimaFicha();
-    if (!$('taller').hidden && taller.node) {
-      $('taller').style.setProperty('--c', colorNodo(taller.node));
-      pintaLocator($('tl-loc'), 92, taller.idx.filter(function (i) { return i != null; }), colorNodo(taller.node));
-      setTab(taller.tab);
-    }
-  }
-  function nocheGuardada() { try { return localStorage.getItem('nodo_noche') === '1'; } catch (e) { return false; } }
-  document.querySelectorAll('#modo-mapa button').forEach(function (b) { b.addEventListener('click', function () { setNoche(b.getAttribute('data-modo') === 'noche'); }); });
-  function ajustes(abrir) {
-    var a = $('ajustes'), on = abrir === undefined ? a.hidden : abrir;
-    a.hidden = !on; $('ajustes-capa').hidden = !on; $('btn-ajustes').setAttribute('aria-expanded', String(on));
-    if (on) $('aj-cerrar').focus();
-  }
-  $('btn-ajustes').addEventListener('click', function (ev) { ev.stopPropagation(); ajustes(); });
-  $('ajustes-capa').addEventListener('click', function () { ajustes(false); });
-  $('aj-cerrar').addEventListener('click', function () { ajustes(false); });
+
   // ==================== datos por tema (v3.1) ====================
   // tesis_por_micro/{clusterId}.json: TODAS las tesis de cada tema fino (199,623 en
   // 513 archivos, sin autor). Territorio y subtema se arman juntando sus temas finos.
@@ -1901,7 +1874,7 @@
       $('panel-eyebrow').innerHTML = back;
       $('panel-sub').textContent = '';
       renderNodeView(top.node);
-    }
+    } else { $('panel-eyebrow').innerHTML = back; $('panel-sub').textContent = 'Tesis representativas'; $('panel-kw').textContent = ''; panel.classList.remove('clu'); renderThesesView(top.node); }
     var bb = $('panel-back'); if (bb) bb.addEventListener('click', function () { state.panelStack.pop(); renderPanel(); });
   }
   // ==================== ficha de un cluster: perfil de sus tesis (v4.5) ====================
@@ -1940,7 +1913,7 @@
     var X = function (k) { return (k + 0.5) / nb * W; }, Y = function (v) { return H - v / tope * H; }, vx = ' vector-effect="non-scaling-stroke"';
     [tope, tope / 2].forEach(function (v) {
       if (v !== Math.round(v) || v <= 0) return;
-      svg += '<line x1="0" x2="' + W + '" y1="' + Y(v).toFixed(1) + '" y2="' + Y(v).toFixed(1) + '" style="stroke:var(--grid)"' + vx + '/>';
+      svg += '<line x1="0" x2="' + W + '" y1="' + Y(v).toFixed(1) + '" y2="' + Y(v).toFixed(1) + '" stroke="#ececec"' + vx + '/>';
       marcas += '<span style="top:' + (Y(v) / H * 100).toFixed(1) + '%">' + fmtNum(v) + '</span>';
     });
     var paletas = ys.length < 10;
@@ -1959,7 +1932,7 @@
     return '<div class="cs-hist" data-lo="' + lo + '" data-w="' + w + '" data-nb="' + nb + '" data-h="' + H + '" data-tope="' + tope + '" data-viejo="' + (ys[0] < lo ? 1 : 0) + '" data-bins="' + bins.join(',') + '">' +
       '<div class="cs-yax" style="height:' + H + 'px">' + marcas + '</div><div class="cs-plot">' +
       '<svg width="100%" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" role="img" aria-label="Tesis por año">' + svg +
-      '<line x1="0" y1="' + H + '" x2="' + W + '" y2="' + H + '" style="stroke:var(--line-strong)"' + vx + '/></svg>' +
+      '<line x1="0" y1="' + H + '" x2="' + W + '" y2="' + H + '" stroke="#d6d6d6"' + vx + '/></svg>' +
       '<div class="cs-hl" hidden><b></b><span></span></div>' + eje + '</div></div>';
   }
   // hover de las lineas de tiempo: un solo manejador para todas (fichas y taller)
@@ -2001,7 +1974,7 @@
       leg += '<i style="--c:' + AREA_HEX[a] + '"></i><span title="' + escapeHtml(AREA_NAMES[a]) + '">' + AREA_CORTO[a] + '</span><span class="v">' + pctTxt(f) + '</span>';
     });
     return '<div class="cs-donut"><svg width="' + S + '" height="' + S + '" viewBox="0 0 ' + S + ' ' + S + '" role="img" aria-label="Tesis por área">' + arcs +
-      '<text x="' + h + '" y="' + (h + S * 0.055).toFixed(1) + '" text-anchor="middle" font-size="' + Math.round(S * 0.165) + '" font-weight="700" style="fill:var(--ink)">' + pctTxt(ar[orden[0]] / tot) + '</text></svg><div class="cs-leg">' + leg + '</div></div>';
+      '<text x="' + h + '" y="' + (h + S * 0.055).toFixed(1) + '" text-anchor="middle" font-size="' + Math.round(S * 0.165) + '" font-weight="700" fill="#17181a">' + pctTxt(ar[orden[0]] / tot) + '</text></svg><div class="cs-leg">' + leg + '</div></div>';
   }
   // niveles: barra apilada con la escala azul de la ficha de tesis
   function nivelesHtml(d, W, H) {
@@ -2106,7 +2079,12 @@
       '<div class="cs"><h3>Tesis recientes</h3><div id="az-list"><p class="cs-sub">Cargando tesis…</p></div>' +
       '<button type="button" class="cs-link" id="btn-taller" disabled>Ver las tesis y su análisis' + ICO_R + '</button></div>';
     if (lvl !== 'micro') body += '<div class="section-label">' + (lvl === 'macro' ? 'Temas' : 'Subtemas') + '</div><div class="children" id="panel-children"><div class="vecindario-note">Cargando…</div></div>';
+    if (lvl === 'micro' && state.vecindarioPreview) {
+      var ids = (state.vecindarioPreview.byCluster || {})[String(n.clusterId)];
+      if (ids && ids.length) body += '<div class="section-label">Vecindarios precargados</div><div class="cta" id="theses-trigger">' + ids.length + ' tesis de referencia y sus 50 vecinas</div>';
+    }
     $('panel-body').innerHTML = body; $('panel-body').scrollTop = 0; // cada cluster empieza arriba
+    var tr = $('theses-trigger'); if (tr) tr.addEventListener('click', function () { state.panelStack.push({ type: 'theses', node: n }); renderPanel(); });
 
     loadThesesFor(n).then(function (rows) {
       if (!isCurrent(n)) return;
@@ -2144,6 +2122,19 @@
       el.addEventListener('click', function () { showThesisOnMap(byId[el.getAttribute('data-tid')]); });
     });
   }
+  function renderThesesView(micro) {
+    $('panel-title').textContent = micro.name;
+    var ids = (state.vecindarioPreview.byCluster || {})[String(micro.clusterId)] || [];
+    var html = '<div class="vecindario-note">Las ' + ids.length + ' tesis más cercanas al centro de este tema. Clic en una para ver sus 50 vecinas más parecidas.</div>';
+    ids.forEach(function (tid) {
+      var t = state.vecindarioPreview.theses[tid]; if (!t) return;
+      html += '<div class="thesis-row" data-thesis="' + tid + '"><span class="th-title">' + escapeHtml(t.title || tid) + '</span><span class="th-meta">' + (t.year || 'Año sin registro') + '</span></div>';
+    });
+    $('panel-body').innerHTML = html;
+    document.querySelectorAll('#panel-body .thesis-row').forEach(function (row) {
+      row.addEventListener('click', function () { var tid = row.getAttribute('data-thesis'); applySpotlight(tid); openVecindarioModal(tid); });
+    });
+  }
   function closePanel() {
     if (state.iso) exitIsolation();
     panel.classList.remove('open', 'clu'); main.classList.remove('panel-open'); state.selectedId = null; state.panelStack = []; markSelected();
@@ -2165,6 +2156,8 @@
     $('ms-meta').textContent = r.y || 'Año sin registro';
     setFicha(idx, r);
     $('ms-note').innerHTML = '';
+    var btn = $('ms-open-vecindario');
+    btn.hidden = !t; if (t) btn.onclick = function () { openVecindarioModal(r.id); };
     $('ms-go-territory').hidden = true;
     $('map-selection').hidden = false;
     // antes volaba a la posicion ORIGINAL aunque el tema estuviera aislado (y desplazado),
@@ -2257,7 +2250,7 @@
     }).join('') + '</div>' + (prs.length > 8 ? '<button type="button" class="fc-more" data-mas="masPr">' + (taller.masPr ? 'Ver menos' : 'Ver los ' + fmtNum(prs.length)) + '</button>' : '') + '</div>';
     var pls = countBy(rows, function (r) { return r.pl; });
     h += '<div class="fc"><h4>Plantel</h4><div class="fc-list">' + pls.slice(0, taller.masPl ? 80 : 6).map(function (e) {
-      return fila('fpl', e[0], taller.fpl === e[0], '<i style="--g:var(--ink-2)"></i>', e[0], e[1]);
+      return fila('fpl', e[0], taller.fpl === e[0], '<i style="--g:#4d4d4d"></i>', e[0], e[1]);
     }).join('') + '</div>' + (pls.length > 6 ? '<button type="button" class="fc-more" data-mas="masPl">' + (taller.masPl ? 'Ver menos' : 'Ver los ' + fmtNum(pls.length)) + '</button>' : '') + '</div>';
     if (taller.q || taller.fnv || taller.fpr || taller.fpl || taller.fas) h += '<button type="button" class="fc-clear" data-clear>Quitar filtros</button>';
     // en movil las facetas se pliegan para que la lista quede a la vista
@@ -2425,7 +2418,7 @@
   // cuantas tesis tienen un asesor, dos o mas, o ninguno registrado: barra apilada, no un parrafo
   function asesoriaHtml(rows) {
     var g = [0, 0, 0]; rows.forEach(function (r) { g[r.as.length === 0 ? 2 : r.as.length === 1 ? 0 : 1]++; });
-    var n = Math.max(1, rows.length), cols = [tok('--ink-3'), tok('--ink'), tok('--line-strong')], nom = ['Un asesor', 'Dos o más', 'Sin registro'], x = 0, segs = '', lab = '';
+    var n = Math.max(1, rows.length), cols = ['#6e6e6e', '#17181a', '#d6d6d6'], nom = ['Un asesor', 'Dos o más', 'Sin registro'], x = 0, segs = '', lab = '';
     g.forEach(function (v, k) {
       if (!v) return;
       var wd = v / n * 1000;
@@ -2503,6 +2496,41 @@
     host.querySelector('svg').addEventListener('click', function (ev) { var t = ev.target; if (t.classList.contains('nd')) filtrarTesis({ fas: nodes[+t.getAttribute('data-k')].id }); });
   }
 
+  // ==================== spotlight: clic en una tesis ====================
+  function applySpotlight(tid, idx) {
+    var t = state.vecindarioPreview && state.vecindarioPreview.theses[tid];
+    if (idx == null) idx = state.thesisIdToIndex.get(tid);
+    var cats = new Float32Array(state.n); cats.fill(C_DIM);
+    var resolved = 0;
+    if (t) t.neighbors.forEach(function (nb) {
+      var j = state.thesisIdToIndex.get(nb.id); if (j == null) return;
+      cats[j] = C_VIVID + (AREA_STR_TO_CODE[(nb.area || '').toLowerCase()] || 0); resolved++;
+    });
+    if (idx != null) { cats[idx] = C_FOCAL; state.focus = idx; state.focusInfo = t ? { t: t.title, y: t.year } : null; }
+    state.spotlightActive = true; state.highlightKey = 'spot';
+    redrawCats(cats);
+    showSelectionCard(tid, t, resolved, false);
+  }
+  function clearSpotlight() {
+    state.spotlightActive = false; state.highlightKey = '';
+    $('map-selection').hidden = true;
+    restoreView();
+  }
+  function showSelectionCard(tid, t, resolved, noise) {
+    $('ms-eyebrow').textContent = t ? 'Tesis seleccionada' : 'Punto seleccionado';
+    $('ms-title').textContent = t ? t.title : (noise ? 'Tesis sin campo' : tid);
+    $('ms-meta').textContent = (t && t.year) || '';
+    setFicha(state.thesisIdToIndex.get(tid), null);
+    var btn = $('ms-open-vecindario');
+    if (t) {
+      $('ms-note').textContent = 'Sus ' + resolved + ' vecinos más parecidos, coloreados por área. Todo lo demás se atenúa.';
+      btn.hidden = false; btn.onclick = function () { openVecindarioModal(tid); };
+    } else {
+      $('ms-note').textContent = '';
+      btn.hidden = true;
+    }
+    $('map-selection').hidden = false;
+  }
   // v4.8.1: la ficha de una tesis se cierra al cambiar de modo (analizar, taller, ruta, introduccion)
   // y al hacer clic en una zona vacia del mapa. Devuelve true si habia una abierta.
   function cerrarFichaTesis() {
@@ -2515,7 +2543,7 @@
     clearFocus(); state.scatterplot.deselect({ preventEvent: true });
     panel.classList.remove('peek');
     if (state.searchPin) { state.searchPin = false; state.pin = null; } // quita el resaltado de busqueda/asesor
-    $('map-selection').hidden = true; state.highlightKey = ''; restoreView();
+    clearSpotlight();
   });
 
   // ==================== ficha de la tesis: nivel, area, programa, plantel (v4.4) ====================
@@ -2524,8 +2552,7 @@
   var tmeta = null, tmetaP = null;
   // Licenciatura..Doctorado: escala secuencial de azul, mas oscuro cuanto mas avanzado (pedido del usuario);
   // cada paso contrasta con el anterior y el primero se distingue del blanco
-  var NIVEL_DIA = ['#9cc3e6', '#5b95cf', '#2d65a8', '#143a6b'], NIVEL_NOCHE = ['#3f67a0', '#4f82c4', '#86b3ec', '#cfe3ff']; // de noche, mas avanzado = mas luminoso
-  var NIVEL_COLOR = NIVEL_DIA.slice();
+  var NIVEL_COLOR = ['#9cc3e6', '#5b95cf', '#2d65a8', '#143a6b'];
   function loadTesisMeta() {
     if (!tmetaP) tmetaP = Promise.all([
       fetch('data/tesis_meta.v1.json').then(function (r) { return r.json(); }),
@@ -2608,7 +2635,6 @@
 
   // pinta la franja; si el archivo no ha llegado, la completa al llegar (si la ficha sigue siendo esa)
   function setFicha(idx, row) {
-    if (idx != null) ultimaFicha = function () { setFicha(idx, row); };
     var box = $('ms-tags'), card = $('map-selection');
     box.setAttribute('data-idx', idx == null ? '' : idx);
     card.classList.toggle('tesis', idx != null); card.classList.remove('grupo'); card.removeAttribute('data-grupo');
@@ -2864,17 +2890,16 @@
     closeSearch();
     if (state.iso) exitIsolation();
     idxs = Array.prototype.slice.call(idxs);
-    state.searchPin = true;
+    state.searchPin = true; state.spotlightActive = false;
     clearFocus();
     pinIndices('busq|' + titulo, idxs);
     state.pin.contour = buildContour(idxs);
     fichaGrupo(idxs, titulo, opts || {});
-    $('ms-go-territory').hidden = true;
+    $('ms-go-territory').hidden = true; $('ms-open-vecindario').hidden = true;
     $('map-selection').hidden = false;
     encuadrar(idxs);
   }
   function fichaGrupo(idxs, titulo, opts) {
-    ultimaFicha = function () { fichaGrupo(idxs, titulo, opts); };
     setFicha(null);
     var ms = $('map-selection'), clave = 'g|' + titulo + '|' + idxs.length;
     ms.classList.add('grupo'); ms.setAttribute('data-grupo', clave);
@@ -2883,7 +2908,7 @@
     var tops = Object.keys(cnt).sort(function (a, b) { return cnt[b] - cnt[a]; });
     var c = tops.length ? state.macroById[tops[0]].color : '#8c8c8c';
     ms.style.setProperty('--c', c);
-    pintaLocator($('ms-loc'), 60, idxs, tops.length ? c : tok('--ink')); // sin campo: en tinta, no gris sobre gris
+    pintaLocator($('ms-loc'), 60, idxs, tops.length ? c : '#17181a'); // sin campo: en tinta, no gris sobre gris
     $('ms-nivel').innerHTML = opts.aid != null ? '<span class="ms-ring"></span>Asesoría' : 'Búsqueda en títulos';
     $('ms-title').textContent = titulo;
     $('ms-note').innerHTML = '';
@@ -2903,7 +2928,7 @@
           var m = state.macroById[mc];
           return '<button type="button" data-macro="' + mc + '" style="--c:' + m.color + '" title="Ir a este campo"><span class="dot"></span><span class="n">' + escapeHtml(m.name) + '</span><b>' + fmtNum(cnt[mc]) + '</b></button>';
         }).join('') +
-        (sin ? '<button type="button" disabled style="--c:var(--line-strong)"><span class="dot"></span><span class="n">Sin campo</span><b>' + fmtNum(sin) + '</b></button>' : '') + '</div></div>';
+        (sin ? '<button type="button" disabled style="--c:#c4c4c4"><span class="dot"></span><span class="n">Sin campo</span><b>' + fmtNum(sin) + '</b></button>' : '') + '</div></div>';
       if (opts.aid != null && ases.off) {
         var co = {};
         idxs.forEach(function (i) { for (var j = ases.off[i]; j < ases.off[i + 1]; j++) if (ases.ids[j] !== opts.aid) co[ases.ids[j]] = (co[ases.ids[j]] || 0) + 1; });
@@ -3001,18 +3026,16 @@
     if (on) state.pin = null;
     if (!on) showDiscLabels(false);
     $('overlay').style.visibility = on ? 'hidden' : 'visible';
-    $('crumbs').hidden = on;
-    $('ley-areas').hidden = on || state.lens !== 'area';
+    $('crumbs').hidden = on; $('legend').hidden = on;
     if (on) { $('minimap').hidden = true; $('mm-show').hidden = true; } else applyMinimapPref();
     state.scatterplot.set({ cameraIsFixed: on });
     if (on) {
-      panel.classList.remove('open'); main.classList.remove('panel-open'); $('map-selection').hidden = true; hideTip();
+      panel.classList.remove('open'); main.classList.remove('panel-open'); $('map-selection').hidden = true; state.spotlightActive = false; state.routeActive = null; hideTip();
       state.scatterplot.deselect({ preventEvent: true });
     }
   }
   function startIntro() {
     cerrarFichaTesis();
-    if (panel.classList.contains('open')) closePanel(); // el resaltado del cluster no debe quedar sobre las esferas
     if (state.iso) exitIsolation(true);
     $('story').hidden = true; story = null;
     setChromeForIntro(true);
@@ -3067,10 +3090,79 @@
   function closeStory() {
     $('story').hidden = true; story = null;
     if (state.introActive) { finishSemantic(false); return; }
+    if (state.routeActive) { state.routeActive = null; state.highlightKey = ''; restoreView(); }
   }
   $('story-next').addEventListener('click', function () { if (story && story.onNext) story.onNext(); });
   $('story-prev').addEventListener('click', function () { if (story && story.onPrev) story.onPrev(); });
   $('story-close').addEventListener('click', closeStory);
+
+  function ndcBoxFromRaw(x0, x1, y0, y1) {
+    var a = toNdc({ x: x0, y: y0 }), b = toNdc({ x: x1, y: y1 });
+    return { cx: (a[0] + b[0]) / 2, cy: (a[1] + b[1]) / 2, hw: Math.abs(b[0] - a[0]) / 2, hh: Math.abs(b[1] - a[1]) / 2 };
+  }
+  function macrosUnionBox(ids) {
+    var x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+    ids.forEach(function (id) { var b = state.macroById[id].box; x0 = Math.min(x0, b.cx - b.hw); x1 = Math.max(x1, b.cx + b.hw); y0 = Math.min(y0, b.cy - b.hh); y1 = Math.max(y1, b.cy + b.hh); });
+    return { cx: (x0 + x1) / 2, cy: (y0 + y1) / 2, hw: (x1 - x0) / 2, hh: (y1 - y0) / 2 };
+  }
+  function area2Macros() { return state.macros.filter(function (m) { return (m.dominantArea || '').toLowerCase() === 'area 2'; }).map(function (m) { return m.macroId; }); }
+  // Rutas: cada paso = a donde volar + que resaltar + texto. Cifras verificadas en
+  // development.md / gap.md, no inventadas.
+  var ROUTES = [
+    { id: 'isla', title: 'Una isla en el borde del mapa', sub: 'La música aparece en dos lugares: uno por su tema, otro por su formato', steps: [
+      { title: '325 tesis tituladas «notas al programa»', text: 'Es el género de <strong>tesis-recital</strong> de la Facultad de Música: el estudiante presenta las notas del programa de su recital. Mismo título, mismo vector y por eso una <strong>isla</strong> lejos de todo lo demás.', macros: [49], box: function () { return state.macroById[49].box; } },
+      // Medido (2026-09-23): el territorio 47 es el 15.o mas disperso de 130 (radio
+      // mediano 1.77 u. vs 0.82 global); solo el 53% de sus tesis queda a <2 u. del
+      // nucleo. Por eso se vuela al NUCLEO (caja de filosofia, 48) y el texto lo dice.
+      { title: 'El resto de la música tiene su núcleo junto a la filosofía', text: 'Las <strong>549 tesis</strong> sobre obras, composición y Bach no están en la isla. Su núcleo está aquí, al lado de filosofía y traducción. Es uno de los campos <strong>más dispersos</strong> (15.º de 130): la mitad queda cerca del núcleo y el resto se reparte por el mapa. El mapa distingue <strong>tema</strong> de <strong>formato</strong>.', macros: [47], box: function () { var b = state.macroById[48].box; return { cx: b.cx, cy: b.cy, hw: b.hw * 2.2, hh: b.hh * 2.2 }; } }
+    ] },
+    { id: 'hueco', title: 'El hueco del centro', sub: 'Una zona casi vacía que no es un vacío del conocimiento', steps: [
+      { title: 'Una zona 15 a 40 veces menos densa', text: 'Parece un tema que la UNAM no investiga, pero no lo es. Aquí caen títulos <strong>cortos y genéricos</strong> de disciplinas sin relación entre sí, en la frontera entre campos grandes de salud. Es un efecto geométrico del algoritmo, no un hueco temático (análisis en <code>gap.md</code>).', macros: [], box: function () { return ndcBoxFromRaw(-6.8, 0.9, -4.3, 1.6); } }
+    ] },
+    { id: 'petroleo', title: 'Una palabra, dos disciplinas', sub: 'Petróleo y química estuvieron fusionados hasta la revisión manual', steps: [
+      { title: 'Perforación de pozos y refinerías', text: '<strong>2,383 tesis</strong> de ingeniería petrolera: yacimientos, fracturamiento hidráulico, operación de refinerías.', macros: [126], box: function () { return macrosUnionBox([126, 127]); } },
+      { title: 'Síntesis química y materiales, justo al lado', text: '<strong>4,112 tesis</strong> de síntesis orgánica, polímeros y materiales. El corte automático las había juntado con el petróleo porque comparten vocabulario («catalizador», «caracterización»), no tema. <strong>Se separaron después de leer títulos reales</strong>.', macros: [127], box: function () { return macrosUnionBox([126, 127]); } }
+    ] },
+    { id: 'archipielago', title: 'La medicina es un archipiélago', sub: 'El área más grande no forma un bloque, se reparte en especialidades', steps: [
+      { title: 'Decenas de campos, no un bloque', text: 'Los <strong>{n} campos</strong> en verde tienen mayoría del área de <strong>Ciencias Biológicas, Químicas y de la Salud</strong>. El atlas anterior mostraba «Medicina» como un solo bloque; ordenada por contenido se reparte en especialidades: nefrología, pediatría, odontología, oncología…', macros: 'area2', color: '#0f7d5c', box: function () { return { cx: 0, cy: 0, hw: 1, hh: 1 }; } }
+    ] }
+  ];
+  function buildRoutesMenu() {
+    var menu = $('routes-menu');
+    menu.innerHTML = ROUTES.map(function (r) { return '<button type="button" role="menuitem" data-route="' + r.id + '"><b>' + escapeHtml(r.title) + '</b><span>' + escapeHtml(r.sub) + ', ' + r.steps.length + (r.steps.length === 1 ? ' paso' : ' pasos') + '</span></button>'; }).join('');
+    menu.querySelectorAll('button').forEach(function (b) { b.addEventListener('click', function () { toggleRoutesMenu(false); startRoute(b.getAttribute('data-route')); }); });
+  }
+  function toggleRoutesMenu(show) {
+    var m = $('routes-menu'); m.hidden = show === undefined ? !m.hidden : !show;
+    if (!m.hidden && window.innerWidth > 860) m.style.left = Math.max(12, $('btn-routes').getBoundingClientRect().left - main.getBoundingClientRect().left - 16) + 'px';
+    $('btn-routes').setAttribute('aria-expanded', String(!m.hidden));
+  }
+  $('btn-routes').addEventListener('click', function (ev) { ev.stopPropagation(); if (!state.introActive) toggleRoutesMenu(); });
+  document.addEventListener('click', function (ev) { if (!$('routes-menu').hidden && !$('routes-menu').contains(ev.target) && ev.target !== $('btn-routes')) toggleRoutesMenu(false); });
+  function startRoute(id, stepIdx) {
+    cerrarFichaTesis();
+    var r = ROUTES.filter(function (x) { return x.id === id; })[0]; if (!r) return;
+    stepIdx = stepIdx || 0;
+    var st = r.steps[stepIdx];
+    if (state.iso) exitIsolation(true);
+    state.routeActive = id;
+    if (state.spotlightActive) { state.scatterplot.deselect({ preventEvent: true }); state.spotlightActive = false; $('map-selection').hidden = true; }
+    panel.classList.remove('open'); main.classList.remove('panel-open'); state.selectedId = null; markSelected();
+    var b = st.box();
+    flyTo(b.cx, b.cy, fitDistance(b.hw, b.hh, 1.35));
+    var ids = st.macros === 'area2' ? area2Macros() : st.macros;
+    state.highlightKey = ''; state.pin = null;
+    if (ids.length) highlightMacros(ids, st.color); else restoreView();
+    var text = st.text;
+    text = text.replace('{n}', ids.length);
+    showStory({
+      eyebrow: 'Ruta: ' + r.title, count: (stepIdx + 1) + ' / ' + r.steps.length, title: st.title, text: text,
+      next: stepIdx < r.steps.length - 1 ? 'Siguiente' : 'Terminar', prev: stepIdx > 0 ? 'Anterior' : null,
+      dots: r.steps.map(function (_, i) { return i === stepIdx ? 1 : 0; }),
+      onNext: function () { if (stepIdx < r.steps.length - 1) startRoute(id, stepIdx + 1); else closeStory(); },
+      onPrev: function () { startRoute(id, stepIdx - 1); }
+    });
+  }
 
   // ==================== titulos por tesela espacial (v3.2) ====================
   // titulos_teselas/{tx}_{ty}.json: titulo (sin autor) + anio de las 609,154 tesis,
@@ -3129,6 +3221,9 @@
   var EDGE_MAX = 1200;      // enlaces dibujados como maximo en un subtema aislado (v4.8.1)
   var ISO_DOT_PX = 15;      // diametro del punto en estado 'eco'
   var ISO_EXPAND = 3.2;     // cuanto se amplia el tema como minimo respecto a su tamano real
+  var ANA_STEP_PX = 20, ANA_DOT_PX = 12;
+  var CAT8 = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4', '#008300', '#4a3aa7', '#e34948']; // paleta categorica validada (guia dataviz)
+  var CAT_OTHER = '#a8a8a8';
   var isoToken = 0;
   function hexToRgba(hex, a) {
     var v = parseInt(hex.slice(1), 16);
@@ -3155,8 +3250,7 @@
   //   - grupo (pin): sus puntos se repintan aqui, encima de todo y 1.5 px mas grandes;
   //     si viene de busqueda o asesor, curvas de densidad que se desvanecen al acercarse;
   //   - tesis (state.focus): punto de tinta del doble de tamano + anotacion (titulo, anio).
-  var MARK_MAX = 30000, INK = '#17181a', INK2 = '#4d4d4d', HALO = '#fff', TAU = 2 * Math.PI;
-  function tintasMapa() { INK = state.noche ? '#f1ede4' : '#17181a'; INK2 = state.noche ? '#9aa3b5' : '#4d4d4d'; HALO = state.noche ? '#0f1422' : '#fff'; locBases = {}; }
+  var MARK_MAX = 30000, INK = '#17181a', TAU = 2 * Math.PI;
   state.focus = -1; state.focusInfo = null;
   var marksRaf = 0;
   function drawMarks() { if (!marksRaf) marksRaf = requestAnimationFrame(function () { marksRaf = 0; paintMarks(); }); }
@@ -3168,7 +3262,7 @@
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
     if (state.introActive) return;
     var c = camXform(), X = state.dispX, Y = state.dispY;
-    var pin = !state.iso ? state.pin : null;
+    var pin = !state.iso && !state.spotlightActive ? state.pin : null;
     if (pin && pin.contour) paintContour(ctx, c, pin.contour);
     var focusOn = state.focus >= 0 && !$('map-selection').hidden;
     if (pin && pin.idxs.length <= MARK_MAX) {
@@ -3255,13 +3349,13 @@
       });
     });
     var dx = best.dx;
-    ctx.strokeStyle = INK2; ctx.lineWidth = 1; ctx.lineJoin = 'round';
+    ctx.strokeStyle = '#4d4d4d'; ctx.lineWidth = 1; ctx.lineJoin = 'round';
     ctx.beginPath(); ctx.moveTo(best.ax, best.ay); ctx.lineTo(best.bx, best.by); ctx.lineTo(best.ex, best.by); ctx.stroke();
     ctx.textAlign = dx > 0 ? 'left' : 'right'; ctx.textBaseline = 'middle';
     var tx = best.ex + dx * 5, ty = best.ty;
     var rows = lines.map(function (l) { return { t: l, f: F1, c: INK }; });
-    if (year) rows.push({ t: year, f: F2, c: INK2 });
-    ctx.strokeStyle = HALO; ctx.lineWidth = 4;
+    if (year) rows.push({ t: year, f: F2, c: '#6e6e6e' });
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 4;
     rows.forEach(function (row, k) {
       ctx.font = row.f; ctx.fillStyle = row.c;
       ctx.strokeText(row.t, tx, ty + 16 * k); ctx.fillText(row.t, tx, ty + 16 * k);
@@ -3315,7 +3409,7 @@
           ctx.closePath();
         });
       });
-      ctx.strokeStyle = lv ? INK : INK2; ctx.lineWidth = lv ? 1.4 : 1; ctx.globalAlpha = a * (lv ? 0.9 : 0.7);
+      ctx.strokeStyle = lv ? INK : '#4d4d4d'; ctx.lineWidth = lv ? 1.4 : 1; ctx.globalAlpha = a * (lv ? 0.9 : 0.7);
       ctx.stroke();
     });
     ctx.globalAlpha = 1;
@@ -3336,11 +3430,11 @@
     if (dist) flyToVisible(state.dispX[idx], state.dispY[idx], dist);
     drawMarks();
   }
-  function clearFocus() { state.focus = -1; state.focusInfo = null; flow.focus = -1; paintMarks(); } // al instante: sin esperar al siguiente cuadro
+  function clearFocus() { state.focus = -1; state.focusInfo = null; flow.focus = -1; drawMarks(); }
 
   function isolateMicro(n) {
     var token = ++isoToken;
-    if (state.iso) stopFlow();
+    if (state.iso) { stopFlow(); hideAnaLabels(); }
     Promise.all([loadThesesFor(n), loadMicroTheses(n.clusterId)]).then(function (res) {
       if (token !== isoToken) return;
       var rows = res[0], raw = res[1];
@@ -3415,6 +3509,7 @@
       state.iso = { node: n, idxs: idxs, byIdx: byIdx, posOf: posOf, cats: cats, ecoCats: cats, X: NX, Y: NY, ecoX: NX, ecoY: NY, cx: cx, cy: cy, D: D, edges: edges, mode: 'eco', groupBy: 'plantel' };
       document.body.classList.add('iso');
       $('iso-name').textContent = n.name; $('iso-n').textContent = fmtNum(N) + ' tesis';
+      setChipMode('eco');
       $('iso-chip').hidden = false;
       applyIsoColor();
 
@@ -3433,16 +3528,15 @@
   function applyIsoColor() {
     var c = isoColor(state.iso.node);
     state.palette[C_HL_MULTI] = c; state.scatterplot.set({ pointColor: state.palette });
-    $('iso-chip').style.setProperty('--c', c);
     var tint = $('tint');
     tint.style.background = hexToRgba(c, 0.05); // tono plano, sin degradado (v4)
     tint.classList.add('on');
   }
-  function recolorIsolation() { if (state.iso) { applyIsoColor(); state.highlightKey = ''; } }
+  function recolorIsolation() { if (state.iso) { applyIsoColor(); if (state.iso.mode === 'ana') enterAnalysis(state.iso.groupBy, true); state.highlightKey = ''; } }
   function exitIsolation(quick) {
     isoToken++;
     if (!state.iso) return Promise.resolve();
-    stopFlow();
+    stopFlow(); hideAnaLabels();
     state.iso = null;
     document.body.classList.remove('iso');
     $('iso-chip').hidden = true; $('tint').classList.remove('on');
@@ -3561,7 +3655,7 @@
     flow.running = false;
     if (flow.raf) { cancelAnimationFrame(flow.raf); flow.raf = 0; }
     if (flow.regl) { flow.regl.poll(); flow.regl.clear({ color: [0, 0, 0, 0] }); }
-    if (state.iso) state.iso.cats = state.iso.ecoCats;
+    if (state.iso && state.iso.mode !== 'ana') state.iso.cats = state.iso.ecoCats;
   }
   function flowFrame(ts) {
     flow.raf = requestAnimationFrame(flowFrame);
@@ -3573,29 +3667,189 @@
     flow.drawLines(Object.assign({}, props, flow.lines));
     flow.drawPoints(Object.assign({}, props, flow.pts, { size: ISO_DOT_PX * dpr, alpha: 0.92, offset: 0 }));
     if (flow.focus >= 0 && iso.posOf[flow.focus] != null) {
-      flow.drawPoints(Object.assign({}, props, flow.pts, { color: state.noche ? [0.95, 0.93, 0.89] : [0.09, 0.094, 0.1], size: ISO_DOT_PX * 1.6 * dpr, alpha: 1, offset: iso.posOf[flow.focus], count: 1 }));
+      flow.drawPoints(Object.assign({}, props, flow.pts, { color: [0.09, 0.094, 0.1], size: ISO_DOT_PX * 1.6 * dpr, alpha: 1, offset: iso.posOf[flow.focus], count: 1 }));
     }
   }
 
-  // v4.14: el modo «Analizar» (reordenar las tesis del subtema en cuadricula por grupo) se quito.
-  // Su cuadricula se salia por debajo de la pantalla en subtemas grandes y no se alcanzaba (bug
-  // reportado por el usuario). El boton ahora abre el taller del subtema, que ya organiza sus
-  // tesis por nivel, programa, plantel y decada con mas detalle.
+  // ---------- estado 'ana': reorganizar por grupo ----------
+  var ANA_KEYS = {
+    area: function (i, r) { return AREA_NAMES[state.areaCode[i] || 0]; },
+    plantel: function (i, r) { return r.pl || 'sin plantel'; },
+    programa: function (i, r) { return r.pr || 'sin programa'; },
+    nivel: function (i, r) { return r.nv || 'sin nivel'; },
+    decada: function (i, r) { return r.y ? Math.floor(r.y / 10) * 10 + 's' : 'sin año'; }
+  };
+  function enterAnalysis(groupBy, instant) {
+    var iso = state.iso; if (!iso) return;
+    cerrarFichaTesis();
+    iso.mode = 'ana'; iso.groupBy = groupBy || iso.groupBy || 'plantel';
+    stopFlow(); setChipMode('ana');
+    var keyFn = ANA_KEYS[iso.groupBy], groups = new Map();
+    iso.idxs.forEach(function (i) { var k = keyFn(i, iso.byIdx[i]); if (!groups.has(k)) groups.set(k, []); groups.get(k).push(i); });
+    var list = Array.from(groups.entries());
+    if (iso.groupBy === 'decada') list.sort(function (a, b) { return a[0] < b[0] ? -1 : 1; });
+    else list.sort(function (a, b) { return b[1].length - a[1].length; });
+    if (list.length > 9) { var rest = []; list.slice(8).forEach(function (g) { rest = rest.concat(g[1]); }); list = list.slice(0, 8).concat([['Otros (' + (list.length - 8) + ')', rest]]); }
+    // color por grupo: areas con su color de siempre; lo demas con la paleta categorica validada
+    list.forEach(function (g, gi) {
+      var col = iso.groupBy === 'area' ? AREA_HEX[Object.keys(AREA_NAMES).filter(function (k) { return AREA_NAMES[k] === g[0]; })[0] || 0]
+        : (/^Otros \(/.test(g[0]) ? CAT_OTHER : CAT8[gi % 8]);
+      g.push(col); state.palette[C_GRP + gi] = col;
+    });
+    state.scatterplot.set({ pointColor: state.palette });
+    // grilla de grillas en pixeles de pantalla, dentro del area visible (sin el panel)
+    var c = camXform(), panelW = panel.classList.contains('open') ? panel.offsetWidth : 0;
+    var visW = state.W - panelW - 48, left = 24, top = 96, S = ANA_STEP_PX;
+    var G = list.length, cols = Math.max(1, Math.min(G, Math.round(Math.sqrt(G * visW / Math.max(1, state.H - 150)))));
+    var cellW = visW / cols, innerCols = Math.max(1, Math.floor((cellW - 28) / S));
+    var NX = new Float32Array(iso.ecoX), NY = new Float32Array(iso.ecoY), cats = new Float32Array(iso.ecoCats), labels = [], y = top, rowH = 0;
+    list.forEach(function (g, gi) {
+      var col = gi % cols; if (col === 0 && gi > 0) { y += rowH + 30; rowH = 0; }
+      var x0 = left + col * cellW, items = g[1].slice().sort(function (a, b) { return ((iso.byIdx[a].y || 0) - (iso.byIdx[b].y || 0)) || (iso.byIdx[a].k < iso.byIdx[b].k ? -1 : 1); });
+      labels.push({ x: (x0 - state.W / 2) / c.s + c.tx, y: c.ty - (y - state.H / 2) / c.s, text: g[0], n: items.length, color: g[2] });
+      items.forEach(function (i, k) {
+        var px = x0 + (k % innerCols) * S + S / 2, py = y + 22 + Math.floor(k / innerCols) * S + S / 2;
+        NX[i] = c.tx + (px - state.W / 2) / c.s; NY[i] = c.ty - (py - state.H / 2) / c.s;
+        cats[i] = C_GRP + gi;
+      });
+      rowH = Math.max(rowH, 22 + Math.ceil(items.length / innerCols) * S);
+    });
+    iso.cats = cats; iso.X = NX; iso.Y = NY; iso.anaLabels = labels;
+    state.dispX = NX; state.dispY = NY;
+    state.highlightKey = 'ana|' + iso.groupBy + '|' + state.lens;
+    lastPointSize = null; updatePointSize();
+    showAnaLabels(false);
+    drawPoints(NX, NY, cats, instant ? {} : { transition: true, transitionDuration: 1200, transitionEasing: 'cubicInOut' })
+      .then(function () { if (state.iso === iso && iso.mode === 'ana') showAnaLabels(true); });
+    document.querySelectorAll('#ana-group button').forEach(function (b) { b.classList.toggle('active', b.getAttribute('data-g') === iso.groupBy); });
+  }
+  function exitAnalysis() {
+    var iso = state.iso; if (!iso) return;
+    cerrarFichaTesis();
+    iso.mode = 'eco'; iso.cats = iso.ecoCats; iso.X = iso.ecoX; iso.Y = iso.ecoY;
+    hideAnaLabels(); setChipMode('eco');
+    state.dispX = iso.ecoX; state.dispY = iso.ecoY;
+    state.highlightKey = 'iso|' + iso.node.id;
+    lastPointSize = null; updatePointSize();
+    drawPoints(iso.ecoX, iso.ecoY, iso.ecoCats, { transition: true, transitionDuration: 1200, transitionEasing: 'cubicInOut' })
+      .then(function () { if (state.iso === iso && iso.mode === 'eco') startFlow(); });
+  }
+  function showAnaLabels(on) {
+    var host = $('ana-labels'), iso = state.iso;
+    host.innerHTML = '';
+    if (!on || !iso || !iso.anaLabels) return;
+    iso.anaLabels.forEach(function (l) {
+      var d = document.createElement('div'); d.className = 'ana-label';
+      d.innerHTML = '<i style="background:' + l.color + '"></i><span>' + escapeHtml(l.text) + '</span><b>' + fmtNum(l.n) + '</b>';
+      d.setAttribute('data-x', l.x); d.setAttribute('data-y', l.y);
+      host.appendChild(d);
+    });
+    placeAnaLabels();
+    requestAnimationFrame(function () { host.classList.add('on'); });
+  }
+  function hideAnaLabels() { var h = $('ana-labels'); h.classList.remove('on'); h.innerHTML = ''; }
+  function placeAnaLabels() {
+    var host = $('ana-labels'); if (!host.firstChild) return;
+    var c = camXform();
+    host.querySelectorAll('.ana-label').forEach(function (d) {
+      var x = (parseFloat(d.getAttribute('data-x')) - c.tx) * c.s + state.W / 2, y = state.H / 2 - (parseFloat(d.getAttribute('data-y')) - c.ty) * c.s;
+      d.style.transform = 'translate(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px)';
+    });
+  }
+  function setChipMode(mode) {
+    $('iso-analyze').textContent = mode === 'ana' ? 'Ver conexiones' : 'Analizar';
+    $('ana-group').hidden = mode !== 'ana';
+  }
   $('iso-analyze').addEventListener('click', function () {
-    var n = state.iso && state.iso.node; if (!n) return;
-    loadThesesFor(n).then(function (rows) { openTaller(n, rows); });
+    if (!state.iso) return;
+    if (state.iso.mode === 'ana') exitAnalysis(); else enterAnalysis();
+  });
+  document.querySelectorAll('#ana-group button').forEach(function (b) {
+    b.addEventListener('click', function () { if (state.iso) enterAnalysis(b.getAttribute('data-g')); });
   });
 
-  // tooltip de las graficas del taller (red de codireccion)
+  // ==================== vecindario (modo analitico, mismo mecanismo que v2) ====================
+  var AREA_COLORS = { 'area 1': '#3566a8', 'area 2': '#0f7d5c', 'area 3': '#c98a2e', 'area 4': '#b8412f' };
+  var vm = { history: [], groupBy: 'area', svg: null, lastFocalPos: null };
+  function areaColor(a) { return AREA_COLORS[(a || '').toLowerCase()] || '#948d7c'; }
+  function simT(s) { return Math.max(0, Math.min(1, (Number(s || 0) - 0.75) / 0.20)); }
+  function decadeLabel(y) { return y ? (Math.floor(y / 10) * 10) + 's' : 'sin año'; }
+  function groupKeyOf(nb) { return vm.groupBy === 'decade' ? decadeLabel(nb.year) : areaNameFromStr(nb.area); }
+  function computeAnalyticLayout(neighbors, w, h) {
+    var map = {}; neighbors.forEach(function (nb) { var k = groupKeyOf(nb); (map[k] = map[k] || []).push(nb); });
+    var groups = Object.keys(map).sort().map(function (k) { return [k, map[k]]; });
+    var cols = Math.min(4, Math.max(1, Math.ceil(Math.sqrt(groups.length)))), rows = Math.ceil(groups.length / cols), top = 78;
+    var cellW = w / cols, cellH = (h - top) / rows, positions = { FOCAL: { x: w / 2, y: 32 } }, labelPositions = {};
+    groups.forEach(function (g, gi) {
+      var items = g[1].slice().sort(function (a, b) { return (b.sim || 0) - (a.sim || 0); });
+      var cx = cellW * (gi % cols + 0.5), cy = top + cellH * (Math.floor(gi / cols) + 0.5), n = items.length;
+      var ic = Math.max(1, Math.ceil(Math.sqrt(n))), ir = Math.ceil(n / ic), sp = Math.min(cellW, cellH) * (n > 16 ? 0.13 : 0.17);
+      var gw = (ic - 1) * sp, gh = (ir - 1) * sp;
+      items.forEach(function (it, i) { positions[it.id] = { x: cx - gw / 2 + (i % ic) * sp, y: cy - gh / 2 + Math.floor(i / ic) * sp }; });
+      labelPositions[g[0]] = { x: cx, y: cy - gh / 2 - 16, n: n };
+    });
+    return { positions: positions, groups: groups, labelPositions: labelPositions };
+  }
+  function vmTip(d, ev) {
+    var tt = $('vtooltip');
+    tt.innerHTML = '<span class="t-label">' + escapeHtml(d.title || d.id) + '</span><span class="t-meta">' + (d.year || 'Año sin registro') + '</span><span class="t-meta">' + escapeHtml(areaNameFromStr(d.area)) + '</span>' +
+      (d.isFocal ? '' : '<span class="t-meta">' + (d.sim * 100).toFixed(1) + '% similar' + (d.inSample === false ? ', fuera de este preview' : '') + '</span>');
+    tt.style.opacity = '1'; vmMove(ev);
+  }
   function vmMove(ev) { $('vtooltip').style.transform = 'translate(' + (ev.clientX + 14) + 'px,' + (ev.clientY + 14) + 'px)'; }
   function vmHide() { var tt = $('vtooltip'); tt.style.opacity = '0'; tt.style.transform = 'translate(-9999px,-9999px)'; }
+  function renderVecindario(tid) {
+    var t = state.vecindarioPreview.theses[tid], body = document.querySelector('#vmodal .vm-body'), w = body.clientWidth, h = body.clientHeight;
+    $('vm-title').textContent = t ? t.title : tid;
+    $('vm-meta').textContent = t ? (t.year || 'Año sin registro') + ', ' + areaNameFromStr(t.area) : 'sin datos en este preview';
+    $('vm-breadcrumb').innerHTML = vm.history.map(function (x, i) { return '<button data-idx="' + i + '">' + escapeHtml((x.title || x.id).slice(0, 28)) + ((x.title || '').length > 28 ? '…' : '') + '</button> ›'; }).join(' ');
+    document.querySelectorAll('#vm-breadcrumb button').forEach(function (b) { b.addEventListener('click', function () { var i = +b.getAttribute('data-idx'), tg = vm.history[i]; vm.history = vm.history.slice(0, i); openVecindarioModal(tg.id); }); });
+    var svg = d3.select(vm.svg);
+    if (!t) { svg.selectAll('g > *').remove(); return; }
+    var lay = computeAnalyticLayout(t.neighbors, w, h), pos = lay.positions, prior = vm.lastFocalPos || pos.FOCAL;
+    var ls = svg.select('.vm-group-labels').selectAll('text').data(lay.groups.map(function (g) { return g[0]; }), function (d) { return d; });
+    ls.exit().remove();
+    ls.enter().append('text').attr('class', 'vm-group-label').attr('text-anchor', 'middle').merge(ls)
+      .attr('x', function (d) { return lay.labelPositions[d].x; }).attr('y', function (d) { return lay.labelPositions[d].y; })
+      .text(function (d) { return d + ' (' + lay.labelPositions[d].n + ')'; });
+    var es = svg.select('.vm-edges').selectAll('line').data(t.neighbors, function (d) { return d.id; });
+    es.exit().transition().duration(300).style('opacity', 0).remove();
+    es.enter().append('line').attr('class', 'vm-edge').attr('x1', prior.x).attr('y1', prior.y).attr('x2', prior.x).attr('y2', prior.y).style('opacity', 0).merge(es)
+      .transition().duration(850).ease(d3.easeCubicOut)
+      .attr('x1', pos.FOCAL.x).attr('y1', pos.FOCAL.y).attr('x2', function (d) { return pos[d.id].x; }).attr('y2', function (d) { return pos[d.id].y; })
+      .style('stroke-width', function (d) { return 0.5 + simT(d.sim) * 2.2; }).style('opacity', function (d) { return 0.08 + simT(d.sim) * 0.34; });
+    var data = [{ id: 'FOCAL', title: t.title, year: t.year, area: t.area, isFocal: true }].concat(t.neighbors);
+    var ns = svg.select('.vm-nodes').selectAll('g.vm-node').data(data, function (d) { return d.id; });
+    ns.exit().transition().duration(300).style('opacity', 0).remove();
+    var ne = ns.enter().append('g').attr('transform', 'translate(' + prior.x + ',' + prior.y + ')').style('opacity', 0);
+    ne.append('circle');
+    var mg = ne.merge(ns).attr('class', function (d) { return 'vm-node' + (d.isFocal ? ' focal' : '') + (d.isFocal || d.inSample ? '' : ' not-in-sample'); });
+    mg.transition().duration(850).ease(d3.easeCubicOut).attr('transform', function (d) { var p = pos[d.id]; return 'translate(' + p.x + ',' + p.y + ')'; }).style('opacity', 1);
+    mg.select('circle').attr('r', function (d) { return d.isFocal ? 15 : 3.5 + simT(d.sim) * 7.5; })
+      .attr('fill', function (d) { return d.isFocal ? 'var(--accent)' : areaColor(d.area); })
+      .attr('fill-opacity', function (d) { return d.isFocal ? 1 : 0.55 + simT(d.sim) * 0.45; });
+    mg.on('mouseenter', function (ev, d) { vmTip(d, ev); }).on('mousemove', vmMove).on('mouseleave', vmHide)
+      .on('click', function (ev, d) { if (d.isFocal || !d.inSample) return; vmHide(); openVecindarioModal(d.id); });
+    vm.lastFocalPos = pos.FOCAL;
+  }
+  function openVecindarioModal(tid) {
+    if (!vm.svg) vm.svg = $('vm-svg');
+    var t = state.vecindarioPreview.theses[tid];
+    vm.history.push({ id: tid, title: t ? t.title : tid });
+    var m = $('vmodal'); if (m.hidden) { m.hidden = false; vm.lastFocalPos = null; }
+    renderVecindario(tid);
+  }
+  function closeVecindario() { $('vmodal').hidden = true; vm.history = []; vm.lastFocalPos = null; vmHide(); }
+  $('vm-close').addEventListener('click', closeVecindario);
+  document.querySelector('#vmodal .vm-backdrop').addEventListener('click', closeVecindario);
+  $('vm-groupby').addEventListener('change', function (ev) { vm.groupBy = ev.target.value; if (vm.history.length) renderVecindario(vm.history[vm.history.length - 1].id); });
 
   // ==================== pagina Metodo (v4) ====================
   function showMetodo(on) {
     $('metodo').hidden = !on;
     $('metodo').style.top = document.querySelector('header.nav').offsetHeight + 'px'; // Metodo es una seccion: la navegacion queda visible
     $('nav-metodo').classList.toggle('active', on); $('nav-map').classList.toggle('active', !on);
-    if (on) { $('metodo').scrollTop = 0; $('metodo-close').focus(); }
+    if (on) { toggleRoutesMenu(false); $('metodo').scrollTop = 0; $('metodo-close').focus(); }
   }
   $('nav-metodo').addEventListener('click', function () { showMetodo(true); });
   $('foot-metodo').addEventListener('click', function () { showMetodo(true); });
@@ -3608,15 +3862,16 @@
     if ((ev.ctrlKey || ev.metaKey) && k.toLowerCase() === 'k') { ev.preventDefault(); openSearch(); return; }
     if (k === '/' && !typing) { ev.preventDefault(); openSearch(); return; }
     if (k === 'Escape') {
-      if (!$('ajustes').hidden) ajustes(false);
-      else if (!$('search').hidden) closeSearch();
+      if (!$('search').hidden) closeSearch();
+      else if (!$('vmodal').hidden) closeVecindario();
       else if (!$('taller').hidden) closeTaller();
       else if (!$('metodo').hidden) showMetodo(false);
+      else if (!$('routes-menu').hidden) toggleRoutesMenu(false);
       else if (!$('story').hidden) closeStory();
       else if (!$('taller').hidden) closeTaller();
-      else if (!$('map-selection').hidden) $('map-selection-close').click(); // la ficha antes que el subtema aislado
       else if (state.iso) exitIsolation();
       else if (panel.classList.contains('open')) closePanel();
+      else if (state.spotlightActive) $('map-selection-close').click();
     }
   });
   window.addEventListener('resize', function () {
@@ -3626,6 +3881,7 @@
     state.scatterplot.set({ width: rect.width, height: rect.height });
     if (state.iso) resizeFlow();
     drawMarks();
+    if (!$('vmodal').hidden && vm.history.length) renderVecindario(vm.history[vm.history.length - 1].id);
     if (state.introActive && !$('story-next').disabled) showDiscLabels(true);
   });
 
@@ -3652,8 +3908,8 @@
   // Hook de desarrollo (prototipo local, no produccion).
   window.__debugAtlas = {
     state: state, flyTo: flyTo, flyToNode: flyToNode, flyHome: flyHome, selectNode: selectNode, setLens: setLens,
-    openSearch: openSearch, runSearch: runSearch, pickResult: pickResult, startIntro: startIntro,
-    highlightMacros: highlightMacros,
+    openSearch: openSearch, runSearch: runSearch, pickResult: pickResult, startIntro: startIntro, startRoute: startRoute,
+    applySpotlight: applySpotlight, clearSpotlight: clearSpotlight, highlightMacros: highlightMacros, openVecindarioModal: openVecindarioModal,
     verEnMapa: verEnMapa, focusThesis: focusThesis, loadMicro: loadMicro, loadMeso: loadMeso, onPointClick: onPointClick, loadTesisMeta: loadTesisMeta,
     runIntroTransition: runIntroTransition, closeStory: closeStory, live: live, flow: flow,
     onPointClick: onPointClick, loadAsesores: loadAsesores, asesoresDe: asesoresDe, tesisDeAsesor: tesisDeAsesor

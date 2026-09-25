@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mascota del Laboratorio</title>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff; --paper: #ffffff; --ink: #1a1a1a; --ink-2: #4d4d4d; --ink-3: #6e6e6e; --line: #e0e0e0;
+    --m: oklch(0.60 0.14 252);                         /* azul predeterminado */
+  }
+  body.noche { --bg: #0f1422; --paper: #161c2a; --ink: #eceae4; --ink-2: #bcc2cf; --ink-3: #8f98ab; --line: #283044; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: "Libre Franklin", Arial, sans-serif; font-size: 14px; line-height: 1.5; font-feature-settings: "tnum" 1; }
+  main { max-width: 1120px; margin: 0 auto; padding: 32px 24px 64px; }
+  h1 { font-size: 22px; font-weight: 700; margin: 0 0 4px; }
+  p { margin: 0 0 12px; color: var(--ink-2); max-width: 68ch; }
+  .row { display: flex; flex-wrap: wrap; gap: 16px 32px; border-top: 1px solid var(--line); padding-top: 24px; margin-top: 16px; }
+  figure { margin: 0; width: 230px; }
+  figcaption { font-size: 13px; color: var(--ink-3); margin-top: 6px; }
+  figcaption b { color: var(--ink); font-weight: 600; display: block; }
+  svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .controls { display: flex; flex-wrap: wrap; gap: 20px; align-items: center; margin-top: 20px; }
+  .controls button { background: none; border: none; border-bottom: 2px solid transparent; color: var(--ink-2); font: inherit; cursor: pointer; padding: 2px 0; display: inline-flex; gap: 6px; align-items: center; }
+  .controls button.on { color: var(--ink); font-weight: 600; border-bottom-color: var(--ink); }
+  .sw { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  /* mascota: el contorno sale del mismo color, oscurecido; así funciona de día y de noche */
+  .mascota { --m-line: color-mix(in oklch, var(--m) 55%, black); --m-back: color-mix(in oklch, var(--m) 78%, black); transition: --m 400ms; }
+  .mascota .cuerpo { fill: var(--m); stroke: var(--m-line); stroke-width: 2.5; transition: fill 500ms ease; }
+  .mascota .borde { fill: none; stroke: var(--m-line); stroke-linecap: round; stroke-linejoin: round; }
+  .mascota .relleno { fill: none; stroke: var(--m); stroke-linecap: round; stroke-linejoin: round; transition: stroke 500ms ease; }
+  .mascota .atras { stroke: var(--m-back); }
+  .mascota .pie { fill: var(--m); stroke: var(--m-line); stroke-width: 2.5; transition: fill 500ms ease; }
+  .mascota .ojo { fill: #fff; stroke: var(--m-line); stroke-width: 2; }
+  .mascota .pupila { fill: #1a1a1a; }
+  .mascota .trazo { fill: none; stroke: #1a1a1a; stroke-width: 3; stroke-linecap: round; }
+  .mascota .lupa-vidrio { fill: #ffffff; fill-opacity: .55; stroke: #1a1a1a; stroke-width: 4.5; }
+  .mascota .lupa-mango { stroke: #1a1a1a; stroke-width: 7; stroke-linecap: round; }
+  .mascota .brillo { fill: none; stroke: #fff; stroke-width: 3; stroke-linecap: round; }
+  body.noche .mascota .trazo { stroke: #0f1422; }
+  .mascota .trazo.aire, body.noche .mascota .trazo.aire { stroke: var(--ink-2); }
+  body.noche .mascota .lupa-vidrio, body.noche .mascota .lupa-mango { stroke: #eceae4; }
+  .toggle { position: fixed; top: 16px; right: 24px; background: none; border: none; border-bottom: 2px solid var(--ink); color: var(--ink); font: inherit; font-weight: 600; cursor: pointer; padding: 2px 0; }
+</style>
+</head>
+<body>
+<button class="toggle" onclick="document.body.classList.toggle('noche')">Día / noche</button>
+<main>
+  <h1>Mascota del Laboratorio</h1>
+  <p>Recreación en SVG del personaje original: esfera con cara de perfil, brazos de manguera y piernas largas. Azul por omisión; al terminar el análisis toma el color del campo donde cayó la tesis.</p>
+  <div class="controls" id="colores"></div>
+  <div class="row" id="poses"></div>
+</main>
+<script>
+  // Extremidad con contorno: primero el borde (más ancho), encima el relleno.
+  function limb(d, w, atras) {
+    return '<path class="borde" d="' + d + '" stroke-width="' + (w + 4) + '"/>' +
+           '<path class="relleno' + (atras ? ' atras' : '') + '" d="' + d + '" stroke-width="' + w + '"/>';
+  }
+  function mano(x, y, atras) {
+    return '<circle cx="' + x + '" cy="' + y + '" r="7.5" class="pie"' + (atras ? ' style="fill:var(--m-back)"' : '') + '/>';
+  }
+  function piernas(dy) {
+    dy = dy || 0;
+    return limb('M82 160 L79 ' + (218 + dy), 8) + limb('M110 162 L114 ' + (218 + dy), 8) +
+      '<ellipse cx="' + 88 + '" cy="' + (223 + dy) + '" rx="14" ry="6.5" class="pie"/>' +
+      '<ellipse cx="' + 124 + '" cy="' + (223 + dy) + '" rx="14" ry="6.5" class="pie"/>';
+  }
+  function cuerpo(cy) { return '<circle cx="95" cy="' + (cy || 95) + '" r="68" class="cuerpo"/>'; }
+  function ojo(x, y, px, py) {
+    return '<ellipse cx="' + x + '" cy="' + y + '" rx="9" ry="12.5" class="ojo"/><circle cx="' + (x + (px || 2)) + '" cy="' + (y + (py || 2)) + '" r="5" class="pupila"/>';
+  }
+  function ceja(x, y, curva) { return '<path class="trazo" d="M' + x + ' ' + y + ' q9 ' + (curva || -8) + ' 20 1"/>'; }
+
+  var POSES = [
+    { id: 'saluda', nombre: 'Saluda', uso: 'Bienvenida al Laboratorio.', svg:
+      limb('M60 150 Q40 168 38 178', 7, true) + mano(38, 180, true) +
+      piernas() + cuerpo() +
+      limb('M160 114 Q184 92 184 58', 7) + mano(184, 54) +
+      '<path class="trazo aire" d="M194 40 q6 5 5 12 M202 46 q4 4 3 9" stroke-width="2.5"/>' +
+      '<path class="trazo" d="M122 90 q7 -9 14 0 M143 90 q7 -9 14 0"/>' +
+      '<path class="trazo" d="M130 110 q10 9 20 0"/>' },
+    { id: 'senala', nombre: 'Señala', uso: 'Explica un campo del formulario o un punto del mapa.', svg:
+      piernas() + cuerpo() +
+      limb('M152 122 Q176 118 196 112', 7) + mano(198, 111) +
+      ojo(140, 90, 3, 0) + ojo(160, 90, 3, 0) + ceja(130, 70, -6) +
+      '<path class="trazo" d="M145 116 q8 6 16 0"/>' },
+    { id: 'investiga', nombre: 'Investiga', uso: 'Mientras se hace el análisis (la pose original).', svg:
+      piernas() + cuerpo() +
+      limb('M118 158 Q128 176 150 152 Q160 138 166 128', 7) + mano(166, 128) +
+      limb('M140 146 Q146 132 150 124', 6) + mano(150, 122) +
+      ojo(148, 92, 3, 1) + ceja(137, 70, -9) +
+      '<path class="trazo" d="M150 118 h7" stroke-width="2.5"/>' +
+      '<line x1="170" y1="124" x2="158" y2="140" class="lupa-mango"/>' +
+      '<circle cx="186" cy="100" r="22" class="lupa-vidrio"/>' +
+      '<path class="brillo" d="M174 92 q4 -8 12 -9"/>' },
+    { id: 'celebra', nombre: 'Celebra', uso: 'El análisis está listo; ya tiene el color de tu campo.', svg:
+      limb('M50 40 Q34 22 30 0', 7, true) + mano(30, -4, true) +
+      piernas(-10) + cuerpo(86) +
+      limb('M142 38 Q160 22 164 0', 7) + mano(164, -4) +
+      '<path class="trazo" d="M120 80 q7 -9 14 0 M141 80 q7 -9 14 0"/>' +
+      '<path d="M126 98 q12 16 26 0 z" fill="#1a1a1a"/>' +
+      '<path class="trazo aire" d="M20 60 l-8 -4 M24 44 l-9 0 M190 40 l8 -3 M192 58 l9 1" stroke-width="2.5"/>' }
+  ];
+
+  var COLORES = [
+    ['Azul (predeterminado)', 'oklch(0.60 0.14 252)'],
+    ['Campo: ciencias de la salud', 'oklch(0.62 0.14 150)'],
+    ['Campo: derecho', 'oklch(0.60 0.15 30)'],
+    ['Campo: humanidades', 'oklch(0.66 0.13 80)'],
+    ['Campo: ingeniería', 'oklch(0.55 0.14 300)']
+  ];
+
+  var poses = document.getElementById('poses');
+  poses.innerHTML = POSES.map(function (p) {
+    return '<figure><svg class="mascota" viewBox="0 -20 220 260" role="img" aria-label="Mascota: ' + p.nombre + '">' + p.svg + '</svg>' +
+      '<figcaption><b>' + p.nombre + '</b>' + p.uso + '</figcaption></figure>';
+  }).join('');
+
+  var ctr = document.getElementById('colores');
+  ctr.innerHTML = COLORES.map(function (c, i) {
+    return '<button data-c="' + c[1] + '"' + (i ? '' : ' class="on"') + '><span class="sw" style="background:' + c[1] + '"></span>' + c[0] + '</button>';
+  }).join('');
+  ctr.addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    ctr.querySelectorAll('button').forEach(function (x) { x.classList.toggle('on', x === b); });
+    document.documentElement.style.setProperty('--m', b.dataset.c);
+  });
+</script>
+</body>
+</html>

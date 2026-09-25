@@ -1,0 +1,1067 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Laboratorio de tesis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  /* Boceto v2 del análisis terminado del Laboratorio. Tokens idénticos a index.html (v4.18). */
+  :root {
+    --bg: #ffffff; --paper: #ffffff;
+    --ink: #1a1a1a; --ink-2: #4d4d4d; --ink-3: #6e6e6e;
+    --line: #e0e0e0; --line-strong: #c2c2c2; --grid: #f0f0f0; --link: #1d4f91; --grano: 0.05;
+    --c: #1d4f91;            /* color del campo principal (JS) */
+    --m: #8c96a8;            /* color actual de la mascota (JS): cambia en cada paso */
+    /* pie: azul marino con tinta blanca (el logo va en blanco); ocre de la marca para el acento */
+    --pie-fondo: #12294d; --pie-tinta: #ffffff; --pie-tinta-2: rgba(255, 255, 255, 0.7); --pie-linea: rgba(255, 255, 255, 0.18); --marca-ocre: #d9a04a;
+    --nav-h: 56px; color-scheme: light;
+  }
+  body.noche {
+    --bg: #0f1422; --paper: #161c2a;
+    --ink: #eceae4; --ink-2: #bcc2cf; --ink-3: #8f98ab;
+    --line: #283044; --line-strong: #3b4559; --grid: #1a2030; --link: #8fb8f2; --grano: 0.07; color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-padding-top: 120px; }
+  body { overflow-x: clip; margin: 0; background: var(--paper); color: var(--ink); font-family: "Libre Franklin", "Helvetica Neue", Arial, sans-serif; font-size: 15px; line-height: 1.55; font-feature-settings: "tnum" 1; -webkit-font-smoothing: antialiased; }
+  a { color: var(--link); text-decoration: none; }
+  a:hover { text-decoration: underline; text-underline-offset: 2px; }
+  button { font: inherit; color: inherit; }
+  .ico { width: 16px; height: 16px; flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+  [hidden] { display: none !important; }
+
+  header.nav { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: 28px; height: var(--nav-h); padding: 0 24px; background: var(--paper); border-bottom: 1px solid var(--line); }
+  .brand { display: flex; align-items: baseline; gap: 8px; color: var(--ink); white-space: nowrap; }
+  .brand:hover { text-decoration: none; }
+  .brand-name { font-weight: 700; font-size: 17px; }
+  .brand-org { font-size: 14px; color: var(--ink-3); }
+  .navlinks { display: flex; gap: 22px; }
+  .navlinks a { color: var(--ink-2); font-size: 14px; padding: 2px 0; border-bottom: 2px solid transparent; }
+  .navlinks a:hover { color: var(--ink); text-decoration: none; }
+  .navlinks a.active { color: var(--ink); font-weight: 600; border-bottom-color: var(--ink); }
+  .nav-right { margin-left: auto; display: flex; gap: 20px; }
+  .linkbtn { background: none; border: none; padding: 2px 0; cursor: pointer; color: var(--ink-2); font-size: 14px; }
+  .linkbtn:hover { color: var(--ink); }
+
+  /* estado en vivo: la mascota cambia de color con cada hallazgo */
+  .estado { position: sticky; top: var(--nav-h); z-index: 15; background: var(--paper); border-bottom: 1px solid var(--line); }
+  .estado-in { max-width: 1280px; margin: 0 auto; padding: 6px 24px; display: flex; align-items: center; gap: 14px; min-height: 54px; }
+  .estado svg.mascota { width: 42px; height: 46px; flex-shrink: 0; }
+  .estado-txt { font-size: 14px; color: var(--ink-2); }
+  .estado-txt b { color: var(--ink); font-weight: 600; }
+  /* un guion por sección: se llena cuando la sección está lista; al terminar, marca hasta dónde vas leyendo y lleva a ella */
+  .pasos { margin-left: auto; display: flex; gap: 4px; }
+  .pasos button { width: 30px; height: 23px; padding: 0; border: none; background: none; cursor: pointer; position: relative; }
+  .pasos button::after { content: ""; position: absolute; left: 0; right: 0; top: 10px; height: 3px; background: var(--line); transition: background 400ms ease; }
+  .pasos button.ok::after { background: var(--ink); }
+  .pasos button:disabled { cursor: default; }
+  .pasos button:not(:disabled):hover::after { background: var(--ink-2); }
+  .pasos button:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+
+  /* mapa reducido a la derecha, fijo mientras se lee el análisis a la izquierda */
+  .lado { padding-top: 32px; min-width: 0; }
+  .lado h2 { border-top: 3px solid var(--ink); padding-top: 9px; }
+  .lado h2 { font-size: 17px; margin-bottom: 10px; }
+  .mapa-wrap { position: relative; border: 1px solid var(--line); background: var(--paper); }
+  canvas#mapa { display: block; width: 100%; height: 470px; }
+  svg#mapa-capa { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+  #mapa-capa text { font-size: 12px; fill: var(--ink); }
+  #mapa-capa .rotulo { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+  .halo-txt { paint-order: stroke; stroke: var(--paper); stroke-width: 4px; stroke-linejoin: round; }
+  .leyenda-areas { display: grid; grid-template-columns: 1fr 1fr; gap: 3px 14px; font-size: 12.5px; color: var(--ink-2); padding: 10px 0 0; }
+  .leyenda-areas span { display: inline-flex; align-items: center; gap: 6px; }
+  .leyenda-areas i, .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--c); display: inline-block; flex-shrink: 0; }
+  .lado-pie { display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid var(--line); margin-top: 12px; padding-top: 10px; font-size: 13px; color: var(--ink-3); }
+
+  .page { max-width: 1280px; margin: 0 auto; padding: 0 24px 96px; }
+  /* el mapa acompaña solo el inicio (ficha y lectura); el resto del análisis va a todo el ancho */
+  .inicio { display: grid; grid-template-columns: minmax(0, 1fr) 420px; gap: 56px; padding-bottom: 8px; }
+  /* grano de papel detrás del contenido: las barras y el mapa, con fondo propio, quedan lisos encima */
+  body::after { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: var(--grano);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 1 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E"); }
+  /* cabecera de lámina: filete doble como en prensa, rótulo y fecha */
+  .lamina { display: flex; justify-content: space-between; gap: 16px; align-items: baseline; border-top: 3px solid var(--ink); padding-top: 9px; font-size: 12.5px; color: var(--ink-2); letter-spacing: .02em; margin: 0 0 18px; }
+  .lamina b { font-weight: 700; color: var(--ink); }
+  /* lomo: como en una tesis empastada, el título corre en vertical por el borde izquierdo y se lee de abajo arriba.
+     Aparece cuando el título de la ficha sale de la vista. Tinta, no color. */
+  .page { position: relative; padding-left: 92px; }
+  .lomo { position: absolute; left: 24px; top: 0; bottom: 0; width: 36px; border-right: 1px solid var(--line); }
+  .lomo-txt { position: sticky; top: calc(var(--nav-h) + 86px); display: block; margin: 0 auto; writing-mode: vertical-rl; transform: rotate(180deg);
+    max-height: calc(100vh - var(--nav-h) - 110px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    font-size: 12px; line-height: 36px; color: var(--ink-3); opacity: 0; transition: opacity 500ms ease; }
+  .lomo-txt.vis { opacity: 1; }
+  .lomo-txt b { font-weight: 600; color: var(--ink); }
+  .lomo-txt span { margin-inline-start: 2em; }
+  .inicio-izq { min-width: 0; }
+  .inicio-izq section.sec { border-bottom: none; }
+  main { min-width: 0; }
+
+  /* glifos de las fichas del atlas: puntos de nivel, barra del área, anillo del programa */
+  .g-nv { display: inline-flex; gap: 2px; margin-right: 6px; }
+  .g-nv i { width: 7px; height: 7px; border-radius: 50%; box-shadow: inset 0 0 0 1px var(--line-strong); }
+  .g-ar { width: 2px; height: 13px; background: var(--c); flex-shrink: 0; margin-right: 6px; }
+  .g-pr { width: 7px; height: 7px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--c); flex-shrink: 0; margin-right: 5px; }
+  .meta > span { display: inline-flex; align-items: center; }
+
+  /* ficha de la tesis del usuario */
+  .ficha { padding: 32px 0 32px; border-bottom: 1px solid var(--line); }
+  /* el título de la tesis es lo primero que se lee: tamaño de portada, peso 800, interletrado cerrado, renglones equilibrados */
+  .ficha h1 { font-size: clamp(34px, 3.3vw, 46px); line-height: 1.06; font-weight: 800; margin: 6px 0 20px; letter-spacing: -0.025em; max-width: 22ch; text-wrap: balance; }
+  .problematiza { font-size: 19px; line-height: 1.5; color: var(--ink); max-width: 56ch; margin: 0 0 26px; }
+  .meta { display: flex; flex-wrap: wrap; gap: 6px 22px; font-size: 14px; color: var(--ink-3); margin: 0 0 14px; }
+  .meta b { color: var(--ink); font-weight: 500; }
+  /* objetos de estudio: lista compacta en flujo; guion del color del campo (no choca con los glifos de programa ni de plantel) */
+  .objetos { list-style: none; padding: 0; margin: 0 0 16px; display: flex; flex-wrap: wrap; gap: 8px 22px; max-width: 70ch; }
+  .objetos li { display: inline-flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 500; color: var(--ink); opacity: 0; transform: translateY(5px); transition: opacity 450ms ease, transform 450ms ease; }
+  .objetos li i { width: 12px; height: 2px; background: var(--c); flex-shrink: 0; transform: scaleX(0); transform-origin: left; transition: transform 500ms cubic-bezier(.2,.7,.2,1) 150ms; }
+  .objetos li.vis { opacity: 1; transform: none; }
+  .objetos li.vis i { transform: scaleX(1); }
+  .guardado { font-size: 13px; color: var(--ink-3); display: flex; gap: 7px; align-items: center; margin: 0; }
+  .guardado .ico { width: 14px; height: 14px; fill: var(--ink-3); stroke: var(--ink-3); }
+
+  section.sec { padding: 44px 0 36px; border-bottom: 1px solid var(--line); }
+  h2 { font-size: 24px; line-height: 1.25; font-weight: 700; margin: 0 0 22px; letter-spacing: -0.005em; }
+  /* títulos de sección: subrayado fino y claro, separado de la letra */
+  section.sec > h2, .lado h2 { text-decoration: underline; text-decoration-color: var(--line-strong); text-decoration-thickness: 2px; text-underline-offset: 8px; }
+  h3 { font-size: 15px; font-weight: 600; margin: 0 0 12px; }
+  p { margin: 0 0 12px; }
+  .pendiente { color: var(--ink-3); font-size: 14px; }
+  .pendiente .barra { height: 2px; background: var(--line); margin-top: 10px; max-width: 320px; position: relative; overflow: hidden; }
+  .pendiente .barra::after { content: ""; position: absolute; inset: 0; background: var(--ink-3); transform-origin: left; animation: carga 2.4s ease-in-out infinite; }
+  @keyframes carga { 0% { transform: scaleX(0); } 60% { transform: scaleX(1); } 100% { transform: scaleX(1); opacity: 0; } }
+  .chico { font-size: 13px; }
+  .ink2 { color: var(--ink-2); } .ink3 { color: var(--ink-3); }
+
+  svg.graf { display: block; width: 100%; height: auto; overflow: visible; font-family: inherit; }
+  .graf text { fill: var(--ink-2); font-size: 12px; }
+  .graf .t-ink { fill: var(--ink); }
+  .graf .t-3 { fill: var(--ink-3); }
+  .graf .eje { stroke: var(--line-strong); stroke-width: 1; }
+
+  /* 1. comprendí */
+  .filas { display: grid; grid-template-columns: 130px minmax(0, 1fr); gap: 14px 28px; margin: 0; }
+  .filas > dt { color: var(--ink-3); font-size: 14px; padding-top: 1px; }
+  .filas > dd { margin: 0; }
+  .periodo { max-width: 520px; }
+
+  /* 2. preguntas: tipo de pregunta con su diagrama fijo, en el color del campo */
+  .preguntas { list-style: none; padding: 0; margin: 0; }
+  .preguntas li { display: grid; grid-template-columns: 124px minmax(0, 1fr); gap: 28px; padding: 24px 0; border-top: 1px solid var(--line); }
+  .preguntas li:first-child { border-top: none; padding-top: 0; }
+  .tipo-q { display: flex; flex-direction: column; gap: 8px; }
+  .tipo-q b { font-size: 15px; font-weight: 700; color: var(--c); line-height: 1.2; }
+  .tipo-q svg { width: 120px; height: 72px; display: block; overflow: visible; }
+  .preguntas .q { font-size: 18px; font-weight: 600; line-height: 1.4; margin: 0 0 8px; max-width: 52ch; }
+  .preguntas .metodo { color: var(--ink-2); margin: 0; max-width: 64ch; }
+  .preguntas .metodo b { color: var(--ink); font-weight: 600; }
+
+  /* 3. Bloom: dos escaleras */
+  .riesgo { font-size: 19px; font-weight: 600; line-height: 1.4; max-width: 46ch; margin: 0 0 26px; }
+  .dos-esc { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 44px; }
+  .dos-esc h3 { margin-bottom: 4px; }
+  .esc-verbo { cursor: help; }
+  .esc-verbo:hover text.v { text-decoration: underline; }
+  .revisados { list-style: none; padding: 0; margin: 10px 0 0; font-size: 14px; }
+  .revisados li { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 10px; padding: 7px 0; border-top: 1px solid var(--line); }
+  .revisados .nv { color: var(--ink-3); }
+  .tip { position: fixed; z-index: 40; max-width: 320px; background: var(--paper); border: 1px solid var(--line-strong); padding: 10px 12px; font-size: 13px; line-height: 1.45; pointer-events: none; }
+  .tip b { display: block; font-size: 14px; margin-bottom: 4px; }
+  .tip p { margin: 6px 0 0; color: var(--ink-2); }
+
+  /* 4. las 100 parecidas: gráficas a la izquierda (filtros), lista a la derecha */
+  .par { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 56px; align-items: start; }
+  .par-graf .cs { padding: 0 0 22px; margin-bottom: 20px; border-bottom: 1px solid var(--line); }
+  .par-graf .cs:last-child { border-bottom: none; }
+  .fbs { display: grid; row-gap: 6px; }
+  .fb { display: block; width: 100%; background: none; border: none; padding: 3px 0; text-align: left; cursor: pointer; }
+  .fb .t { display: flex; justify-content: space-between; gap: 10px; font-size: 14px; color: var(--ink); }
+  .fb .t b, .lg b { font-weight: 400; color: var(--ink-2); white-space: nowrap; }
+  .de { color: var(--ink-3); font-size: 12px; }
+  .fb .trk { display: block; position: relative; height: 6px; margin-top: 3px; min-width: 2px; }
+  .fb .trk::before { content: ""; position: absolute; inset: 0; background: var(--c); opacity: .2; border-radius: 0 3px 3px 0; }
+  .fb .b { display: block; position: relative; height: 100%; background: var(--c); border-radius: 0 3px 3px 0; width: 0; transition: width 450ms cubic-bezier(.2,.7,.2,1); }
+  .fb:hover .nm, .lg:hover span { text-decoration: underline; text-underline-offset: 2px; }
+  .fb.on .nm, .lg.on span { font-weight: 700; }
+  .fb.cero .t, .lg.cero { opacity: .45; }
+  .cs-donut { display: grid; grid-template-columns: 120px 1fr; gap: 24px; align-items: center; }
+  .lgs { display: grid; row-gap: 2px; }
+  .lgs.fila { display: flex; flex-wrap: wrap; gap: 2px 16px; margin-top: 10px; }
+  .lg { display: inline-flex; align-items: center; gap: 8px; background: none; border: none; padding: 3px 0; cursor: pointer; font-size: 14px; color: var(--ink); text-align: left; }
+  .lg i { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+  .lgs:not(.fila) .lg b { margin-left: auto; padding-left: 12px; }
+  .hist .hb { cursor: pointer; }
+  .hist .fantasma { fill: var(--c); opacity: .2; }
+  .hist .lleno { fill: var(--c); transform-box: fill-box; transform-origin: bottom; transition: transform 450ms cubic-bezier(.2,.7,.2,1); }
+  .hist .hb:hover .fantasma, .hist .hb.on .fantasma { opacity: .45; }
+  .hist-tip { margin: 6px 0 0; min-height: 20px; }
+  .par-lista { position: sticky; top: calc(var(--nav-h) + 54px + 16px); max-height: calc(100vh - var(--nav-h) - 54px - 32px); display: flex; flex-direction: column; min-height: 0; }
+  .par-cab { padding-bottom: 10px; border-bottom: 2px solid var(--ink); }
+  .par-n { margin: 0; font-size: 16px; }
+  .par-n b { font-weight: 700; }
+  .filtros { display: flex; flex-wrap: wrap; gap: 6px 16px; }
+  .filtros:not(:empty) { margin-top: 6px; }
+  .filtros button { display: inline-flex; align-items: center; gap: 4px; background: none; border: none; padding: 0; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--ink); }
+  .filtros button .ico { width: 13px; height: 13px; color: var(--ink-3); }
+  .filtros button:hover .ico { color: var(--ink); }
+  .filtros .todos { font-weight: 400; color: var(--link); }
+  .par-ol { list-style: none; margin: 0; padding: 0; overflow-y: auto; flex: 1; min-height: 0; }
+  .par-ol li { display: grid; grid-template-columns: minmax(0, 1fr) 28px; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .par-ol li.vacio { display: block; color: var(--ink-3); }
+  .par-ol .tt { display: block; color: var(--ink); font-weight: 500; margin: 2px 0; }
+  .par-ol .tt:hover { color: var(--link); }
+  .ft-a { display: flex; align-items: center; font-size: 12.5px; color: var(--ink-3); }
+  .ft-a .g-nv i { width: 6px; height: 6px; }
+  .ft-r { display: flex; flex-wrap: wrap; align-items: center; font-size: 13px; color: var(--ink-3); }
+  .ft-r .g-ar { height: 11px; }
+  .ft-r .g-pr { width: 6px; height: 6px; }
+  .g-pl { width: 5px; height: 5px; border-radius: 50%; background: var(--ink-2); flex-shrink: 0; margin: 0 5px 0 12px; }
+  .par-pie { padding-top: 12px; border-top: 2px solid var(--ink); }
+  .btn-cta:disabled { opacity: .4; cursor: default; }
+  /* objetos de estudio en la ficha */
+  .objetos-h { font-size: 13px; color: var(--ink-3); margin: 0 0 6px; }
+  /* 5. asesores */
+  .asesores { list-style: none; padding: 0; margin: 0; }
+  .asesores > li { padding: 22px 0; border-top: 1px solid var(--line); }
+  .asesores > li:first-child { border-top: none; padding-top: 0; }
+  .as-top { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 32px; }
+  .as-nombre { font-size: 19px; font-weight: 600; margin: 0 0 2px; }
+  .as-lugar { display: flex; align-items: center; gap: 8px; color: var(--ink-2); font-size: 14px; margin: 0 0 12px; }
+  .as-cifras { display: flex; gap: 22px; font-size: 13px; color: var(--ink-3); margin: 0 0 10px; }
+  .as-cifras b { color: var(--ink); font-size: 16px; font-weight: 700; margin-right: 4px; }
+  .as-tesis { list-style: none; padding: 0; margin: 0; font-size: 14px; }
+  .as-tesis li { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 6px; padding: 3px 0; }
+  .as-tesis .y { color: var(--ink-3); font-size: 13px; }
+  table.tabla15 { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 14px; }
+  table.tabla15 th { text-align: left; font-weight: 600; color: var(--ink-3); font-size: 13px; padding: 8px 12px 8px 0; border-bottom: 1px solid var(--line-strong); }
+  table.tabla15 td { padding: 8px 12px 8px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+  table.tabla15 .r { text-align: right; }
+  .mas { background: none; border: none; padding: 14px 0 0; cursor: pointer; color: var(--link); font-size: 14px; }
+
+  /* botones de guardar */
+  .guardar { background: none; border: none; padding: 2px; cursor: pointer; color: var(--ink-3); align-self: start; }
+  .guardar:hover, .guardar.on { color: var(--ink); }
+  .guardar.on .ico { fill: currentColor; }
+  .btn-cta { background: var(--ink); color: var(--paper); border: none; padding: 11px 18px; font-weight: 600; cursor: pointer; display: inline-flex; gap: 8px; align-items: center; border-radius: 2px; }
+  .btn-cta:hover { background: var(--c); }
+  .btn-cta.hecho { background: none; color: var(--ink-2); padding: 11px 0; }
+
+  /* aparición */
+  .aparece { opacity: 0; transform: translateY(6px); transition: opacity 500ms ease, transform 500ms ease; }
+  .aparece.vis { opacity: 1; transform: none; }
+  .crece-x { transform-box: fill-box; transform-origin: left; transform: scaleX(0); transition: transform 700ms cubic-bezier(.2,.7,.2,1); }
+  .crece-x.vis { transform: scaleX(1); }
+  @media (prefers-reduced-motion: reduce) {
+    .aparece, .crece-x, .fb .b, .hist .lleno, .objetos li, .objetos li i, .lomo-txt, .pasos button::after { transition: none !important; }
+    .pendiente .barra::after { animation: none; }
+  }
+
+  /* mascota */
+  .mascota { --m-line: color-mix(in oklch, var(--m) 55%, black); --m-back: color-mix(in oklch, var(--m) 78%, black); overflow: visible; }
+  .mascota .cuerpo { fill: var(--m); stroke: var(--m-line); stroke-width: 2.5; transition: fill 700ms ease, stroke 700ms ease; }
+  .mascota .borde { fill: none; stroke: var(--m-line); stroke-linecap: round; stroke-linejoin: round; transition: stroke 700ms ease; }
+  .mascota .relleno { fill: none; stroke: var(--m); stroke-linecap: round; stroke-linejoin: round; transition: stroke 700ms ease; }
+  .mascota .atras { stroke: var(--m-back); }
+  .mascota .pie { fill: var(--m); stroke: var(--m-line); stroke-width: 2.5; transition: fill 700ms ease; }
+  .mascota .ojo { fill: #fff; stroke: var(--m-line); stroke-width: 2; }
+  .mascota .pupila { fill: #1a1a1a; }
+  .mascota .trazo { fill: none; stroke: #1a1a1a; stroke-width: 3; stroke-linecap: round; }
+  .mascota .aire { stroke: var(--ink-2) !important; }
+  .mascota .lupa-vidrio { fill: #fff; fill-opacity: .55; stroke: var(--ink); stroke-width: 4.5; }
+  .mascota .lupa-mango { stroke: var(--ink); stroke-width: 7; stroke-linecap: round; }
+  .mascota .brillo { fill: none; stroke: #fff; stroke-width: 3; stroke-linecap: round; }
+
+  /* pie de página: banda azul marino, logo blanco; enlaces y aviso juntos a su lado */
+  .pie-pag { background: var(--pie-fondo); color: var(--pie-tinta-2); font-size: 14px; line-height: 1.45; }
+  .pie-in { max-width: 1280px; margin: 0 auto; padding: 44px 24px 44px 92px; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0 44px; align-items: center; }
+  .pie-logo { width: 112px; height: auto; display: block; fill: var(--pie-tinta); fill-rule: evenodd; }
+  .pie-enlaces { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 40px; }
+  .pie-enlaces ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 20px; }
+  .pie-enlaces a { color: var(--pie-tinta); }
+  .pie-pag a:focus-visible { outline: 2px solid var(--pie-tinta); outline-offset: 3px; }
+  .pie-pag .apoya { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
+  .pie-pag .apoya .ico { width: 15px; height: 15px; stroke: var(--marca-ocre); stroke-width: 1.7; }
+  .pie-legal { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 24px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--pie-linea); font-size: 12.5px; }
+  .pie-legal p { margin: 0; }
+
+  @media (max-width: 1100px) {
+    .dos-esc, .as-top { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+    .inicio { grid-template-columns: minmax(0, 1fr) 360px; gap: 40px; }
+  }
+  @media (max-width: 860px) {
+    .inicio, .par { grid-template-columns: minmax(0, 1fr); gap: 0; }
+    .par-lista { position: static; max-height: 70vh; margin-top: 8px; scroll-margin-top: calc(var(--nav-h) + 64px); }
+    .lado { order: -1; padding-top: 24px; }
+    canvas#mapa { height: 380px; }
+  }
+  @media (max-width: 640px) {
+    header.nav { gap: 16px; padding: 0 16px; }
+    .brand-org, #repetir { display: none; }
+    .page, .estado-in { padding-left: 16px; padding-right: 16px; }
+    .lomo { display: none; }
+    .pie-in { padding: 32px 16px; grid-template-columns: minmax(0, 1fr); gap: 20px; }
+    .pie-logo { width: 84px; }
+    .pie-enlaces { flex-direction: column; }
+    canvas#mapa { height: 320px; }
+    .ficha h1 { font-size: 30px; }
+    .filas { grid-template-columns: minmax(0, 1fr); gap: 2px 0; }
+    .filas > dd { margin-bottom: 14px; }
+    .preguntas li { grid-template-columns: 88px minmax(0, 1fr); gap: 16px; }
+    .tipo-q svg { width: 88px; height: 53px; }
+    .tipo-q b { font-size: 13px; }
+    .preguntas .q { font-size: 16px; }
+    .cs-donut { grid-template-columns: 110px 1fr; gap: 18px; }
+      .pasos span { width: 16px; }
+  }
+</style>
+</head>
+<body>
+<header class="nav">
+  <a class="brand" href="../../index.html"><span class="brand-name">NodOS</span><span class="brand-org">Atlas de tesis UNAM</span></a>
+  <nav class="navlinks" aria-label="Secciones">
+    <a href="../../index.html">Mapa</a>
+    <a href="#" class="active" aria-current="page">Laboratorio</a>
+    <a href="../../index.html">Método</a>
+  </nav>
+  <div class="nav-right">
+    <button type="button" class="linkbtn" id="repetir">Repetir</button>
+    <button type="button" class="linkbtn" id="modo">Noche</button>
+  </div>
+</header>
+
+<div class="estado" aria-live="polite">
+  <div class="estado-in">
+    <svg class="mascota" id="m-estado" viewBox="0 -20 220 260" aria-hidden="true"></svg>
+    <div class="estado-txt" id="estado-txt">Preparando tu análisis</div>
+    <nav class="pasos" id="pasos" aria-label="Secciones del análisis"></nav>
+  </div>
+</div>
+
+<div class="page">
+  <div class="lomo" aria-hidden="true"><p class="lomo-txt" id="lomo-txt"></p></div>
+  <div class="inicio">
+    <div class="inicio-izq">
+    <header class="ficha" id="ficha">
+      <div>
+        <p class="lamina"><span><b>Laboratorio</b> Análisis de tesis</span><span>25 de septiembre de 2026</span></p>
+        <h1 id="titulo"></h1>
+        <p class="meta" id="meta"></p>
+        <p class="objetos-h" id="objetos-h" hidden>Objetos de estudio</p>
+        <ul class="objetos" id="objetos" aria-label="Objetos de estudio"></ul>
+        <p class="guardado"><svg class="ico" viewBox="0 0 16 16"><path d="M4 2.5h8v11l-4-3-4 3z"/></svg><span id="guardado">Guardado en tu espacio el 25 de septiembre de 2026. En el mapa aparece como MI TESIS.</span></p>
+      </div>
+    </header>
+    <section class="sec" id="s1"><h2>Planteamiento</h2><div class="pendiente"><span>Leyendo el planteamiento</span><div class="barra"></div></div><div class="cuerpo" hidden></div></section>
+    </div>
+  <aside class="lado" id="s0" aria-label="Tu tesis en el mapa">
+    <h2>Ubicación en el atlas</h2>
+    <div class="mapa-wrap"><canvas id="mapa" aria-label="Mapa del atlas con tu tesis marcada"></canvas><svg id="mapa-capa" aria-hidden="true"></svg></div>
+    <div class="leyenda-areas" id="leyenda-areas"></div>
+    <div class="lado-pie"><a href="../../index.html">Abrir en el mapa</a></div>
+  </aside>
+  </div>
+
+  <main>
+
+    <section class="sec" id="s2"><h2>Preguntas de investigación sugeridas</h2><div class="pendiente"><span>Formulando preguntas</span><div class="barra"></div></div><div class="cuerpo" hidden></div></section>
+    <section class="sec" id="s3"><h2>Objetivos</h2><div class="pendiente"><span>Revisando los objetivos</span><div class="barra"></div></div><div class="cuerpo" hidden></div></section>
+    <section class="sec" id="s5"><h2>Asesores de tesis parecidas</h2><div class="pendiente"><span>Buscando asesores</span><div class="barra"></div></div><div class="cuerpo" hidden></div></section>
+    <section class="sec" id="s4"><h2>Las 100 tesis más parecidas</h2><div class="pendiente"><span>Reuniendo las tesis parecidas</span><div class="barra"></div></div><div class="cuerpo" hidden></div></section>
+  </main>
+</div>
+<footer class="pie-pag">
+  <div class="pie-in">
+    <a href="../../index.html" aria-label="NodOS, ir al mapa"><svg class="pie-logo" viewBox="226 142 873 864" aria-hidden="true"><path d="M591.3 766.3C600.2 762.1 606.1 757.1 611 749.8C618.5 738.6 620.8 725.1 617.5 711.3C616.7 707.9 612.5 697.9 608.1 689C598.3 669.1 594.7 659.4 591.3 643.2C588.9 631.9 588.6 628.4 588.6 610.5C588.6 589 589.8 579.9 594.6 563.3C604.5 529 629.6 510.7 661 515C690.4 518.9 737 544.2 742.1 559C742.7 560.6 743.5 562 743.8 562C744.2 562 745.5 557.8 746.7 552.7C749.8 540 754.1 532 762.6 523L769.8 515.5L761.6 515.4C739.4 515.1 707.6 503.3 686.8 487.6C670.2 475.1 661.7 461.7 657.4 441.3C652.3 416.5 646.7 407.2 629 393.4C606.2 375.7 596.4 360.5 591 333.9C589.1 324.9 588.9 321.2 589.3 306.5C589.7 291.7 590.2 288 592.8 277.7C596.4 264 603.2 249.2 611.3 237.2C618.8 226.3 620.7 222.3 623.1 213.3C627.6 195.4 623.2 178.4 610.5 165.4C596.5 151.2 574.4 146.3 555.7 153.4C543.3 158.1 534.1 166.1 528.5 177.2C524.1 186 522.6 193.5 523.3 203.5C524 214.5 527 223 533.6 233.6C550.9 261 557.3 279.4 558.7 304.6C560 330.8 553.3 356.6 540.4 374.1C534.6 382.1 523.7 391.6 516.3 395.1C500.4 402.7 479 398.8 457.4 384.5C447.7 378 438.1 368 428.5 354.4C416.2 336.9 406.6 328.9 393.5 325.5C373.2 320.3 352.1 329.9 342.9 348.6C340.2 354 339.6 356.7 339.2 363.4C338.3 381.4 346.6 395.8 362.5 403.6L368.5 406.5L394.5 406.6C423.9 406.7 432.5 407.8 449.5 413.7C473 421.8 487.7 434.6 494.2 452.5C497.1 460.5 497.8 475.3 495.7 483.3C491.2 500.5 472.5 517.1 451.5 522.5C448.2 523.4 437.4 524.5 427.5 525C417.6 525.5 407.2 526.6 404.3 527.4C391.8 530.8 383.1 536.7 375.4 547.2C371.4 552.7 370.1 556 364.1 575.5C360.4 588 352.2 599.6 341.8 607.6C332.1 614.8 321.1 619.7 305 623.6C297.2 625.5 288.9 628 286.6 629.2C271.9 636.5 265.5 655.6 272.7 670.8C277.4 680.8 289.3 687.6 300.5 686.7C313.1 685.7 321 679.4 329.1 663.6C336.2 649.7 339.9 644.4 347.2 637.4C354.9 630 364.9 624 375.5 620.4C382.8 617.9 385.3 617.6 405 617C428.6 616.2 433.5 615.2 442.4 609.1C452.7 602 458.4 592.8 465.7 571.6C472.1 552.7 477 544 486 534.9C496.1 524.7 504.3 520.6 514.4 520.6C520.2 520.6 522.5 521 526.8 523.3C540.8 530.6 551 547.7 556.2 572.6C558.2 582.2 558.5 586.3 558.5 607C558.4 627.3 558.1 631.8 556.3 640.3C552.7 656.7 549 666.7 539.8 684.9C527.4 709.5 524.7 719.2 527 732C530 749 541.2 762.2 557.5 767.9C562.4 769.7 565.4 770 574 769.7C583.4 769.5 585.2 769.1 591.3 766.3Z"/>
+<path d="M891.3 726.4C897.7 724.2 905.2 717.3 908.1 710.8C909.9 706.8 910.4 703.7 910.5 698C910.5 691.5 910.1 689.8 907.5 685.2C904.1 678.9 900.3 676.1 887 669.8C866.4 660 855.9 648.2 847.7 625.5C837.9 598.1 845.8 565.4 867.5 543.4C885.1 525.6 906.3 516.3 934.5 513.9C948.7 512.7 954.8 510.3 960.9 503.4C965.8 497.8 968 491.6 968 483C968 470.9 962.4 463.3 948.7 456.4C937.5 450.7 931.1 446.3 923.1 438.6C911.7 427.6 904.9 416.1 899.9 399.5C899.3 397.2 898.5 384.7 898.1 370C897.4 346.8 897.2 344 895.1 338.8C889.6 324.8 878.9 315.3 863.1 310.5C845.1 305 839.5 302.9 834.2 299.8C817.6 289.7 804.9 273.6 796 251.3C791.3 239.3 789.2 229.4 788.4 215.2C787.6 200.4 786 195.8 779.1 188.9C772.5 182.3 766.7 180 757 180C748 180 742 182.3 735.6 188.1C728.3 194.7 725.5 201.1 725.6 211C725.7 224.4 731.2 231.9 746.9 240C765.9 249.7 779.8 263.8 789.1 282.5C798 300.6 799.8 314.6 796.3 338.8C795 348.4 794.9 351.6 795.9 357.8C798.9 377.7 811.6 390.6 836 398.5C847.1 402.1 859.9 408.6 867.9 414.6C880 423.7 891 440.5 894.4 455C900 478.5 889.1 499.5 867 508.2C857.7 511.8 842.7 511.9 825.5 508.4C795.3 502.4 778.6 506.3 762.7 522.9C754.2 531.9 749.9 539.8 746.7 552.8C745.4 557.8 744 562.3 743.7 562.7C743.3 563 743 564.1 743 565.1C743 568.2 738.2 578 734.3 582.9C719.6 601.2 694.1 614.1 664.3 618.5C651.1 620.4 647.6 621.5 642.7 625.1C631.5 633.1 627.2 647.4 632 660.2C636.2 671.5 645.1 678 657.6 678.8C670 679.6 678.3 674.4 685.5 661.3C696.8 640.9 712 626.5 732.4 616.9C756 605.9 777.7 605.7 800.6 616.5C811.6 621.6 818.6 626.6 826 634.7C840.9 650.7 849.2 670.8 850.6 694.4C851.7 711.3 856.1 719.4 867.2 724.9C872.2 727.4 874.5 728 880 728C883.6 728 888.7 727.3 891.3 726.4Z"/>
+<path d="M495.4 337.9C502.3 335.4 510.3 328.2 513.7 321.6C515.8 317.6 516.4 314.6 516.8 307.8C517.2 299.7 517 298.7 514.1 292.4C508.9 281.3 500.5 274.9 488.5 273C466.1 269.4 446.2 290.6 450.9 313.2C455.1 333.2 476.4 345.1 495.4 337.9Z"/>
+<path d="M871 221.1C878 217.8 882.3 213.7 886.1 206.8C889.3 200.9 889.5 199.9 889.5 191C889.5 183.1 889.1 180.7 887.2 176.8C883.7 169.8 877.6 163.4 871.2 160.3C866.3 157.9 864.3 157.5 856.5 157.5C848.1 157.5 847.1 157.7 841.2 160.9C826.6 168.8 820 184.8 824.8 200.6C830.7 220 852.7 229.7 871 221.1Z"/>
+<path d="M778.5 466.6C785.2 463.6 791.5 457.1 794.9 450C797 445.4 797.5 443.1 797.5 436C797.5 428.9 797.1 426.6 794.9 421.9C791.4 414.6 786.4 409.1 779.8 405.4C774.9 402.7 773.7 402.5 764.5 402.5C753 402.5 748.7 404.1 741.2 411.4C721.7 430 730.4 462.3 756.7 469C762.6 470.4 772.5 469.4 778.5 466.6Z"/>
+<path d="M662.6 993.5C671.2 990.6 678.9 986 684 980.6L687.5 976.9L688 985.2L688.5 993.5L705.8 993.8L723 994L722.8 902.8L722.5 811.5L705.5 811.5L688.5 811.5L688.2 844.4L688 877.3L682.6 872.2C672.1 862.3 659.1 857.5 642.5 857.6C629.7 857.7 619.8 860.4 609.1 866.7C574.8 887 568.1 945.5 596.4 977.7C611.1 994.5 639.5 1001.3 662.6 993.5ZM509.9 994.5C537.5 988.7 558.3 968.8 564.3 942.5C566.7 931.7 567.1 926.2 565.9 917C562 885.4 542.3 863.8 511 856.5C501.3 854.3 482.2 854.5 472.4 857C451.5 862.3 435.6 874.6 426.1 893C420.1 904.4 418.6 911.3 418.7 926.5C418.7 937.8 419.1 940.6 421.3 947.5C429.2 971.5 448.5 989 473.2 994.4C481.8 996.3 501.2 996.4 509.9 994.5ZM270 933C270 899.5 270.3 872 270.8 872.1C271.5 872.1 287 891.9 326.9 943.4C354.4 979 365.1 992.4 366.6 993.3C367.3 993.7 375 993.9 383.7 993.8L399.5 993.5L399.5 903.5L399.5 813.5L381.8 813.2L364 813L364 873C364 906 363.6 933 363.2 933C362.7 933 357.9 927.3 352.5 920.2C328.7 889.5 281.6 831 270.8 818.5L267.3 814.6L250.9 814.6L234.5 814.7L234.2 903.1C234.1 951.7 234.2 992.1 234.5 992.8C234.8 993.7 239.4 994 252.5 994L270 994L270 933ZM485.7 966C454 960.5 441.4 920.5 463.9 896.7C482.9 876.6 516.5 882 528.4 907C531.3 913.1 531.5 914.2 531.5 925C531.5 935.4 531.2 937.1 528.8 942.2C525.3 949.6 521.7 954.4 516.2 958.6C508.1 964.8 495.9 967.7 485.7 966ZM638 964.5C631.4 962.6 623.1 957.4 619.6 952.8C618.2 950.9 615.8 946.7 614.3 943.5C611.8 938.2 611.5 936.3 611.5 927.4C611.5 917.8 611.7 917.1 615.3 909.8C625 890.1 646.4 882.8 666 892.7C677.1 898.2 684 907.9 686.1 921.2C689.7 943.8 673.5 964.2 650.9 965.6C646.1 965.8 641.6 965.5 638 964.5Z"/>
+<path d="M848.1 998C862.4 996.6 872.6 993.8 884.5 988C897.2 981.8 906.5 974.7 914.7 965.1C930.2 946.9 938 926.1 938 902.8C938 884.9 935.2 873.3 927.4 858C911.5 826.9 882.1 808.9 844.5 807.3C823.1 806.4 803.1 811.3 785.6 821.7C774.7 828.3 759.8 843 753.2 853.9C731.1 890.3 735.7 937.8 764.4 968.7C781.9 987.5 804.8 997.3 835 998.9C836.4 998.9 842.3 998.5 848.1 998ZM1044.5 995.1C1071.5 987.9 1088 971.2 1091.1 948C1093.9 926.1 1082.5 906.9 1060 895.6C1054.9 893.1 1040.8 887.8 1028.7 883.9C1005.6 876.5 1000.1 874.2 996.2 870.6C985.2 860.6 992.3 845.2 1010.1 840.5C1017.2 838.6 1030 838.6 1037.5 840.5C1045.5 842.5 1056.5 848 1061.9 852.6L1066.3 856.4L1069.6 852.5C1071.5 850.3 1076.2 844.3 1080.2 839.1L1087.4 829.8L1084.9 827.9C1063.2 810.7 1034.8 803.9 1006 809.1C973.8 815 954 835.2 954 862.4C954 877.2 958.3 887.3 968.6 897C977.2 905 987.1 909.7 1013.4 918.1C1043.5 927.8 1048.1 930.3 1051.5 938.3C1053.4 943 1053.4 947.3 1051.4 951.3C1046.4 961.1 1035.5 966 1018.5 966C1002 966 987.7 960.4 976.2 949.4C972.5 945.9 969.3 943 969 943C967.8 943 943.5 965.3 943.8 966.2C944.5 968.7 951.1 975.7 957.3 980.6C968 989 981.4 994.4 997.6 997C1008.1 998.6 1035.4 997.5 1044.5 995.1ZM822.2 964C811.1 961.1 803.5 956.6 794.5 947.5C781.6 934.5 776.6 921.9 776.7 902.5C776.7 888.8 779.7 878.8 786.9 867.9C805.1 840.3 837.9 831.4 867.6 846C881.4 852.7 892 865.2 897.8 881.2C900.1 887.6 900.4 890.1 900.4 901C900.5 911.2 900.1 914.8 898.3 920.5C889.8 947.2 864.5 966.1 837.5 965.9C833 965.9 826.3 965.1 822.2 964Z"/></svg></a>
+    <div>
+      <div class="pie-enlaces">
+        <nav aria-label="Explorar"><ul>
+          <li><a href="../../index.html">Mapa</a></li>
+          <li><a href="#" aria-current="page">Laboratorio</a></li>
+          <li><a href="../../index.html">Método</a></li>
+        </ul></nav>
+        <nav aria-label="El proyecto"><ul>
+          <!-- PENDIENTE: página del aviso de privacidad, correo de contacto y usuario de Buy Me a Coffee -->
+          <li><a href="#" data-pendiente="aviso">Aviso de privacidad</a></li>
+          <li><a href="#" data-pendiente="contacto">Contacto</a></li>
+          <li><a href="#" data-pendiente="cafe" class="apoya" rel="noopener" target="_blank"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 6h8.5v3.5a3.5 3.5 0 0 1-3.5 3.5h-1.5a3.5 3.5 0 0 1-3.5-3.5z"/><path d="M11 7.2h1.2a1.8 1.8 0 0 1 0 3.6h-1.4"/><path d="M5.5 2.5v1.5M8.5 2.5v1.5"/></svg>Apoya este proyecto</a></li>
+        </ul></nav>
+      </div>
+      <div class="pie-legal">
+        <p>Proyecto independiente y no oficial. Datos del catálogo público TESIUNAM.</p>
+        <p>© 2026 NodOS</p>
+      </div>
+    </div>
+  </div>
+</footer>
+<div class="tip" id="tip" hidden></div>
+
+<script>
+(function () {
+  'use strict';
+  var REDUCIDO = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var NIVELES = ['Recordar', 'Comprender', 'Aplicar', 'Analizar', 'Evaluar', 'Crear'];
+  var AREA_DIA = { 0: '#9a9a9a', 1: '#3566a8', 2: '#0f7d5c', 3: '#c98a2e', 4: '#b8412f' };
+  var AREA_NOCHE = { 0: '#8c93a3', 1: '#5b93e6', 2: '#27a97c', 3: '#b0801c', 4: '#e0567a' };
+  var AREA_NOMBRE = { 0: 'Sin área', 1: 'Físico-Matemáticas e Ingenierías', 2: 'Biológicas, Químicas y de la Salud', 3: 'Ciencias Sociales', 4: 'Humanidades y Artes' };
+  var AREA_CORTO = { 0: 'Sin área', 1: 'Físico-Matemáticas', 2: 'Biológicas y Salud', 3: 'Ciencias Sociales', 4: 'Humanidades y Artes' };
+  var NIVEL_DIA = ['#9cc3e6', '#5b95cf', '#2d65a8', '#143a6b'], NIVEL_NOCHE = ['#3f67a0', '#4f82c4', '#86b3ec', '#cfe3ff'];
+  var GRADOS = ['Licenciatura', 'Especialidad', 'Maestría', 'Doctorado'];
+  // Léxico de Bloom (determinista, sin IA): verbo rector en infinitivo -> nivel. Extracto;
+  // el completo sale de thesis.py corregido (sin verbos repetidos en dos niveles).
+  var LEXICO = {
+    recordar: 0, reconocer: 0, identificar: 0, enumerar: 0, describir: 0, definir: 0, listar: 0, nombrar: 0,
+    comprender: 1, explicar: 1, interpretar: 1, resumir: 1, clasificar: 1, contextualizar: 1, caracterizar: 1,
+    aplicar: 2, utilizar: 2, implementar: 2, emplear: 2, calcular: 2, resolver: 2, modelar: 2,
+    analizar: 3, comparar: 3, contrastar: 3, examinar: 3, diferenciar: 3, relacionar: 3, correlacionar: 3,
+    evaluar: 4, valorar: 4, juzgar: 4, justificar: 4, argumentar: 4, criticar: 4, verificar: 4, medir: 4,
+    crear: 5, proponer: 5, disenar: 5, formular: 5, sugerir: 5, construir: 5, elaborar: 5, desarrollar: 5, planear: 5
+  };
+  var S = { datos: null, ia: null, macros: [], colorDia: {}, colorNoche: {}, escritura: {}, puntos: null };
+
+  function $(id) { return document.getElementById(id); }
+  function esc(s) { var d = document.createElement('div'); d.textContent = s == null ? '' : String(s); return d.innerHTML; }
+  function fmt(n) { return Number(n).toLocaleString('es-MX'); }
+  function pct(f) { return Math.round(f * 100) + '%'; }
+  function capital(t) { t = String(t || ''); return t.charAt(0).toUpperCase() + t.slice(1); }
+  function escribir(t) { return String(t || '').replace(/[a-z0-9ñü]+/g, function (w) { return S.escritura[w] || w; }); }
+  function tituloTesis(t) { return String(t || '').replace(/^([^A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9]*)([a-záéíóúüñ])/, function (m, p, l) { return p + l.toUpperCase(); }); }
+  function sinAcento(t) { return String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase(); }
+  function nombreTema(label, max) {
+    max = max || 2;
+    var kws = String(label || '').split(' · ').map(function (s) { return s.trim(); }).filter(Boolean), chosen = [], union = {};
+    kws.forEach(function (kw) { var toks = kw.split(/\s+/); if (toks.every(function (t) { return union[t]; })) return; chosen.push({ kw: kw, toks: toks }); toks.forEach(function (t) { union[t] = true; }); });
+    chosen = chosen.filter(function (c) { return !chosen.some(function (o) { return o !== c && o.toks.length > c.toks.length && c.toks.every(function (t) { return o.toks.indexOf(t) >= 0; }); }); });
+    return chosen.slice(0, max).map(function (c) { return capital(escribir(c.kw)); }).join(' – ');
+  }
+  function lugar(t) { return capital(escribir(String(t || '').replace(/\s+unam$/, ''))); }
+  function noche() { return document.body.classList.contains('noche'); }
+  function tok(n) { return getComputedStyle(document.body).getPropertyValue(n).trim(); }
+  function areaHex(a) { return (noche() ? AREA_NOCHE : AREA_DIA)[a || 0]; }
+  function colorCampo(id) { return (noche() ? S.colorNoche : S.colorDia)[id] || tok('--ink-3'); }
+  function espera(ms) { return new Promise(function (r) { setTimeout(r, REDUCIDO ? 0 : ms); }); }
+  function mostrar(root, sel, paso) { root.querySelectorAll(sel).forEach(function (el, i) { setTimeout(function () { el.classList.add('vis'); }, REDUCIDO ? 0 : i * (paso || 60)); }); }
+  function contar(arr, f) { var m = new Map(); arr.forEach(function (x) { var k = f(x); if (k == null || k === '') return; m.set(k, (m.get(k) || 0) + 1); }); return Array.from(m.entries()).sort(function (a, b) { return b[1] - a[1]; }); }
+  var ICO_GUARDAR = '<svg class="ico" viewBox="0 0 16 16"><path d="M4 2.5h8v11l-4-3-4 3z"/></svg>';
+  function btnGuardar(id) { return '<button type="button" class="guardar" data-tid="' + esc(id) + '" aria-pressed="false" title="Guardar en tu espacio">' + ICO_GUARDAR + '</button>'; }
+  function enlaceTesis(t) { return '<a class="tt" href="../../index.html?tesis=' + encodeURIComponent(t.id) + '">' + esc(tituloTesis(t.titulo)) + '</a>'; }
+
+  // ---------- paleta de campos: la misma del atlas ----------
+  function oklch(L, C, hDeg) {
+    var h = hDeg * Math.PI / 180, a = C * Math.cos(h), b = C * Math.sin(h);
+    var l_ = L + 0.3963377774 * a + 0.2158037573 * b, m_ = L - 0.1055613458 * a - 0.0638541728 * b, s_ = L - 0.0894841775 * a - 1.2914855480 * b;
+    var l = l_ * l_ * l_, m = m_ * m_ * m_, s = s_ * s_ * s_;
+    var rgb = [4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s, -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s, -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s];
+    return '#' + rgb.map(function (v) { v = v <= 0.0031308 ? 12.92 * v : 1.055 * Math.pow(v, 1 / 2.4) - 0.055; return ('0' + Math.round(Math.max(0, Math.min(1, v)) * 255).toString(16)).slice(-2); }).join('');
+  }
+  function paleta() {
+    var ms = S.macros, mx = 0, my = 0;
+    ms.forEach(function (m) { mx += m.position.x; my += m.position.y; }); mx /= ms.length; my /= ms.length;
+    var order = ms.map(function (m, i) { return { i: i, a: Math.atan2(m.position.y - my, m.position.x - mx) }; }).sort(function (a, b) { return a.a - b.a; });
+    var Ls = [0.50, 0.60, 0.69], Cs = [0.13, 0.135, 0.12], LsN = [0.66, 0.73, 0.80], CsN = [0.14, 0.13, 0.115];
+    order.forEach(function (o, rank) {
+      var hue = (o.a * 180 / Math.PI + 360 + 150 + [0, 14, -14][rank % 3]) % 360;
+      S.colorDia[ms[o.i].macroId] = oklch(Ls[rank % 3], Cs[rank % 3], hue);
+      S.colorNoche[ms[o.i].macroId] = oklch(LsN[rank % 3], CsN[rank % 3], hue);
+    });
+  }
+
+  // ---------- mascota ----------
+  function limb(d, w, atras) { return '<path class="borde" d="' + d + '" stroke-width="' + (w + 4) + '"/><path class="relleno' + (atras ? ' atras' : '') + '" d="' + d + '" stroke-width="' + w + '"/>'; }
+  function mano(x, y, atras) { return '<circle cx="' + x + '" cy="' + y + '" r="7.5" class="pie"' + (atras ? ' style="fill:var(--m-back)"' : '') + '/>'; }
+  function piernas(dy) { dy = dy || 0; return limb('M82 160 L79 ' + (218 + dy), 8) + limb('M110 162 L114 ' + (218 + dy), 8) + '<ellipse cx="88" cy="' + (223 + dy) + '" rx="14" ry="6.5" class="pie"/><ellipse cx="124" cy="' + (223 + dy) + '" rx="14" ry="6.5" class="pie"/>'; }
+  function cuerpo(cy) { return '<circle cx="95" cy="' + (cy || 95) + '" r="68" class="cuerpo"/>'; }
+  function ojo(x, y, px, py) { return '<ellipse cx="' + x + '" cy="' + y + '" rx="9" ry="12.5" class="ojo"/><circle cx="' + (x + px) + '" cy="' + (y + py) + '" r="5" class="pupila"/>'; }
+  var POSE = {
+    investiga: piernas() + cuerpo() + limb('M118 158 Q128 176 150 152 Q160 138 166 128', 7) + mano(166, 128) + limb('M140 146 Q146 132 150 124', 6) + mano(150, 122) +
+      ojo(148, 92, 3, 1) + '<path class="trazo" d="M137 70 q9 -9 20 1"/><path class="trazo" d="M150 118 h7" stroke-width="2.5"/>' +
+      '<line x1="170" y1="124" x2="158" y2="140" class="lupa-mango"/><circle cx="186" cy="100" r="22" class="lupa-vidrio"/><path class="brillo" d="M174 92 q4 -8 12 -9"/>',
+    celebra: limb('M50 40 Q34 22 30 0', 7, true) + mano(30, -4, true) + piernas(-10) + cuerpo(86) + limb('M142 38 Q160 22 164 0', 7) + mano(164, -4) +
+      '<path class="trazo" d="M120 80 q7 -9 14 0 M141 80 q7 -9 14 0"/><path d="M126 98 q12 16 26 0 z" fill="#1a1a1a"/>' +
+      '<path class="trazo aire" d="M20 60 l-8 -4 M24 44 l-9 0 M190 40 l8 -3 M192 58 l9 1" stroke-width="2.5"/>',
+    senala: piernas() + cuerpo() + limb('M152 122 Q176 118 196 112', 7) + mano(198, 111) + ojo(140, 90, 3, 0) + ojo(160, 90, 3, 0) +
+      '<path class="trazo" d="M130 70 q9 -6 20 1"/><path class="trazo" d="M145 116 q8 6 16 0"/>'
+  };
+  function pose(svg, p) { svg.innerHTML = POSE[p]; }
+  function colorMascota(c) { document.documentElement.style.setProperty('--m', c); }
+
+  // ---------- estado ----------
+  // Un guion por sección, en el orden de la página. Mientras se prepara el análisis, cada guion se
+  // llena cuando su sección está lista (en el orden en que llegan). Al terminar, la barra hace de
+  // cabecera de página: dice en qué sección vas y llena los guiones hasta ella.
+  var SECCIONES = [
+    { id: 'inicio', nombre: 'Planteamiento y ubicación' },
+    { id: 's2', nombre: 'Preguntas de investigación sugeridas' },
+    { id: 's3', nombre: 'Objetivos' },
+    { id: 's5', nombre: 'Asesores de tesis parecidas' },
+    { id: 's4', nombre: 'Las 100 tesis más parecidas' }
+  ];
+  var terminado = false, actual = -1, corrida = 0;
+  function estado(txt, p) { $('estado-txt').innerHTML = txt; if (p) pose($('m-estado'), p); }
+  function elSeccion(i) { return i === 0 ? document.querySelector('.inicio') : $(SECCIONES[i].id); }
+  function pintarPasos() {
+    $('pasos').innerHTML = SECCIONES.map(function (s) { return '<button type="button" disabled title="' + s.nombre + '" aria-label="' + s.nombre + '"></button>'; }).join('');
+  }
+  function listo(id) {
+    var i = SECCIONES.findIndex(function (s) { return s.id === id; }), b = $('pasos').children[i];
+    b.classList.add('ok'); b.disabled = false;
+  }
+  function seccionActual() {
+    // la última sección cuyo inicio ya pasó por el primer tercio de la pantalla; al fondo, la última
+    var linea = window.innerHeight * 0.35, i = 0;
+    if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) return SECCIONES.length - 1;
+    SECCIONES.forEach(function (s, k) { if (elSeccion(k).getBoundingClientRect().top <= linea) i = k; });
+    return i;
+  }
+  function cabecera() {
+    if (!terminado) return;
+    var i = seccionActual(); if (i === actual) return;
+    actual = i; estado('<b>' + SECCIONES[i].nombre + '</b>');
+    Array.prototype.forEach.call($('pasos').children, function (b, k) { b.classList.toggle('ok', k <= i); b.setAttribute('aria-current', k === i ? 'true' : 'false'); });
+  }
+  var cabeceraPendiente = false;
+  window.addEventListener('scroll', function () { if (cabeceraPendiente) return; cabeceraPendiente = true; requestAnimationFrame(function () { cabeceraPendiente = false; cabecera(); }); }, { passive: true });
+  $('pasos').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b || b.disabled) return;
+    var i = Array.prototype.indexOf.call(this.children, b), comp = REDUCIDO ? 'auto' : 'smooth';
+    if (i === 0) window.scrollTo({ top: 0, behavior: comp }); else elSeccion(i).scrollIntoView({ behavior: comp, block: 'start' });
+  });
+  function abrir(id) { var sec = $(id); sec.querySelector('.pendiente').hidden = true; var c = sec.querySelector('.cuerpo'); c.hidden = false; return c; }
+
+  // ---------- lomo: el título aparece en el borde cuando el de la ficha sale de la vista ----------
+  function pintarLomo() {
+    var e = S.datos.entrada;
+    $('lomo-txt').innerHTML = '<b>' + esc(e.title) + '</b><span>' + esc(e.degree) + ' en ' + esc(e.program) + '</span><span>' + new Date().getFullYear() + '</span>';
+    if (!('IntersectionObserver' in window)) { $('lomo-txt').classList.add('vis'); return; }
+    new IntersectionObserver(function (en) { $('lomo-txt').classList.toggle('vis', !en[0].isIntersecting); }, { rootMargin: '-110px 0px 0px 0px' }).observe($('titulo'));
+  }
+
+  // ======================= mapa (arriba) =======================
+  var vistaTotal = null, vistaFinal = null, faseMapa = 0;
+  function hex2rgb(h) { h = h.replace('#', ''); return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)]; }
+  function mezcla(c, bg, k) { return [0, 1, 2].map(function (i) { return Math.round(c[i] * k + bg[i] * (1 - k)); }); }
+  function u32(c) { return (255 << 24) | (c[2] << 16) | (c[1] << 8) | c[0]; }
+  function dibujarMapa(v) {
+    var cv = $('mapa'), dpr = window.devicePixelRatio || 1;
+    cv.width = Math.round(cv.clientWidth * dpr); cv.height = Math.round(cv.clientHeight * dpr);
+    var ctx = cv.getContext('2d'), img = ctx.createImageData(cv.width, cv.height), buf = new Uint32Array(img.data.buffer);
+    var P = S.puntos, s = Math.min(cv.width / (v.x1 - v.x0), cv.height / (v.y1 - v.y0));
+    var ox = (cv.width - (v.x1 - v.x0) * s) / 2, oy = (cv.height - (v.y1 - v.y0) * s) / 2, W = cv.width, H = cv.height;
+    var bg = hex2rgb(tok('--paper')), cols = {}, colsFuerte = {};
+    // cada tesis en el color de su área administrativa, suave; las de los dos campos de tu tesis, plenas
+    [0, 1, 2, 3, 4].forEach(function (a) { var c = hex2rgb(areaHex(a)); cols[a] = u32(mezcla(c, bg, noche() ? 0.55 : 0.48)); colsFuerte[a] = u32(c); });
+    var campos = {}; S.datos.ubicacion.campo.slice(0, 2).forEach(function (c) { campos[c.id] = true; });
+    buf.fill(u32(bg));
+    var tam = Math.max(1, Math.round(dpr)); // puntos de 1 px CSS; los de tus dos campos, un poco mayores
+    for (var fase = 0; fase < 2; fase++) {
+      for (var i = 0; i < P.n; i++) {
+        var enCampo = campos[P.macro[i]] === true;
+        if ((fase === 1) !== enCampo) continue;
+        var px = (ox + (P.x[i] - v.x0) * s) | 0, py = (oy + (v.y1 - P.y[i]) * s) | 0;
+        if (px < 0 || py < 0 || px >= W || py >= H) continue;
+        var c = enCampo ? colsFuerte[P.area[i]] : cols[P.area[i]], t = enCampo ? tam + 1 : tam;
+        for (var dy = 0; dy < t && py + dy < H; dy++) for (var dx = 0; dx < t && px + dx < W; dx++) buf[(py + dy) * W + px + dx] = c;
+      }
+    }
+    ctx.putImageData(img, 0, 0);
+    return function (x, y) { return [(ox + (x - v.x0) * s) / dpr, (oy + (v.y1 - y) * s) / dpr]; };
+  }
+  function capaMapa(proy) {
+    S.proy = proy;
+    var d = S.datos, s = '', W = $('mapa').clientWidth, u = proy(d.ubicacion.posicion.x, d.ubicacion.posicion.y);
+    if (faseMapa >= 1) {
+      d.ubicacion.campo.slice(0, 2).forEach(function (c) {
+        var m = S.macros.find(function (mm) { return mm.macroId === c.id; }); if (!m) return;
+        var p = proy(m.position.x, m.position.y);
+        if (Math.hypot(p[0] - u[0], p[1] - u[1]) < 40) p[1] = u[1] + 32;
+        s += '<text class="rotulo halo-txt" x="' + p[0] + '" y="' + p[1] + '" text-anchor="middle">' + esc(c.nombre) + '</text>';
+      });
+      S.datos.tesis_cercanas.forEach(function (t) {
+        var p = proy(t.x, t.y), on = t.thesis_id === S.hover;
+        s += '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="' + (on ? 6.5 : 3.4) + '" fill="var(--ink)" stroke="var(--paper)" stroke-width="' + (on ? 2 : 1) + '"/>';
+      });
+    }
+    if (faseMapa >= 2) {
+      var izq = u[0] + 150 > W, lx = izq ? u[0] - 30 : u[0] + 30, ly = Math.max(24, u[1] - 30);
+      s += '<path d="M' + u[0] + ' ' + u[1] + ' L' + lx + ' ' + (ly + 5) + '" stroke="var(--ink)" stroke-width="1.5" fill="none"/>' +
+        '<circle cx="' + u[0] + '" cy="' + u[1] + '" r="8" fill="var(--m)" stroke="var(--ink)" stroke-width="2"/>' +
+        '<text class="halo-txt" x="' + lx + '" y="' + ly + '" text-anchor="' + (izq ? 'end' : 'start') + '" font-weight="700" font-size="13">MI TESIS</text>';
+    }
+    $('mapa-capa').innerHTML = s;
+  }
+  // al pasar por una tesis cercana en el análisis, su punto crece en el mapa de la derecha
+  document.addEventListener('pointerover', function (e) {
+    var a = e.target.closest && e.target.closest('.page a.tt'), id = a ? decodeURIComponent((a.getAttribute('href').split('tesis=')[1] || '')) : null;
+    if (id === S.hover || !S.proy || faseMapa < 1) return;
+    S.hover = id; capaMapa(S.proy);
+  });
+  function vistas() {
+    var P = S.puntos, x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+    for (var i = 0; i < P.n; i++) { var x = P.x[i], y = P.y[i]; if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+    vistaTotal = { x0: x0, x1: x1, y0: y0, y1: y1 };
+    var d = S.datos, xs = [d.ubicacion.posicion.x], ys = [d.ubicacion.posicion.y];
+    d.tesis_cercanas.forEach(function (t) { xs.push(t.x); ys.push(t.y); });
+    d.ubicacion.campo.slice(0, 2).forEach(function (c) { var m = S.macros.find(function (mm) { return mm.macroId === c.id; }); if (m) { xs.push(m.position.x); ys.push(m.position.y); } });
+    var cx = (Math.min.apply(null, xs) + Math.max.apply(null, xs)) / 2, cy = (Math.min.apply(null, ys) + Math.max.apply(null, ys)) / 2;
+    var r = Math.max(Math.max.apply(null, xs) - Math.min.apply(null, xs), Math.max.apply(null, ys) - Math.min.apply(null, ys)) * 0.95 + 1.2;
+    var asp = $('mapa').clientWidth / $('mapa').clientHeight;
+    vistaFinal = { x0: cx - r * asp / 2, x1: cx + r * asp / 2, y0: cy - r / 2, y1: cy + r / 2 };
+  }
+  function animarCamara(dur) {
+    return new Promise(function (res) {
+      var t0 = performance.now();
+      function lerp(a, b, k) { return a + (b - a) * k; }
+      function frame(now) {
+        var k = REDUCIDO ? 1 : Math.min(1, (now - t0) / dur), e = k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+        dibujarMapa({ x0: lerp(vistaTotal.x0, vistaFinal.x0, e), x1: lerp(vistaTotal.x1, vistaFinal.x1, e), y0: lerp(vistaTotal.y0, vistaFinal.y0, e), y1: lerp(vistaTotal.y1, vistaFinal.y1, e) });
+        if (k < 1) requestAnimationFrame(frame); else res();
+      }
+      requestAnimationFrame(frame);
+    });
+  }
+  function leyendaAreas() {
+    $('leyenda-areas').innerHTML = [1, 2, 3, 4].map(function (a) { return '<span title="' + AREA_NOMBRE[a] + '"><i style="background:' + areaHex(a) + '"></i>' + AREA_CORTO[a] + '</span>'; }).join('') +
+      '';
+  }
+
+  // ======================= 1. comprendí =======================
+  function periodo(t) {
+    var W = 520, H = 58, a0 = 1840, a1 = 2026, x = function (y) { return 12 + (y - a0) / (a1 - a0) * (W - 24); };
+    var s = '<svg class="graf periodo" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Periodo de estudio ' + t.start + ' a ' + t.end + '">';
+    s += '<line class="eje" x1="12" x2="' + (W - 12) + '" y1="34" y2="34"/>';
+    [1850, 1900, 1950, 2000].forEach(function (y) { s += '<line class="eje" x1="' + x(y) + '" x2="' + x(y) + '" y1="31" y2="37"/><text class="t-3" x="' + x(y) + '" y="54" text-anchor="middle">' + y + '</text>'; });
+    s += '<line class="crece-x" x1="' + x(t.start) + '" x2="' + x(t.end) + '" y1="34" y2="34" stroke="var(--c)" stroke-width="4"/>' +
+      '<circle cx="' + x(t.start) + '" cy="34" r="6" fill="var(--c)"/><circle cx="' + x(t.end) + '" cy="34" r="6" fill="var(--c)"/>' +
+      '<text class="t-ink" x="' + x(t.start) + '" y="18" text-anchor="middle" font-weight="700" font-size="13">' + t.start + '</text>' +
+      '<text class="t-ink" x="' + x(t.end) + '" y="18" text-anchor="middle" font-weight="700" font-size="13">' + t.end + '</text>';
+    return s + '</svg>';
+  }
+  function renderNota(c) {
+    var n = S.ia.nota, sc = n.scope;
+    // el problema tal como lo planteó el autor (Problematiza) y luego lo que la lectura agrega
+    c.innerHTML = '<p class="problematiza aparece">' + esc(S.datos.entrada.problematiza) + '</p>' +
+      '<dl class="filas aparece">' +
+        '<dt>Periodo</dt><dd>' + periodo(sc.temporal) + '</dd>' +
+        '<dt>Espacio</dt><dd>' + esc(sc.geographic.units.join(' y ')) + '</dd>' +
+        '<dt>Enfoque</dt><dd>' + esc(n.interpretive_angle) + '</dd>' +
+      '</dl>';
+    mostrar(c, '.aparece', 120);
+    setTimeout(function () { mostrar(c, '.crece-x', 0); }, REDUCIDO ? 0 : 300);
+    // los objetos de estudio suben a la ficha, uno por uno
+    var ob = $('objetos');
+    ob.innerHTML = n.main_objects.map(function (o) { return '<li><i></i><span>' + esc(capital(o)) + '</span></li>'; }).join('');
+    $('objetos-h').hidden = false; mostrar(ob, 'li', 110);
+  }
+
+  // ======================= 2. preguntas =======================
+  // Cada tipo de pregunta tiene un nombre y un diagrama fijos (SVG pregenerado, sin IA).
+  // Trazo del campo = lo que la pregunta pone en juego; gris = el contexto.
+  var FLECHA = function (x, y, ang, col) { var a = ang * Math.PI / 180, p = function (d, o) { return (x - 7 * Math.cos(a + o)).toFixed(1) + ' ' + (y - 7 * Math.sin(a + o)).toFixed(1); }; return '<path d="M' + p(0, 0.45) + ' L' + x + ' ' + y + ' L' + p(0, -0.45) + '" fill="none" stroke="' + col + '" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>'; };
+  var TIPO_Q = {
+    Comparativa: { nombre: 'Comparación', svg: function () {
+      // dos casos frente a frente, rasgo por rasgo
+      var s = '', L = [30, 18, 25], R = [20, 29, 13];
+      L.forEach(function (w, i) { s += '<rect x="' + (55 - w) + '" y="' + (10 + i * 20) + '" width="' + w + '" height="10" fill="var(--ink-3)" fill-opacity=".55"/>'; });
+      R.forEach(function (w, i) { s += '<rect x="65" y="' + (10 + i * 20) + '" width="' + w + '" height="10" fill="var(--c)"/>'; });
+      return s + '<line x1="60" x2="60" y1="4" y2="66" stroke="var(--line-strong)"/>';
+    } },
+    Histórica: { nombre: 'Rastreo', svg: function () {
+      // seguir un proceso a lo largo del tiempo
+      var pts = [[12, 44], [38, 30], [64, 38], [92, 16]], s = '<line x1="4" x2="116" y1="60" y2="60" stroke="var(--line-strong)"/>';
+      pts.forEach(function (p) { s += '<line x1="' + p[0] + '" x2="' + p[0] + '" y1="57" y2="63" stroke="var(--line-strong)"/>'; });
+      s += '<polyline points="' + pts.map(function (p) { return p.join(','); }).join(' ') + ' 112,10" fill="none" stroke="var(--c)" stroke-width="2"/>' + FLECHA(112, 10, -17, 'var(--c)');
+      pts.forEach(function (p) { s += '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="4" fill="var(--paper)" stroke="var(--c)" stroke-width="2"/>'; });
+      return s;
+    } },
+    Causal: { nombre: 'Explicación', svg: function () {
+      // una causa, un efecto y otra causa posible que hay que descartar
+      return '<circle cx="18" cy="44" r="10" fill="none" stroke="var(--c)" stroke-width="2"/>' +
+        '<line x1="30" x2="86" y1="44" y2="44" stroke="var(--c)" stroke-width="2"/>' + FLECHA(88, 44, 0, 'var(--c)') +
+        '<circle cx="102" cy="44" r="10" fill="var(--c)"/>' +
+        '<circle cx="60" cy="10" r="6" fill="none" stroke="var(--ink-3)" stroke-width="1.5"/>' +
+        '<path d="M66 14 Q88 20 95 32" fill="none" stroke="var(--ink-3)" stroke-width="1.5" stroke-dasharray="3 3"/>' + FLECHA(96, 34, 60, 'var(--ink-3)');
+    } },
+    Evaluativa: { nombre: 'Evaluación', svg: function () {
+      // medir contra un criterio explícito
+      var H = [34, 50, 22, 44], s = '';
+      H.forEach(function (h, i) { var ok = h >= 36; s += '<rect x="' + (12 + i * 26) + '" y="' + (62 - h) + '" width="16" height="' + h + '" fill="' + (ok ? 'var(--c)' : 'var(--ink-3)') + '"' + (ok ? '' : ' fill-opacity=".45"') + '/>'; });
+      return s + '<line x1="4" x2="116" y1="26" y2="26" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="5 3"/><line x1="4" x2="116" y1="62" y2="62" stroke="var(--line-strong)"/>';
+    } },
+    Prospectiva: { nombre: 'Prospectiva', svg: function () {
+      // del pasado conocido a escenarios posibles
+      return '<path d="M58 34 L114 8 L114 60 Z" fill="var(--c)" fill-opacity=".14"/>' +
+        '<polyline points="6,50 22,44 40,40 58,34" fill="none" stroke="var(--ink-3)" stroke-width="2"/>' +
+        [12, 34, 54].map(function (y) { return '<line x1="58" y1="34" x2="112" y2="' + y + '" stroke="var(--c)" stroke-width="1.8" stroke-dasharray="4 3"/>'; }).join('') +
+        '<circle cx="58" cy="34" r="4" fill="var(--c)"/>';
+    } },
+    Exploratoria: { nombre: 'Exploración', svg: function () {
+      // abrir un terreno poco estudiado
+      var P = [[10, 14], [22, 50], [34, 28], [48, 58], [96, 12], [108, 52], [84, 60], [16, 34]], s = '';
+      P.forEach(function (p) { s += '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="2.6" fill="var(--ink-3)" fill-opacity=".6"/>'; });
+      s += '<circle cx="70" cy="32" r="20" fill="none" stroke="var(--c)" stroke-width="2"/>';
+      [[64, 26], [76, 34], [68, 40]].forEach(function (p) { s += '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="3" fill="var(--c)"/>'; });
+      return s;
+    } }
+  };
+  function renderPreguntas(c) {
+    c.innerHTML = '<ol class="preguntas">' + S.ia.preguntas.items.map(function (q) {
+      var t = TIPO_Q[q.type] || TIPO_Q.Exploratoria;
+      return '<li class="aparece"><div class="tipo-q"><b>' + t.nombre + '</b><svg viewBox="0 0 120 72" aria-hidden="true">' + t.svg() + '</svg></div><div>' +
+        '<p class="q">' + esc(q.question) + '</p><p class="metodo"><b>Método:</b> ' + esc(q.methodological_angle) + '</p>' +
+        '</div></li>';
+    }).join('') + '</ol>';
+    mostrar(c, '.aparece', 160);
+  }
+
+  // ======================= 3. Bloom: dos escaleras, niveles por léxico =======================
+  function verboRector(obj) {
+    var t = sinAcento(obj).replace(/^(se\s+)/, '').split(/[^a-zñ]+/).filter(Boolean);
+    for (var i = 0; i < Math.min(3, t.length); i++) {
+      var w = t[i], cand = [w, w.replace(/(ara|era|ira)$/, 'ar').replace(/(are|ere|ire)$/, 'ar'), w.replace(/ando$/, 'ar').replace(/iendo$/, 'er')];
+      for (var k = 0; k < cand.length; k++) if (LEXICO.hasOwnProperty(cand[k])) return { verbo: t[i], nivel: LEXICO[cand[k]] };
+    }
+    return { verbo: t[0] || '', nivel: -1 };
+  }
+  function escalera(items, color, titulo) {
+    // items: [{verbo, nivel, texto, extra}]. Los tramos entre niveles con objetivo son continuos si los
+    // niveles son contiguos y punteados si se salta alguno. Todo determinista: no usa IA.
+    var W = 420, H = 250, pw = (W - 12) / 6, base = 208, alto = 26, y = function (i) { return base - (i + 1) * alto; };
+    var porNivel = {}; items.forEach(function (it) { if (it.nivel >= 0) (porNivel[it.nivel] = porNivel[it.nivel] || []).push(it); });
+    var niveles = Object.keys(porNivel).map(Number).sort(function (a, b) { return a - b; });
+    var s = '<svg class="graf" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + esc(titulo) + '">';
+    var d = 'M6 ' + base; NIVELES.forEach(function (n, i) { d += ' V' + y(i) + ' H' + (6 + (i + 1) * pw); }); d += ' V' + base + ' Z';
+    s += '<path d="' + d + '" fill="none" stroke="var(--line)" stroke-width="1"/>';
+    NIVELES.forEach(function (n, i) {
+      var x = 6 + i * pw, lleno = !!porNivel[i];
+      s += '<line x1="' + x + '" x2="' + (x + pw) + '" y1="' + y(i) + '" y2="' + y(i) + '" stroke="' + (lleno ? color : 'var(--line-strong)') + '" stroke-width="' + (lleno ? 4 : 1.5) + '"/>' +
+        '<text x="' + (x + pw / 2) + '" y="' + (base + 18) + '" text-anchor="middle" font-size="11.5" class="' + (lleno ? 't-ink' : 't-3') + '"' + (lleno ? ' font-weight="600"' : '') + '>' + n + '</text>';
+    });
+    for (var k = 1; k < niveles.length; k++) {
+      var a = niveles[k - 1], b = niveles[k], x1 = 6 + a * pw + pw / 2, x2 = 6 + b * pw + pw / 2, salto = b - a > 1;
+      s += '<path d="M' + x1 + ' ' + (y(a) - 30) + ' Q' + ((x1 + x2) / 2) + ' ' + (y(b) - 58) + ' ' + x2 + ' ' + (y(b) - 30) + '" fill="none" stroke="' + (salto ? 'var(--ink-3)' : color) + '" stroke-width="1.6"' + (salto ? ' stroke-dasharray="4 4"' : '') + '/>';
+      if (salto) s += '<text class="t-3 halo-txt" x="' + ((x1 + x2) / 2) + '" y="' + ((y(a) + y(b)) / 2 - 50) + '" text-anchor="middle" font-size="11" font-style="italic">sin ' + esc(NIVELES.slice(a + 1, b).join(', ')) + '</text>';
+    }
+    niveles.forEach(function (i) {
+      porNivel[i].forEach(function (it, j) {
+        var x = 6 + i * pw + pw / 2, yy = y(i) - 10 - j * 16;
+        s += '<g class="esc-verbo" data-tip="' + esc(JSON.stringify({ t: it.texto, e: it.extra || '' })) + '"><rect x="' + (x - pw / 2) + '" y="' + (yy - 14) + '" width="' + pw + '" height="18" fill="transparent"/>' +
+          '<text class="t-ink v halo-txt" x="' + x + '" y="' + yy + '" text-anchor="middle" font-size="13" font-weight="700">' + esc(it.verbo) + '</text></g>';
+      });
+    });
+    return s + '</svg>';
+  }
+  function renderBloom(c) {
+    var b = S.ia.bloom;
+    var autor = b.objectives.map(function (o) { var v = verboRector(o.original); return { verbo: v.verbo, nivel: v.nivel, texto: o.original, extra: o.diagnosis + ' ' + o.improvement }; });
+    var prop = b.revised.map(function (r) { var v = verboRector(r.text); return { verbo: v.verbo, nivel: v.nivel, texto: r.text }; });
+    var sinNivel = autor.filter(function (a) { return a.nivel < 0; });
+    c.innerHTML = '<p class="riesgo aparece">' + esc(b.main_risk) + '</p>' +
+      '<div class="dos-esc">' +
+        '<div class="aparece"><h3>Tus objetivos</h3>' + escalera(autor, 'var(--ink)', 'Tus objetivos en la escalera de Bloom') +
+          (sinNivel.length ? '<p class="chico ink3">Sin nivel claro: ' + sinNivel.map(function (a) { return '<b>' + esc(a.verbo) + '</b>'; }).join(', ') + '. Elige un verbo que diga qué harás exactamente.</p>' : '') + '</div>' +
+        '<div class="aparece"><h3>Propuesta</h3>' + escalera(prop, 'var(--c)', 'Objetivos propuestos en la escalera de Bloom') +
+          '<ol class="revisados">' + prop.map(function (r) { return '<li><span class="nv">' + (r.nivel >= 0 ? NIVELES[r.nivel] : '') + '</span><span>' + esc(r.texto) + '</span></li>'; }).join('') + '</ol></div>' +
+      '</div>';
+    mostrar(c, '.aparece', 200);
+  }
+  document.addEventListener('pointermove', function (e) {
+    var g = e.target.closest && e.target.closest('.esc-verbo'), tip = $('tip');
+    if (!g) { tip.hidden = true; return; }
+    var d = JSON.parse(g.getAttribute('data-tip'));
+    tip.innerHTML = '<b>' + esc(d.t) + '</b>' + (d.e ? '<p>' + esc(d.e) + '</p>' : '');
+    tip.hidden = false;
+    tip.style.left = Math.min(window.innerWidth - tip.offsetWidth - 12, e.clientX + 14) + 'px';
+    tip.style.top = (e.clientY + 16) + 'px';
+  });
+
+  // ======================= 4. las 100 parecidas: gráficas que filtran la lista =======================
+  // Una sola sección (antes «perfil» y «más cercanas»). Cada barra, año, área o nivel es un
+  // filtro; la lista de la derecha muestra las tesis que cumplen todos los filtros activos.
+  // Barra tenue = cuántas hay entre las 100; barra llena = cuántas quedan con los filtros.
+  var FACETAS = [
+    { f: 'campo', h: 'Campos' }, { f: 'tema', h: 'Temas' }, { f: 'subtema', h: 'Subtemas' },
+    { f: 'programa', h: 'Programas' }, { f: 'plantel', h: 'Planteles' }
+  ];
+  var FILTRO = {};
+  var FILTRO_TXT = { area: function (v) { return AREA_CORTO[v]; }, nivel: function (v) { return v; }, anio: function (v) { return String(v); } };
+  function claveDe(t, f) { var v = t[f]; return v == null ? '__x' : String(v); }
+  function nombreFaceta(f, k) {
+    var nm = S.datos.nombres;
+    if (k === '__x') return f === 'campo' ? 'Fuera de los grupos del atlas' : f === 'tema' || f === 'subtema' ? 'Sin ' + f + ' en el atlas' : 'Sin registro';
+    if (f === 'campo') return nm.campo[k] || k;
+    if (f === 'tema') return nombreTema(nm.tema[k]);
+    if (f === 'subtema') return nombreTema(nm.subtema[k]);
+    if (f === 'programa') return capital(escribir(k));
+    if (f === 'plantel') return lugar(k);
+    return k;
+  }
+  function colorFaceta(f, k) {
+    if (k === '__x') return 'var(--line-strong)';
+    if (f === 'campo') return colorCampo(+k);
+    if (f === 'tema' || f === 'subtema') { var t = S.vec.find(function (x) { return claveDe(x, f) === k; }); return t && t.campo != null ? colorCampo(t.campo) : 'var(--ink-3)'; }
+    if (f === 'programa') return areaHex(contar(S.vec.filter(function (x) { return x.programa === k; }), function (x) { return x.area; })[0][0]);
+    return 'var(--ink-3)';
+  }
+  function pasa(t, salvo) {
+    for (var f in FILTRO) { if (f === salvo) continue; if (claveDe(t, f) !== FILTRO[f]) return false; }
+    return true;
+  }
+  function filtradas() { return S.vec.filter(function (t) { return pasa(t); }); }
+  function toggleFiltro(f, v) {
+    if (FILTRO[f] === v) delete FILTRO[f]; else FILTRO[f] = v;
+    actualizarParecidas();
+    // en una columna la lista queda debajo de las gráficas: se lleva a la vista
+    if (window.innerWidth <= 860) document.querySelector('.par-lista').scrollIntoView({ behavior: REDUCIDO ? 'auto' : 'smooth', block: 'start' });
+  }
+
+  function facetaHtml(fa) {
+    var cnt = contar(S.vec, function (t) { return claveDe(t, fa.f); }).slice(0, 6), mx = cnt.length ? cnt[0][1] : 1;
+    return '<div class="cs aparece"><h3>' + fa.h + '</h3><div class="fbs">' + cnt.map(function (e) {
+      return '<button type="button" class="fb" data-f="' + fa.f + '" data-v="' + esc(e[0]) + '" style="--c:' + colorFaceta(fa.f, e[0]) + '">' +
+        '<span class="t"><span class="nm">' + esc(nombreFaceta(fa.f, e[0])) + '</span><b></b></span>' +
+        '<span class="trk" style="width:' + (e[1] / mx * 100).toFixed(1) + '%" data-tot="' + e[1] + '"><span class="b"></span></span></button>';
+    }).join('') + '</div></div>';
+  }
+  function histHtml() {
+    var ys = S.vec.map(function (t) { return t.anio; }).filter(Boolean), lo = Math.floor(Math.min.apply(null, ys) / 5) * 5, hi = Math.max(2026, Math.max.apply(null, ys));
+    var nb = hi - lo + 1, bins = new Array(nb).fill(0); ys.forEach(function (y) { bins[y - lo]++; });
+    var mx = Math.max.apply(null, bins), W = 1000, H = 110, s = '';
+    for (var dcd = Math.ceil(lo / 10) * 10; dcd <= hi; dcd += 10) s += '<text class="t-3" x="' + ((dcd - lo + 0.5) / nb * W) + '" y="' + (H + 26) + '" text-anchor="middle" font-size="26">' + dcd + '</text>';
+    bins.forEach(function (n, k) {
+      if (!n) return;
+      var x = k / nb * W + 1, w = Math.max(3, W / nb - 3), h = n / mx * H;
+      s += '<g class="hb" data-f="anio" data-v="' + (lo + k) + '" data-tot="' + n + '"><rect x="' + (x - 1) + '" y="0" width="' + (w + 2) + '" height="' + H + '" fill="transparent"/>' +
+        '<rect class="fantasma" x="' + x + '" y="' + (H - h) + '" width="' + w + '" height="' + h + '"/><rect class="lleno" x="' + x + '" y="' + (H - h) + '" width="' + w + '" height="' + h + '"/></g>';
+    });
+    s += '<line class="eje" x1="0" x2="' + W + '" y1="' + H + '" y2="' + H + '"/>';
+    return '<div class="cs aparece"><h3>Años</h3><svg class="graf hist" viewBox="0 0 1000 ' + (H + 30) + '" role="img" aria-label="Año de las 100 tesis más parecidas">' + s + '</svg>' +
+      '<p class="hist-tip chico ink3" id="hist-tip">Toca un año para ver sus tesis.</p></div>';
+  }
+  function donaHtml(v) {
+    var tot = S.vec.length, ar = contar(S.vec, function (t) { return t.area; }), sub = {}, S0 = 120, h = S0 / 2, SW = 16, R = h - SW / 2 - 2, C = 2 * Math.PI * R, off = 0, arcs = '';
+    v.forEach(function (t) { sub[t.area] = (sub[t.area] || 0) + 1; });
+    var n = v.length || 1;
+    ar.forEach(function (e) {
+      var k = sub[e[0]] || 0; if (!k) return;
+      var len = k / n * C, gap = Object.keys(sub).length > 1 ? Math.min(2, len / 2) : 0;
+      arcs += '<circle r="' + R.toFixed(2) + '" cx="' + h + '" cy="' + h + '" fill="none" stroke="' + areaHex(e[0]) + '" stroke-width="' + SW + '"' + (FILTRO.area != null && FILTRO.area !== String(e[0]) ? ' stroke-opacity=".25"' : '') + ' stroke-dasharray="' + (len - gap).toFixed(2) + ' ' + (C - len + gap).toFixed(2) + '" stroke-dashoffset="' + (-off).toFixed(2) + '" transform="rotate(-90 ' + h + ' ' + h + ')"/>';
+      off += len;
+    });
+    var leg = ar.map(function (e) {
+      var on = FILTRO.area === String(e[0]), k = sub[e[0]] || 0;
+      return '<button type="button" class="lg' + (on ? ' on' : '') + (k ? '' : ' cero') + '" data-f="area" data-v="' + e[0] + '"><i style="background:' + areaHex(e[0]) + '"></i><span>' + AREA_CORTO[e[0]] + '</span><b>' + k + (k !== e[1] ? '<span class="de"> de ' + e[1] + '</span>' : '') + '</b></button>';
+    }).join('');
+    return '<div class="cs-donut"><svg width="' + S0 + '" height="' + S0 + '" viewBox="0 0 ' + S0 + ' ' + S0 + '" aria-hidden="true">' + arcs +
+      '<text x="' + h + '" y="' + (h + 8) + '" text-anchor="middle" font-size="22" font-weight="700" style="fill:var(--ink)">' + (FILTRO.area != null ? (sub[FILTRO.area] || 0) : v.length) + '</text></svg><div class="lgs">' + leg + '</div></div>';
+  }
+  function nivelesHtml(v) {
+    var col = noche() ? NIVEL_NOCHE : NIVEL_DIA, tot = v.length || 1, x = 0, segs = '', lab = '';
+    GRADOS.forEach(function (g, k) {
+      var all = S.vec.filter(function (t) { return t.nivel === g; }).length, n = v.filter(function (t) { return t.nivel === g; }).length;
+      if (!all) return;
+      if (n) { var w = n / tot * 600; segs += '<rect x="' + x.toFixed(1) + '" y="0" width="' + Math.max(1, w - 2).toFixed(1) + '" height="12" fill="' + col[k] + '"/>'; x += w; }
+      lab += '<button type="button" class="lg' + (FILTRO.nivel === g ? ' on' : '') + (n ? '' : ' cero') + '" data-f="nivel" data-v="' + g + '"><i style="background:' + col[k] + '"></i><span>' + g + '</span><b>' + n + '</b></button>';
+    });
+    return '<svg width="100%" height="12" viewBox="0 0 600 12" preserveAspectRatio="none" aria-hidden="true">' + segs + '</svg><div class="lgs fila">' + lab + '</div>';
+  }
+  function filaTesis(t) {
+    var nv = GRADOS.indexOf(t.nivel) + 1, col = noche() ? NIVEL_NOCHE : NIVEL_DIA, dots = '';
+    for (var k = 0; k < 4; k++) dots += k < nv ? '<i style="background:' + col[k] + ';box-shadow:none"></i>' : '<i></i>';
+    return '<li><div><span class="ft-a"><span class="g-nv" title="' + esc(t.nivel) + '">' + dots + '</span>' + (t.anio || '') + '</span>' + enlaceTesis(t) +
+      '<span class="ft-r" style="--c:' + areaHex(t.area) + '"><i class="g-ar" title="' + AREA_NOMBRE[t.area] + '"></i><i class="g-pr"></i>' + esc(capital(escribir(t.programa || ''))) +
+      '<i class="g-pl"></i>' + esc(lugar(t.plantel)) + '</span></div>' + btnGuardar(t.id) + '</li>';
+  }
+  function renderParecidas(c) {
+    FILTRO = {};
+    c.innerHTML = '<div class="par">' +
+      '<div class="par-graf">' + histHtml() +
+        '<div class="cs aparece"><h3>Áreas</h3><div id="p-dona"></div></div>' +
+        '<div class="cs aparece"><h3>Niveles</h3><div id="p-niv"></div></div>' +
+        FACETAS.map(facetaHtml).join('') +
+      '</div>' +
+      '<div class="par-lista aparece">' +
+        '<div class="par-cab"><p class="par-n" id="p-n"></p><div class="filtros" id="p-filtros"></div></div>' +
+        '<ol class="par-ol" id="p-lista"></ol>' +
+        '<div class="par-pie"><button type="button" class="btn-cta" id="guardar-todas">' + ICO_GUARDAR + '<span></span></button></div>' +
+      '</div></div>';
+    c.onclick = function (e) {
+      var b = e.target.closest('[data-f]'); if (b && c.contains(b) && !b.classList.contains('guardar')) { toggleFiltro(b.getAttribute('data-f'), b.getAttribute('data-v')); return; }
+      var x = e.target.closest('[data-quita]'); if (x) { if (x.getAttribute('data-quita') === '*') FILTRO = {}; else delete FILTRO[x.getAttribute('data-quita')]; actualizarParecidas(); }
+    };
+    c.querySelector('.hist').addEventListener('pointermove', function (e) {
+      var g = e.target.closest('.hb'); if (!g) return;
+      var y = g.getAttribute('data-v'), n = S.vec.filter(function (t) { return String(t.anio) === y && pasa(t, 'anio'); }).length;
+      $('hist-tip').innerHTML = '<b class="t-ink">' + y + '</b>: ' + n + ' tesis. Toca para verlas.';
+    });
+    $('guardar-todas').onclick = function () {
+      var ids = filtradas().map(function (t) { return t.id; });
+      ids.forEach(function (id) { document.querySelectorAll('.guardar[data-tid="' + id + '"]').forEach(function (g) { g.classList.add('on'); g.setAttribute('aria-pressed', 'true'); }); });
+      this.classList.add('hecho'); this.querySelector('span').textContent = (ids.length === 1 ? 'Guardada' : 'Las ' + ids.length + ' están') + ' en tu espacio';
+    };
+    actualizarParecidas();
+    mostrar(c, '.aparece', 80);
+  }
+  function actualizarParecidas() {
+    var v = filtradas(), n = Object.keys(FILTRO).length;
+    var sin = function (f) { return S.vec.filter(function (t) { return pasa(t, f); }); };
+    $('p-dona').innerHTML = donaHtml(sin('area'));
+    $('p-niv').innerHTML = nivelesHtml(sin('nivel'));
+    // barras: la tenue es el total entre las 100; la llena, las que quedan con los demás filtros
+    document.querySelectorAll('#s4 .fb').forEach(function (b) {
+      var f = b.getAttribute('data-f'), val = b.getAttribute('data-v'), tot = +b.querySelector('.trk').getAttribute('data-tot');
+      var k = sin(f).filter(function (t) { return claveDe(t, f) === val; }).length;
+      b.querySelector('.b').style.width = (k / tot * 100).toFixed(1) + '%';
+      b.querySelector('b').innerHTML = k + (k !== tot ? '<span class="de"> de ' + tot + '</span>' : '');
+      b.classList.toggle('on', FILTRO[f] === val); b.classList.toggle('cero', !k);
+    });
+    document.querySelectorAll('#s4 .hb').forEach(function (g) {
+      var y = g.getAttribute('data-v'), tot = +g.getAttribute('data-tot'), k = sin('anio').filter(function (t) { return String(t.anio) === y; }).length;
+      g.querySelector('.lleno').style.transform = 'scaleY(' + (k / tot) + ')';
+      g.classList.toggle('on', FILTRO.anio === y);
+    });
+    $('p-n').innerHTML = n ? '<b>' + v.length + '</b> de 100 tesis' : 'Ordenadas por relevancia';
+    $('p-filtros').innerHTML = Object.keys(FILTRO).map(function (f) {
+      var txt = FILTRO_TXT[f] ? FILTRO_TXT[f](FILTRO[f]) : nombreFaceta(f, FILTRO[f]);
+      return '<button type="button" data-quita="' + f + '" title="Quitar filtro">' + esc(txt) + '<svg class="ico" viewBox="0 0 16 16"><path d="M4.5 4.5l7 7M11.5 4.5l-7 7"/></svg></button>';
+    }).join('') + (n > 1 ? '<button type="button" class="todos" data-quita="*">Quitar todos</button>' : '');
+    $('p-lista').innerHTML = v.map(filaTesis).join('') || '<li class="vacio">Ninguna tesis cumple a la vez estos filtros. Quita uno para ver más.</li>';
+    $('p-lista').scrollTop = 0;
+    var g = $('guardar-todas'); g.classList.remove('hecho'); g.hidden = !v.length;
+    g.querySelector('span').textContent = v.length === 1 ? 'Guardar esta tesis' : 'Guardar las ' + v.length;
+  }
+
+  // ======================= 5. asesores =======================
+  function carrera(a) {
+    // cada tesis asesorada es un punto en su año; las cercanas a la tuya, en el color del campo
+    var W = 320, a0 = 1970, a1 = 2026, x = function (y) { return 6 + (y - a0) / (a1 - a0) * (W - 12); };
+    var cerca = {}; a.tesis.forEach(function (t) { cerca[t.anio] = (cerca[t.anio] || 0) + 1; });
+    var s = '<svg class="graf" viewBox="0 0 ' + W + ' 70" role="img" aria-label="Tesis asesoradas por año">';
+    Object.keys(a.por_anio).forEach(function (y) {
+      var n = a.por_anio[y], yy = +y; if (yy < a0) return;
+      for (var k = 0; k < Math.min(n, 5); k++) {
+        var esC = cerca[yy] && k < cerca[yy];
+        s += '<circle cx="' + x(yy) + '" cy="' + (44 - k * 7) + '" r="' + (esC ? 3.6 : 2.6) + '" fill="' + (esC ? 'var(--c)' : 'var(--ink-3)') + '"' + (esC ? '' : ' fill-opacity=".55"') + '/>';
+      }
+    });
+    s += '<line class="eje" x1="0" x2="' + W + '" y1="52" y2="52"/>';
+    [1970, 1990, 2010].forEach(function (y) { s += '<text class="t-3" x="' + x(y) + '" y="66" font-size="11" text-anchor="middle">' + y + '</text>'; });
+    s += '<text class="t-ink" x="' + x(a.ultimo_anio) + '" y="66" font-size="11" text-anchor="middle" font-weight="600">' + a.ultimo_anio + '</text>';
+    return s + '</svg>';
+  }
+  function renderAsesores(c) {
+    var A = S.datos.asesores;
+    c.innerHTML = '<ol class="asesores">' + A.slice(0, 3).map(function (a) {
+      return '<li class="aparece"><div class="as-top"><div>' +
+        '<p class="as-nombre">' + esc(a.nombre) + '</p>' +
+        '<p class="as-lugar"><i class="dot" style="background:' + areaHex(a.area) + '"></i>' + esc(lugar(a.plantel)) + ', ' + esc(capital(escribir(a.programa))) + '</p>' +
+        '<p class="as-cifras"><span><b>' + a.en_cercanas + '</b>entre tus 100 más parecidas</span><span><b>' + fmt(a.total_corpus) + '</b>tesis asesoradas</span></p>' +
+        '<ul class="as-tesis">' + a.tesis.map(function (t) { return '<li>' + btnGuardar(t.thesis_id) + '<span>' + enlaceTesis({ id: t.thesis_id, titulo: t.titulo }) + ' <span class="y">' + t.anio + '</span></span></li>'; }).join('') + '</ul>' +
+        '</div><div>' + carrera(a) + '</div></div></li>';
+    }).join('') + '</ol>' +
+      '<button type="button" class="mas" id="ver-asesores">Ver los 15 asesores</button>' +
+      '<table class="tabla15" id="tabla15" hidden><thead><tr><th>Asesor</th><th>Plantel y programa</th><th class="r">Parecidas</th><th class="r">Asesoradas</th><th class="r">Última</th></tr></thead><tbody>' +
+      A.map(function (a) { return '<tr><td>' + esc(a.nombre) + '</td><td class="ink2">' + esc(lugar(a.plantel)) + ', ' + esc(capital(escribir(a.programa))) + '</td><td class="r">' + a.en_cercanas + '</td><td class="r">' + fmt(a.total_corpus) + '</td><td class="r">' + a.ultimo_anio + '</td></tr>'; }).join('') +
+      '</tbody></table>';
+    $('ver-asesores').onclick = function () { $('tabla15').hidden = false; this.hidden = true; };
+    mostrar(c, '.aparece', 140);
+  }
+
+  document.addEventListener('click', function (e) {
+    var g = e.target.closest('.guardar'); if (!g) return;
+    var on = !g.classList.contains('on');
+    document.querySelectorAll('.guardar[data-tid="' + g.dataset.tid + '"]').forEach(function (x) { x.classList.toggle('on', on); x.setAttribute('aria-pressed', on); });
+  });
+
+  // ======================= secuencia en vivo =======================
+  // Datos (segundos) y luego IA; la mascota toma un color con cada hallazgo y celebra al final.
+  async function secuencia() {
+    var mia = ++corrida; terminado = false; actual = -1; pintarPasos();
+    colorMascota('#8c96a8'); faseMapa = 0;
+    estado('<b>Ubicando tu tesis</b> entre 609,154 del catálogo', 'investiga');
+    var proy = dibujarMapa(vistaTotal); capaMapa(proy);
+    await espera(700);
+    await animarCamara(1500);
+    faseMapa = 1; proy = dibujarMapa(vistaFinal); capaMapa(proy);
+    var area = contar(S.vec, function (t) { return t.area; })[0][0];
+    colorMascota(areaHex(area)); estado('<b>Tu tesis es de ' + AREA_NOMBRE[area] + '.</b> Reuniendo las tesis parecidas', 'investiga');
+    await espera(900);
+    faseMapa = 2; capaMapa(proy);
+    renderParecidas(abrir('s4')); listo('s4');
+    var campo = S.datos.ubicacion.campo[0];
+    await espera(900);
+    colorMascota(colorCampo(campo.id)); estado('<b>Cae en ' + esc(campo.nombre) + '.</b> Buscando asesores', 'investiga');
+    renderAsesores(abrir('s5')); listo('s5');
+    await espera(1500);
+    estado('<b>Leyendo el planteamiento</b>', 'investiga');
+    await espera(1400);
+    renderNota(abrir('s1')); listo('inicio');
+    estado('<b>Formulando preguntas</b>', 'investiga');
+    await espera(1800);
+    renderPreguntas(abrir('s2')); listo('s2');
+    estado('<b>Revisando los objetivos</b>', 'investiga');
+    await espera(1600);
+    renderBloom(abrir('s3')); listo('s3');
+    pose($('m-estado'), 'celebra');
+    // la mascota celebra con «Análisis listo» y la barra pasa a ser la cabecera de la sección que lees
+    estado('<b>Análisis listo.</b>');
+    await espera(1800);
+    if (mia !== corrida) return; // «Repetir» empezó otra corrida
+    terminado = true; cabecera();
+  }
+  function reiniciar() {
+    ['s1', 's2', 's3', 's4', 's5'].forEach(function (id) { var sec = $(id); sec.querySelector('.pendiente').hidden = false; var c = sec.querySelector('.cuerpo'); c.hidden = true; c.innerHTML = ''; });
+    $('objetos').innerHTML = ''; $('objetos-h').hidden = true; window.scrollTo(0, 0); secuencia();
+  }
+
+  // ======================= carga =======================
+  async function cargar() {
+    var base = '../../data/';
+    var r = await Promise.all([
+      fetch('datos_ejemplo.json').then(function (x) { return x.json(); }),
+      fetch('ia_ejemplo.json').then(function (x) { return x.json(); }),
+      fetch(base + 'atlas_macro_graph.v1.json').then(function (x) { return x.json(); }),
+      fetch(base + 'escritura.v1.json').then(function (x) { return x.json(); }).catch(function () { return { v: {} }; }),
+      fetch(base + 'atlas_chaos_mode.v1.json').then(function (x) { return x.json(); }),
+      fetch(base + 'atlas_chaos_mode.v1.bin').then(function (x) { return x.arrayBuffer(); })
+    ]);
+    S.datos = r[0]; S.ia = r[1]; S.macros = r[2].nodes.slice().sort(function (a, b) { return a.macroId - b.macroId; }); S.escritura = r[3].v || {};
+    var f = r[4].fields, buf = r[5];
+    S.puntos = { n: r[4].n, x: new Float32Array(buf, f.x.byteOffset, f.x.count), y: new Float32Array(buf, f.y.byteOffset, f.y.count), macro: new Int32Array(buf, f.macroCode.byteOffset, f.macroCode.count), area: new Int32Array(buf, f.areaCode.byteOffset, f.areaCode.count) };
+    // las 100 vecinas como objetos (ver vecinas_campos en lab_contexto.py)
+    S.vec = S.datos.vecinas.map(function (a) { return { id: a[0], titulo: a[1], anio: a[2], area: a[3], nivel: a[4], programa: a[5], plantel: a[6], campo: a[7], tema: a[8], subtema: a[9], sim: a[10] }; });
+    paleta(); aplicarColor(); vistas(); leyendaAreas();
+    var e = S.datos.entrada;
+    $('titulo').textContent = e.title;
+    pintarMeta(); pintarLomo();
+    secuencia();
+  }
+  // la meta de la ficha con la gramática de las fichas del atlas: puntos de nivel; barra del
+  // área y anillo del programa en el color del área (la del programa entre las 100 parecidas)
+  function pintarMeta() {
+    var e = S.datos.entrada, nv = GRADOS.indexOf(e.degree) + 1, col = noche() ? NIVEL_NOCHE : NIVEL_DIA, dots = '';
+    for (var k = 0; k < 4; k++) dots += k < nv ? '<i style="background:' + col[k] + ';box-shadow:none"></i>' : '<i></i>';
+    var mismos = S.vec.filter(function (t) { return sinAcento(t.programa) === sinAcento(e.program); });
+    var ar = (mismos.length ? contar(mismos, function (t) { return t.area; }) : [[0]])[0][0];
+    $('meta').innerHTML = '<span style="--c:' + areaHex(ar) + '" title="' + AREA_NOMBRE[ar] + '"><i class="g-ar"></i><i class="g-pr"></i><b>' + esc(e.program) + '</b></span>' +
+      '<span title="' + esc(e.degree) + ', nivel ' + nv + ' de 4"><span class="g-nv">' + dots + '</span>' + esc(e.degree) + '</span>' +
+      '<span>' + esc(e.study_period.label) + '</span>';
+  }
+  function aplicarColor() { document.documentElement.style.setProperty('--c', colorCampo(S.datos.ubicacion.campo[0].id)); }
+  $('modo').onclick = function () {
+    document.body.classList.toggle('noche'); this.textContent = noche() ? 'Día' : 'Noche';
+    aplicarColor(); leyendaAreas(); pintarMeta();
+    if (S.puntos) capaMapa(dibujarMapa(vistaFinal));
+  };
+  $('repetir').onclick = reiniciar;
+  window.addEventListener('resize', function () { if (S.puntos) { vistas(); capaMapa(dibujarMapa(vistaFinal)); } });
+  cargar().catch(function (err) { estado('No se pudo cargar el ejemplo: ' + esc(err.message)); console.error(err); });
+})();
+</script>
+</body>
+</html>

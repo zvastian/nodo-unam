@@ -1,0 +1,2674 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Atlas de tesis UNAM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&family=Source+Sans+3:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* v3.0.0 -- rediseno "sorprendente pero navegable" (development.md, "Revision
+     critica de la v2.1.1", seccion 5). Principio: el mapa son los puntos; los
+     nombres de territorio son la anotacion, no los circulos. */
+  :root {
+    --bg: #fbfaf7;
+    --page: #f7f5f0;
+    --ink: #17181a;
+    --ink-2: #6b6558;
+    --ink-3: #948d7c;
+    --grid: #ebe7dc;
+    --border: rgba(23,24,26,0.12);
+    --accent: #0f7d5c;
+    --panel-bg: #ffffff;
+    --shadow: 0 8px 24px rgba(23,24,26,0.10);
+    color-scheme: light;
+  }
+  [hidden] { display: none !important; }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Public Sans", -apple-system, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+  }
+  button { font-family: inherit; }
+  .app { display: flex; flex-direction: column; height: 100%; }
+
+  /* ---------- header ---------- */
+  header {
+    padding: 14px 20px 12px;
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+    position: relative; z-index: 12;
+  }
+  h1 {
+    font-family: "Source Serif 4", Georgia, serif;
+    font-weight: 600; font-size: 21px; letter-spacing: 0.015em; text-transform: uppercase;
+    margin: 0; line-height: 1.1;
+  }
+  .subtitle { font-size: 12.5px; color: var(--ink-2); margin-top: 3px; }
+  .hdr-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .btn {
+    font-size: 10.5px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em;
+    padding: 7px 11px; border: 1px solid var(--border); border-radius: 7px;
+    background: var(--panel-bg); color: var(--ink-2); cursor: pointer;
+    display: inline-flex; align-items: center; gap: 7px;
+    transition: border-color 140ms ease, color 140ms ease, background 140ms ease;
+  }
+  .btn:hover { border-color: var(--accent); color: var(--accent); }
+  .btn:disabled { opacity: 0.5; cursor: default; }
+  .btn:focus-visible, .seg button:focus-visible, .sr-item:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn.primary:hover { background: #0c6a4e; color: #fff; }
+  .kbd { font-family: "JetBrains Mono", monospace; font-size: 9.5px; border: 1px solid var(--border); border-radius: 4px; padding: 1px 4px; color: var(--ink-3); text-transform: none; letter-spacing: 0; }
+  .seg { display: inline-flex; border: 1px solid var(--border); border-radius: 7px; overflow: hidden; background: var(--panel-bg); }
+  .seg button {
+    border: none; background: transparent; color: var(--ink-2); cursor: pointer;
+    font-size: 10.5px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; padding: 7px 10px;
+  }
+  .seg button + button { border-left: 1px solid var(--border); }
+  .seg button.active { background: var(--ink); color: #fff; }
+
+  /* ---------- mapa ---------- */
+  main { position: relative; flex: 1; min-height: 0; background: var(--bg); overflow: hidden; }
+  #wgl-host { position: absolute; inset: 0; }
+  #wgl-host canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  svg#overlay { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+  .gridline { stroke: var(--grid); stroke-width: 1; }
+  .tick-label { font-family: "JetBrains Mono", monospace; font-size: 9px; fill: var(--ink-3); }
+  .edge { stroke: #c7c2b2; stroke-opacity: 0.35; fill: none; }
+  .anode, .alabel { transition: opacity 240ms ease; }
+  .anode.entering, .alabel.entering, .anode.leaving, .alabel.leaving { opacity: 0; }
+  .anode circle { stroke: #fff; stroke-width: 1.2; cursor: pointer; pointer-events: auto; }
+  .anode:hover circle, .anode.selected circle { stroke: var(--ink); stroke-width: 2; }
+  .alabel text {
+    font-family: "Source Sans 3", "Source Sans Pro", "Public Sans", sans-serif;
+    font-weight: 700; text-transform: uppercase; fill: var(--ink);
+    paint-order: stroke; stroke: var(--bg); stroke-width: 3.5px; stroke-linejoin: round;
+    cursor: pointer; pointer-events: auto;
+  }
+  .alabel text:hover, .alabel.selected text { fill: var(--accent); }
+  .alabel.region text { font-weight: 600; fill: var(--ink-3); pointer-events: none; }
+  /* Hitos: voz "curaduria" del manifiesto (serif) -- nombres puestos por una persona. */
+  .alabel.landmark text { font-family: "Source Serif 4", Georgia, serif; font-weight: 600; stroke-width: 4px; }
+  .alabel.region.landmark text { font-weight: 500; fill: var(--ink-3); }
+  .alabel.minor text { font-weight: 600; fill: var(--ink-2); }
+  .alabel.hidden { display: none; }
+
+  /* ---------- barra de filtros (v3.2) ---------- */
+  .filterbar {
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    padding: 8px 20px; border-bottom: 1px solid var(--border); background: var(--page);
+    position: relative; z-index: 11;
+  }
+  .fb-title { font-size: 9.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-3); }
+  .fb-group { display: flex; align-items: center; gap: 8px; }
+  .fb-label { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-2); }
+  .fb-count { margin-left: auto; font-family: "JetBrains Mono", monospace; font-size: 10.5px; color: var(--ink-3); text-transform: uppercase; }
+  .filterbar .seg button { padding: 5px 10px; }
+
+  /* ---------- modo aislado de tema fino (v3.2) ---------- */
+  #tint { position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 900ms ease; z-index: 1; }
+  #tint.on { opacity: 1; }
+  #iso-chip {
+    position: absolute; top: 14px; left: 50%; transform: translateX(-50%); z-index: 7;
+    display: flex; align-items: center; gap: 10px; max-width: calc(100% - 420px);
+    background: var(--panel-bg); border: 1px solid var(--border); border-radius: 999px; padding: 6px 6px 6px 16px; box-shadow: var(--shadow);
+  }
+  #iso-chip .ic-ey { font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); white-space: nowrap; }
+  #iso-chip b { font-family: "Source Serif 4", Georgia, serif; font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 0.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #iso-chip .ic-n { font-family: "JetBrains Mono", monospace; font-size: 11px; color: var(--ink-2); white-space: nowrap; }
+  #iso-chip .btn { border-radius: 999px; }
+  body.iso #overlay, body.iso #legend { opacity: 0; pointer-events: none; }
+  #flow { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; }
+  #iso-chip { flex-direction: column; align-items: stretch; border-radius: 14px; padding: 10px 12px; gap: 8px; }
+  #iso-chip .ic-head { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
+  #iso-chip .ic-head b { max-width: 460px; }
+  #iso-chip .ic-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  #iso-chip .ic-actions .seg button { padding: 6px 9px; }
+  #ana-labels { position: absolute; inset: 0; pointer-events: none; z-index: 3; opacity: 0; transition: opacity 400ms ease; }
+  #ana-labels.on { opacity: 1; }
+  .ana-label { position: absolute; left: 0; top: 0; display: flex; align-items: center; gap: 6px; white-space: nowrap;
+    font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink); }
+  .ana-label i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+  .ana-label span { max-width: 230px; overflow: hidden; text-overflow: ellipsis; }
+  .ana-label b { font-family: "JetBrains Mono", monospace; font-weight: 500; color: var(--ink-3); }
+  #minimap .mm-cap button { border: none; background: none; padding: 0; cursor: pointer; font: inherit; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.07em; }
+  #minimap .mm-cap button:hover { color: var(--accent); }
+  #mm-show { position: absolute; right: 16px; bottom: 14px; z-index: 5; }
+  main.panel-open #mm-show { right: 356px; }
+  #overlay, #minimap, #legend { transition: opacity 400ms ease; }
+
+  /* ---------- breadcrumb ---------- */
+  #crumbs {
+    position: absolute; top: 14px; left: 16px; z-index: 5;
+    display: flex; align-items: center; gap: 2px; flex-wrap: wrap; max-width: calc(100% - 360px);
+    background: rgba(251,250,247,0.92); border: 1px solid var(--border); border-radius: 8px;
+    padding: 5px 8px; box-shadow: 0 2px 8px rgba(23,24,26,0.05);
+  }
+  #crumbs button {
+    border: none; background: none; cursor: pointer; padding: 2px 4px; border-radius: 4px;
+    font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-2);
+  }
+  #crumbs button:hover { color: var(--accent); background: var(--page); }
+  #crumbs button.current { color: var(--ink); cursor: default; background: none; }
+  #crumbs .sep { color: var(--ink-3); font-size: 11px; }
+  #crumbs .lvl { font-family: "JetBrains Mono", monospace; font-size: 9.5px; color: var(--ink-3); margin-left: 6px; text-transform: uppercase; }
+
+  /* ---------- leyenda ---------- */
+  .legend {
+    position: absolute; left: 16px; bottom: 14px; z-index: 5;
+    background: var(--panel-bg); border: 1px solid var(--border); border-radius: 9px;
+    padding: 10px 12px; font-size: 11px; color: var(--ink-2); box-shadow: var(--shadow); max-width: 250px;
+  }
+  .legend .lg-title { font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink-3); margin-bottom: 7px; }
+  .legend .lg-row { display: flex; align-items: center; gap: 7px; margin-top: 4px; line-height: 1.3; }
+  .legend .sw { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .legend .spectrum { height: 8px; border-radius: 4px; width: 100%; margin: 2px 0 4px; }
+  .legend .lg-note { font-size: 10.5px; color: var(--ink-3); line-height: 1.45; margin-top: 6px; }
+
+  /* ---------- minimapa ---------- */
+  #minimap {
+    position: absolute; right: 16px; bottom: 14px; z-index: 5;
+    background: var(--panel-bg); border: 1px solid var(--border); border-radius: 9px; box-shadow: var(--shadow);
+    padding: 6px; cursor: crosshair;
+  }
+  #minimap canvas { display: block; }
+  #minimap, #map-selection { transition: right 0.24s ease; }
+  main.panel-open #minimap, main.panel-open #map-selection { right: 356px; }
+  #minimap .mm-view { position: absolute; left: 6px; top: 6px; pointer-events: none; }
+  #minimap .mm-cap { font-size: 9px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink-3); padding: 4px 2px 0; display: flex; justify-content: space-between; gap: 8px; }
+  #minimap .mm-cap #mm-zoom { margin-left: auto; }
+
+  /* ---------- tooltips ---------- */
+  .tip {
+    position: absolute; left: 0; top: 0; pointer-events: none; z-index: 30;
+    background: var(--panel-bg); border: 1px solid var(--border); border-radius: 8px;
+    padding: 8px 11px; font-size: 12px; line-height: 1.45; box-shadow: var(--shadow); max-width: 270px;
+    opacity: 0; transform: translate(-9999px,-9999px); transition: opacity 0.1s;
+  }
+  .tip .t-label { font-family: "Source Serif 4", Georgia, serif; font-size: 13px; font-weight: 600; letter-spacing: 0.015em; text-transform: uppercase; display: block; margin-bottom: 2px; }
+  .tip .t-meta { color: var(--ink-2); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.03em; display: block; }
+  .tip .t-hint { color: var(--ink-3); font-size: 10.5px; margin-top: 3px; display: block; }
+
+  /* ---------- panel lateral ---------- */
+  aside#panel {
+    position: absolute; top: 0; right: 0; bottom: 0; width: 340px; max-width: 90vw; z-index: 8;
+    background: var(--panel-bg); border-left: 1px solid var(--border); box-shadow: -10px 0 24px rgba(23,24,26,0.06);
+    transform: translateX(100%); transition: transform 0.24s ease; display: flex; flex-direction: column;
+  }
+  aside#panel.open { transform: translateX(0); }
+  #panel .panel-head { padding: 20px 20px 14px; border-bottom: 1px solid var(--border); }
+  #panel .panel-eyebrow { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+  #panel .back-btn { border: 1px solid var(--border); background: var(--bg); color: var(--ink-2); border-radius: 5px; font-size: 10.5px; padding: 2px 7px; cursor: pointer; }
+  #panel h2 { font-family: "Source Serif 4", Georgia, serif; font-size: 19px; font-weight: 500; letter-spacing: 0.01em; text-transform: uppercase; margin: 0 0 4px; line-height: 1.25; padding-right: 26px; }
+  #panel .panel-body { padding: 14px 20px 20px; overflow-y: auto; flex: 1; }
+  #panel .stat-row { display: flex; justify-content: space-between; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--grid); font-size: 12.5px; }
+  #panel .stat-row span:first-child { color: var(--ink-2); text-transform: uppercase; font-size: 10.5px; letter-spacing: 0.03em; }
+  #panel .stat-row span:last-child { font-family: "JetBrains Mono", monospace; font-variant-numeric: tabular-nums; font-weight: 600; }
+  #panel .section-label { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); margin: 18px 0 8px; }
+  #panel .programs { font-size: 12px; line-height: 1.9; text-transform: uppercase; letter-spacing: 0.02em; }
+  #panel .kw { display: flex; flex-wrap: wrap; gap: 5px; }
+  #panel .kw span { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.03em; background: var(--page); border-radius: 4px; padding: 3px 6px; color: var(--ink-2); }
+  #panel .close-btn { position: absolute; top: 14px; right: 14px; width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--border); background: var(--bg); color: var(--ink-2); font-size: 13px; cursor: pointer; line-height: 1; }
+  #panel .children button { display: flex; justify-content: space-between; width: 100%; text-align: left; gap: 10px; border: none; border-bottom: 1px solid var(--grid); background: none; padding: 8px 0; cursor: pointer; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.03em; color: var(--ink); }
+  #panel .children button:hover { color: var(--accent); }
+  #panel .children button span:last-child { font-family: "JetBrains Mono", monospace; color: var(--ink-3); flex-shrink: 0; }
+  .thesis-row { padding: 9px 0; border-bottom: 1px solid var(--grid); cursor: pointer; }
+  .thesis-row:hover { background: var(--page); }
+  .thesis-row .th-title { font-family: "Source Serif 4", Georgia, serif; font-size: 13px; line-height: 1.35; letter-spacing: 0.01em; text-transform: uppercase; display: block; margin-bottom: 2px; }
+  .thesis-row .th-meta { font-size: 10.5px; color: var(--ink-3); font-family: "JetBrains Mono", monospace; text-transform: uppercase; }
+  .vecindario-note { font-size: 11px; color: var(--ink-3); line-height: 1.5; margin: 4px 0 14px; padding: 8px 10px; background: var(--page); border-radius: 6px; }
+  .cta { border: 1px dashed var(--border); border-radius: 6px; padding: 10px; text-align: center; cursor: pointer; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--accent); margin-top: 6px; }
+  .cta:hover { background: var(--page); }
+
+  /* ---------- seleccion en mapa ---------- */
+  #map-selection {
+    position: absolute; top: 14px; right: 16px; z-index: 7; width: 290px;
+    background: var(--panel-bg); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; box-shadow: var(--shadow);
+  }
+  #map-selection .close-btn-mini { position: absolute; top: 9px; right: 9px; width: 20px; height: 20px; border-radius: 50%; border: 1px solid var(--border); background: var(--bg); color: var(--ink-2); font-size: 11px; cursor: pointer; line-height: 1; }
+  #map-selection .ms-eyebrow { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-3); margin-bottom: 5px; }
+  #map-selection .ms-title { font-family: "Source Serif 4", Georgia, serif; font-size: 14px; line-height: 1.35; text-transform: uppercase; margin-bottom: 4px; padding-right: 16px; }
+  #map-selection .ms-meta { font-size: 10.5px; color: var(--ink-2); font-family: "JetBrains Mono", monospace; text-transform: uppercase; margin-bottom: 8px; }
+  #map-selection .ms-note { font-size: 11px; color: var(--ink-3); line-height: 1.5; }
+  #map-selection .btn { width: 100%; justify-content: center; margin-top: 10px; color: var(--accent); }
+  #map-selection .btn + .btn { margin-top: 6px; }
+
+  /* ---------- tarjeta narrativa (intro + rutas) ---------- */
+  #story {
+    position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%); z-index: 9;
+    width: min(560px, calc(100% - 32px));
+    background: var(--panel-bg); border: 1px solid var(--border); border-radius: 12px;
+    box-shadow: 0 16px 40px rgba(23,24,26,0.16); padding: 18px 20px 16px;
+  }
+  #story .st-eyebrow { font-size: 10px; text-transform: uppercase; letter-spacing: 0.09em; color: var(--ink-3); display: flex; justify-content: space-between; padding-right: 30px; }
+  #story h3 { font-family: "Source Serif 4", Georgia, serif; font-weight: 500; font-size: 20px; line-height: 1.25; margin: 6px 0 8px; }
+  #story p { font-size: 13.5px; line-height: 1.6; color: var(--ink-2); margin: 0; }
+  #story p strong { color: var(--ink); font-weight: 600; }
+  #story .st-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; gap: 10px; }
+  #story .dots { display: flex; gap: 5px; }
+  #story .dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--grid); display: block; }
+  #story .dots i.on { background: var(--ink); }
+  #story .st-close { position: absolute; top: 10px; right: 10px; width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--border); background: var(--bg); color: var(--ink-2); cursor: pointer; font-size: 12px; line-height: 1; }
+  .disc-label { position: absolute; transform: translate(-50%, -100%); text-align: center; pointer-events: none; z-index: 4; white-space: nowrap; }
+  .disc-label b { display: block; font-family: "Source Sans 3", sans-serif; font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; }
+  .disc-label span { font-family: "JetBrains Mono", monospace; font-size: 10.5px; color: var(--ink-2); }
+
+  /* ---------- menu de rutas ---------- */
+  #routes-menu {
+    position: absolute; top: 12px; right: 20px; z-index: 20; width: 340px;
+    background: var(--panel-bg); border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow); padding: 6px;
+  }
+  #routes-menu button { display: block; width: 100%; text-align: left; border: none; background: none; padding: 10px 12px; border-radius: 7px; cursor: pointer; }
+  #routes-menu button:hover, #routes-menu button:focus-visible { background: var(--page); outline: none; }
+  #routes-menu b { display: block; font-family: "Source Serif 4", Georgia, serif; font-weight: 500; font-size: 14.5px; color: var(--ink); }
+  #routes-menu span { display: block; font-size: 11.5px; color: var(--ink-3); margin-top: 2px; line-height: 1.4; }
+
+  /* ---------- buscador ---------- */
+  #search { position: fixed; inset: 0; z-index: 40; display: flex; justify-content: center; align-items: flex-start; padding-top: 12vh; }
+  #search .s-backdrop { position: absolute; inset: 0; background: rgba(23,24,26,0.28); }
+  #search .s-card { position: relative; width: min(620px, calc(100% - 24px)); background: var(--panel-bg); border-radius: 12px; box-shadow: 0 24px 60px rgba(23,24,26,0.28); overflow: hidden; }
+  #search input { width: 100%; border: none; border-bottom: 1px solid var(--border); padding: 16px 18px; font-size: 16px; font-family: "Public Sans", sans-serif; outline: none; background: var(--panel-bg); color: var(--ink); }
+  #search .s-results { max-height: 52vh; overflow-y: auto; padding: 6px; }
+  #search .s-empty { padding: 18px; font-size: 12.5px; color: var(--ink-3); line-height: 1.5; }
+  .sr-item { display: grid; grid-template-columns: 70px 1fr auto; gap: 10px; align-items: center; width: 100%; text-align: left; border: none; background: none; padding: 9px 10px; border-radius: 7px; cursor: pointer; }
+  .sr-item.active, .sr-item:hover { background: var(--page); }
+  .sr-item .lv { font-size: 9px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink-3); border: 1px solid var(--border); border-radius: 4px; padding: 2px 4px; text-align: center; }
+  .sr-item .nm { font-size: 12.5px; text-transform: uppercase; letter-spacing: 0.03em; color: var(--ink); line-height: 1.3; }
+  .sr-item .nm small { display: block; font-size: 10.5px; color: var(--ink-3); text-transform: none; letter-spacing: 0; margin-top: 1px; }
+  .sr-item .ct { font-family: "JetBrains Mono", monospace; font-size: 10.5px; color: var(--ink-3); }
+  #search .s-foot { border-top: 1px solid var(--border); padding: 8px 14px; font-size: 10.5px; color: var(--ink-3); display: flex; gap: 14px; flex-wrap: wrap; }
+
+  /* ---------- modal vecindario (sin cambios de fondo respecto a v2) ---------- */
+  #vmodal { position: fixed; inset: 0; z-index: 35; display: flex; align-items: center; justify-content: center; padding: 26px; }
+  #vmodal .vm-backdrop { position: absolute; inset: 0; background: rgba(23,24,26,0.42); }
+  #vmodal .vm-card { position: relative; width: min(1180px, 100%); height: min(760px, 100%); background: var(--panel-bg); border-radius: 14px; box-shadow: 0 24px 60px rgba(23,24,26,0.28); display: flex; flex-direction: column; overflow: hidden; }
+  #vmodal .vm-head { padding: 16px 20px 12px; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
+  #vmodal .vm-breadcrumb { font-size: 10.5px; color: var(--ink-3); margin-bottom: 5px; font-family: "JetBrains Mono", monospace; text-transform: uppercase; }
+  #vmodal .vm-breadcrumb button { border: none; background: none; color: var(--accent); cursor: pointer; font-family: "JetBrains Mono", monospace; font-size: 10.5px; padding: 0; margin-right: 4px; }
+  #vmodal .vm-title { font-family: "Source Serif 4", Georgia, serif; font-size: 17px; line-height: 1.3; text-transform: uppercase; max-width: 820px; }
+  #vmodal .vm-meta { font-size: 11px; color: var(--ink-2); margin-top: 4px; font-family: "JetBrains Mono", monospace; text-transform: uppercase; }
+  #vmodal .vm-controls { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+  #vmodal select { font-size: 11.5px; padding: 5px 8px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg); color: var(--ink); }
+  #vmodal .vm-close { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--border); background: var(--bg); color: var(--ink-2); cursor: pointer; font-size: 14px; line-height: 1; }
+  #vmodal .vm-body { position: relative; flex: 1; min-height: 0; }
+  #vmodal svg { width: 100%; height: 100%; display: block; }
+  #vmodal .vm-group-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; fill: var(--ink-3); }
+  #vmodal .vm-edge { stroke: var(--ink-3); fill: none; pointer-events: none; }
+  #vmodal .vm-node circle { cursor: pointer; stroke: var(--panel-bg); stroke-width: 1.2px; }
+  #vmodal .vm-node.not-in-sample circle, #vmodal .vm-node.focal circle { cursor: default; }
+  #vmodal .vm-legend { position: absolute; right: 16px; bottom: 14px; background: var(--panel-bg); border: 1px solid var(--border); border-radius: 8px; padding: 9px 12px; font-size: 10.5px; color: var(--ink-2); box-shadow: var(--shadow); }
+  #vmodal .vm-lg-row { display: flex; align-items: center; gap: 6px; margin-top: 3px; }
+  #vmodal .vm-lg-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+  #vtooltip { position: fixed; z-index: 45; }
+
+  /* ---------- v3.1: listado A->Z en el panel ---------- */
+  .az-head { display: flex; align-items: center; gap: 12px; margin: 20px 0 6px; }
+  .az-mark { display: inline-flex; align-items: center; gap: 6px; font-family: "Source Serif 4", Georgia, serif; font-weight: 600; font-size: 30px; line-height: 1; color: var(--ink); letter-spacing: -0.01em; }
+  .az-mark svg { width: 30px; height: 12px; }
+  .az-cap { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink-3); line-height: 1.4; }
+  .tr { padding: 10px 0; border-bottom: 1px solid var(--grid); cursor: pointer; }
+  .tr:hover .tr-t { color: var(--accent); }
+  .tr-t { font-family: "Source Serif 4", Georgia, serif; font-size: 13px; line-height: 1.35; letter-spacing: 0.01em; text-transform: uppercase; display: block; margin-bottom: 4px; }
+  .tr-m { font-size: 10.5px; color: var(--ink-2); line-height: 1.5; text-transform: uppercase; letter-spacing: 0.02em; }
+  .tr-m b { font-weight: 600; color: var(--ink); }
+  .tr-m .y { font-family: "JetBrains Mono", monospace; color: var(--ink-3); }
+  .btn-full { width: 100%; justify-content: center; margin-top: 14px; padding: 11px; font-size: 11px; }
+  .kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--grid); border: 1px solid var(--grid); border-radius: 8px; overflow: hidden; }
+  .kpis div { background: var(--panel-bg); padding: 9px 10px; }
+  .kpis b { display: block; white-space: nowrap; font-family: "JetBrains Mono", monospace; font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .kpis span { font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-3); }
+
+  /* ---------- v3.1: modo taller por tema ---------- */
+  #taller { position: fixed; inset: 0; z-index: 36; background: var(--bg); display: flex; flex-direction: column; }
+  #taller .tl-head { padding: 16px 24px 0; border-bottom: 1px solid var(--border); background: var(--bg); }
+  #taller .tl-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+  #taller .tl-crumb { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink-3); }
+  #taller h2 { font-family: "Source Serif 4", Georgia, serif; font-weight: 500; font-size: 26px; text-transform: uppercase; letter-spacing: 0.01em; margin: 4px 0 12px; line-height: 1.15; }
+  #taller .tl-kpis { display: flex; gap: 26px; flex-wrap: wrap; margin-bottom: 12px; }
+  #taller .tl-kpis div b { display: block; font-family: "JetBrains Mono", monospace; font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  #taller .tl-kpis div span { font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink-3); }
+  #taller .tabs { display: flex; gap: 4px; }
+  #taller .tabs button { border: none; background: none; padding: 10px 12px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-3); cursor: pointer; border-bottom: 2px solid transparent; }
+  #taller .tabs button.active { color: var(--ink); border-bottom-color: var(--ink); }
+  #taller .tl-body { flex: 1; min-height: 0; overflow: auto; padding: 18px 24px 30px; }
+  #taller .tl-close { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border); background: var(--panel-bg); cursor: pointer; font-size: 14px; color: var(--ink-2); flex-shrink: 0; }
+  .tl-controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+  .tl-controls input, .tl-controls select { font: 12px "Public Sans", sans-serif; padding: 7px 9px; border: 1px solid var(--border); border-radius: 7px; background: var(--panel-bg); color: var(--ink); }
+  .tl-controls input { min-width: 240px; flex: 1; max-width: 420px; }
+  .tl-count { font-size: 11px; color: var(--ink-3); font-family: "JetBrains Mono", monospace; }
+  table.tl-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .tl-table th { text-align: left; font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink-3); font-weight: 600; padding: 8px 10px 8px 0; border-bottom: 1px solid var(--border); position: sticky; top: -18px; background: var(--bg); }
+  .tl-table td { padding: 9px 10px 9px 0; border-bottom: 1px solid var(--grid); vertical-align: top; color: var(--ink-2); text-transform: uppercase; font-size: 10.5px; letter-spacing: 0.02em; line-height: 1.4; }
+  .tl-table td.t { font-family: "Source Serif 4", Georgia, serif; font-size: 12.5px; color: var(--ink); letter-spacing: 0.01em; width: 42%; }
+  .tl-table td.y { font-family: "JetBrains Mono", monospace; color: var(--ink-3); }
+  .tl-table tr { cursor: pointer; }
+  .tl-table tr:hover td.t { color: var(--accent); }
+  .tl-more { margin: 14px auto 0; display: flex; }
+  .tl-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 18px; }
+  .card { background: var(--panel-bg); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+  .card h4 { margin: 0 0 2px; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink-3); font-weight: 600; }
+  .card .sub { font-size: 12px; color: var(--ink-2); margin-bottom: 10px; }
+  .card.wide { grid-column: 1 / -1; }
+  .hbar { display: grid; grid-template-columns: minmax(120px, 42%) 1fr 44px; gap: 8px; align-items: center; margin: 5px 0; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.02em; color: var(--ink); }
+  .hbar .lbl { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .hbar .trk { height: 10px; }
+  .hbar .bar { height: 10px; background: #3f4a5c; border-radius: 0 4px 4px 0; min-width: 2px; }
+  .hbar:hover .bar { background: var(--accent); }
+  .hbar .val { font-family: "JetBrains Mono", monospace; color: var(--ink-2); text-align: right; font-variant-numeric: tabular-nums; }
+  .hbar.click { cursor: pointer; }
+  svg.years .col { fill: #3f4a5c; }
+  svg.years .col:hover { fill: var(--accent); }
+  svg.years text { font-family: "JetBrains Mono", monospace; font-size: 9.5px; fill: var(--ink-3); }
+  svg.years line { stroke: var(--grid); }
+  .insight { font-size: 13px; line-height: 1.55; color: var(--ink-2); }
+  .insight b { color: var(--ink); font-weight: 600; }
+  #tl-analytic svg .dot { fill: #3f4a5c; fill-opacity: 0.75; cursor: pointer; }
+  #tl-analytic svg .dot:hover { fill: var(--accent); fill-opacity: 1; }
+  #tl-analytic svg .glabel { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; fill: var(--ink-2); font-weight: 600; }
+  #tl-net svg .lnk { stroke: var(--accent); stroke-opacity: 0.45; }
+  #tl-net svg .nd { fill: #3f4a5c; stroke: #fff; stroke-width: 1.5; cursor: pointer; }
+  #tl-net svg .nd.co { fill: var(--accent); }
+  #tl-net svg .nd:hover { stroke: var(--ink); stroke-width: 2; }
+  #tl-net svg text { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; fill: var(--ink); paint-order: stroke; stroke: var(--bg); stroke-width: 3px; pointer-events: none; }
+  .net-wrap { display: grid; grid-template-columns: 1fr 280px; gap: 18px; }
+  @media (max-width: 900px) { .net-wrap { grid-template-columns: 1fr; } #taller h2 { font-size: 20px; } .tl-table td:nth-child(n+4), .tl-table th:nth-child(n+4) { display: none; } }
+
+  footer {
+    border-top: 1px solid var(--border); background: var(--bg); padding: 8px 20px;
+    font-family: "JetBrains Mono", monospace; font-size: 10px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.03em;
+    display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px; position: relative; z-index: 12;
+  }
+  .loading-note { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 10px; font-size: 13px; color: var(--ink-3); z-index: 10; background: var(--bg); transition: opacity 400ms ease; }
+  .loading-note .bar { width: 180px; height: 2px; background: var(--grid); overflow: hidden; border-radius: 2px; }
+  .loading-note .bar i { display: block; height: 100%; width: 40%; background: var(--ink-3); animation: slide 1.1s ease-in-out infinite; }
+  @keyframes slide { 0% { transform: translateX(-100%); } 100% { transform: translateX(260%); } }
+  #debug-bar { display: none; }
+  body.debug #debug-bar { display: flex; gap: 6px; align-items: center; }
+  #debug-log { font: 10px monospace; background: #fffbe6; border-bottom: 1px solid #ddd; padding: 4px 10px; max-height: 140px; overflow: auto; white-space: pre-wrap; }
+
+  @media (max-width: 760px) {
+    header { padding: 10px 12px; }
+    h1 { font-size: 17px; }
+    .subtitle { display: none; }
+    #minimap { display: none !important; }
+    #crumbs { max-width: calc(100% - 32px); }
+    .legend { max-width: 190px; padding: 8px 10px; }
+    aside#panel { width: 100vw; max-width: 100vw; }
+    #routes-menu { right: 12px; left: 12px; width: auto; }
+    #vmodal { padding: 0; }
+    #vmodal .vm-card { width: 100%; height: 100%; border-radius: 0; }
+    .legend .lg-note { display: none; }
+    .disc-label b { font-size: 9.5px; white-space: normal; width: 130px; }
+    .disc-label span { font-size: 9.5px; }
+    #story { bottom: 12px; padding: 14px 16px 12px; }
+    #story h3 { font-size: 17px; }
+    #story p { font-size: 12.5px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .anode, .alabel, aside#panel { transition: none; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div>
+      <h1>Atlas de tesis UNAM</h1>
+      <div class="subtitle" id="subtitle">609,154 tesis, ordenadas por lo que dicen sus títulos</div>
+    </div>
+    <div class="hdr-actions">
+      <div id="debug-bar">
+        <span class="kbd" id="zoom-readout"></span>
+        <div class="seg" id="density-toggle" title="Densidad del fondo (experimental)">
+          <button type="button" data-pct="1" class="active">100%</button><button type="button" data-pct="0.5">50%</button><button type="button" data-pct="0.25">25%</button>
+        </div>
+        <button type="button" class="btn" id="debug-log-toggle">Log</button>
+      </div>
+      <button type="button" class="btn" id="btn-search" aria-label="Buscar (Ctrl+K)">Buscar <span class="kbd">Ctrl K</span></button>
+      <button type="button" class="btn" id="btn-routes" aria-haspopup="true" aria-expanded="false">Rutas guiadas</button>
+      <button type="button" class="btn" id="btn-intro">Introducción</button>
+    </div>
+  </header>
+  <!-- Barra general de filtros (v3.2). Hoy: color. Siguientes: programa, plantel,
+       año, nivel -- cada filtro nuevo es otro .fb-group aqui. -->
+  <div class="filterbar" id="filterbar" role="toolbar" aria-label="Filtros del mapa">
+    <span class="fb-title">Filtros</span>
+    <div class="fb-group">
+      <span class="fb-label">Color</span>
+      <div class="seg" id="lens" role="group" aria-label="Color de los puntos">
+        <button type="button" data-lens="territory" class="active">Territorios</button><button type="button" data-lens="area">Áreas administrativas</button>
+      </div>
+    </div>
+    <span class="fb-count" id="fb-count"></span>
+  </div>
+  <div id="debug-log" hidden></div>
+
+  <main id="main">
+    <div id="wgl-host"></div>
+    <div id="tint" aria-hidden="true"></div>
+    <canvas id="flow" aria-hidden="true"></canvas>
+    <svg id="overlay"><g id="g-grid"></g><g id="g-edges"></g><g id="g-nodes"></g><g id="g-labels"></g></svg>
+    <div id="disc-labels"></div>
+    <nav id="crumbs" aria-label="Ubicación en el atlas" hidden></nav>
+
+    <div class="legend" id="legend" hidden></div>
+    <div id="iso-chip" hidden>
+      <div class="ic-head"><span class="ic-ey">Tema fino aislado</span><b id="iso-name"></b><span id="iso-n" class="ic-n"></span></div>
+      <div class="ic-actions">
+        <button type="button" class="btn primary" id="iso-analyze">Analizar</button>
+        <div class="seg" id="ana-group" hidden role="group" aria-label="Agrupar tesis por">
+          <button type="button" data-g="area">Área</button><button type="button" data-g="plantel" class="active">Plantel</button><button type="button" data-g="programa">Programa</button><button type="button" data-g="nivel">Nivel</button><button type="button" data-g="decada">Década</button>
+        </div>
+        <button type="button" class="btn" id="iso-exit">← Volver al mapa</button>
+      </div>
+    </div>
+    <div id="ana-labels" aria-hidden="true"></div>
+    <button type="button" class="btn" id="mm-show" hidden>Mostrar minimapa</button>
+
+    <div id="minimap" hidden title="Clic o arrastre para moverte">
+      <canvas id="mm-base"></canvas>
+      <canvas id="mm-view" class="mm-view"></canvas>
+      <div class="mm-cap"><span>Vista general</span><span id="mm-zoom"></span><button type="button" id="mm-hide" title="Ocultar minimapa" aria-label="Ocultar minimapa">Ocultar</button></div>
+    </div>
+
+    <div id="tooltip" class="tip"></div>
+
+    <div id="map-selection" hidden>
+      <button class="close-btn-mini" id="map-selection-close" type="button" aria-label="Cerrar">✕</button>
+      <div class="ms-eyebrow" id="ms-eyebrow">Tesis seleccionada</div>
+      <div class="ms-title" id="ms-title">—</div>
+      <div class="ms-meta" id="ms-meta"></div>
+      <div class="ms-note" id="ms-note"></div>
+      <button class="btn" id="ms-go-territory" type="button" hidden>Ir a su territorio →</button>
+      <button class="btn" id="ms-open-vecindario" type="button" hidden>Ver vecindario completo →</button>
+    </div>
+
+    <aside id="panel" aria-label="Detalle">
+      <button class="close-btn" id="panel-close" aria-label="Cerrar">✕</button>
+      <div class="panel-head">
+        <div class="panel-eyebrow" id="panel-eyebrow">Territorio</div>
+        <h2 id="panel-title">—</h2>
+      </div>
+      <div class="panel-body" id="panel-body"></div>
+    </aside>
+
+    <div id="routes-menu" hidden role="menu"></div>
+
+    <section id="story" hidden aria-live="polite">
+      <button class="st-close" id="story-close" type="button" aria-label="Cerrar">✕</button>
+      <div class="st-eyebrow"><span id="story-eyebrow"></span><span id="story-count"></span></div>
+      <h3 id="story-title"></h3>
+      <p id="story-text"></p>
+      <div class="st-actions">
+        <div class="dots" id="story-dots"></div>
+        <div style="display:flex;gap:8px;">
+          <button type="button" class="btn" id="story-prev">← Anterior</button>
+          <button type="button" class="btn primary" id="story-next">Siguiente →</button>
+        </div>
+      </div>
+    </section>
+
+    <div class="loading-note" id="loading"><div id="loading-text">Cargando 609,154 tesis…</div><div class="bar"><i></i></div></div>
+  </main>
+
+  <footer>
+    <span>Primera edición · n=609,154 tesis · e5-large · HDBSCAN + Ward · PaCMAP 2D · posiciones sin unidad física</span>
+    <span>Datos: catálogo TESIUNAM · <span id="app-version" title="Versionado semver del prototipo">v3.4.0</span></span>
+  </footer>
+</div>
+
+<div id="search" hidden role="dialog" aria-label="Buscar en el atlas">
+  <div class="s-backdrop"></div>
+  <div class="s-card">
+    <input id="search-input" type="search" placeholder="Busca un tema, disciplina o título… (ej. «amparo», «diabetes», «bach»)" autocomplete="off" spellcheck="false">
+    <div class="s-results" id="search-results"></div>
+    <div class="s-foot"><span>↑↓ navegar</span><span>Enter ir</span><span>Esc cerrar</span><span id="search-scope"></span></div>
+  </div>
+</div>
+
+<div id="vmodal" hidden>
+  <div class="vm-backdrop"></div>
+  <div class="vm-card">
+    <div class="vm-head">
+      <div>
+        <div class="vm-breadcrumb" id="vm-breadcrumb"></div>
+        <div class="vm-title" id="vm-title">—</div>
+        <div class="vm-meta" id="vm-meta"></div>
+      </div>
+      <div class="vm-controls">
+        <select id="vm-groupby">
+          <option value="area">Agrupar por área</option>
+          <option value="decade">Agrupar por década</option>
+        </select>
+        <button class="vm-close" id="vm-close" type="button" aria-label="Cerrar">✕</button>
+      </div>
+    </div>
+    <div class="vm-body">
+      <svg id="vm-svg"><g class="vm-edges"></g><g class="vm-nodes"></g><g class="vm-group-labels"></g></svg>
+      <div class="vm-legend">
+        <div><strong>Color</strong> = área administrativa</div>
+        <div><strong>Tamaño/opacidad</strong> = similitud</div>
+        <div class="vm-lg-row"><span class="vm-lg-dot" style="background:#3566a8"></span>Físico-Matemáticas e Ingenierías</div>
+        <div class="vm-lg-row"><span class="vm-lg-dot" style="background:#0f7d5c"></span>Biológicas, Químicas y de la Salud</div>
+        <div class="vm-lg-row"><span class="vm-lg-dot" style="background:#c98a2e"></span>Ciencias Sociales</div>
+        <div class="vm-lg-row"><span class="vm-lg-dot" style="background:#b8412f"></span>Humanidades y Artes</div>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="vtooltip" class="tip"></div>
+
+<section id="taller" hidden aria-label="Modo taller">
+  <div class="tl-head">
+    <div class="tl-top">
+      <div>
+        <div class="tl-crumb" id="tl-crumb"></div>
+        <h2 id="tl-title">—</h2>
+      </div>
+      <button class="tl-close" id="tl-close" type="button" aria-label="Volver al mapa">✕</button>
+    </div>
+    <div class="tl-kpis" id="tl-kpis"></div>
+    <div class="tabs" role="tablist">
+      <button type="button" data-tab="lista" class="active" role="tab">Listado</button>
+      <button type="button" data-tab="panorama" role="tab">Panorama</button>
+      <button type="button" data-tab="analitica" role="tab">Vista analítica</button>
+      <button type="button" data-tab="red" role="tab">Red de asesores</button>
+    </div>
+  </div>
+  <div class="tl-body" id="tl-body"></div>
+</section>
+
+<script>
+(function () {
+  'use strict';
+  var NS = 'http://www.w3.org/2000/svg';
+  var $ = function (id) { return document.getElementById(id); };
+  var main = $('main'), tooltip = $('tooltip'), panel = $('panel');
+  var DEBUG = /[?&]debug\b/.test(location.search);
+  if (DEBUG) document.body.classList.add('debug');
+
+  // ==================== constantes ====================
+  // Camara (v2.2.0, ver development.md): zoom inicial = zoom-out maximo; niveles
+  // relativos al zoom inicial con histeresis; tope aplicado por la propia camara.
+  var DEFAULT_CAMERA_DISTANCE = 0.34;
+  var K0 = 1 / DEFAULT_CAMERA_DISTANCE;
+  var K_MESO = K0 * 1.9, K_MICRO = K0 * 4.5, K_MAX_ZOOM = K0 * 10;
+  var LEVEL_HYSTERESIS = 0.08;
+  var PAN_MARGIN = 0.12;
+  var VIEWPORT_PAD = 0.25;
+
+  var AREA_NAMES = {
+    0: 'Sin área registrada',
+    1: 'Físico-Matemáticas e Ingenierías',
+    2: 'Biológicas, Químicas y de la Salud',
+    3: 'Ciencias Sociales',
+    4: 'Humanidades y Artes'
+  };
+  var AREA_HEX = { 0: '#948d7c', 1: '#3566a8', 2: '#0f7d5c', 3: '#c98a2e', 4: '#b8412f' };
+  var AREA_STR_TO_CODE = { 'area 1': 1, 'area 2': 2, 'area 3': 3, 'area 4': 4 };
+
+  // Paleta del fondo WebGL: todas las categorias se declaran de entrada (colorBy /
+  // opacityBy = valueA). El "lente" cambia que array de categorias se dibuja, no
+  // la paleta. Slots:
+  //   0..129   territorio (macro) en lente Territorios
+  //   130      ruido HDBSCAN en lente Territorios
+  //   131..135 area 0..4 clusterizada (lente Areas), 136..140 area 0..4 ruido
+  //   141 atenuado, 142 foco, 143..147 area 0..4 vivida (vecinos del spotlight)
+  //   148 resaltado multiple (color dinamico), 149 resaltado de un territorio
+  var NMACRO = 130;
+  var C_NOISE = 130, C_AREA = 131, C_AREA_NOISE = 136, C_DIM = 141, C_FOCAL = 142, C_VIVID = 143, C_HL_MULTI = 148, C_HL = 149, C_GRP = 150, C_HIDDEN = 159, NCAT = 160; // 150..158: grupos del modo analisis; 159: invisible (tesis dibujadas en el canvas de deriva)
+
+  var state = {
+    macroGraph: null, macros: [], macroById: {}, macroIndex: {},
+    mesoCache: {}, microCache: {}, revealLevel: {}, level: 'macro',
+    domain: null, span: 1, xScale: null, yScale: null, W: 0, H: 0, k: K0,
+    scatterplot: null, renderer: null,
+    n: 0, ndcX: null, ndcY: null, macroCode: null, areaCode: null, thesisIds: null, thesisIdToIndex: null,
+    catTerritory: null, catArea: null, lens: 'territory', memberStart: null, memberIdx: null,
+    palette: [], opacities: [],
+    vecindarioPreview: null, panelStack: [], selectedId: null,
+    introActive: false, spotlightActive: false, highlightKey: '', routeActive: null,
+    densityPct: 1
+  };
+
+  // ==================== utilidades ====================
+  function fmtNum(n) { return Number(n).toLocaleString('es-MX'); }
+  function escapeHtml(s) { var d = document.createElement('div'); d.textContent = s == null ? '' : String(s); return d.innerHTML; }
+  function norm(s) { return String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase(); }
+  var dlogLines = [];
+  function dlog(msg) {
+    if (!DEBUG) return;
+    dlogLines.push(msg); if (dlogLines.length > 60) dlogLines.shift();
+    $('debug-log').textContent = dlogLines.join('\n');
+  }
+  function keywords(label) { return String(label || '').split(' · ').map(function (s) { return s.trim(); }).filter(Boolean); }
+  // Nombre corto legible a partir de las keywords c-TF-IDF: descarta keywords
+  // redundantes (subconjunto de tokens de otra ya elegida: "unidos" dentro de
+  // "estados unidos") y se queda con 2. Sin acentos: las keywords vienen de
+  // titulos normalizados -- pendiente en backlog (nombres humanos para los macros).
+  function displayName(label, max) {
+    max = max || 2;
+    var chosen = [], union = {};
+    keywords(label).forEach(function (kw) {
+      var toks = kw.split(/\s+/);
+      if (toks.every(function (t) { return union[t]; })) return;
+      chosen.push({ kw: kw, toks: toks });
+      toks.forEach(function (t) { union[t] = true; });
+    });
+    chosen = chosen.filter(function (c) {
+      return !chosen.some(function (o) { return o !== c && o.toks.length > c.toks.length && c.toks.every(function (t) { return o.toks.indexOf(t) >= 0; }); });
+    });
+    return chosen.slice(0, max).map(function (c) { return c.kw; }).join(' · ') || String(label || '');
+  }
+  function areaNameFromStr(a) { return AREA_NAMES[AREA_STR_TO_CODE[(a || '').toLowerCase()] || 0]; }
+
+  // OKLCH -> sRGB (paleta de territorios perceptualmente pareja).
+  function oklch(L, C, hDeg) {
+    var h = hDeg * Math.PI / 180, a = C * Math.cos(h), b = C * Math.sin(h);
+    var l_ = L + 0.3963377774 * a + 0.2158037573 * b, m_ = L - 0.1055613458 * a - 0.0638541728 * b, s_ = L - 0.0894841775 * a - 1.2914855480 * b;
+    var l = l_ * l_ * l_, m = m_ * m_ * m_, s = s_ * s_ * s_;
+    var rgb = [4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s, -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s, -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s];
+    return '#' + rgb.map(function (v) {
+      v = v <= 0.0031308 ? 12.92 * v : 1.055 * Math.pow(v, 1 / 2.4) - 0.055;
+      return ('0' + Math.round(Math.max(0, Math.min(1, v)) * 255).toString(16)).slice(-2);
+    }).join('');
+  }
+
+  // ==================== carga ====================
+  function loadScript(src) {
+    return new Promise(function (res, rej) {
+      var s = document.createElement('script'); s.src = src; s.onload = res;
+      s.onerror = function () { rej(new Error('no cargó ' + src)); }; document.head.appendChild(s);
+    });
+  }
+  async function bootstrapLibs() {
+    var mod = await import('https://cdn.jsdelivr.net/npm/pub-sub-es@3.0.0/dist/index.js');
+    window.createPubSub = mod.default || mod.createPubSub;
+    await loadScript('https://cdn.jsdelivr.net/npm/regl@2.1.1/dist/regl.min.js');
+    await loadScript('https://cdn.jsdelivr.net/npm/regl-scatterplot@1.16.0/dist/regl-scatterplot.min.js');
+    var ns = window.createScatterplot;
+    if (ns && typeof ns !== 'function' && typeof ns.default === 'function') {
+      window.createScatterplot = ns.default;
+      window.createScatterplotRenderer = ns.createRenderer;
+    }
+    await loadScript('https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js');
+  }
+  function fetchJson(path) {
+    return fetch(path, { cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error(path + ' -> ' + r.status); return r.json(); });
+  }
+
+  async function loadEverything() {
+    await bootstrapLibs();
+    var results = await Promise.all([
+      fetchJson('./data/atlas_macro_graph.v1.json'),
+      fetchJson('./data/atlas_chaos_mode.v1.json'),
+      fetch('./data/atlas_chaos_mode.v1.bin', { cache: 'no-store' }).then(function (r) { return r.arrayBuffer(); }),
+      fetchJson('./data/vecindario_preview.v1.json').catch(function () { return null; }),
+      fetchJson('./data/macro_nombres.v1.json').catch(function () { return null; })
+    ]);
+    var graph = results[0], meta = results[1], buf = results[2];
+    state.vecindarioPreview = results[3];
+    var curados = (results[4] && results[4].macros) || {};
+    state.macroGraph = graph;
+    state.macros = graph.nodes.slice().sort(function (a, b) { return a.macroId - b.macroId; });
+    var huellasRotas = 0;
+    state.macros.forEach(function (n, i) {
+      // Nombre humano curado (pipeline/curaduria/macro_nombres.v1.json) solo si su
+      // huella (primera keyword c-TF-IDF) coincide: si la jerarquia se recalculo y
+      // los ids se movieron, se cae al nombre por keywords en vez de mentir.
+      var c = curados[String(n.macroId)], kw0 = keywords(n.label)[0];
+      if (c && c.kw === kw0) { n.name = c.nombre; n.landmark = !!c.destacado; n.curated = true; }
+      else { n.name = displayName(n.label); n.landmark = false; if (c) huellasRotas++; }
+      n.level = 'macro';
+      state.macroById[n.macroId] = n; state.macroIndex[n.macroId] = i; state.revealLevel[n.macroId] = 'macro';
+    });
+    if (huellasRotas) console.warn('macro_nombres: ' + huellasRotas + ' nombres curados no coinciden con la jerarquia actual; se usan keywords');
+    MAX_MACRO_SIZE = Math.max.apply(null, state.macros.map(function (m) { return m.size; }));
+
+    var f = meta.fields, n = meta.n;
+    var xs = new Float32Array(buf, f.x.byteOffset, f.x.count), ys = new Float32Array(buf, f.y.byteOffset, f.y.count);
+    state.macroCode = new Int32Array(buf, f.macroCode.byteOffset, f.macroCode.count);
+    state.areaCode = new Int32Array(buf, f.areaCode.byteOffset, f.areaCode.count);
+    state.thesisIds = new TextDecoder('utf-8').decode(new Uint8Array(buf, f.thesisIdsBlob.byteOffset, f.thesisIdsBlob.byteLength)).split('\n');
+    state.thesisIdToIndex = new Map();
+    for (var t = 0; t < state.thesisIds.length; t++) state.thesisIdToIndex.set(state.thesisIds[t], t);
+    state.n = n;
+
+    // Dominio equi-escala (v2.2.0): mismo span en ambos ejes.
+    var minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity, i;
+    for (i = 0; i < n; i++) { var x = xs[i], y = ys[i]; if (x < minX) minX = x; if (x > maxX) maxX = x; if (y < minY) minY = y; if (y > maxY) maxY = y; }
+    var span = Math.max(maxX - minX, maxY - minY) * 1.08, cx = (minX + maxX) / 2, cy = (minY + maxY) / 2;
+    state.domain = { minX: cx - span / 2, maxX: cx + span / 2, minY: cy - span / 2, maxY: cy + span / 2 };
+    state.span = span;
+    state.ndcX = new Float32Array(n); state.ndcY = new Float32Array(n);
+    for (i = 0; i < n; i++) { state.ndcX[i] = (xs[i] - state.domain.minX) / span * 2 - 1; state.ndcY[i] = (ys[i] - state.domain.minY) / span * 2 - 1; }
+    // rawX/rawY: coordenadas PaCMAP crudas (para ubicar la tesela de titulos);
+    // dispX/dispY: donde esta DIBUJADO cada punto ahora (difiere en modo aislado).
+    state.rawX = xs; state.rawY = ys; state.dispX = state.ndcX; state.dispY = state.ndcY;
+    $('fb-count').textContent = fmtNum(n) + ' tesis';
+    loadTitleManifest();
+
+    buildMembership();
+    buildPalette();
+    buildCategoryArrays();
+    buildMacroBoxes();
+    initScatterplot();
+    buildMinimapBase();
+    buildRoutesMenu();
+
+    $('loading').style.opacity = '0';
+    setTimeout(function () { $('loading').hidden = true; }, 450);
+
+    var seen = false;
+    try { seen = localStorage.getItem('nodo_atlas_intro_v3') === '1'; } catch (e) { /* almacenamiento bloqueado: se muestra la intro */ }
+    if (seen || DEBUG) finishSemantic(false); else startIntro();
+  }
+
+  // Indices de puntos por macro (CSR): memberIdx[memberStart[m] .. memberStart[m+1]).
+  function buildMembership() {
+    var n = state.n, mc = state.macroCode, counts = new Int32Array(NMACRO), i, m;
+    for (i = 0; i < n; i++) if (mc[i] >= 0) counts[state.macroIndex[mc[i]]]++;
+    var start = new Int32Array(NMACRO + 1);
+    for (m = 0; m < NMACRO; m++) start[m + 1] = start[m] + counts[m];
+    var idx = new Int32Array(start[NMACRO]), fill = start.slice(0, NMACRO);
+    for (i = 0; i < n; i++) if (mc[i] >= 0) { var k = state.macroIndex[mc[i]]; idx[fill[k]++] = i; }
+    state.memberStart = start; state.memberIdx = idx;
+  }
+
+  // Color de territorio: tono segun el angulo del centroide alrededor del centro
+  // del mapa (territorios vecinos -> tonos vecinos, lectura tipo "mapa de la
+  // ciencia"), luminosidad alternada en 3 pasos para que dos vecinos del mismo
+  // tono no se confundan. Profundo, no pastel (Design Manifest).
+  function buildPalette() {
+    var ms = state.macros, mx = 0, my = 0;
+    ms.forEach(function (m) { mx += m.position.x; my += m.position.y; });
+    mx /= ms.length; my /= ms.length;
+    var order = ms.map(function (m, i) { return { i: i, a: Math.atan2(m.position.y - my, m.position.x - mx) }; }).sort(function (a, b) { return a.a - b.a; });
+    var Ls = [0.50, 0.60, 0.69], Cs = [0.13, 0.135, 0.12];
+    var pal = new Array(NCAT), op = new Array(NCAT);
+    order.forEach(function (o, rank) {
+      var hue = (o.a * 180 / Math.PI + 360 + 150 + [0, 14, -14][rank % 3]) % 360;
+      pal[o.i] = oklch(Ls[rank % 3], Cs[rank % 3], hue);
+      op[o.i] = 0.42;
+      ms[o.i].color = pal[o.i]; ms[o.i].hueRank = rank;
+    });
+    pal[C_NOISE] = '#a79f8d'; op[C_NOISE] = 0.10;
+    for (var a = 0; a <= 4; a++) {
+      pal[C_AREA + a] = AREA_HEX[a]; op[C_AREA + a] = 0.40;
+      pal[C_AREA_NOISE + a] = AREA_HEX[a]; op[C_AREA_NOISE + a] = 0.13;
+      pal[C_VIVID + a] = AREA_HEX[a]; op[C_VIVID + a] = 0.95;
+    }
+    pal[C_DIM] = '#d9d4c7'; op[C_DIM] = 0.10;
+    pal[C_FOCAL] = '#17181a'; op[C_FOCAL] = 1;
+    pal[C_HL_MULTI] = '#0f7d5c'; op[C_HL_MULTI] = 0.92;
+    pal[C_HL] = '#17181a'; op[C_HL] = 0.62;
+    for (var g = 0; g < 9; g++) { pal[C_GRP + g] = '#a79f8d'; op[C_GRP + g] = 0.95; }
+    pal[C_HIDDEN] = '#fbfaf7'; op[C_HIDDEN] = 0;
+    state.palette = pal; state.opacities = op;
+  }
+
+  function buildCategoryArrays() {
+    var n = state.n, mc = state.macroCode, ac = state.areaCode;
+    var ter = new Float32Array(n), ar = new Float32Array(n);
+    for (var i = 0; i < n; i++) {
+      var clustered = mc[i] >= 0;
+      ter[i] = clustered ? state.macroIndex[mc[i]] : C_NOISE;
+      ar[i] = (clustered ? C_AREA : C_AREA_NOISE) + (ac[i] || 0);
+    }
+    state.catTerritory = ter; state.catArea = ar;
+  }
+  function baseCats() { return state.lens === 'area' ? state.catArea : state.catTerritory; }
+
+  // Caja de cada territorio en NDC por PERCENTILES (p10-p90 de sus puntos), no
+  // media +- 2 desviaciones: un punado de miembros lejanos (ej. 8 tesis dentales
+  // dentro de la isla "notas al programa") inflaba la caja y el vuelo no acercaba.
+  // Se vuela a la caja, no a la mediana (radio mediano por macro hasta 7.8 u.).
+  function buildMacroBoxes() {
+    state.macros.forEach(function (m, k) {
+      var s = state.memberStart[k], e = state.memberStart[k + 1], cnt = e - s;
+      var X = new Float32Array(cnt), Y = new Float32Array(cnt);
+      for (var j = 0; j < cnt; j++) { var p = state.memberIdx[s + j]; X[j] = state.ndcX[p]; Y[j] = state.ndcY[p]; }
+      X.sort(); Y.sort();
+      var q = function (A, f) { return A[Math.min(A.length - 1, Math.max(0, Math.floor(f * (A.length - 1))))]; };
+      var x0 = q(X, 0.1), x1 = q(X, 0.9), y0 = q(Y, 0.1), y1 = q(Y, 0.9);
+      m.box = { cx: q(X, 0.5), cy: q(Y, 0.5), hw: Math.max(0.012, (x1 - x0) / 2 * 1.15), hh: Math.max(0.012, (y1 - y0) / 2 * 1.15) };
+    });
+  }
+
+  // ==================== scatterplot + camara ====================
+  function initScatterplot() {
+    var rect = main.getBoundingClientRect();
+    state.W = rect.width; state.H = rect.height;
+    var canvas = document.createElement('canvas');
+    $('wgl-host').appendChild(canvas);
+    var d = state.domain;
+    var xScale = d3.scaleLinear().domain([d.minX, d.maxX]).range([0, rect.width]);
+    var yScale = d3.scaleLinear().domain([d.minY, d.maxY]).range([rect.height, 0]);
+    state.xScale = xScale; state.yScale = yScale;
+
+    // Renderer propio (v2.2.0): el compartido por defecto recorta el mapa a
+    // min(innerWidth, screen.availWidth) -- con zoom del navegador <100% salia
+    // recortado a un recuadro central.
+    state.renderer = window.createScatterplotRenderer ? window.createScatterplotRenderer() : undefined;
+    resizeRenderer();
+
+    var plot = window.createScatterplot({
+      renderer: state.renderer, canvas: canvas, width: rect.width, height: rect.height,
+      xScale: xScale, yScale: yScale,
+      // tamano de punto SOLO lo controla updatePointSize(): por defecto la libreria
+      // ademas lo agranda con el zoom (asinh), y en modo aislado los puntos se tocaban
+      pointSize: 2, pointScaleMode: 'constant', pointColor: state.palette, opacity: state.opacities,
+      colorBy: 'valueA', opacityBy: 'valueA',
+      pointColorHover: '#17181a', pointColorActive: '#17181a',
+      backgroundColor: '#fbfaf7', cameraDistance: DEFAULT_CAMERA_DISTANCE, lassoOnLongPress: false
+    });
+    state.scatterplot = plot;
+    // Sin rotacion (causa raiz del bug de zoom, v2.2.0): solo .set() aplica el
+    // key map a la camara. Tope de zoom dentro de la camara.
+    plot.set({ actionKeyMap: { lasso: 'shift' } });
+    plot.get('camera').setScaleBounds([[K0 * 0.999, K_MAX_ZOOM], [K0 * 0.999, K_MAX_ZOOM]]);
+
+    plot.subscribe('view', onView);
+    plot.subscribe('select', function (ev) {
+      var idx = ev && ev.points && ev.points.length === 1 ? ev.points[0] : null;
+      if (idx != null && !state.introActive) onPointClick(idx);
+    });
+    plot.subscribe('deselect', function () { if (state.spotlightActive) clearSpotlight(); });
+    plot.subscribe('pointover', function (idx) { if (!state.introActive) showPointTip(idx); });
+    plot.subscribe('pointout', function () { hoverIdx = -1; hideTip(); });
+  }
+
+  function resizeRenderer() {
+    if (!state.renderer) return;
+    var rect = main.getBoundingClientRect();
+    state.renderer.resize(Math.max(window.innerWidth, Math.ceil(rect.width)), Math.max(window.innerHeight, Math.ceil(rect.height)));
+  }
+
+  // draw() serializado: si llega un pedido mientras otro corre, solo se guarda el
+  // ultimo (evita "Ignoring draw call as the previous draw call has not yet finished").
+  var drawBusy = false, drawNext = null;
+  function drawPoints(x, y, cats, opts) {
+    if (drawBusy) {
+      if (drawNext) drawNext.resolve();
+      return new Promise(function (res) { drawNext = { args: [x, y, cats, opts], resolve: res }; });
+    }
+    drawBusy = true;
+    var o = Object.assign({}, opts || {});
+    if (state.densityPct < 1) o.filter = densityIndices(state.densityPct);
+    return Promise.resolve(state.scatterplot.draw({ x: x, y: y, valueA: cats }, o)).then(function () {
+      drawBusy = false;
+      if (drawNext) { var nx = drawNext; drawNext = null; return drawPoints.apply(null, nx.args).then(nx.resolve); }
+    });
+  }
+  function redrawCats(cats) { return drawPoints(state.dispX, state.dispY, cats || (state.iso ? state.iso.cats : baseCats())); }
+
+  var cameraTransitioning = false;
+  function clampAxis(t, half) {
+    var lo = -1 - PAN_MARGIN + half, hi = 1 + PAN_MARGIN - half;
+    return lo > hi ? 0 : Math.max(lo, Math.min(hi, t));
+  }
+  function clampCamera() {
+    if (!state.scatterplot || cameraTransitioning || state.introActive) return;
+    var dist = state.scatterplot.get('cameraDistance'), target = state.scatterplot.get('cameraTarget') || [0, 0];
+    var aspect = state.W / Math.max(1, state.H);
+    var tx = clampAxis(target[0], aspect * dist), ty = clampAxis(target[1], dist);
+    if (Math.abs(tx - target[0]) < 1e-6 && Math.abs(ty - target[1]) < 1e-6) return;
+    state.scatterplot.zoomToLocation([tx, ty], dist, { transition: false });
+  }
+
+  // Vuelo animado (camara nativa de la libreria). Distancia acotada al rango del
+  // zoom y objetivo acotado a los bordes ANTES de volar -- nada que corregir al llegar.
+  function flyTo(tx, ty, dist, duration) {
+    var aspect = state.W / Math.max(1, state.H);
+    dist = Math.max(1 / K_MAX_ZOOM, Math.min(DEFAULT_CAMERA_DISTANCE, dist));
+    tx = clampAxis(tx, aspect * dist); ty = clampAxis(ty, dist);
+    var cur = state.scatterplot.get('cameraTarget'), curD = state.scatterplot.get('cameraDistance');
+    var travel = Math.hypot(tx - cur[0], ty - cur[1]) / Math.max(dist, curD) + Math.abs(Math.log(dist / curD));
+    var dur = duration || Math.round(Math.max(650, Math.min(1500, 520 + travel * 260)));
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) dur = 0;
+    cameraTransitioning = true;
+    return state.scatterplot.zoomToLocation([tx, ty], dist, dur ? { transition: true, transitionDuration: dur, transitionEasing: 'cubicInOut' } : { transition: false })
+      .then(function () { cameraTransitioning = false; clampCamera(); scheduleReveal(); });
+  }
+  function fitDistance(hw, hh, pad) {
+    var aspect = state.W / Math.max(1, state.H);
+    return Math.max(hh, hw / aspect) * (pad || 1.25);
+  }
+  // aterriza siempre en nivel subtema: ni tan lejos que no se revele, ni tan cerca que un territorio compacto se vuelva una mancha
+  function flyToMacro(m) { return flyTo(m.box.cx, m.box.cy, Math.max(1 / (K_MICRO * 0.85), Math.min(fitDistance(m.box.hw, m.box.hh, 1.6), 1 / (K_MESO * 1.25)))); }
+  function flyToNode(node) {
+    if ((node.level || 'macro') === 'macro') return flyToMacro(node);
+    var p = toNdc(node.position), dist = node.level === 'meso' ? 1 / (K_MESO * 1.6) : 1 / (K_MICRO * 1.3);
+    return flyTo(p[0], p[1], dist);
+  }
+  function flyHome() { return flyTo(0, 0, DEFAULT_CAMERA_DISTANCE); }
+
+  function toNdc(pos) { return [(pos.x - state.domain.minX) / state.span * 2 - 1, (pos.y - state.domain.minY) / state.span * 2 - 1]; }
+  function ndcToPx(nx, ny) {
+    var dx = state.domain.minX + (nx + 1) / 2 * state.span, dy = state.domain.minY + (ny + 1) / 2 * state.span;
+    return [state.xScale(dx), state.yScale(dy)];
+  }
+
+  // ==================== evento view ====================
+  var rafPending = false;
+  function onView(ev) {
+    if (ev && ev.xScale) state.xScale = ev.xScale;
+    if (ev && ev.yScale) state.yScale = ev.yScale;
+    state.k = 1 / state.scatterplot.get('cameraDistance');
+    clampCamera();
+    updatePointSize();
+    if (!rafPending) {
+      rafPending = true;
+      requestAnimationFrame(function () {
+        rafPending = false;
+        updateOverlayPositions();
+        drawMinimapView();
+        if (state.iso) placeAnaLabels();
+        updateCrumbs();
+        if (DEBUG) $('zoom-readout').textContent = '×' + state.k.toFixed(2) + ' ' + state.level;
+      });
+    }
+    scheduleReveal();
+  }
+
+  var lastPointSize = null;
+  function updatePointSize() {
+    var t = Math.max(0, Math.min(1, (state.k - K0) / (K_MAX_ZOOM - K0)));
+    var size = Math.round((1.5 + 3.5 * Math.sqrt(t)) * 20) / 20;
+    if (state.iso) size = state.iso.mode === 'ana' ? ANA_DOT_PX : ISO_DOT_PX;
+    if (size !== lastPointSize) { lastPointSize = size; state.scatterplot.set({ pointSize: size }); }
+  }
+
+  // ==================== niveles + carga lazy ====================
+  function updateLevel() {
+    var k = state.k, up = 1 + LEVEL_HYSTERESIS, down = 1 - LEVEL_HYSTERESIS, lvl = state.level;
+    if (lvl === 'macro' && k >= K_MESO * up) lvl = 'meso';
+    if (lvl === 'meso' && k >= K_MICRO * up) lvl = 'micro';
+    if (lvl === 'micro' && k < K_MICRO * down) lvl = 'meso';
+    if (lvl === 'meso' && k < K_MESO * down) lvl = 'macro';
+    state.level = lvl;
+    return lvl;
+  }
+  function inViewport(pos) {
+    if (!state.xScale) return false;
+    var xd = state.xScale.domain(), yd = state.yScale.domain();
+    var px = (xd[1] - xd[0]) * VIEWPORT_PAD, py = (yd[1] - yd[0]) * VIEWPORT_PAD;
+    return pos.x >= xd[0] - px && pos.x <= xd[1] + px && pos.y >= yd[0] - py && pos.y <= yd[1] + py;
+  }
+  var revealTimer = null;
+  function scheduleReveal() {
+    if (revealTimer) clearTimeout(revealTimer);
+    revealTimer = setTimeout(function () { revealTimer = null; maybeReveal(); }, 140);
+  }
+  function maybeReveal() {
+    if (!state.macroGraph || state.introActive || state.iso) return;
+    var level = updateLevel(), changed = false;
+    state.macros.forEach(function (m) {
+      var id = m.macroId, cur = state.revealLevel[id], want = inViewport(m.position) ? level : 'macro';
+      if (want === cur || cur === want + '-loading') return;
+      if (want === 'macro') { state.revealLevel[id] = 'macro'; changed = true; return; }
+      state.revealLevel[id] = want + '-loading';
+      (want === 'meso' ? loadMeso(id) : loadMicro(id)).then(function () {
+        if (state.revealLevel[id] === want + '-loading') { state.revealLevel[id] = want; syncOverlay(); }
+      }).catch(function (err) { dlog('reveal FAIL ' + id + ' ' + err.message); state.revealLevel[id] = 'macro'; });
+    });
+    if (changed) syncOverlay();
+  }
+  function prepChildren(d, macroId) {
+    var parent = state.macroById[macroId];
+    (d.nodes || []).forEach(function (c) { c.name = displayName(c.label); c.parentMacro = parent; });
+    return d;
+  }
+  function loadMeso(id) {
+    if (state.mesoCache[id]) return Promise.resolve(state.mesoCache[id]);
+    return fetchJson('./data/meso_by_macro/M' + id + '.json').then(function (d) { return (state.mesoCache[id] = prepChildren(d, id)); });
+  }
+  function loadMicro(id) {
+    if (state.microCache[id]) return Promise.resolve(state.microCache[id]);
+    return fetchJson('./data/micro_by_macro/M' + id + '.json').then(function (d) { return (state.microCache[id] = prepChildren(d, id)); });
+  }
+
+  // ==================== overlay: nombres de territorio + marcadores ====================
+  // Modelo keyed (v3): cada nodo tiene su <g> de marcador y su <g> de etiqueta,
+  // indexados por id; al cambiar el conjunto activo solo entran/salen los que
+  // cambian (fade por nodo), en vez de destruir y reconstruir la capa completa.
+  var live = new Map(); // key -> {n, role, dot, lab, text, fs, ls, r, px, py}
+  var MAX_MACRO_SIZE = 1;
+  function activeEntries() {
+    var out = [], edges = [];
+    state.macros.forEach(function (m) {
+      var lvl = state.revealLevel[m.macroId], cache = lvl === 'meso' ? state.mesoCache[m.macroId] : lvl === 'micro' ? state.microCache[m.macroId] : null;
+      if (cache) {
+        out.push({ n: m, role: 'region' });
+        cache.nodes.forEach(function (c) { out.push({ n: c, role: c.level }); });
+        (cache.edges || []).forEach(function (e) { edges.push(e); });
+      } else {
+        out.push({ n: m, role: 'macro' });
+      }
+    });
+    return { entries: out, edges: edges };
+  }
+  function labelStyle(n, role) {
+    if (role === 'region') return { fs: n.landmark ? 20 : 17, ls: 0.2 };
+    // Jerarquia (v3.1): hitos = disciplinas reconocibles (Filosofia, Medicina interna...)
+    // en serif, mas grandes y en tinta plena; el resto en sans chico y tinta secundaria.
+    if (role === 'macro') {
+      var t = Math.sqrt(n.size / MAX_MACRO_SIZE);
+      return n.landmark ? { fs: Math.round(14 + 6 * t), ls: 0.03 } : { fs: Math.round(9.5 + 2.5 * t), ls: 0.06 };
+    }
+    if (role === 'meso') return { fs: Math.round(10.5 + 3.5 * Math.sqrt(Math.min(1, n.size / 4000))), ls: 0.05 };
+    return { fs: Math.round(10 + 2.5 * Math.sqrt(Math.min(1, n.size / 1500))), ls: 0.04 };
+  }
+  function dotRadius(n) {
+    var cap = n.level === 'meso' ? 4000 : 1500;
+    return 2.5 + 5 * Math.sqrt(Math.min(1, n.size / cap));
+  }
+  function nodeColor(n) {
+    if (state.lens === 'area') return AREA_HEX[AREA_STR_TO_CODE[(n.dominantArea || '').toLowerCase()] || 0];
+    var m = n.level === 'macro' ? n : n.parentMacro;
+    return (m && m.color) || '#948d7c';
+  }
+
+  function syncOverlay() {
+    var act = activeEntries(), want = new Map();
+    act.entries.forEach(function (e) { want.set(e.role + ':' + e.n.id, e); });
+    var gNodes = $('g-nodes'), gLabels = $('g-labels');
+    live.forEach(function (rec, key) {
+      if (want.has(key)) return;
+      live.delete(key);
+      [rec.dot, rec.lab].forEach(function (el) {
+        if (!el) return;
+        el.classList.add('leaving');
+        setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 280);
+      });
+    });
+    want.forEach(function (e, key) {
+      if (live.has(key)) return;
+      var rec = { n: e.n, role: e.role, dot: null, lab: null, r: 0 };
+      var st = labelStyle(e.n, e.role); rec.fs = st.fs; rec.ls = st.ls;
+      if (e.role === 'meso' || e.role === 'micro') {
+        var g = document.createElementNS(NS, 'g'); g.setAttribute('class', 'anode entering');
+        var c = document.createElementNS(NS, 'circle'); rec.r = dotRadius(e.n);
+        c.setAttribute('r', rec.r); c.setAttribute('fill', nodeColor(e.n)); c.setAttribute('fill-opacity', e.role === 'meso' ? 0.85 : 0.7);
+        g.appendChild(c); gNodes.appendChild(g); rec.dot = g;
+        bindNodeEvents(c, e.n);
+      }
+      var lg = document.createElementNS(NS, 'g'); lg.setAttribute('class', 'alabel entering hidden' + (e.role === 'region' ? ' region' : '') + (e.n.landmark ? ' landmark' : '') + (e.role === 'macro' && !e.n.landmark ? ' minor' : ''));
+      var tx = document.createElementNS(NS, 'text');
+      tx.textContent = e.role === 'region' ? e.n.name.split(' · ')[0] : e.n.name;
+      tx.setAttribute('font-size', rec.fs); tx.setAttribute('letter-spacing', (rec.ls * rec.fs).toFixed(2));
+      tx.setAttribute('text-anchor', e.role === 'macro' || e.role === 'region' ? 'middle' : 'start');
+      lg.appendChild(tx); gLabels.appendChild(lg); rec.lab = lg; rec.text = tx;
+      if (e.role !== 'region') bindNodeEvents(tx, e.n);
+      live.set(key, rec);
+      requestAnimationFrame(function () { requestAnimationFrame(function () { if (rec.dot) rec.dot.classList.remove('entering'); rec.lab.classList.remove('entering'); }); });
+    });
+    // edges meso/micro (c-TF-IDF completo): textura muy tenue
+    var gE = $('g-edges'); gE.innerHTML = '';
+    act.edges.forEach(function (e) {
+      var l = document.createElementNS(NS, 'line'); l.setAttribute('class', 'edge');
+      l.setAttribute('stroke-width', Math.max(0.4, (e.weight || 0.3) * 1.2));
+      l.setAttribute('data-src', e.source); l.setAttribute('data-tgt', e.target); gE.appendChild(l);
+    });
+    markSelected();
+    updateOverlayPositions();
+  }
+
+  function bindNodeEvents(el, n) {
+    // v3.2: el hover ya NO resalta el territorio en negro (redibujaba 609k puntos y
+    // estorbaba el desplazamiento por el mapa, pedido del usuario). Solo tooltip.
+    el.addEventListener('mouseenter', function (ev) { showNodeTip(n, ev); });
+    el.addEventListener('mousemove', moveTip);
+    el.addEventListener('mouseleave', hideTip);
+    el.addEventListener('click', function (ev) { ev.stopPropagation(); selectNode(n, true); });
+  }
+
+  function updateOverlayPositions() {
+    if (!state.xScale || state.introActive || state.iso) return;
+    var xs = state.xScale, ys = state.yScale, byId = {};
+    live.forEach(function (rec) {
+      var px = xs(rec.n.position.x), py = ys(rec.n.position.y);
+      rec.px = px; rec.py = py;
+      if (rec.role !== 'region') byId[rec.n.id] = rec;
+      if (rec.dot) { rec.dot.firstChild.setAttribute('cx', px); rec.dot.firstChild.setAttribute('cy', py); }
+    });
+    $('g-edges').querySelectorAll('line').forEach(function (l) {
+      var s = byId[l.getAttribute('data-src')], t = byId[l.getAttribute('data-tgt')];
+      if (!s || !t) { l.style.display = 'none'; return; }
+      l.style.display = ''; l.setAttribute('x1', s.px); l.setAttribute('y1', s.py); l.setAttribute('x2', t.px); l.setAttribute('y2', t.py);
+    });
+    placeLabels();
+    updateGrid();
+  }
+
+  // Colocacion greedy sin colisiones en pixeles: primero nombres de nodos del
+  // nivel actual (por masa), despues nombres de region (macro padre, grandes y
+  // tenues) solo donde queda espacio libre.
+  var MAX_LABELS = 34;
+  function placeLabels() {
+    var W = state.W, H = state.H, placed = [], cands = [], regions = [];
+    // las etiquetas no se colocan debajo del chrome flotante (breadcrumb, leyenda, minimapa, ficha)
+    var mr = main.getBoundingClientRect();
+    ['crumbs', 'legend', 'minimap', 'map-selection', 'story'].forEach(function (id) {
+      var el = $(id); if (!el || el.hidden) return;
+      var r = el.getBoundingClientRect(); if (!r.width) return;
+      placed.push({ x0: r.left - mr.left - 4, y0: r.top - mr.top - 4, x1: r.right - mr.left + 4, y1: r.bottom - mr.top + 4 });
+    });
+    live.forEach(function (rec) {
+      rec.lab.classList.add('hidden');
+      if (rec.px < -40 || rec.px > W + 40 || rec.py < -20 || rec.py > H + 20) return;
+      (rec.role === 'region' ? regions : cands).push(rec);
+    });
+    // hitos primero (siempre ganan el espacio), despues por masa
+    var bySize = function (a, b) { return ((b.n.landmark ? 1 : 0) - (a.n.landmark ? 1 : 0)) || (b.n.size - a.n.size); };
+    cands.sort(bySize); regions.sort(bySize);
+    function tryPlace(rec) {
+      var txt = rec.text.textContent, w = txt.length * rec.fs * ((rec.n.landmark ? 0.62 : 0.56) + rec.ls) + 4, h = rec.fs * 1.15;
+      var x0, y0 = rec.py - h / 2, tx, ty = rec.py + rec.fs * 0.36;
+      if (rec.role === 'macro' || rec.role === 'region') { x0 = rec.px - w / 2; tx = rec.px; }
+      else {
+        x0 = rec.px + rec.r + 4; tx = x0;
+        if (x0 + w > W - 4) { x0 = rec.px - rec.r - 4 - w; tx = x0; }
+      }
+      var box = { x0: x0, y0: y0, x1: x0 + w, y1: y0 + h };
+      if (box.x0 < 2 || box.x1 > W - 2 || box.y0 < 2 || box.y1 > H - 2) return false;
+      for (var i = 0; i < placed.length; i++) { var p = placed[i]; if (!(box.x1 < p.x0 || box.x0 > p.x1 || box.y1 < p.y0 || box.y0 > p.y1)) return false; }
+      placed.push(box);
+      rec.text.setAttribute('x', tx); rec.text.setAttribute('y', ty);
+      rec.lab.classList.remove('hidden');
+      return true;
+    }
+    var shown = 0;
+    for (var i = 0; i < cands.length && shown < MAX_LABELS; i++) if (tryPlace(cands[i])) shown++;
+    for (var j = 0; j < regions.length && j < 12; j++) tryPlace(regions[j]);
+  }
+
+  function niceStep(raw) { var p = Math.pow(10, Math.floor(Math.log10(raw))), f = raw / p; return (f < 1.5 ? 1 : f < 3 ? 2 : f < 7 ? 5 : 10) * p; }
+  function updateGrid() {
+    var g = $('g-grid'), xs = state.xScale, ys = state.yScale, dom = xs.domain(), domY = ys.domain();
+    var step = niceStep((dom[1] - dom[0]) / 8), stepY = step;
+    var gx0 = Math.floor(dom[0] / step) - 1, gx1 = Math.ceil(dom[1] / step) + 1, gy0 = Math.floor(domY[0] / stepY) - 1, gy1 = Math.ceil(domY[1] / stepY) + 1;
+    var key = [step, gx0, gx1, gy0, gy1].join('|');
+    if (g.getAttribute('data-key') !== key) {
+      g.setAttribute('data-key', key); g.innerHTML = '';
+      var mk = function (axis, v) {
+        var l = document.createElementNS(NS, 'line'); l.setAttribute('class', 'gridline'); l.setAttribute('data-axis', axis); l.setAttribute('data-v', v);
+        var t = document.createElementNS(NS, 'text'); t.setAttribute('class', 'tick-label'); t.setAttribute('data-axis', axis); t.setAttribute('data-v', v); t.textContent = (+v).toFixed(step < 1 ? 1 : 0);
+        g.appendChild(l); g.appendChild(t);
+      };
+      for (var a = gx0; a <= gx1; a++) mk('x', a * step);
+      for (var b = gy0; b <= gy1; b++) mk('y', b * stepY);
+    }
+    var W = state.W, H = state.H;
+    g.querySelectorAll('[data-axis]').forEach(function (el) {
+      var v = parseFloat(el.getAttribute('data-v')), isLine = el.tagName === 'line';
+      if (el.getAttribute('data-axis') === 'x') { var px = xs(v); if (isLine) { el.setAttribute('x1', px); el.setAttribute('x2', px); el.setAttribute('y1', 0); el.setAttribute('y2', H); } else { el.setAttribute('x', px + 3); el.setAttribute('y', H - 6); } }
+      else { var py = ys(v); if (isLine) { el.setAttribute('y1', py); el.setAttribute('y2', py); el.setAttribute('x1', 0); el.setAttribute('x2', W); } else { el.setAttribute('x', 4); el.setAttribute('y', py - 3); } }
+    });
+  }
+
+  // ==================== resaltado de territorio ====================
+  var hlTimer = null;
+  function scheduleHighlight(n) {
+    if (hlTimer) clearTimeout(hlTimer);
+    hlTimer = setTimeout(function () {
+      if (state.routeActive || state.spotlightActive || state.introActive) return;
+      var m = n ? (n.level === 'macro' ? n : n.parentMacro) : null;
+      if (m) highlightMacros([m.macroId]); else restoreView();
+    }, n ? 160 : 220);
+  }
+  // Resaltado FIJADO (v3.1): al seleccionar un territorio/subtema/tema fino, sus
+  // tesis quedan en tinta sobre el mapa atenuado mientras el panel siga abierto.
+  // El hover lo reemplaza temporalmente y restoreView() lo vuelve a poner.
+  state.pin = null; // {key, cats}
+  function setCats(key, cats) {
+    if (key === state.highlightKey) return Promise.resolve();
+    state.highlightKey = key;
+    return redrawCats(cats || null);
+  }
+  function restoreView() {
+    if (state.spotlightActive || state.introActive) return Promise.resolve();
+    if (state.iso) return setCats('iso|' + state.iso.node.id, state.iso.cats);
+    return state.pin ? setCats(state.pin.key, state.pin.cats) : setCats('base|' + state.lens + '|' + state.densityPct, null);
+  }
+  function pinIndices(key, idxs) {
+    var cats = new Float32Array(state.n); cats.fill(C_DIM);
+    for (var i = 0; i < idxs.length; i++) cats[idxs[i]] = C_HL;
+    state.pin = { key: 'pin|' + key, cats: cats, idxs: idxs };
+    return restoreView();
+  }
+  function clearPin() { state.pin = null; return restoreView(); }
+  // Todo lo que no es del territorio se atenua; el territorio queda en tinta (un
+  // solo territorio) o en el color pedido (varios, ej. ruta "archipielago").
+  function highlightMacros(ids, color) {
+    if (!ids.length) return restoreView();
+    var key = ids.join(',') + '|' + (color || '') + '|' + state.lens;
+    if (key === state.highlightKey) return Promise.resolve();
+    state.highlightKey = key;
+    var cats = new Float32Array(state.n); cats.fill(C_DIM);
+    var slot = color ? C_HL_MULTI : C_HL;
+    if (color && state.palette[C_HL_MULTI] !== color) { state.palette[C_HL_MULTI] = color; state.scatterplot.set({ pointColor: state.palette }); }
+    ids.forEach(function (id) {
+      var k = state.macroIndex[id]; if (k == null) return;
+      for (var j = state.memberStart[k]; j < state.memberStart[k + 1]; j++) cats[state.memberIdx[j]] = slot;
+    });
+    return redrawCats(cats);
+  }
+
+  // ==================== tooltips ====================
+  var LEVEL_NAME = { macro: 'Territorio', meso: 'Subtema', micro: 'Tema fino' };
+  function showNodeTip(n, ev) {
+    tooltip.innerHTML = '<span class="t-meta">' + LEVEL_NAME[n.level || 'macro'] + '</span><span class="t-label">' + escapeHtml(n.name) + '</span>' +
+      '<span class="t-meta">' + fmtNum(n.size) + ' tesis · ' + escapeHtml(areaNameFromStr(n.dominantArea)) + ' ' + Math.round((n.dominantAreaShare || 0) * 100) + '%</span>' +
+      '<span class="t-hint">Clic para acercarte y ver el detalle</span>';
+    tooltip.style.opacity = '1'; moveTip(ev);
+  }
+  // Tooltip de punto (v3.2): TITULO + anio. Pendiente decidir cuanta info mas cabe
+  // sin saturar (programa, plantel...). El titulo sale de las teselas espaciales
+  // (titulos_teselas/, se piden solo las de la zona bajo el cursor) o, en modo
+  // aislado, de las tesis del tema ya cargadas.
+  var hoverIdx = -1;
+  function showPointTip(idx) {
+    hoverIdx = idx;
+    var info = pointInfo(idx);
+    if (info === undefined) {
+      renderPointTip(idx, null);
+      titleTileFor(idx).then(function () { if (hoverIdx === idx) renderPointTip(idx, pointInfo(idx)); });
+    } else renderPointTip(idx, info);
+  }
+  function renderPointTip(idx, info) {
+    var mc = state.macroCode[idx], m = mc >= 0 ? state.macroById[mc] : null;
+    tooltip.innerHTML = '<span class="t-label">' + (info ? escapeHtml(info.t) : '<span style="color:var(--ink-3)">Cargando título…</span>') + '</span>' +
+      '<span class="t-meta">' + (info && info.y ? info.y : '—') + (state.iso ? '' : ' · ' + (m ? escapeHtml(m.name) : 'sin territorio')) + '</span>';
+    tooltip.style.opacity = '1';
+    var p = ndcToPx(state.dispX[idx], state.dispY[idx]);
+    tooltip.style.transform = 'translate(' + Math.min(state.W - 280, p[0] + 14) + 'px,' + (p[1] + 14) + 'px)';
+  }
+  function moveTip(ev) {
+    var r = main.getBoundingClientRect();
+    tooltip.style.transform = 'translate(' + Math.min(state.W - 280, ev.clientX - r.left + 14) + 'px,' + (ev.clientY - r.top + 14) + 'px)';
+  }
+  function hideTip() { tooltip.style.opacity = '0'; tooltip.style.transform = 'translate(-9999px,-9999px)'; }
+
+  // ==================== seleccion: vuelo + panel ====================
+  function selectNode(n, fly) {
+    if (state.introActive) return;
+    hideTip();
+    $('map-selection').hidden = true;
+    if ((n.level || 'macro') === 'micro') { openPanel(n); isolateMicro(n); return; }
+    if (state.iso) exitIsolation(true);
+    if (fly) flyToNode(n);
+    openPanel(n);
+  }
+  function markSelected() {
+    live.forEach(function (rec) {
+      var on = rec.role !== 'region' && rec.n.id === state.selectedId;
+      if (rec.dot) rec.dot.classList.toggle('selected', on);
+      rec.lab.classList.toggle('selected', on);
+    });
+  }
+  // Clic en un punto: si es una de las 2,500 tesis con vecindario -> spotlight;
+  // si no, volar a su territorio (el mapa entero es clicable, no solo los nombres).
+  // v3.2: clic en un punto = ESA tesis: se marca y se abre su ficha (titulo, anio,
+  // territorio). Desde la ficha: ir a su territorio o, si esta precargado, ver sus
+  // vecinas. Antes volaba directo al territorio y la tesis nunca se veia.
+  function onPointClick(idx) {
+    var tid = state.thesisIds[idx];
+    if (state.iso && state.iso.mode === 'eco' && flow.running && state.iso.posOf[idx] != null) {
+      flow.focus = idx; showPointCard(idx);
+      if (pointInfo(idx) === undefined) titleTileFor(idx).then(function () { showPointCard(idx); });
+      return;
+    }
+    showPointCard(idx);
+    if (pointInfo(idx) === undefined) titleTileFor(idx).then(function () { showPointCard(idx); });
+    var base = state.iso ? state.iso.cats : state.pin ? state.pin.cats : baseCats(), cats = new Float32Array(base);
+    cats[idx] = C_FOCAL;
+    setCats('focus|' + tid, cats);
+  }
+  function showPointCard(idx) {
+    var tid = state.thesisIds[idx], info = pointInfo(idx), mc = state.macroCode[idx], m = mc >= 0 ? state.macroById[mc] : null;
+    var t = state.vecindarioPreview && state.vecindarioPreview.theses[tid], row = state.iso && state.iso.byIdx[idx];
+    $('ms-eyebrow').textContent = 'Tesis';
+    $('ms-title').textContent = info ? info.t : 'Cargando título…';
+    $('ms-meta').textContent = ((info && info.y) || '—') + ' · ' + tid;
+    $('ms-note').innerHTML = row ? escapeHtml(row.pr) + '<br>' + escapeHtml(row.pl) + '<br>Asesoría: ' + escapeHtml(fmtAsesores(row.as))
+      : (m ? 'Territorio: ' + escapeHtml(m.name) : 'Sin territorio: no quedó en ningún grupo claro (le pasa al 67% del corpus).') + '<br>' + escapeHtml(AREA_NAMES[state.areaCode[idx]] || '');
+    var go = $('ms-go-territory');
+    go.hidden = !m || !!state.iso; go.onclick = function () { $('map-selection').hidden = true; selectNode(m, true); };
+    var vb = $('ms-open-vecindario');
+    vb.hidden = !t; if (t) vb.onclick = function () { applySpotlight(tid, idx); openVecindarioModal(tid); };
+    $('map-selection').hidden = false;
+  }
+
+  // ==================== breadcrumb ====================
+  function nearest(list, cx, cy) {
+    var best = null, bd = Infinity;
+    list.forEach(function (n) { var d = Math.hypot(n.position.x - cx, n.position.y - cy); if (d < bd) { bd = d; best = n; } });
+    return best;
+  }
+  function updateCrumbs() {
+    if (state.introActive || !state.xScale) return;
+    var c = $('crumbs'); c.hidden = false;
+    var xd = state.xScale.domain(), yd = state.yScale.domain(), cx = (xd[0] + xd[1]) / 2, cy = (yd[0] + yd[1]) / 2;
+    var parts = [{ label: 'UNAM', act: flyHome }];
+    var lvl = state.level;
+    if (lvl !== 'macro') {
+      var m = nearest(state.macros.filter(function (mm) { return state.revealLevel[mm.macroId] === lvl; }), cx, cy) || nearest(state.macros, cx, cy);
+      if (m) {
+        parts.push({ label: m.name.split(' · ')[0], act: function () { selectNode(m, true); } });
+        var cache = lvl === 'meso' ? state.mesoCache[m.macroId] : state.microCache[m.macroId];
+        var ch = cache && nearest(cache.nodes, cx, cy);
+        // si el subtema empieza con la misma palabra que su territorio, se usa su nombre completo
+        var chLabel = ch && (ch.name.split(' · ')[0] === parts[1].label ? ch.name : ch.name.split(' · ')[0]);
+        if (ch && chLabel !== parts[1].label) parts.push({ label: chLabel, act: function () { selectNode(ch, true); } });
+      }
+    }
+    var lvlTxt = { macro: '130 territorios', meso: 'subtemas', micro: 'temas finos' }[lvl];
+    var key = parts.map(function (p) { return p.label; }).join('>') + lvlTxt;
+    if (c.getAttribute('data-key') === key) return;
+    c.setAttribute('data-key', key); c.innerHTML = '';
+    parts.forEach(function (p, i) {
+      if (i) { var s = document.createElement('span'); s.className = 'sep'; s.textContent = '›'; c.appendChild(s); }
+      var b = document.createElement('button'); b.type = 'button'; b.textContent = p.label;
+      if (i === parts.length - 1 && i > 0) b.className = 'current'; else b.addEventListener('click', p.act);
+      c.appendChild(b);
+    });
+    var l = document.createElement('span'); l.className = 'lvl'; l.textContent = '· ' + lvlTxt; c.appendChild(l);
+  }
+
+  // ==================== minimapa ====================
+  var MM_W = 190;
+  function buildMinimapBase() {
+    var base = $('mm-base'), view = $('mm-view'), dpr = window.devicePixelRatio || 1;
+    [base, view].forEach(function (cv) { cv.width = MM_W * dpr; cv.height = MM_W * dpr; cv.style.width = MM_W + 'px'; cv.style.height = MM_W + 'px'; });
+    paintMinimap();
+    var mm = $('minimap'), dragging = false;
+    function go(ev) {
+      var r = base.getBoundingClientRect(), nx = (ev.clientX - r.left) / r.width * 2 - 1, ny = 1 - (ev.clientY - r.top) / r.height * 2;
+      var d = state.scatterplot.get('cameraDistance'), aspect = state.W / Math.max(1, state.H);
+      state.scatterplot.zoomToLocation([clampAxis(nx, aspect * d), clampAxis(ny, d)], d, { transition: false });
+    }
+    mm.addEventListener('mousedown', function (ev) { if (state.introActive) return; dragging = true; go(ev); ev.preventDefault(); });
+    window.addEventListener('mousemove', function (ev) { if (dragging) go(ev); });
+    window.addEventListener('mouseup', function () { dragging = false; });
+  }
+  // Minimapa con opcion de ocultarlo (v3.3). Bug corregido: solo se mostraba al
+  // terminar la intro, asi que con la intro ya vista nunca aparecia.
+  function minimapHidden() { try { return localStorage.getItem('nodo_mm_hidden') === '1'; } catch (e) { return false; } }
+  function applyMinimapPref() {
+    var hid = minimapHidden();
+    $('minimap').hidden = hid; $('mm-show').hidden = !hid;
+    if (!hid) drawMinimapView();
+  }
+  function setMinimapHidden(h) { try { localStorage.setItem('nodo_mm_hidden', h ? '1' : '0'); } catch (e) { /* sin almacenamiento: solo para esta sesion */ } $('minimap').hidden = h; $('mm-show').hidden = !h; if (!h) drawMinimapView(); }
+  $('mm-hide').addEventListener('mousedown', function (ev) { ev.stopPropagation(); });
+  $('mm-hide').addEventListener('click', function (ev) { ev.stopPropagation(); setMinimapHidden(true); });
+  $('mm-show').addEventListener('click', function () { setMinimapHidden(false); });
+  function paintMinimap() {
+    var cv = $('mm-base'), ctx = cv.getContext('2d'), dpr = window.devicePixelRatio || 1, s = MM_W * dpr, cats = baseCats();
+    ctx.clearRect(0, 0, s, s);
+    ctx.globalAlpha = 0.5;
+    for (var i = 0; i < state.n; i += 9) {
+      var c = cats[i]; if (c === C_NOISE || (c >= C_AREA_NOISE && c < C_AREA_NOISE + 5)) continue;
+      ctx.fillStyle = state.palette[c];
+      ctx.fillRect((state.ndcX[i] + 1) / 2 * s, (1 - state.ndcY[i]) / 2 * s, dpr, dpr);
+    }
+    ctx.globalAlpha = 1;
+  }
+  function drawMinimapView() {
+    var cv = $('mm-view'); if (!cv.width || state.introActive) return;
+    var ctx = cv.getContext('2d'), dpr = window.devicePixelRatio || 1, s = MM_W * dpr;
+    var t = state.scatterplot.get('cameraTarget'), d = state.scatterplot.get('cameraDistance'), aspect = state.W / Math.max(1, state.H);
+    var x0 = (t[0] - aspect * d + 1) / 2 * s, x1 = (t[0] + aspect * d + 1) / 2 * s, y0 = (1 - (t[1] + d)) / 2 * s, y1 = (1 - (t[1] - d)) / 2 * s;
+    ctx.clearRect(0, 0, s, s);
+    ctx.fillStyle = 'rgba(251,250,247,0.55)'; ctx.fillRect(0, 0, s, s);
+    ctx.clearRect(x0, y0, x1 - x0, y1 - y0);
+    ctx.strokeStyle = '#17181a'; ctx.lineWidth = 1.5 * dpr; ctx.strokeRect(x0, y0, x1 - x0, y1 - y0);
+    $('mm-zoom').textContent = '×' + (state.k / K0).toFixed(1);
+  }
+
+  // ==================== leyenda + lente ====================
+  function renderLegend() {
+    var L = $('legend'); L.hidden = false;
+    if (state.lens === 'territory') {
+      var stops = state.macros.slice().sort(function (a, b) { return a.hueRank - b.hueRank; }).filter(function (_, i) { return i % 7 === 0; }).map(function (m) { return m.color; });
+      L.innerHTML = '<div class="lg-title">Color = territorio</div>' +
+        '<div class="spectrum" style="background:linear-gradient(to right,' + stops.join(',') + ')"></div>' +
+        '<div class="lg-row"><span class="sw" style="background:#a79f8d;opacity:.55"></span>Gris tenue: tesis sin territorio (67%)</div>' +
+        '<div class="lg-note">130 territorios que el algoritmo encontró agrupando títulos parecidos. No son las áreas oficiales de la UNAM: cambia arriba a «Áreas UNAM» para compararlas.</div>';
+    } else {
+      L.innerHTML = '<div class="lg-title">Color = área administrativa</div>' +
+        [1, 2, 3, 4, 0].map(function (a) { return '<div class="lg-row"><span class="sw" style="background:' + AREA_HEX[a] + '"></span>' + AREA_NAMES[a] + '</div>'; }).join('') +
+        '<div class="lg-note">Tenue = tesis sin grupo claro (67%). El área es un dato del catálogo, no del algoritmo.</div>';
+    }
+  }
+  function setLens(lens, force) {
+    if (lens === state.lens && !force) return;
+    state.lens = lens;
+    document.querySelectorAll('#lens button').forEach(function (b) { b.classList.toggle('active', b.getAttribute('data-lens') === lens); });
+    state.highlightKey = '';
+    if (state.iso) recolorIsolation();
+    if (!state.introActive && !state.routeActive) restoreView();
+    live.forEach(function (rec) { if (rec.dot) rec.dot.firstChild.setAttribute('fill', nodeColor(rec.n)); });
+    renderLegend(); paintMinimap();
+  }
+  document.querySelectorAll('#lens button').forEach(function (b) { b.addEventListener('click', function () { if (!state.introActive) setLens(b.getAttribute('data-lens')); }); });
+
+  // ==================== datos por tema (v3.1) ====================
+  // tesis_por_micro/{clusterId}.json: TODAS las tesis de cada tema fino (199,623 en
+  // 513 archivos, sin autor). Territorio y subtema se arman juntando sus temas finos.
+  var microThesesCache = {}, microMeso = {};
+  function loadMicroTheses(cid) {
+    if (!microThesesCache[cid]) microThesesCache[cid] = fetchJson('./data/tesis_por_micro/' + cid + '.json').then(function (d) { microMeso[cid] = d.mesoId; return d; });
+    return microThesesCache[cid];
+  }
+  function rowObj(r) { return { id: r[0], t: r[1], y: r[2], pl: r[3], pr: r[4], nv: r[5], as: r[6] || [], k: norm(r[1]).replace(/[^a-z0-9 ]/g, '') }; }
+  var nodeThesesCache = {};
+  function loadThesesFor(n) {
+    var lvl = n.level || 'macro', key = lvl + ':' + (lvl === 'macro' ? n.macroId : n.clusterId);
+    if (nodeThesesCache[key]) return nodeThesesCache[key];
+    var p;
+    if (lvl === 'micro') p = loadMicroTheses(n.clusterId).then(function (d) { return d.rows.map(rowObj); });
+    else p = loadMicro(n.macroId).then(function (c) {
+      return Promise.all(c.nodes.map(function (u) { return loadMicroTheses(u.clusterId); }));
+    }).then(function (ds) {
+      var rows = [];
+      ds.forEach(function (d) { if (lvl === 'macro' || d.mesoId === n.clusterId) d.rows.forEach(function (r) { rows.push(rowObj(r)); }); });
+      rows.sort(function (a, b) { return a.k < b.k ? -1 : a.k > b.k ? 1 : 0; });
+      return rows;
+    });
+    nodeThesesCache[key] = p;
+    return p;
+  }
+  function thesisIdx(rows) {
+    var out = [];
+    rows.forEach(function (r) { var i = state.thesisIdToIndex.get(r.id); if (i != null) out.push(i); });
+    return out;
+  }
+  function fmtAsesores(as) { return as.length ? as.join(' · ') : 'sin asesor registrado'; }
+  function yearRange(rows) {
+    var ys = rows.map(function (r) { return r.y; }).filter(function (y) { return y; });
+    return ys.length ? [Math.min.apply(null, ys), Math.max.apply(null, ys)] : null;
+  }
+  function countBy(rows, fn) {
+    var m = new Map();
+    rows.forEach(function (r) { [].concat(fn(r)).forEach(function (v) { if (v) m.set(v, (m.get(v) || 0) + 1); }); });
+    return Array.from(m.entries()).sort(function (a, b) { return b[1] - a[1]; });
+  }
+  var AZ_SVG = '<svg viewBox="0 0 30 12" aria-hidden="true"><line x1="1" y1="6" x2="27" y2="6" stroke="currentColor" stroke-width="1.4"/><path d="M22 1.5 L28 6 L22 10.5" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>';
+  function thesisRowHtml(r) {
+    return '<div class="tr" data-tid="' + r.id + '"><span class="tr-t">' + escapeHtml(r.t) + '</span>' +
+      '<div class="tr-m"><span class="y">' + (r.y || '—') + '</span> · ' + escapeHtml(r.nv || '') + ' · <b>' + escapeHtml(r.pr) + '</b><br>' +
+      escapeHtml(r.pl) + '<br>Asesoría: ' + escapeHtml(fmtAsesores(r.as)) + '</div></div>';
+  }
+
+  // ==================== panel lateral ====================
+  function openPanel(n) {
+    state.selectedId = n.id; markSelected();
+    state.panelStack = [{ type: 'node', node: n }];
+    renderPanel(); panel.classList.add('open'); main.classList.add('panel-open');
+    // resaltar en el mapa las tesis del nodo elegido (todas, no una muestra)
+    loadThesesFor(n).then(function (rows) {
+      if (state.selectedId !== n.id) return;
+      pinIndices(n.id, thesisIdx(rows));
+    }).catch(function (e) { dlog('tesis ' + n.id + ' ' + e.message); });
+  }
+  function renderPanel() {
+    var top = state.panelStack[state.panelStack.length - 1];
+    var back = state.panelStack.length > 1 ? '<button class="back-btn" id="panel-back">← volver</button>' : '';
+    var lvl = top.node.level || 'macro';
+    if (top.type === 'node') {
+      $('panel-eyebrow').innerHTML = back + '<span>' + LEVEL_NAME[lvl] + (top.node.parentMacro ? ' · en ' + escapeHtml(top.node.parentMacro.name) : '') + '</span>';
+      renderNodeView(top.node);
+    } else { $('panel-eyebrow').innerHTML = back + '<span>Tesis representativas</span>'; renderThesesView(top.node); }
+    var bb = $('panel-back'); if (bb) bb.addEventListener('click', function () { state.panelStack.pop(); renderPanel(); });
+  }
+  function isCurrent(n) { return state.panelStack.length && state.panelStack[state.panelStack.length - 1].node === n; }
+  function renderNodeView(n) {
+    var lvl = n.level || 'macro';
+    $('panel-title').textContent = n.name;
+    var body = '<div class="kpis" id="panel-kpis"><div><b>' + fmtNum(n.size) + '</b><span>Tesis</span></div><div><b>…</b><span>Años</span></div><div><b>…</b><span>Asesores</span></div></div>' +
+      '<div class="az-head"><span class="az-mark">A' + AZ_SVG + 'Z</span><span class="az-cap" id="az-cap">Cargando tesis…</span></div>' +
+      '<div id="az-list"></div>' +
+      '<button type="button" class="btn primary btn-full" id="btn-taller" disabled>Ver listado completo y análisis →</button>' +
+      '<div class="section-label">Palabras que lo distinguen</div><div class="kw">' + keywords(n.label).slice(0, 8).map(function (k) { return '<span>' + escapeHtml(k) + '</span>'; }).join('') + '</div>';
+    if (lvl !== 'micro') body += '<div class="section-label">' + (lvl === 'macro' ? 'Subtemas' : 'Temas finos') + '</div><div class="children" id="panel-children"><div class="vecindario-note">Cargando…</div></div>';
+    if (lvl === 'micro' && state.vecindarioPreview) {
+      var ids = (state.vecindarioPreview.byCluster || {})[String(n.clusterId)];
+      if (ids && ids.length) body += '<div class="section-label">Vecindarios precargados</div><div class="cta" id="theses-trigger">' + ids.length + ' tesis de referencia y sus 50 vecinas →</div>';
+    }
+    $('panel-body').innerHTML = body;
+    var tr = $('theses-trigger'); if (tr) tr.addEventListener('click', function () { state.panelStack.push({ type: 'theses', node: n }); renderPanel(); });
+
+    loadThesesFor(n).then(function (rows) {
+      if (!isCurrent(n)) return;
+      var yr = yearRange(rows), nAs = countBy(rows, function (r) { return r.as; }).length;
+      $('panel-kpis').innerHTML = '<div><b>' + fmtNum(rows.length) + '</b><span>Tesis</span></div><div><b>' + (yr ? yr[0] + '–' + yr[1] : '—') + '</b><span>Años</span></div><div><b>' + fmtNum(nAs) + '</b><span>Asesores</span></div>';
+      $('az-cap').innerHTML = 'Orden alfabético<br>' + Math.min(6, rows.length) + ' de ' + fmtNum(rows.length);
+      $('az-list').innerHTML = rows.slice(0, 6).map(thesisRowHtml).join('');
+      bindThesisRows($('az-list'), rows);
+      var bt = $('btn-taller'); bt.disabled = false;
+      bt.textContent = 'Ver las ' + fmtNum(rows.length) + ' tesis y su análisis →';
+      bt.addEventListener('click', function () { openTaller(n, rows); });
+
+      if (lvl !== 'micro') {
+        var kids = lvl === 'macro' ? loadMeso(n.macroId).then(function (d) { return d.nodes; })
+          : loadMicro(n.macroId).then(function (c) { return c.nodes.filter(function (u) { return microMeso[u.clusterId] === n.clusterId; }); });
+        kids.then(function (list) {
+          var box = $('panel-children'); if (!box || !isCurrent(n)) return;
+          box.innerHTML = '';
+          list.slice().sort(function (a, b) { return b.size - a.size; }).forEach(function (c) {
+            var b = document.createElement('button'); b.type = 'button';
+            b.innerHTML = '<span>' + escapeHtml(c.name) + '</span><span>' + fmtNum(c.size) + '</span>';
+            b.addEventListener('click', function () { selectNode(c, true); });
+            box.appendChild(b);
+          });
+        });
+      }
+    }).catch(function () { $('az-cap').textContent = 'No se pudieron cargar las tesis de este tema.'; });
+  }
+  function bindThesisRows(container, rows) {
+    var byId = {}; rows.forEach(function (r) { byId[r.id] = r; });
+    container.querySelectorAll('[data-tid]').forEach(function (el) {
+      el.addEventListener('click', function () { showThesisOnMap(byId[el.getAttribute('data-tid')]); });
+    });
+  }
+  function renderThesesView(micro) {
+    $('panel-title').textContent = micro.name;
+    var ids = (state.vecindarioPreview.byCluster || {})[String(micro.clusterId)] || [];
+    var html = '<div class="vecindario-note">Las ' + ids.length + ' tesis más cercanas al centro de este tema. Clic en una para ver sus 50 vecinas más parecidas.</div>';
+    ids.forEach(function (tid) {
+      var t = state.vecindarioPreview.theses[tid]; if (!t) return;
+      html += '<div class="thesis-row" data-thesis="' + tid + '"><span class="th-title">' + escapeHtml(t.title || tid) + '</span><span class="th-meta">' + (t.year || '?') + ' · ' + tid + '</span></div>';
+    });
+    $('panel-body').innerHTML = html;
+    document.querySelectorAll('#panel-body .thesis-row').forEach(function (row) {
+      row.addEventListener('click', function () { var tid = row.getAttribute('data-thesis'); applySpotlight(tid); openVecindarioModal(tid); });
+    });
+  }
+  function closePanel() {
+    if (state.iso) exitIsolation();
+    panel.classList.remove('open'); main.classList.remove('panel-open'); state.selectedId = null; state.panelStack = []; markSelected();
+    clearPin();
+  }
+  $('panel-close').addEventListener('click', closePanel);
+
+  // Una tesis concreta en el mapa: vuela a su punto, la marca en negro sobre el
+  // resaltado del tema y muestra su ficha (con vecindario si esta precargado).
+  function showThesisOnMap(r) {
+    if (!r) return;
+    closeTaller();
+    var idx = state.thesisIdToIndex.get(r.id); if (idx == null) return;
+    var base = state.pin ? state.pin.cats : baseCats(), cats = new Float32Array(base);
+    cats[idx] = C_FOCAL;
+    setCats('focus|' + r.id, cats);
+    flyTo(state.ndcX[idx], state.ndcY[idx], Math.min(state.scatterplot.get('cameraDistance'), 1 / (K_MICRO * 1.1)));
+    var t = state.vecindarioPreview && state.vecindarioPreview.theses[r.id];
+    $('ms-eyebrow').textContent = 'Tesis';
+    $('ms-title').textContent = r.t;
+    $('ms-meta').textContent = (r.y || '—') + ' · ' + (r.nv || '') + ' · ' + r.id;
+    $('ms-note').innerHTML = escapeHtml(r.pr) + '<br>' + escapeHtml(r.pl) + '<br>Asesoría: ' + escapeHtml(fmtAsesores(r.as));
+    var btn = $('ms-open-vecindario');
+    btn.hidden = !t; if (t) btn.onclick = function () { openVecindarioModal(r.id); };
+    $('map-selection').hidden = false;
+  }
+
+  // ==================== modo taller ====================
+  var taller = { node: null, rows: [], tab: 'lista', filtered: [], shown: 0, q: '', sort: 'az', fpl: '', fpr: '', fas: '' };
+  function openTaller(n, rows) {
+    taller.node = n; taller.rows = rows; taller.q = ''; taller.fpl = ''; taller.fpr = ''; taller.fas = ''; taller.sort = 'az';
+    var lvl = n.level || 'macro', crumb = ['Atlas'];
+    if (n.parentMacro) crumb.push(n.parentMacro.name);
+    crumb.push(LEVEL_NAME[lvl]);
+    $('tl-crumb').textContent = crumb.join(' › ');
+    $('tl-title').textContent = n.name;
+    var yr = yearRange(rows), nAs = countBy(rows, function (r) { return r.as; }).length;
+    var kp = [[fmtNum(rows.length), 'Tesis'], [yr ? yr[0] + '–' + yr[1] : '—', 'Periodo'], [fmtNum(countBy(rows, function (r) { return r.pl; }).length), 'Planteles'],
+      [fmtNum(countBy(rows, function (r) { return r.pr; }).length), 'Programas'], [fmtNum(nAs), 'Asesores']];
+    $('tl-kpis').innerHTML = kp.map(function (k) { return '<div><b>' + k[0] + '</b><span>' + k[1] + '</span></div>'; }).join('');
+    $('taller').hidden = false;
+    setTab('lista');
+  }
+  function closeTaller() { $('taller').hidden = true; vmHide(); }
+  $('tl-close').addEventListener('click', closeTaller);
+  document.querySelectorAll('#taller .tabs button').forEach(function (b) { b.addEventListener('click', function () { setTab(b.getAttribute('data-tab')); }); });
+  function setTab(tab) {
+    taller.tab = tab;
+    document.querySelectorAll('#taller .tabs button').forEach(function (b) { b.classList.toggle('active', b.getAttribute('data-tab') === tab); });
+    $('tl-body').scrollTop = 0;
+    if (tab === 'lista') renderLista();
+    else if (tab === 'panorama') renderPanorama();
+    else if (tab === 'analitica') renderAnalitica();
+    else renderRed();
+  }
+
+  // --- Listado: buscar, ordenar, filtrar; 150 filas por pagina ---
+  function renderLista() {
+    var rows = taller.rows, pls = countBy(rows, function (r) { return r.pl; }), prs = countBy(rows, function (r) { return r.pr; });
+    var opt = function (list, sel, all) { return '<option value="">' + all + '</option>' + list.slice(0, 60).map(function (e) { return '<option value="' + escapeHtml(e[0]) + '"' + (e[0] === sel ? ' selected' : '') + '>' + escapeHtml(e[0].toUpperCase()) + ' (' + e[1] + ')</option>'; }).join(''); };
+    $('tl-body').innerHTML = '<div class="tl-controls">' +
+      '<input id="tl-q" type="search" placeholder="Filtrar por título, asesor o programa…" value="' + escapeHtml(taller.q) + '">' +
+      '<select id="tl-sort"><option value="az">A → Z</option><option value="za">Z → A</option><option value="new">Más recientes</option><option value="old">Más antiguas</option></select>' +
+      '<select id="tl-fpr">' + opt(prs, taller.fpr, 'Todos los programas') + '</select>' +
+      '<select id="tl-fpl">' + opt(pls, taller.fpl, 'Todos los planteles') + '</select>' +
+      (taller.fas ? '<button type="button" class="btn" id="tl-fas">Asesor: ' + escapeHtml(taller.fas) + ' ✕</button>' : '') +
+      '<span class="tl-count" id="tl-count"></span></div>' +
+      '<table class="tl-table"><thead><tr><th>Título</th><th>Año</th><th>Nivel</th><th>Programa</th><th>Plantel</th><th>Asesoría</th></tr></thead><tbody id="tl-tbody"></tbody></table>' +
+      '<button type="button" class="btn tl-more" id="tl-more">Mostrar más</button>';
+    $('tl-sort').value = taller.sort;
+    $('tl-q').addEventListener('input', function (e) { taller.q = e.target.value; applyLista(); });
+    $('tl-sort').addEventListener('change', function (e) { taller.sort = e.target.value; applyLista(); });
+    $('tl-fpr').addEventListener('change', function (e) { taller.fpr = e.target.value; applyLista(); });
+    $('tl-fpl').addEventListener('change', function (e) { taller.fpl = e.target.value; applyLista(); });
+    var fa = $('tl-fas'); if (fa) fa.addEventListener('click', function () { taller.fas = ''; renderLista(); });
+    $('tl-more').addEventListener('click', function () { appendRows(150); });
+    applyLista();
+  }
+  function applyLista() {
+    var q = norm(taller.q).trim(), toks = q ? q.split(/\s+/) : [];
+    var f = taller.rows.filter(function (r) {
+      if (taller.fpl && r.pl !== taller.fpl) return false;
+      if (taller.fpr && r.pr !== taller.fpr) return false;
+      if (taller.fas && r.as.indexOf(taller.fas) < 0) return false;
+      if (!toks.length) return true;
+      var hay = r.k + ' ' + norm(r.as.join(' ') + ' ' + r.pr);
+      return toks.every(function (t) { return hay.indexOf(t) >= 0; });
+    });
+    var s = taller.sort;
+    if (s === 'za') f = f.slice().reverse();
+    else if (s === 'new' || s === 'old') f = f.slice().sort(function (a, b) { return s === 'new' ? (b.y || 0) - (a.y || 0) : (a.y || 9999) - (b.y || 9999); });
+    taller.filtered = f; taller.shown = 0;
+    $('tl-tbody').innerHTML = '';
+    appendRows(150);
+  }
+  function appendRows(k) {
+    var f = taller.filtered, from = taller.shown, to = Math.min(f.length, from + k), html = '';
+    for (var i = from; i < to; i++) {
+      var r = f[i];
+      html += '<tr data-i="' + i + '"><td class="t">' + escapeHtml(r.t) + '</td><td class="y">' + (r.y || '—') + '</td><td>' + escapeHtml(r.nv) + '</td><td>' + escapeHtml(r.pr) + '</td><td>' + escapeHtml(r.pl) + '</td><td>' + escapeHtml(r.as.join(' · ') || '—') + '</td></tr>';
+    }
+    $('tl-tbody').insertAdjacentHTML('beforeend', html);
+    taller.shown = to;
+    $('tl-count').textContent = fmtNum(to) + ' de ' + fmtNum(f.length) + (f.length !== taller.rows.length ? ' (filtradas de ' + fmtNum(taller.rows.length) + ')' : '');
+    $('tl-more').hidden = to >= f.length;
+  }
+  $('tl-body').addEventListener('click', function (ev) {
+    var tr = ev.target.closest && ev.target.closest('#tl-tbody tr[data-i]');
+    if (tr) showThesisOnMap(taller.filtered[+tr.getAttribute('data-i')]);
+  });
+
+  // --- Panorama: una medida por grafica, un solo tono, sin eje doble ---
+  function hbarsHtml(list, total, clickKey) {
+    var max = list.length ? list[0][1] : 1;
+    return list.map(function (e) {
+      return '<div class="hbar' + (clickKey ? ' click' : '') + '" data-k="' + (clickKey || '') + '" data-v="' + escapeHtml(e[0]) + '" title="' + escapeHtml(e[0]) + ': ' + fmtNum(e[1]) + ' tesis (' + Math.round(100 * e[1] / total) + '%)"><span class="lbl">' + escapeHtml(e[0]) + '</span><span class="trk"><span class="bar" style="display:block;width:' + (100 * e[1] / max).toFixed(1) + '%"></span></span><span class="val">' + fmtNum(e[1]) + '</span></div>';
+    }).join('');
+  }
+  function bindHbars() {
+    document.querySelectorAll('#tl-body .hbar.click').forEach(function (el) {
+      el.addEventListener('click', function () {
+        var k = el.getAttribute('data-k'), v = el.getAttribute('data-v');
+        taller.fpr = k === 'pr' ? v : ''; taller.fpl = k === 'pl' ? v : ''; taller.fas = k === 'as' ? v : ''; taller.q = '';
+        setTab('lista');
+      });
+    });
+  }
+  function renderPanorama() {
+    var rows = taller.rows, n = rows.length;
+    var prs = countBy(rows, function (r) { return r.pr; }), pls = countBy(rows, function (r) { return r.pl; }), nvs = countBy(rows, function (r) { return r.nv; });
+    var ases = countBy(rows, function (r) { return r.as; });
+    var dec = countBy(rows, function (r) { return r.y ? Math.floor(r.y / 10) * 10 + 's' : ''; });
+    var multi = rows.filter(function (r) { return r.as.length > 1; }).length, sinAs = rows.filter(function (r) { return !r.as.length; }).length;
+    var insight = '<b>' + fmtNum(n) + ' tesis</b>. La década con más producción es <b>' + (dec[0] ? dec[0][0] : '—') + '</b> (' + (dec[0] ? fmtNum(dec[0][1]) : 0) + '). ' +
+      'El programa más frecuente es <b>' + escapeHtml((prs[0] || ['—'])[0].toUpperCase()) + '</b> (' + Math.round(100 * ((prs[0] || [0, 0])[1]) / n) + '%). ' +
+      (ases[0] ? 'Quien más tesis dirigió aquí es <b>' + escapeHtml(ases[0][0]) + '</b> (' + ases[0][1] + '). ' : '') +
+      Math.round(100 * multi / n) + '% tiene más de un asesor; ' + Math.round(100 * sinAs / n) + '% no tiene asesor registrado.';
+    $('tl-body').innerHTML = '<div class="tl-grid">' +
+      '<div class="card wide"><h4>En una frase</h4><div class="insight">' + insight + '</div></div>' +
+      '<div class="card wide"><h4>Tesis por año</h4><div class="sub">Cada barra es un año · pasa el cursor para ver el total</div><div id="tl-years"></div></div>' +
+      '<div class="card"><h4>Programas</h4><div class="sub">Los 10 más frecuentes · clic para filtrar el listado</div>' + hbarsHtml(prs.slice(0, 10), n, 'pr') + '</div>' +
+      '<div class="card"><h4>Planteles</h4><div class="sub">Los 8 más frecuentes · clic para filtrar el listado</div>' + hbarsHtml(pls.slice(0, 8), n, 'pl') + '</div>' +
+      '<div class="card"><h4>Nivel</h4><div class="sub">Grado obtenido</div>' + hbarsHtml(nvs, n) + '</div>' +
+      '<div class="card"><h4>Asesores con más tesis</h4><div class="sub">Clic para ver sus tesis</div>' + hbarsHtml(ases.slice(0, 8), n, 'as') + '</div>' +
+      '</div>';
+    bindHbars();
+    drawYears($('tl-years'), rows);
+  }
+  function drawYears(host, rows) {
+    var ys = rows.map(function (r) { return r.y; }).filter(Boolean);
+    if (!ys.length) { host.textContent = 'Sin años registrados.'; return; }
+    var y0 = Math.min.apply(null, ys), y1 = Math.max.apply(null, ys), counts = {}, max = 0;
+    ys.forEach(function (y) { counts[y] = (counts[y] || 0) + 1; if (counts[y] > max) max = counts[y]; });
+    var W = Math.max(320, host.clientWidth || 800), H = 170, pl = 30, pb = 22, pt = 8, nY = y1 - y0 + 1;
+    var bw = (W - pl) / nY, gap = bw > 4 ? 2 : 0.5;
+    var svg = '<svg class="years" width="' + W + '" height="' + H + '" role="img" aria-label="Tesis por año">';
+    [0.5, 1].forEach(function (f) { var yy = pt + (H - pt - pb) * (1 - f); svg += '<line x1="' + pl + '" x2="' + W + '" y1="' + yy + '" y2="' + yy + '"/><text x="' + (pl - 4) + '" y="' + (yy + 3) + '" text-anchor="end">' + Math.round(max * f) + '</text>'; });
+    for (var y = y0; y <= y1; y++) {
+      var c = counts[y] || 0, h = (H - pt - pb) * c / max, x = pl + (y - y0) * bw;
+      if (c) svg += '<rect class="col" x="' + (x + gap / 2).toFixed(1) + '" y="' + (H - pb - h).toFixed(1) + '" width="' + Math.max(0.8, bw - gap).toFixed(1) + '" height="' + h.toFixed(1) + '" rx="' + (bw > 6 ? 2 : 0) + '"><title>' + y + ': ' + c + ' tesis</title></rect>';
+      if ((y % 10 === 0 && nY > 15) || nY <= 15) svg += '<text x="' + (x + bw / 2) + '" y="' + (H - 6) + '" text-anchor="middle">' + y + '</text>';
+    }
+    host.innerHTML = svg + '</svg>';
+  }
+
+  // --- Vista analitica: cada punto una tesis, agrupadas; orden A->Z dentro del grupo ---
+  var anaGroup = 'decada', anaRows = [];
+  function renderAnalitica() {
+    $('tl-body').innerHTML = '<div class="tl-controls"><select id="tl-agrp"><option value="decada">Agrupar por década</option><option value="nivel">Agrupar por nivel</option><option value="programa">Agrupar por programa</option><option value="plantel">Agrupar por plantel</option></select><span class="tl-count">Cada punto es una tesis · pasa el cursor para ver el título · clic para ubicarla en el mapa</span></div><div id="tl-analytic"></div>';
+    $('tl-agrp').value = anaGroup;
+    $('tl-agrp').addEventListener('change', function (e) { anaGroup = e.target.value; drawAnalitica(); });
+    drawAnalitica();
+  }
+  function drawAnalitica() {
+    var rows = taller.rows, keyFn = {
+      decada: function (r) { return r.y ? Math.floor(r.y / 10) * 10 + 's' : 'sin año'; },
+      nivel: function (r) { return r.nv || 'sin nivel'; }, programa: function (r) { return r.pr || '—'; }, plantel: function (r) { return r.pl || '—'; }
+    }[anaGroup];
+    var groups = new Map();
+    rows.forEach(function (r) { var k = keyFn(r); if (!groups.has(k)) groups.set(k, []); groups.get(k).push(r); });
+    var list = Array.from(groups.entries());
+    if (anaGroup === 'decada') list.sort(function (a, b) { return a[0] < b[0] ? -1 : 1; }); else list.sort(function (a, b) { return b[1].length - a[1].length; });
+    if (list.length > 9) { var rest = []; list.slice(8).forEach(function (g) { rest = rest.concat(g[1]); }); list = list.slice(0, 8).concat([['otros (' + (groups.size - 8) + ')', rest]]); }
+    var host = $('tl-analytic'), W = Math.max(360, host.clientWidth || 1000), r = rows.length > 3000 ? 2.4 : rows.length > 1000 ? 3.2 : 4.2, step = r * 2 + 2;
+    var cols = Math.max(1, Math.floor((W - 20) / step)), y = 0, svg = '';
+    anaRows = [];
+    list.forEach(function (g) {
+      svg += '<text class="glabel" x="0" y="' + (y + 12) + '">' + escapeHtml(String(g[0]).toUpperCase()) + ' · ' + fmtNum(g[1].length) + '</text>';
+      y += 22;
+      g[1].forEach(function (row, i) {
+        anaRows.push(row);
+        svg += '<circle class="dot" data-i="' + (anaRows.length - 1) + '" cx="' + (r + 1 + (i % cols) * step).toFixed(1) + '" cy="' + (y + r + Math.floor(i / cols) * step).toFixed(1) + '" r="' + r + '"/>';
+      });
+      y += Math.ceil(g[1].length / cols) * step + 16;
+    });
+    host.innerHTML = '<svg width="' + W + '" height="' + y + '">' + svg + '</svg>';
+    var s = host.querySelector('svg');
+    s.addEventListener('mousemove', function (ev) {
+      var t = ev.target; if (!t.classList.contains('dot')) { vmHide(); return; }
+      var row = anaRows[+t.getAttribute('data-i')], tt = $('vtooltip');
+      tt.innerHTML = '<span class="t-label">' + escapeHtml(row.t) + '</span><span class="t-meta">' + (row.y || '—') + ' · ' + escapeHtml(row.pr) + '</span><span class="t-meta">' + escapeHtml(fmtAsesores(row.as)) + '</span>';
+      tt.style.opacity = '1'; vmMove(ev);
+    });
+    s.addEventListener('mouseleave', vmHide);
+    s.addEventListener('click', function (ev) { var t = ev.target; if (t.classList.contains('dot')) showThesisOnMap(anaRows[+t.getAttribute('data-i')]); });
+  }
+
+  // --- Red de asesores: nodo = asesor (tamano = tesis dirigidas en este tema),
+  // enlace = codireccion (dirigieron juntos al menos una tesis). Relacion real del
+  // catalogo, no inferida. Se muestran los 70 con mas tesis.
+  function renderRed() {
+    var rows = taller.rows, cnt = new Map(), pl = new Map(), co = new Map();
+    rows.forEach(function (r) {
+      r.as.forEach(function (a) { cnt.set(a, (cnt.get(a) || 0) + 1); var m = pl.get(a) || new Map(); m.set(r.pl, (m.get(r.pl) || 0) + 1); pl.set(a, m); });
+      for (var i = 0; i < r.as.length; i++) for (var j = i + 1; j < r.as.length; j++) { var k = [r.as[i], r.as[j]].sort().join('||'); co.set(k, (co.get(k) || 0) + 1); }
+    });
+    var top = Array.from(cnt.entries()).sort(function (a, b) { return b[1] - a[1]; }).slice(0, 70), inTop = new Set(top.map(function (e) { return e[0]; }));
+    var links = [];
+    co.forEach(function (w, k) { var p = k.split('||'); if (inTop.has(p[0]) && inTop.has(p[1])) links.push({ source: p[0], target: p[1], w: w }); });
+    var withCo = new Set(); links.forEach(function (l) { withCo.add(l.source); withCo.add(l.target); });
+    var multi = rows.filter(function (r) { return r.as.length > 1; }).length;
+    $('tl-body').innerHTML = '<div class="net-wrap"><div class="card"><h4>Red de codirección</h4><div class="sub">Cada círculo es un asesor (tamaño = tesis que dirigió en este tema). Una línea une a dos asesores que dirigieron juntos al menos una tesis. En verde, quienes codirigieron.</div><div id="tl-net"></div></div>' +
+      '<div class="card"><h4>Lectura</h4><div class="insight"><b>' + fmtNum(cnt.size) + ' asesores</b> dirigieron las ' + fmtNum(rows.length) + ' tesis de este tema. ' +
+      '<b>' + Math.round(100 * multi / Math.max(1, rows.length)) + '%</b> de las tesis tiene más de un asesor. Se muestran los ' + top.length + ' con más tesis y ' + links.length + ' pares de codirección entre ellos.' +
+      (links.length < 3 ? '<br><br>Casi no hay codirección: en este tema cada tesis suele tener un solo asesor.' : '') +
+      '</div><h4 style="margin-top:14px">Con más tesis</h4>' + hbarsHtml(top.slice(0, 10), rows.length, 'as') + '</div></div>';
+    bindHbars();
+    var host = $('tl-net'), W = Math.max(360, host.clientWidth || 700), H = 520;
+    var nodes = top.map(function (e) { return { id: e[0], n: e[1], r: Math.min(18, 3.5 + Math.sqrt(e[1]) * 2.2) }; });
+    if (!nodes.length) { host.textContent = 'Ninguna tesis de este tema tiene asesor registrado.'; return; }
+    var sim = d3.forceSimulation(nodes)
+      .force('link', d3.forceLink(links).id(function (d) { return d.id; }).distance(34).strength(0.6))
+      .force('charge', d3.forceManyBody().strength(-26))
+      .force('collide', d3.forceCollide(function (d) { return d.r + 2; }))
+      .force('x', d3.forceX(W / 2).strength(0.06)).force('y', d3.forceY(H / 2).strength(0.09)).stop();
+    for (var i = 0; i < 320; i++) sim.tick();
+    var xs = d3.extent(nodes, function (d) { return d.x; }), ys = d3.extent(nodes, function (d) { return d.y; });
+    var sc = Math.min((W - 60) / Math.max(1, xs[1] - xs[0]), (H - 40) / Math.max(1, ys[1] - ys[0]), 1.6);
+    var ox = ((W - 60) - (xs[1] - xs[0]) * sc) / 2 + 20, oy = ((H - 40) - (ys[1] - ys[0]) * sc) / 2 + 20;
+    var px = function (v) { return ox + (v - xs[0]) * sc; }, py = function (v) { return oy + (v - ys[0]) * sc; };
+    var svg = '<svg width="' + W + '" height="' + H + '" role="img" aria-label="Red de codirección de asesores">';
+    links.forEach(function (l) { svg += '<line class="lnk" x1="' + px(l.source.x) + '" y1="' + py(l.source.y) + '" x2="' + px(l.target.x) + '" y2="' + py(l.target.y) + '" stroke-width="' + Math.min(4, 0.8 + l.w * 0.7) + '"/>'; });
+    nodes.forEach(function (d, k) { svg += '<circle class="nd' + (withCo.has(d.id) ? ' co' : '') + '" data-k="' + k + '" cx="' + px(d.x) + '" cy="' + py(d.y) + '" r="' + d.r + '"/>'; });
+    nodes.slice(0, 12).forEach(function (d) { svg += '<text x="' + (px(d.x) + d.r + 3) + '" y="' + (py(d.y) + 3) + '">' + escapeHtml(d.id.split(' ').slice(0, 2).join(' ')) + '</text>'; });
+    host.innerHTML = svg + '</svg>';
+    var s = host.querySelector('svg');
+    s.addEventListener('mousemove', function (ev) {
+      var t = ev.target; if (!t.classList.contains('nd')) { vmHide(); return; }
+      var d = nodes[+t.getAttribute('data-k')];
+      var partners = links.filter(function (l) { return l.source.id === d.id || l.target.id === d.id; }).map(function (l) { return l.source.id === d.id ? l.target.id : l.source.id; });
+      var mainPl = Array.from(pl.get(d.id).entries()).sort(function (a, b) { return b[1] - a[1]; })[0][0];
+      var tt = $('vtooltip');
+      tt.innerHTML = '<span class="t-label">' + escapeHtml(d.id) + '</span><span class="t-meta">' + d.n + ' tesis en este tema · ' + escapeHtml(mainPl) + '</span>' + (partners.length ? '<span class="t-meta">Codirigió con: ' + escapeHtml(partners.slice(0, 3).join(', ')) + (partners.length > 3 ? '…' : '') + '</span>' : '') + '<span class="t-hint">Clic para ver sus tesis</span>';
+      tt.style.opacity = '1'; vmMove(ev);
+    });
+    s.addEventListener('mouseleave', vmHide);
+    s.addEventListener('click', function (ev) { var t = ev.target; if (t.classList.contains('nd')) { vmHide(); taller.fas = nodes[+t.getAttribute('data-k')].id; taller.fpl = ''; taller.fpr = ''; taller.q = ''; setTab('lista'); } });
+  }
+
+  // ==================== spotlight: clic en una tesis ====================
+  function applySpotlight(tid, idx) {
+    var t = state.vecindarioPreview && state.vecindarioPreview.theses[tid];
+    if (idx == null) idx = state.thesisIdToIndex.get(tid);
+    var cats = new Float32Array(state.n); cats.fill(C_DIM);
+    var resolved = 0;
+    if (t) t.neighbors.forEach(function (nb) {
+      var j = state.thesisIdToIndex.get(nb.id); if (j == null) return;
+      cats[j] = C_VIVID + (AREA_STR_TO_CODE[(nb.area || '').toLowerCase()] || 0); resolved++;
+    });
+    if (idx != null) cats[idx] = C_FOCAL;
+    state.spotlightActive = true; state.highlightKey = 'spot';
+    redrawCats(cats);
+    showSelectionCard(tid, t, resolved, false);
+  }
+  function clearSpotlight() {
+    state.spotlightActive = false; state.highlightKey = '';
+    $('map-selection').hidden = true;
+    restoreView();
+  }
+  function showSelectionCard(tid, t, resolved, noise) {
+    $('ms-eyebrow').textContent = t ? 'Tesis seleccionada' : 'Punto seleccionado';
+    $('ms-title').textContent = t ? t.title : (noise ? 'Tesis sin territorio' : tid);
+    $('ms-meta').textContent = (t ? (t.year || '?') + ' · ' + areaNameFromStr(t.area) + ' · ' : '') + tid;
+    var btn = $('ms-open-vecindario');
+    if (t) {
+      $('ms-note').textContent = 'Sus ' + resolved + ' vecinos más parecidos, coloreados por área. Todo lo demás se atenúa.';
+      btn.hidden = false; btn.onclick = function () { openVecindarioModal(tid); };
+    } else {
+      $('ms-note').textContent = 'Esta tesis no quedó en ningún grupo (le pasa al 67% del corpus) y su vecindario todavía no está precargado en este prototipo (solo 2,500 tesis de referencia).';
+      btn.hidden = true;
+    }
+    $('map-selection').hidden = false;
+  }
+  $('map-selection-close').addEventListener('click', function () { flow.focus = -1; state.scatterplot.deselect({ preventEvent: true }); clearSpotlight(); });
+
+  // ==================== buscador (Ctrl/Cmd+K) ====================
+  var search = { index: null, results: [], active: 0, loadingAll: null };
+  function buildSearchIndex() {
+    var idx = [];
+    function add(c, level) { idx.push({ node: c, level: level, text: norm(c.label + ' ' + (c.programsTop || '')), nameN: norm(c.name), name: c.name, size: c.size }); }
+    state.macros.forEach(function (m) { add(m, 'macro'); });
+    Object.keys(state.mesoCache).forEach(function (k) { state.mesoCache[k].nodes.forEach(function (c) { add(c, 'meso'); }); });
+    Object.keys(state.microCache).forEach(function (k) { state.microCache[k].nodes.forEach(function (c) { add(c, 'micro'); }); });
+    if (state.vecindarioPreview) Object.keys(state.vecindarioPreview.theses).forEach(function (tid) {
+      var t = state.vecindarioPreview.theses[tid]; idx.push({ thesis: tid, level: 'tesis', text: norm(t.title), nameN: norm(t.title), name: t.title, size: 0, year: t.year });
+    });
+    search.index = idx;
+  }
+  function loadAllForSearch() {
+    if (search.loadingAll) return search.loadingAll;
+    search.loadingAll = Promise.all(state.macros.map(function (m) { return Promise.all([loadMeso(m.macroId), loadMicro(m.macroId)]).catch(function () {}); })).then(buildSearchIndex);
+    return search.loadingAll;
+  }
+  function openSearch() {
+    if (state.introActive) return;
+    $('search').hidden = false; var inp = $('search-input'); inp.value = ''; inp.focus();
+    if (!search.index) buildSearchIndex();
+    $('search-scope').textContent = 'cargando subtemas…';
+    loadAllForSearch().then(function () { $('search-scope').textContent = fmtNum(search.index.length) + ' entradas'; runSearch(); });
+    runSearch();
+  }
+  function closeSearch() { $('search').hidden = true; }
+  var LEVEL_LABEL = { macro: 'Territorio', meso: 'Subtema', micro: 'Tema fino', tesis: 'Tesis' };
+  function runSearch() {
+    var q = norm($('search-input').value).trim(), box = $('search-results');
+    if (!q) { box.innerHTML = '<div class="s-empty">Escribe una palabra. Se buscan los nombres de los 130 territorios, ~440 subtemas, ~510 temas finos y 2,500 títulos de referencia. Prueba «amparo», «diabetes», «petroleo» o «bach».</div>'; search.results = []; return; }
+    var toks = q.split(/\s+/);
+    var res = (search.index || []).filter(function (e) { return toks.every(function (t) { return e.text.indexOf(t) >= 0; }); })
+      .map(function (e) { var nameHit = toks.every(function (t) { return e.nameN.indexOf(t) >= 0; }); return { e: e, score: (nameHit ? 2 : 0) + ({ macro: 0.6, meso: 0.4, micro: 0.2, tesis: 0 })[e.level] + Math.log10(1 + e.size) / 10 }; })
+      .sort(function (a, b) { return b.score - a.score; }).map(function (r) { return r.e; })
+      .filter(function (e, i, arr) { var key = e.nameN + '|' + e.size; return e.level === 'tesis' || !arr.slice(0, i).some(function (o) { return o.level !== 'tesis' && o.nameN + '|' + o.size === key; }); })
+      .slice(0, 14);
+    search.results = res; search.active = 0;
+    if (!res.length) { box.innerHTML = '<div class="s-empty">Sin resultados para «' + escapeHtml(q) + '». Los nombres salen de palabras de los títulos, sin acentos: prueba otra forma o una palabra más general.</div>'; return; }
+    box.innerHTML = res.map(function (e, i) {
+      var sub = e.level === 'tesis' ? (e.year || '') + ' · ' + e.thesis : e.node.parentMacro ? 'en ' + e.node.parentMacro.name : areaNameFromStr(e.node.dominantArea);
+      return '<button type="button" class="sr-item' + (i === 0 ? ' active' : '') + '" data-i="' + i + '"><span class="lv">' + LEVEL_LABEL[e.level] + '</span><span class="nm">' + escapeHtml(e.name) + '<small>' + escapeHtml(sub) + '</small></span><span class="ct">' + (e.size ? fmtNum(e.size) : '') + '</span></button>';
+    }).join('');
+    box.querySelectorAll('.sr-item').forEach(function (b) { b.addEventListener('click', function () { pickResult(+b.getAttribute('data-i')); }); });
+  }
+  function pickResult(i) {
+    var e = search.results[i]; if (!e) return;
+    closeSearch();
+    if (e.level === 'tesis') {
+      var idx = state.thesisIdToIndex.get(e.thesis);
+      if (idx != null) flyTo(state.ndcX[idx], state.ndcY[idx], 1 / (K_MICRO * 1.2));
+      applySpotlight(e.thesis, idx);
+    } else selectNode(e.node, true);
+  }
+  $('search-input').addEventListener('input', runSearch);
+  $('search-input').addEventListener('keydown', function (ev) {
+    var items = document.querySelectorAll('#search-results .sr-item');
+    if (ev.key === 'ArrowDown' || ev.key === 'ArrowUp') {
+      ev.preventDefault(); if (!items.length) return;
+      search.active = (search.active + (ev.key === 'ArrowDown' ? 1 : items.length - 1)) % items.length;
+      items.forEach(function (it, i) { it.classList.toggle('active', i === search.active); });
+      items[search.active].scrollIntoView({ block: 'nearest' });
+    } else if (ev.key === 'Enter') { ev.preventDefault(); pickResult(search.active); }
+  });
+  document.querySelector('#search .s-backdrop').addEventListener('click', closeSearch);
+  $('btn-search').addEventListener('click', openSearch);
+
+  // ==================== introduccion: de areas a contenido ====================
+  // El momento sorpresa: las 609,154 tesis empiezan agrupadas en discos por area
+  // administrativa (como las cataloga la UNAM) y vuelan a su posicion semantica
+  // real. Transicion nativa de regl-scatterplot (interpolacion en GPU).
+  function introLayout() {
+    var counts = [0, 0, 0, 0, 0], n = state.n, ac = state.areaCode, i;
+    for (i = 0; i < n; i++) counts[ac[i] || 0]++;
+    var order = [1, 2, 3, 4, 0], nmax = Math.max.apply(null, counts);
+    var aspect = state.W / Math.max(1, state.H), hx = aspect * DEFAULT_CAMERA_DISTANCE, hy = DEFAULT_CAMERA_DISTANCE;
+    var rel = order.map(function (a) { return Math.sqrt(counts[a] / nmax); });
+    var sumD = rel.reduce(function (s, r) { return s + 2 * r; }, 0), gapU = 0.45, gaps = gapU * (order.length - 1);
+    var R = Math.min(hy * 0.55, (2 * hx * 0.88) / (sumD + gaps));
+    var centers = {};
+    if (aspect >= 1.2) {
+      var x = -((sumD + gaps) * R) / 2;
+      order.forEach(function (a, k) { var r = rel[k] * R; centers[a] = { x: x + r, y: -hy * 0.18, r: r }; x += 2 * r + gapU * R; });
+    } else {
+      // pantalla vertical (telefono): grilla 2x2 en la mitad superior, "sin area" al centro
+      R = Math.min(hx * 0.40, hy * 0.23);
+      var slots = { 1: [-hx / 2, hy * 0.46], 2: [hx / 2, hy * 0.46], 3: [-hx / 2, -hy * 0.06], 4: [hx / 2, -hy * 0.06], 0: [0, hy * 0.2] };
+      order.forEach(function (a, k) { centers[a] = { x: slots[a][0], y: slots[a][1], r: rel[k] * R }; });
+    }
+    var X = new Float32Array(n), Y = new Float32Array(n), seen = [0, 0, 0, 0, 0], GA = Math.PI * (3 - Math.sqrt(5));
+    // orden pseudoaleatorio estable dentro de cada disco (hash por indice), para
+    // que el vuelo no "barra" el mapa en orden de registro
+    var rank = new Float32Array(n); for (i = 0; i < n; i++) { var h = Math.sin(i * 12.9898) * 43758.5453; rank[i] = h - Math.floor(h); }
+    var perm = new Uint32Array(n); for (i = 0; i < n; i++) perm[i] = i;
+    perm.sort(function (a, b) { return rank[a] - rank[b]; });
+    for (i = 0; i < n; i++) {
+      var p = perm[i], a = ac[p] || 0, c = centers[a], j = seen[a]++, rr = c.r * Math.sqrt((j + 0.5) / counts[a]), th = j * GA;
+      X[p] = c.x + rr * Math.cos(th); Y[p] = c.y + rr * Math.sin(th);
+    }
+    return { X: X, Y: Y, centers: centers, counts: counts };
+  }
+  var introData = null;
+  function showDiscLabels(show) {
+    var host = $('disc-labels'); host.innerHTML = '';
+    if (!show || !introData) return;
+    Object.keys(introData.centers).forEach(function (a) {
+      var c = introData.centers[a], p = ndcToPx(c.x, c.y + c.r), d = document.createElement('div');
+      d.className = 'disc-label'; d.style.left = p[0] + 'px'; d.style.top = (p[1] - 10) + 'px';
+      d.innerHTML = +a === 0 ? '<span>' + fmtNum(introData.counts[a]) + '<br>sin área</span>'
+        : '<b style="color:' + AREA_HEX[a] + '">' + escapeHtml(AREA_NAMES[a]) + '</b><span>' + fmtNum(introData.counts[a]) + ' tesis</span>';
+      host.appendChild(d);
+    });
+  }
+  function setChromeForIntro(on) {
+    state.introActive = on;
+    if (on) state.pin = null;
+    if (!on) showDiscLabels(false);
+    $('overlay').style.visibility = on ? 'hidden' : 'visible';
+    $('crumbs').hidden = on; $('legend').hidden = on;
+    if (on) { $('minimap').hidden = true; $('mm-show').hidden = true; } else applyMinimapPref();
+    state.scatterplot.set({ cameraIsFixed: on });
+    if (on) {
+      panel.classList.remove('open'); main.classList.remove('panel-open'); $('map-selection').hidden = true; state.spotlightActive = false; state.routeActive = null; hideTip();
+      state.scatterplot.deselect({ preventEvent: true });
+    }
+  }
+  function startIntro() {
+    if (state.iso) exitIsolation(true);
+    $('story').hidden = true; story = null;
+    setChromeForIntro(true);
+    state.scatterplot.zoomToLocation([0, 0], DEFAULT_CAMERA_DISTANCE, { transition: false });
+    if (!introData) introData = introLayout();
+    state.highlightKey = '';
+    drawPoints(introData.X, introData.Y, state.catArea).then(function () { setTimeout(function () { if (state.introActive) showDiscLabels(true); }, 80); });
+    showStory({
+      eyebrow: 'Introducción', count: '1 / 2',
+      title: 'Así clasifica la UNAM sus 609,154 tesis',
+      text: 'Cada punto es una tesis. El catálogo las reparte en <strong>cuatro áreas administrativas</strong>, según dónde se tituló cada estudiante y no según de qué trata su trabajo.',
+      next: 'Reordenar por contenido →', dots: [1, 0],
+      onNext: runIntroTransition
+    });
+  }
+  function runIntroTransition() {
+    showDiscLabels(false);
+    $('story-next').disabled = true;
+    drawPoints(state.ndcX, state.ndcY, state.catArea, { transition: true, transitionDuration: 2600, transitionEasing: 'cubicInOut' }).then(function () {
+      showStory({
+        eyebrow: 'Introducción', count: '2 / 2',
+        title: 'El mismo corpus, ordenado por lo que dicen los títulos',
+        text: 'Ahora cada tesis está junto a las que tratan temas parecidos, y las áreas se mezclan: <strong>el contenido no respeta las fronteras administrativas</strong>. Los colores pasan a ser los <strong>130 territorios</strong> que encontró el algoritmo. El 67% queda en gris porque no tiene un grupo claro.',
+        next: 'Explorar el atlas', dots: [0, 1],
+        onNext: closeStory
+      });
+      setTimeout(function () { finishSemantic(true); }, 900);
+    });
+  }
+  function finishSemantic(fromIntro) {
+    try { localStorage.setItem('nodo_atlas_intro_v3', '1'); } catch (e) { /* sin almacenamiento: la intro reaparece la proxima vez */ }
+    if (state.introActive) setChromeForIntro(false);
+    state.highlightKey = '';
+    setLens('territory', true);
+    applyMinimapPref();
+    syncOverlay(); updateCrumbs(); drawMinimapView();
+  }
+  $('btn-intro').addEventListener('click', startIntro);
+
+  // ==================== tarjeta narrativa + rutas guiadas ====================
+  var story = null;
+  function showStory(s) {
+    story = s;
+    $('story').hidden = false;
+    $('story-eyebrow').textContent = s.eyebrow; $('story-count').textContent = s.count || '';
+    $('story-title').textContent = s.title; $('story-text').innerHTML = s.text;
+    var nx = $('story-next'), pv = $('story-prev');
+    nx.disabled = false; nx.textContent = s.next || 'Siguiente →';
+    pv.hidden = !s.prev; pv.textContent = s.prev || '';
+    $('story-dots').innerHTML = (s.dots || []).map(function (d) { return '<i class="' + (d ? 'on' : '') + '"></i>'; }).join('');
+  }
+  function closeStory() {
+    $('story').hidden = true; story = null;
+    if (state.introActive) { finishSemantic(false); return; }
+    if (state.routeActive) { state.routeActive = null; state.highlightKey = ''; restoreView(); }
+  }
+  $('story-next').addEventListener('click', function () { if (story && story.onNext) story.onNext(); });
+  $('story-prev').addEventListener('click', function () { if (story && story.onPrev) story.onPrev(); });
+  $('story-close').addEventListener('click', closeStory);
+
+  function ndcBoxFromRaw(x0, x1, y0, y1) {
+    var a = toNdc({ x: x0, y: y0 }), b = toNdc({ x: x1, y: y1 });
+    return { cx: (a[0] + b[0]) / 2, cy: (a[1] + b[1]) / 2, hw: Math.abs(b[0] - a[0]) / 2, hh: Math.abs(b[1] - a[1]) / 2 };
+  }
+  function macrosUnionBox(ids) {
+    var x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+    ids.forEach(function (id) { var b = state.macroById[id].box; x0 = Math.min(x0, b.cx - b.hw); x1 = Math.max(x1, b.cx + b.hw); y0 = Math.min(y0, b.cy - b.hh); y1 = Math.max(y1, b.cy + b.hh); });
+    return { cx: (x0 + x1) / 2, cy: (y0 + y1) / 2, hw: (x1 - x0) / 2, hh: (y1 - y0) / 2 };
+  }
+  function area2Macros() { return state.macros.filter(function (m) { return (m.dominantArea || '').toLowerCase() === 'area 2'; }).map(function (m) { return m.macroId; }); }
+  // Rutas: cada paso = a donde volar + que resaltar + texto. Cifras verificadas en
+  // development.md / gap.md, no inventadas.
+  var ROUTES = [
+    { id: 'isla', title: 'Una isla en el borde del mapa', sub: 'La música aparece en dos lugares: uno por su tema, otro por su formato', steps: [
+      { title: '325 tesis tituladas «notas al programa»', text: 'Es el género de <strong>tesis-recital</strong> de la Facultad de Música: el estudiante presenta las notas del programa de su recital. Mismo título, mismo vector y por eso una <strong>isla</strong> lejos de todo lo demás.', macros: [49], box: function () { return state.macroById[49].box; } },
+      // Medido (2026-09-23): el territorio 47 es el 15.o mas disperso de 130 (radio
+      // mediano 1.77 u. vs 0.82 global); solo el 53% de sus tesis queda a <2 u. del
+      // nucleo. Por eso se vuela al NUCLEO (caja de filosofia, 48) y el texto lo dice.
+      { title: 'El resto de la música tiene su núcleo junto a la filosofía', text: 'Las <strong>549 tesis</strong> sobre obras, composición y Bach no están en la isla. Su núcleo está aquí, al lado de filosofía y traducción. Es uno de los territorios <strong>más dispersos</strong> (15.º de 130): la mitad queda cerca del núcleo y el resto se reparte por el mapa. El mapa distingue <strong>tema</strong> de <strong>formato</strong>.', macros: [47], box: function () { var b = state.macroById[48].box; return { cx: b.cx, cy: b.cy, hw: b.hw * 2.2, hh: b.hh * 2.2 }; } }
+    ] },
+    { id: 'hueco', title: 'El hueco del centro', sub: 'Una zona casi vacía que no es un vacío del conocimiento', steps: [
+      { title: 'Una zona 15 a 40 veces menos densa', text: 'Parece un tema que la UNAM no investiga, pero no lo es. Aquí caen títulos <strong>cortos y genéricos</strong> de disciplinas sin relación entre sí, en la frontera entre territorios grandes de salud. Es un efecto geométrico del algoritmo, no un hueco temático (análisis en <code>gap.md</code>).', macros: [], box: function () { return ndcBoxFromRaw(-6.8, 0.9, -4.3, 1.6); } }
+    ] },
+    { id: 'petroleo', title: 'Una palabra, dos disciplinas', sub: 'Petróleo y química estuvieron fusionados hasta la revisión manual', steps: [
+      { title: 'Perforación de pozos y refinerías', text: '<strong>2,383 tesis</strong> de ingeniería petrolera: yacimientos, fracturamiento hidráulico, operación de refinerías.', macros: [126], box: function () { return macrosUnionBox([126, 127]); } },
+      { title: 'Síntesis química y materiales, justo al lado', text: '<strong>4,112 tesis</strong> de síntesis orgánica, polímeros y materiales. El corte automático las había juntado con el petróleo porque comparten vocabulario («catalizador», «caracterización»), no tema. <strong>Se separaron después de leer títulos reales</strong>.', macros: [127], box: function () { return macrosUnionBox([126, 127]); } }
+    ] },
+    { id: 'archipielago', title: 'La medicina es un archipiélago', sub: 'El área más grande no forma un bloque, se reparte en especialidades', steps: [
+      { title: 'Decenas de territorios, no un bloque', text: 'Los <strong>{n} territorios</strong> en verde tienen mayoría del área de <strong>Ciencias Biológicas, Químicas y de la Salud</strong>. El atlas anterior mostraba «Medicina» como un solo bloque; ordenada por contenido se reparte en especialidades: nefrología, pediatría, odontología, oncología…', macros: 'area2', color: '#0f7d5c', box: function () { return { cx: 0, cy: 0, hw: 1, hh: 1 }; } }
+    ] }
+  ];
+  function buildRoutesMenu() {
+    var menu = $('routes-menu');
+    menu.innerHTML = ROUTES.map(function (r) { return '<button type="button" role="menuitem" data-route="' + r.id + '"><b>' + escapeHtml(r.title) + '</b><span>' + escapeHtml(r.sub) + ' · ' + r.steps.length + (r.steps.length === 1 ? ' paso' : ' pasos') + '</span></button>'; }).join('');
+    menu.querySelectorAll('button').forEach(function (b) { b.addEventListener('click', function () { toggleRoutesMenu(false); startRoute(b.getAttribute('data-route')); }); });
+  }
+  function toggleRoutesMenu(show) {
+    var m = $('routes-menu'); m.hidden = show === undefined ? !m.hidden : !show;
+    $('btn-routes').setAttribute('aria-expanded', String(!m.hidden));
+  }
+  $('btn-routes').addEventListener('click', function (ev) { ev.stopPropagation(); if (!state.introActive) toggleRoutesMenu(); });
+  document.addEventListener('click', function (ev) { if (!$('routes-menu').hidden && !$('routes-menu').contains(ev.target) && ev.target !== $('btn-routes')) toggleRoutesMenu(false); });
+  function startRoute(id, stepIdx) {
+    var r = ROUTES.filter(function (x) { return x.id === id; })[0]; if (!r) return;
+    stepIdx = stepIdx || 0;
+    var st = r.steps[stepIdx];
+    if (state.iso) exitIsolation(true);
+    state.routeActive = id;
+    if (state.spotlightActive) { state.scatterplot.deselect({ preventEvent: true }); state.spotlightActive = false; $('map-selection').hidden = true; }
+    panel.classList.remove('open'); main.classList.remove('panel-open'); state.selectedId = null; markSelected();
+    var b = st.box();
+    flyTo(b.cx, b.cy, fitDistance(b.hw, b.hh, 1.35));
+    var ids = st.macros === 'area2' ? area2Macros() : st.macros;
+    state.highlightKey = ''; state.pin = null;
+    if (ids.length) highlightMacros(ids, st.color); else restoreView();
+    var text = st.text;
+    text = text.replace('{n}', ids.length);
+    showStory({
+      eyebrow: 'Ruta · ' + r.title, count: (stepIdx + 1) + ' / ' + r.steps.length, title: st.title, text: text,
+      next: stepIdx < r.steps.length - 1 ? 'Siguiente →' : 'Terminar', prev: stepIdx > 0 ? '← Anterior' : null,
+      dots: r.steps.map(function (_, i) { return i === stepIdx ? 1 : 0; }),
+      onNext: function () { if (stepIdx < r.steps.length - 1) startRoute(id, stepIdx + 1); else closeStory(); },
+      onPrev: function () { startRoute(id, stepIdx - 1); }
+    });
+  }
+
+  // ==================== titulos por tesela espacial (v3.2) ====================
+  // titulos_teselas/{tx}_{ty}.json: titulo (sin autor) + anio de las 609,154 tesis,
+  // partidas en una grilla 64x64 sobre las coordenadas crudas. El hover solo pide la
+  // tesela bajo el cursor (mediana ~357 titulos, maximo ~0.6 MB) y la guarda en cache.
+  var titleMeta = null, titleMetaP = null, titleTiles = {};
+  function loadTitleManifest() {
+    if (!titleMetaP) titleMetaP = fetchJson('./data/titulos_teselas/manifest.json').then(function (m) { titleMeta = m; return m; }).catch(function () { return null; });
+    return titleMetaP;
+  }
+  function tileKeyOf(idx) {
+    var m = titleMeta; if (!m) return null;
+    var tx = Math.min(m.grid - 1, Math.max(0, Math.floor((state.rawX[idx] - m.x0) / m.cell)));
+    var ty = Math.min(m.grid - 1, Math.max(0, Math.floor((state.rawY[idx] - m.y0) / m.cell)));
+    return tx + '_' + ty;
+  }
+  function titleTileFor(idx) {
+    if (!titleMeta) return loadTitleManifest().then(function (m) { return m ? titleTileFor(idx) : null; });
+    var k = tileKeyOf(idx);
+    if (!titleTiles[k]) {
+      var rec = titleTiles[k] = { map: null, p: null };
+      rec.p = fetchJson('./data/titulos_teselas/' + k + '.json').then(function (d) {
+        var mp = new Map();
+        for (var j = 0; j < d.i.length; j++) mp.set(d.i[j], { t: d.t[j], y: d.y[j] });
+        rec.map = mp; return mp;
+      }).catch(function () { rec.map = new Map(); return rec.map; });
+    }
+    return titleTiles[k].p;
+  }
+  // {t, y} si se conoce, null si se sabe que no hay titulo, undefined si falta cargar
+  function pointInfo(idx) {
+    var r = state.iso && state.iso.byIdx[idx];
+    if (r) return { t: r.t, y: r.y };
+    var pv = state.vecindarioPreview && state.vecindarioPreview.theses[state.thesisIds[idx]];
+    if (pv) return { t: pv.title, y: pv.year };
+    var k = tileKeyOf(idx), rec = k && titleTiles[k];
+    if (!rec || !rec.map) return undefined;
+    return rec.map.get(idx) || null;
+  }
+
+  // ==================== modo aislado de tema fino (v3.3) ====================
+  // Clic en un tema fino: la camara se acerca, sus tesis se SEPARAN entre si
+  // (transicion nativa de puntos de regl-scatterplot, como la intro), el resto del
+  // mapa se abre dejando un claro y se atenua, y el fondo se tine del color del filtro.
+  // Dos estados internos (nombres solo de desarrollo, NUNCA en la UI):
+  //   'eco' (caotico): enlaces reales entre tesis del tema (vecinas e5 dentro del
+  //         tema, grosor = similitud) con particulas que viajan de una tesis a otra
+  //         y un pulso al llegar -- sensacion de ecosistema vivo.
+  //   'ana' (analitico): sin enlaces; las tesis se reordenan en grilla por grupo
+  //         (area, plantel, programa, nivel, decada) con color por grupo y animacion
+  //         entre agrupaciones, como el modo analitico del atlas anterior.
+  // La separacion NO es un layout inventado: cada tesis parte de su posicion real
+  // ampliada alrededor del centro del tema (conserva quien esta cerca de quien) y
+  // una relajacion de colisiones garantiza ISO_MIN_PX entre centros en pantalla.
+  var ISO_MIN_PX = 24;      // separacion minima entre centros de dos tesis (v3.3: antes 15; referencia del usuario)
+  var ISO_DOT_PX = 15;      // diametro del punto en estado 'eco'
+  var ISO_EXPAND = 3.2;     // cuanto se amplia el tema como minimo respecto a su tamano real
+  var ANA_STEP_PX = 20, ANA_DOT_PX = 12;
+  var CAT8 = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4', '#008300', '#4a3aa7', '#e34948']; // paleta categorica validada (guia dataviz)
+  var CAT_OTHER = '#a79f8d';
+  var isoToken = 0;
+  function hexToRgba(hex, a) {
+    var v = parseInt(hex.slice(1), 16);
+    return 'rgba(' + ((v >> 16) & 255) + ',' + ((v >> 8) & 255) + ',' + (v & 255) + ',' + a + ')';
+  }
+  function isoColor(n) {
+    if (state.lens === 'area') return AREA_HEX[AREA_STR_TO_CODE[(n.dominantArea || '').toLowerCase()] || 0];
+    return (n.parentMacro && n.parentMacro.color) || '#3f4a5c';
+  }
+  function median(arr) { var a = Array.from(arr).sort(function (x, y) { return x - y; }); return a[Math.floor(a.length / 2)]; }
+  function camXform() {
+    var t = state.scatterplot.get('cameraTarget'), d = state.scatterplot.get('cameraDistance');
+    return { tx: t[0], ty: t[1], s: (state.H / 2) / d };
+  }
+
+  function isolateMicro(n) {
+    var token = ++isoToken;
+    if (state.iso) { stopFlow(); hideAnaLabels(); }
+    Promise.all([loadThesesFor(n), loadMicroTheses(n.clusterId)]).then(function (res) {
+      if (token !== isoToken) return;
+      var rows = res[0], raw = res[1];
+      var idxs = [], byIdx = {}, rowIdx = [];
+      rows.forEach(function (r) { var i = state.thesisIdToIndex.get(r.id); rowIdx.push(i == null ? null : i); if (i != null) { idxs.push(i); byIdx[i] = r; } });
+      var N = idxs.length; if (!N) return;
+      var X0 = state.ndcX, Y0 = state.ndcY;
+      var cx = median(idxs.map(function (i) { return X0[i]; })), cy = median(idxs.map(function (i) { return Y0[i]; }));
+      var dists = idxs.map(function (i) { return Math.hypot(X0[i] - cx, Y0[i] - cy); }).sort(function (a, b) { return a - b; });
+      var R90 = Math.max(dists[Math.floor(0.9 * (N - 1))], 0.004);
+
+      // 1) espacio que necesita el tema en pantalla y zoom al que se ve
+      var W = state.W, H = state.H;
+      var Rpx = Math.max(0.33 * Math.min(W, H), Math.sqrt(N * ISO_MIN_PX * ISO_MIN_PX * 1.3 / Math.PI));
+      // temas compactos se amplian x3.2; los ya dispersos, lo justo (tope 0.12 NDC):
+      // mejor acercar la camara que empujar medio mapa
+      var Rndc = Math.max(R90 * 1.6, Math.min(R90 * ISO_EXPAND, 0.12));
+      var D = Math.max(1 / K_MAX_ZOOM, Math.min(DEFAULT_CAMERA_DISTANCE, Rndc * (H / 2) / Rpx));
+      var pxPerNdc = (H / 2) / D;
+
+      // 2) layout en pixeles: posicion real ampliada + relajacion de colisiones
+      var GA = Math.PI * (3 - Math.sqrt(5)), sc = (Rpx * 0.8) / R90;
+      var nodes = idxs.map(function (i, k) {
+        var x = (X0[i] - cx) * sc, y = (Y0[i] - cy) * sc;
+        // titulos identicos caen en el MISMO punto: semilla en espiral para que se separen
+        if (Math.hypot(x, y) < 1) { var rr = 4 * Math.sqrt(k + 1); x = rr * Math.cos(k * GA); y = rr * Math.sin(k * GA); }
+        return { x: x, y: y, tx: x, ty: y };
+      });
+      var sim = d3.forceSimulation(nodes)
+        .force('collide', d3.forceCollide(ISO_MIN_PX / 2).iterations(4))
+        .force('x', d3.forceX(function (d) { return d.tx; }).strength(0.035))
+        .force('y', d3.forceY(function (d) { return d.ty; }).strength(0.035))
+        .stop();
+      for (var t = 0; t < 320; t++) sim.tick();
+
+      var NX = new Float32Array(X0), NY = new Float32Array(Y0), radii = [];
+      nodes.forEach(function (d, k) {
+        var i = idxs[k]; NX[i] = cx + d.x / pxPerNdc; NY[i] = cy + d.y / pxPerNdc;
+        radii.push(Math.hypot(d.x, d.y) / pxPerNdc);
+      });
+      radii.sort(function (a, b) { return a - b; });
+      // el claro se mide con el p95 del tema, no con su tesis mas lejana
+      var Rmax = radii[Math.floor(0.95 * (radii.length - 1))];
+      // 3) el resto del mapa se abre: claro de radio Rc alrededor del tema, con
+      //    desplazamiento que se desvanece suave hasta 3*Rc (monotono: no cruza puntos)
+      var Rc = Rmax * 1.12, member = new Uint8Array(state.n);
+      idxs.forEach(function (i) { member[i] = 1; });
+      for (var j = 0; j < state.n; j++) {
+        if (member[j]) continue;
+        var dx = X0[j] - cx, dy = Y0[j] - cy, dd = Math.hypot(dx, dy);
+        if (dd >= 3 * Rc) continue;
+        var nd = dd < Rc ? 1.15 * Rc + 0.35 * dd : dd + 0.5 * Rc * (1 - (dd - Rc) / (2 * Rc));
+        if (dd < 1e-9) { var h = Math.sin(j * 12.9898) * 43758.5453, a = (h - Math.floor(h)) * 2 * Math.PI; dx = Math.cos(a); dy = Math.sin(a); dd = 1; }
+        NX[j] = cx + dx / dd * nd; NY[j] = cy + dy / dd * nd;
+      }
+      var cats = new Float32Array(state.n); cats.fill(C_DIM);
+      idxs.forEach(function (i) { cats[i] = C_HL_MULTI; });
+      // enlaces reales (vecinas e5 dentro del tema, ver generar_atlas_tesis_por_micro.py)
+      var edges = (raw.edges || []).map(function (e) { return [rowIdx[e[0]], rowIdx[e[1]], e[2]]; })
+        .filter(function (e) { return e[0] != null && e[1] != null; });
+
+      var posOf = {}; idxs.forEach(function (i, k) { posOf[i] = k; });
+      state.iso = { node: n, idxs: idxs, byIdx: byIdx, posOf: posOf, cats: cats, ecoCats: cats, X: NX, Y: NY, ecoX: NX, ecoY: NY, cx: cx, cy: cy, D: D, edges: edges, mode: 'eco', groupBy: 'plantel' };
+      document.body.classList.add('iso');
+      $('iso-name').textContent = n.name; $('iso-n').textContent = fmtNum(N) + ' tesis';
+      setChipMode('eco');
+      $('iso-chip').hidden = false;
+      applyIsoColor();
+
+      // 4) secuencia: acercarse al tema y luego abrirlo (la camara y los puntos
+      //    comparten el mismo tween en la libreria: no pueden animarse a la vez)
+      flyTo(cx, cy, D, 750).then(function () {
+        if (token !== isoToken) return;
+        state.dispX = NX; state.dispY = NY;
+        state.highlightKey = 'iso|' + n.id;
+        lastPointSize = null; updatePointSize();
+        drawPoints(NX, NY, cats, { transition: true, transitionDuration: 1500, transitionEasing: 'cubicInOut' })
+          .then(function () { if (token === isoToken && state.iso && state.iso.mode === 'eco') startFlow(); });
+      });
+    });
+  }
+  function applyIsoColor() {
+    var c = isoColor(state.iso.node);
+    state.palette[C_HL_MULTI] = c; state.scatterplot.set({ pointColor: state.palette });
+    var tint = $('tint');
+    tint.style.background = 'radial-gradient(ellipse at 50% 50%, ' + hexToRgba(c, 0.15) + ' 0%, ' + hexToRgba(c, 0.07) + ' 45%, ' + hexToRgba(c, 0.025) + ' 100%)';
+    tint.classList.add('on');
+  }
+  function recolorIsolation() { if (state.iso) { applyIsoColor(); if (state.iso.mode === 'ana') enterAnalysis(state.iso.groupBy, true); state.highlightKey = ''; } }
+  function exitIsolation(quick) {
+    isoToken++;
+    if (!state.iso) return Promise.resolve();
+    stopFlow(); hideAnaLabels();
+    state.iso = null;
+    document.body.classList.remove('iso');
+    $('iso-chip').hidden = true; $('tint').classList.remove('on');
+    state.dispX = state.ndcX; state.dispY = state.ndcY;
+    var cats = state.pin ? state.pin.cats : baseCats();
+    state.highlightKey = state.pin ? state.pin.key : 'base|' + state.lens + '|' + state.densityPct;
+    lastPointSize = null; updatePointSize();
+    return drawPoints(state.ndcX, state.ndcY, cats, quick ? {} : { transition: true, transitionDuration: 1100, transitionEasing: 'cubicInOut' })
+      .then(function () { scheduleReveal(); syncOverlay(); });
+  }
+  $('iso-exit').addEventListener('click', function () { exitIsolation(); });
+
+  // ---------- estado 'eco': enlaces + deriva lenta (v3.4, en WebGL) ----------
+  // A pedido del usuario: fuera particulas y pulsos ("resplandor", se veia generico).
+  // Solo enlaces (grosor = similitud e5) y un movimiento lento pero notable: cada tesis
+  // deriva alrededor de su lugar (suma de dos senoidales, periodo propio 7-13 s,
+  // amplitud DRIFT_PX) y los enlaces la siguen, estirandose y relajandose.
+  // Criterios (Heer & Robertson 2007): movimiento simple y predecible, sin cambios
+  // simultaneos; con prefers-reduced-motion no hay deriva.
+  // Rendimiento (medido con GPU real, Intel UHD 620): la version en canvas 2D costaba
+  // 3.3 ms de JS por cuadro pero la GPU tardaba en rasterizar miles de lineas: 2,475
+  // tesis a ~8 fps. Ahora es WebGL (regl, ya cargado): posiciones y fases se suben UNA
+  // vez y la deriva se calcula en el shader; por cuadro solo cambian tiempo y camara.
+  // En WebGL de fondo las tesis del tema quedan INVISIBLES pero seleccionables
+  // (hover/clic funcionan; la deriva es de pocos px).
+  var DRIFT_PX = 5.5;          // amplitud: "lento pero notable"; con 24 px entre centros solo se rozan un instante en el peor caso
+  var flow = { raf: 0, running: false, ampT0: 0, t0: 0, focus: -1, regl: null, draws: null };
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function simW(s) { return Math.max(0, Math.min(1, (s - 0.82) / 0.16)); }
+  function resizeFlow() {
+    var cv = $('flow'), dpr = window.devicePixelRatio || 1;
+    cv.width = Math.round(state.W * dpr); cv.height = Math.round(state.H * dpr);
+  }
+  function driftAmp(ts) {
+    var u = Math.min(1, (ts - flow.ampT0) / 1400);
+    return u < 0.5 ? 2 * u * u : 1 - Math.pow(-2 * u + 2, 2) / 2;
+  }
+  var DRIFT_GLSL = [
+    'uniform vec2 cam; uniform vec2 view; uniform float scale, amp, t;',
+    'vec2 toPx(vec2 p) { return vec2((p.x - cam.x) * scale + view.x * 0.5, view.y * 0.5 - (p.y - cam.y) * scale); }',
+    'vec2 drift(vec4 f, vec2 q) {',
+    '  return amp * vec2(0.62 * sin(f.x * t + f.z) + 0.38 * sin(f.y * t + f.w), 0.62 * sin(f.y * t + q.x) + 0.38 * sin(f.x * t + q.y));',
+    '}',
+    'vec4 clip(vec2 p) { return vec4(p.x / view.x * 2.0 - 1.0, 1.0 - p.y / view.y * 2.0, 0.0, 1.0); }'
+  ].join('\n');
+  function ensureRegl() {
+    if (flow.regl) return flow.regl;
+    var rg = window.createREGL({ canvas: $('flow'), attributes: { alpha: true, premultipliedAlpha: true, antialias: true } });
+    var blend = { enable: true, func: { src: 'one', dst: 'one minus src alpha' } };
+    var common = { blend: blend, depth: { enable: false }, viewport: function () { return { x: 0, y: 0, width: $('flow').width, height: $('flow').height }; } };
+    var uni = { cam: rg.prop('cam'), view: rg.prop('view'), scale: rg.prop('scale'), amp: rg.prop('amp'), t: rg.prop('t'), color: rg.prop('color'), fade: rg.prop('fade') };
+    flow.drawLines = rg(Object.assign({
+      vert: 'precision highp float;\n' + DRIFT_GLSL + '\nattribute vec2 aA, aB, corner, wa; attribute vec4 fA, fB, q;\nvarying float vA;\n' +
+        'void main() { vec2 pa = toPx(aA) + drift(fA, q.xy), pb = toPx(aB) + drift(fB, q.zw);\n' +
+        '  vec2 d = pb - pa; float L = max(length(d), 1e-4); vec2 n = vec2(-d.y, d.x) / L;\n' +
+        '  vA = wa.y; gl_Position = clip(mix(pa, pb, corner.x) + n * corner.y * wa.x * 0.5); }',
+      frag: 'precision mediump float; uniform vec3 color; uniform float fade; varying float vA;\nvoid main() { float a = vA * fade; gl_FragColor = vec4(color * a, a); }',
+      attributes: { aA: rg.prop('aA'), aB: rg.prop('aB'), fA: rg.prop('fA'), fB: rg.prop('fB'), q: rg.prop('q'), corner: rg.prop('corner'), wa: rg.prop('wa') },
+      uniforms: uni, count: rg.prop('count'), primitive: 'triangles'
+    }, common));
+    flow.drawPoints = rg(Object.assign({
+      vert: 'precision highp float;\n' + DRIFT_GLSL + '\nattribute vec2 aP; attribute vec4 fP; attribute vec2 qP; uniform float size;\n' +
+        'void main() { gl_PointSize = size; gl_Position = clip(toPx(aP) + drift(fP, qP)); }',
+      frag: 'precision mediump float; uniform vec3 color; uniform float fade, alpha;\n' +
+        'void main() { float r = length(gl_PointCoord - 0.5); float a = smoothstep(0.5, 0.42, r) * alpha * fade; gl_FragColor = vec4(color * a, a); }',
+      attributes: { aP: rg.prop('aP'), fP: rg.prop('fP'), qP: rg.prop('qP') },
+      uniforms: Object.assign({ size: rg.prop('size'), alpha: rg.prop('alpha') }, uni),
+      count: rg.prop('count'), offset: rg.prop('offset'), primitive: 'points'
+    }, common));
+    flow.regl = rg;
+    return rg;
+  }
+  function hexRgb(hex) { var v = parseInt(hex.slice(1), 16); return [((v >> 16) & 255) / 255, ((v >> 8) & 255) / 255, (v & 255) / 255]; }
+  function buildFlowBuffers() {
+    var iso = state.iso, rg = ensureRegl(), N = iso.idxs.length;
+    // fase y periodo propios por tesis, deterministas por indice
+    var fP = new Float32Array(N * 4), qP = new Float32Array(N * 2), aP = new Float32Array(N * 2);
+    iso.idxs.forEach(function (i, k) {
+      var h = function (j) { var v = Math.sin(i * 12.9898 + j * 78.233) * 43758.5453; return v - Math.floor(v); };
+      fP.set([2 * Math.PI / (7 + 6 * h(1)), 2 * Math.PI / (9 + 4 * h(2)), h(3) * 6.2832, h(4) * 6.2832], k * 4);
+      qP.set([h(5) * 6.2832, h(6) * 6.2832], k * 2);
+      aP.set([iso.ecoX[i], iso.ecoY[i]], k * 2);
+    });
+    // enlaces como quads (2 triangulos): grosor 0.6-3 px y opacidad segun similitud
+    var E = iso.edges.length, V = E * 6;
+    var aA = new Float32Array(V * 2), aB = new Float32Array(V * 2), fA = new Float32Array(V * 4), fB = new Float32Array(V * 4), q = new Float32Array(V * 4), corner = new Float32Array(V * 2), wa = new Float32Array(V * 2);
+    var C = [[0, -1], [1, -1], [1, 1], [0, -1], [1, 1], [0, 1]];
+    iso.edges.forEach(function (ed, e) {
+      var ka = iso.posOf[ed[0]], kb = iso.posOf[ed[1]], w = simW(ed[2]);
+      for (var v = 0; v < 6; v++) {
+        var o = e * 6 + v;
+        aA.set(aP.subarray(ka * 2, ka * 2 + 2), o * 2); aB.set(aP.subarray(kb * 2, kb * 2 + 2), o * 2);
+        fA.set(fP.subarray(ka * 4, ka * 4 + 4), o * 4); fB.set(fP.subarray(kb * 4, kb * 4 + 4), o * 4);
+        q.set([qP[ka * 2], qP[ka * 2 + 1], qP[kb * 2], qP[kb * 2 + 1]], o * 4);
+        corner.set(C[v], o * 2); wa.set([0.6 + 2.4 * w, 0.12 + 0.34 * w], o * 2);
+      }
+    });
+    if (flow.bufs) flow.bufs.forEach(function (b) { b.destroy(); });
+    var B = function (a) { return rg.buffer(a); };
+    flow.pts = { aP: B(aP), fP: B(fP), qP: B(qP), count: N };
+    flow.lines = { aA: B(aA), aB: B(aB), fA: B(fA), fB: B(fB), q: B(q), corner: B(corner), wa: B(wa), count: V };
+    flow.bufs = [flow.pts.aP, flow.pts.fP, flow.pts.qP, flow.lines.aA, flow.lines.aB, flow.lines.fA, flow.lines.fB, flow.lines.q, flow.lines.corner, flow.lines.wa];
+  }
+  function startFlow() {
+    var iso = state.iso; if (!iso) return;
+    resizeFlow(); buildFlowBuffers();
+    var hid = new Float32Array(iso.ecoCats);
+    iso.idxs.forEach(function (i) { hid[i] = C_HIDDEN; });
+    iso.cats = hid; state.highlightKey = '';
+    flow.ampT0 = flow.t0 = performance.now(); flow.running = true; flow.focus = -1;
+    restoreView();
+    if (!flow.raf) flow.raf = requestAnimationFrame(flowFrame);
+  }
+  // Apagado inmediato: el que llama redibuja en WebGL de fondo con las tesis visibles.
+  function stopFlow() {
+    flow.running = false;
+    if (flow.raf) { cancelAnimationFrame(flow.raf); flow.raf = 0; }
+    if (flow.regl) { flow.regl.poll(); flow.regl.clear({ color: [0, 0, 0, 0] }); }
+    if (state.iso && state.iso.mode !== 'ana') state.iso.cats = state.iso.ecoCats;
+  }
+  function flowFrame(ts) {
+    flow.raf = requestAnimationFrame(flowFrame);
+    var iso = state.iso; if (!iso || !flow.running || !flow.pts) return;
+    var rg = flow.regl, c = camXform(), col = hexRgb(state.palette[C_HL_MULTI]), dpr = window.devicePixelRatio || 1;
+    var props = { cam: [c.tx, c.ty], view: [state.W, state.H], scale: c.s, amp: reduceMotion ? 0 : DRIFT_PX * driftAmp(ts), t: (ts - flow.t0) / 1000, color: col, fade: Math.min(1, (ts - flow.ampT0) / 350) };
+    rg.poll();
+    rg.clear({ color: [0, 0, 0, 0] });
+    flow.drawLines(Object.assign({}, props, flow.lines));
+    flow.drawPoints(Object.assign({}, props, flow.pts, { size: ISO_DOT_PX * dpr, alpha: 0.92, offset: 0 }));
+    if (flow.focus >= 0 && iso.posOf[flow.focus] != null) {
+      flow.drawPoints(Object.assign({}, props, flow.pts, { color: [0.09, 0.094, 0.1], size: ISO_DOT_PX * dpr, alpha: 1, offset: iso.posOf[flow.focus], count: 1 }));
+    }
+  }
+
+  // ---------- estado 'ana': reorganizar por grupo ----------
+  var ANA_KEYS = {
+    area: function (i, r) { return AREA_NAMES[state.areaCode[i] || 0]; },
+    plantel: function (i, r) { return r.pl || 'sin plantel'; },
+    programa: function (i, r) { return r.pr || 'sin programa'; },
+    nivel: function (i, r) { return r.nv || 'sin nivel'; },
+    decada: function (i, r) { return r.y ? Math.floor(r.y / 10) * 10 + 's' : 'sin año'; }
+  };
+  function enterAnalysis(groupBy, instant) {
+    var iso = state.iso; if (!iso) return;
+    iso.mode = 'ana'; iso.groupBy = groupBy || iso.groupBy || 'plantel';
+    stopFlow(); setChipMode('ana');
+    var keyFn = ANA_KEYS[iso.groupBy], groups = new Map();
+    iso.idxs.forEach(function (i) { var k = keyFn(i, iso.byIdx[i]); if (!groups.has(k)) groups.set(k, []); groups.get(k).push(i); });
+    var list = Array.from(groups.entries());
+    if (iso.groupBy === 'decada') list.sort(function (a, b) { return a[0] < b[0] ? -1 : 1; });
+    else list.sort(function (a, b) { return b[1].length - a[1].length; });
+    if (list.length > 9) { var rest = []; list.slice(8).forEach(function (g) { rest = rest.concat(g[1]); }); list = list.slice(0, 8).concat([['Otros (' + (list.length - 8) + ')', rest]]); }
+    // color por grupo: areas con su color de siempre; lo demas con la paleta categorica validada
+    list.forEach(function (g, gi) {
+      var col = iso.groupBy === 'area' ? AREA_HEX[Object.keys(AREA_NAMES).filter(function (k) { return AREA_NAMES[k] === g[0]; })[0] || 0]
+        : (/^Otros \(/.test(g[0]) ? CAT_OTHER : CAT8[gi % 8]);
+      g.push(col); state.palette[C_GRP + gi] = col;
+    });
+    state.scatterplot.set({ pointColor: state.palette });
+    // grilla de grillas en pixeles de pantalla, dentro del area visible (sin el panel)
+    var c = camXform(), panelW = panel.classList.contains('open') ? panel.offsetWidth : 0;
+    var visW = state.W - panelW - 48, left = 24, top = 96, S = ANA_STEP_PX;
+    var G = list.length, cols = Math.max(1, Math.min(G, Math.round(Math.sqrt(G * visW / Math.max(1, state.H - 150)))));
+    var cellW = visW / cols, innerCols = Math.max(1, Math.floor((cellW - 28) / S));
+    var NX = new Float32Array(iso.ecoX), NY = new Float32Array(iso.ecoY), cats = new Float32Array(iso.ecoCats), labels = [], y = top, rowH = 0;
+    list.forEach(function (g, gi) {
+      var col = gi % cols; if (col === 0 && gi > 0) { y += rowH + 30; rowH = 0; }
+      var x0 = left + col * cellW, items = g[1].slice().sort(function (a, b) { return ((iso.byIdx[a].y || 0) - (iso.byIdx[b].y || 0)) || (iso.byIdx[a].k < iso.byIdx[b].k ? -1 : 1); });
+      labels.push({ x: (x0 - state.W / 2) / c.s + c.tx, y: c.ty - (y - state.H / 2) / c.s, text: g[0], n: items.length, color: g[2] });
+      items.forEach(function (i, k) {
+        var px = x0 + (k % innerCols) * S + S / 2, py = y + 22 + Math.floor(k / innerCols) * S + S / 2;
+        NX[i] = c.tx + (px - state.W / 2) / c.s; NY[i] = c.ty - (py - state.H / 2) / c.s;
+        cats[i] = C_GRP + gi;
+      });
+      rowH = Math.max(rowH, 22 + Math.ceil(items.length / innerCols) * S);
+    });
+    iso.cats = cats; iso.X = NX; iso.Y = NY; iso.anaLabels = labels;
+    state.dispX = NX; state.dispY = NY;
+    state.highlightKey = 'ana|' + iso.groupBy + '|' + state.lens;
+    lastPointSize = null; updatePointSize();
+    showAnaLabels(false);
+    drawPoints(NX, NY, cats, instant ? {} : { transition: true, transitionDuration: 1200, transitionEasing: 'cubicInOut' })
+      .then(function () { if (state.iso === iso && iso.mode === 'ana') showAnaLabels(true); });
+    document.querySelectorAll('#ana-group button').forEach(function (b) { b.classList.toggle('active', b.getAttribute('data-g') === iso.groupBy); });
+  }
+  function exitAnalysis() {
+    var iso = state.iso; if (!iso) return;
+    iso.mode = 'eco'; iso.cats = iso.ecoCats; iso.X = iso.ecoX; iso.Y = iso.ecoY;
+    hideAnaLabels(); setChipMode('eco');
+    state.dispX = iso.ecoX; state.dispY = iso.ecoY;
+    state.highlightKey = 'iso|' + iso.node.id;
+    lastPointSize = null; updatePointSize();
+    drawPoints(iso.ecoX, iso.ecoY, iso.ecoCats, { transition: true, transitionDuration: 1200, transitionEasing: 'cubicInOut' })
+      .then(function () { if (state.iso === iso && iso.mode === 'eco') startFlow(); });
+  }
+  function showAnaLabels(on) {
+    var host = $('ana-labels'), iso = state.iso;
+    host.innerHTML = '';
+    if (!on || !iso || !iso.anaLabels) return;
+    iso.anaLabels.forEach(function (l) {
+      var d = document.createElement('div'); d.className = 'ana-label';
+      d.innerHTML = '<i style="background:' + l.color + '"></i><span>' + escapeHtml(l.text) + '</span><b>' + fmtNum(l.n) + '</b>';
+      d.setAttribute('data-x', l.x); d.setAttribute('data-y', l.y);
+      host.appendChild(d);
+    });
+    placeAnaLabels();
+    requestAnimationFrame(function () { host.classList.add('on'); });
+  }
+  function hideAnaLabels() { var h = $('ana-labels'); h.classList.remove('on'); h.innerHTML = ''; }
+  function placeAnaLabels() {
+    var host = $('ana-labels'); if (!host.firstChild) return;
+    var c = camXform();
+    host.querySelectorAll('.ana-label').forEach(function (d) {
+      var x = (parseFloat(d.getAttribute('data-x')) - c.tx) * c.s + state.W / 2, y = state.H / 2 - (parseFloat(d.getAttribute('data-y')) - c.ty) * c.s;
+      d.style.transform = 'translate(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px)';
+    });
+  }
+  function setChipMode(mode) {
+    $('iso-analyze').textContent = mode === 'ana' ? 'Ver conexiones' : 'Analizar';
+    $('ana-group').hidden = mode !== 'ana';
+  }
+  $('iso-analyze').addEventListener('click', function () {
+    if (!state.iso) return;
+    if (state.iso.mode === 'ana') exitAnalysis(); else enterAnalysis();
+  });
+  document.querySelectorAll('#ana-group button').forEach(function (b) {
+    b.addEventListener('click', function () { if (state.iso) enterAnalysis(b.getAttribute('data-g')); });
+  });
+
+  // ==================== vecindario (modo analitico, mismo mecanismo que v2) ====================
+  var AREA_COLORS = { 'area 1': '#3566a8', 'area 2': '#0f7d5c', 'area 3': '#c98a2e', 'area 4': '#b8412f' };
+  var vm = { history: [], groupBy: 'area', svg: null, lastFocalPos: null };
+  function areaColor(a) { return AREA_COLORS[(a || '').toLowerCase()] || '#948d7c'; }
+  function simT(s) { return Math.max(0, Math.min(1, (Number(s || 0) - 0.75) / 0.20)); }
+  function decadeLabel(y) { return y ? (Math.floor(y / 10) * 10) + 's' : 'sin año'; }
+  function groupKeyOf(nb) { return vm.groupBy === 'decade' ? decadeLabel(nb.year) : areaNameFromStr(nb.area); }
+  function computeAnalyticLayout(neighbors, w, h) {
+    var map = {}; neighbors.forEach(function (nb) { var k = groupKeyOf(nb); (map[k] = map[k] || []).push(nb); });
+    var groups = Object.keys(map).sort().map(function (k) { return [k, map[k]]; });
+    var cols = Math.min(4, Math.max(1, Math.ceil(Math.sqrt(groups.length)))), rows = Math.ceil(groups.length / cols), top = 78;
+    var cellW = w / cols, cellH = (h - top) / rows, positions = { FOCAL: { x: w / 2, y: 32 } }, labelPositions = {};
+    groups.forEach(function (g, gi) {
+      var items = g[1].slice().sort(function (a, b) { return (b.sim || 0) - (a.sim || 0); });
+      var cx = cellW * (gi % cols + 0.5), cy = top + cellH * (Math.floor(gi / cols) + 0.5), n = items.length;
+      var ic = Math.max(1, Math.ceil(Math.sqrt(n))), ir = Math.ceil(n / ic), sp = Math.min(cellW, cellH) * (n > 16 ? 0.13 : 0.17);
+      var gw = (ic - 1) * sp, gh = (ir - 1) * sp;
+      items.forEach(function (it, i) { positions[it.id] = { x: cx - gw / 2 + (i % ic) * sp, y: cy - gh / 2 + Math.floor(i / ic) * sp }; });
+      labelPositions[g[0]] = { x: cx, y: cy - gh / 2 - 16, n: n };
+    });
+    return { positions: positions, groups: groups, labelPositions: labelPositions };
+  }
+  function vmTip(d, ev) {
+    var tt = $('vtooltip');
+    tt.innerHTML = '<span class="t-label">' + escapeHtml(d.title || d.id) + '</span><span class="t-meta">' + (d.year || '?') + ' · ' + escapeHtml(areaNameFromStr(d.area)) +
+      (d.isFocal ? '' : ' · ' + (d.sim * 100).toFixed(1) + '% similar') + (d.inSample === false ? ' · fuera de este preview' : '') + '</span>';
+    tt.style.opacity = '1'; vmMove(ev);
+  }
+  function vmMove(ev) { $('vtooltip').style.transform = 'translate(' + (ev.clientX + 14) + 'px,' + (ev.clientY + 14) + 'px)'; }
+  function vmHide() { var tt = $('vtooltip'); tt.style.opacity = '0'; tt.style.transform = 'translate(-9999px,-9999px)'; }
+  function renderVecindario(tid) {
+    var t = state.vecindarioPreview.theses[tid], body = document.querySelector('#vmodal .vm-body'), w = body.clientWidth, h = body.clientHeight;
+    $('vm-title').textContent = t ? t.title : tid;
+    $('vm-meta').textContent = t ? (t.year || '?') + ' · ' + areaNameFromStr(t.area) + ' · ' + tid : 'sin datos en este preview';
+    $('vm-breadcrumb').innerHTML = vm.history.map(function (x, i) { return '<button data-idx="' + i + '">' + escapeHtml((x.title || x.id).slice(0, 28)) + ((x.title || '').length > 28 ? '…' : '') + '</button> →'; }).join(' ');
+    document.querySelectorAll('#vm-breadcrumb button').forEach(function (b) { b.addEventListener('click', function () { var i = +b.getAttribute('data-idx'), tg = vm.history[i]; vm.history = vm.history.slice(0, i); openVecindarioModal(tg.id); }); });
+    var svg = d3.select(vm.svg);
+    if (!t) { svg.selectAll('g > *').remove(); return; }
+    var lay = computeAnalyticLayout(t.neighbors, w, h), pos = lay.positions, prior = vm.lastFocalPos || pos.FOCAL;
+    var ls = svg.select('.vm-group-labels').selectAll('text').data(lay.groups.map(function (g) { return g[0]; }), function (d) { return d; });
+    ls.exit().remove();
+    ls.enter().append('text').attr('class', 'vm-group-label').attr('text-anchor', 'middle').merge(ls)
+      .attr('x', function (d) { return lay.labelPositions[d].x; }).attr('y', function (d) { return lay.labelPositions[d].y; })
+      .text(function (d) { return d + ' (' + lay.labelPositions[d].n + ')'; });
+    var es = svg.select('.vm-edges').selectAll('line').data(t.neighbors, function (d) { return d.id; });
+    es.exit().transition().duration(300).style('opacity', 0).remove();
+    es.enter().append('line').attr('class', 'vm-edge').attr('x1', prior.x).attr('y1', prior.y).attr('x2', prior.x).attr('y2', prior.y).style('opacity', 0).merge(es)
+      .transition().duration(850).ease(d3.easeCubicOut)
+      .attr('x1', pos.FOCAL.x).attr('y1', pos.FOCAL.y).attr('x2', function (d) { return pos[d.id].x; }).attr('y2', function (d) { return pos[d.id].y; })
+      .style('stroke-width', function (d) { return 0.5 + simT(d.sim) * 2.2; }).style('opacity', function (d) { return 0.08 + simT(d.sim) * 0.34; });
+    var data = [{ id: 'FOCAL', title: t.title, year: t.year, area: t.area, isFocal: true }].concat(t.neighbors);
+    var ns = svg.select('.vm-nodes').selectAll('g.vm-node').data(data, function (d) { return d.id; });
+    ns.exit().transition().duration(300).style('opacity', 0).remove();
+    var ne = ns.enter().append('g').attr('transform', 'translate(' + prior.x + ',' + prior.y + ')').style('opacity', 0);
+    ne.append('circle');
+    var mg = ne.merge(ns).attr('class', function (d) { return 'vm-node' + (d.isFocal ? ' focal' : '') + (d.isFocal || d.inSample ? '' : ' not-in-sample'); });
+    mg.transition().duration(850).ease(d3.easeCubicOut).attr('transform', function (d) { var p = pos[d.id]; return 'translate(' + p.x + ',' + p.y + ')'; }).style('opacity', 1);
+    mg.select('circle').attr('r', function (d) { return d.isFocal ? 15 : 3.5 + simT(d.sim) * 7.5; })
+      .attr('fill', function (d) { return d.isFocal ? 'var(--accent)' : areaColor(d.area); })
+      .attr('fill-opacity', function (d) { return d.isFocal ? 1 : 0.55 + simT(d.sim) * 0.45; });
+    mg.on('mouseenter', function (ev, d) { vmTip(d, ev); }).on('mousemove', vmMove).on('mouseleave', vmHide)
+      .on('click', function (ev, d) { if (d.isFocal || !d.inSample) return; vmHide(); openVecindarioModal(d.id); });
+    vm.lastFocalPos = pos.FOCAL;
+  }
+  function openVecindarioModal(tid) {
+    if (!vm.svg) vm.svg = $('vm-svg');
+    var t = state.vecindarioPreview.theses[tid];
+    vm.history.push({ id: tid, title: t ? t.title : tid });
+    var m = $('vmodal'); if (m.hidden) { m.hidden = false; vm.lastFocalPos = null; }
+    renderVecindario(tid);
+  }
+  function closeVecindario() { $('vmodal').hidden = true; vm.history = []; vm.lastFocalPos = null; vmHide(); }
+  $('vm-close').addEventListener('click', closeVecindario);
+  document.querySelector('#vmodal .vm-backdrop').addEventListener('click', closeVecindario);
+  $('vm-groupby').addEventListener('change', function (ev) { vm.groupBy = ev.target.value; if (vm.history.length) renderVecindario(vm.history[vm.history.length - 1].id); });
+
+  // ==================== teclado, resize, debug ====================
+  document.addEventListener('keydown', function (ev) {
+    var k = ev.key, typing = document.activeElement && document.activeElement.tagName === 'INPUT';
+    if ((ev.ctrlKey || ev.metaKey) && k.toLowerCase() === 'k') { ev.preventDefault(); openSearch(); return; }
+    if (k === '/' && !typing) { ev.preventDefault(); openSearch(); return; }
+    if (k === 'Escape') {
+      if (!$('search').hidden) closeSearch();
+      else if (!$('vmodal').hidden) closeVecindario();
+      else if (!$('taller').hidden) closeTaller();
+      else if (!$('routes-menu').hidden) toggleRoutesMenu(false);
+      else if (!$('story').hidden) closeStory();
+      else if (!$('taller').hidden) closeTaller();
+      else if (state.iso) exitIsolation();
+      else if (panel.classList.contains('open')) closePanel();
+      else if (state.spotlightActive) $('map-selection-close').click();
+    }
+  });
+  window.addEventListener('resize', function () {
+    if (!state.scatterplot) return;
+    var rect = main.getBoundingClientRect(); state.W = rect.width; state.H = rect.height;
+    requestAnimationFrame(resizeRenderer); // el renderer registra su propio handler (re-limita a la pantalla) despues del nuestro
+    state.scatterplot.set({ width: rect.width, height: rect.height });
+    if (state.iso) resizeFlow();
+    if (!$('vmodal').hidden && vm.history.length) renderVecindario(vm.history[vm.history.length - 1].id);
+    if (state.introActive && !$('story-next').disabled) showDiscLabels(true);
+  });
+
+  var densityCache = {};
+  function densityIndices(pct) {
+    if (densityCache[pct]) return densityCache[pct];
+    var out = [];
+    for (var i = 0; i < state.n; i++) { var h = Math.sin(i * 12.9898) * 43758.5453; if (h - Math.floor(h) < pct) out.push(i); }
+    return (densityCache[pct] = out);
+  }
+  document.querySelectorAll('#density-toggle button').forEach(function (b) {
+    b.addEventListener('click', function () {
+      document.querySelectorAll('#density-toggle button').forEach(function (x) { x.classList.toggle('active', x === b); });
+      state.densityPct = parseFloat(b.getAttribute('data-pct')); state.highlightKey = ''; restoreView();
+    });
+  });
+  $('debug-log-toggle').addEventListener('click', function () { $('debug-log').hidden = !$('debug-log').hidden; });
+
+  loadEverything().catch(function (err) {
+    console.error(err);
+    $('loading-text').textContent = 'No se pudo cargar el atlas: ' + err.message;
+  });
+
+  // Hook de desarrollo (prototipo local, no produccion).
+  window.__debugAtlas = {
+    state: state, flyTo: flyTo, flyToNode: flyToNode, flyHome: flyHome, selectNode: selectNode, setLens: setLens,
+    openSearch: openSearch, runSearch: runSearch, pickResult: pickResult, startIntro: startIntro, startRoute: startRoute,
+    applySpotlight: applySpotlight, clearSpotlight: clearSpotlight, highlightMacros: highlightMacros, openVecindarioModal: openVecindarioModal,
+    runIntroTransition: runIntroTransition, closeStory: closeStory, live: live, flow: flow
+  };
+})();
+</script>
+</body>
+</html>

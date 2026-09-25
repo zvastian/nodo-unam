@@ -37,6 +37,7 @@ Los catálogos de tesis (TESIUNAM) se consultan por búsqueda de palabras y list
 
 - Tono serio e institucional: legítimo, digno, "casi gubernamental", precisión de instrumento científico (Design Manifest 22-09, confirmado 24-09).
 - Nombre de trabajo: "Atlas de tesis UNAM" (proyecto NODO UNAM).
+- **Marca: NodOS** (2026-09-25). El logo oficial está en `marca/`: `nodos-logo.svg`, en los azules de la escala de niveles del mapa (#143a6b, #2d65a8, #5b95cf, #9cc3e6), y `nodos-logo-blanco-sobre-marino.svg`, en blanco sobre #12294d. Los tres puntos pueden cambiar de color en video y branding para dar dinamismo; el logo oficial no.
 
 ## Evidence on Hand
 
@@ -84,7 +85,8 @@ Objetivo acordado con el usuario: que el atlas deje de verse como una plantilla 
 20. **Movimiento idéntico en todo** (mismo fundido en cada elemento) o efectos de brillo/partículas.
 21. **Subtítulo de KPIs irrelevantes** al analizar un tema: la tira «Tesis · Periodo · Planteles · Programas · Asesores» bajo el título, que repite cifras sin responder ninguna pregunta del usuario. Identificado por el usuario. Una cifra entra solo si responde algo; si no, va en una frase o no va.
 22. **Subtítulos innecesarios** (identificado por el usuario, 2026-09-24): frases bajo un título o una gráfica que repiten lo que la gráfica ya dice, como «48 tesis, de 1991 a 2013» sobre una línea de tiempo, «Tesis por año» bajo un histograma o «Cada círculo es un asesor…». También las notas de instrucción («cierra esta ficha para…») y los conteos en prosa («17 tesis no quedaron en ningún campo»). El dato se dice con la gráfica (ejes con números), con jerarquía visual (título, conteo alineado, color) o como un elemento más del sistema (una fila «Sin campo» en la lista). Una frase entra solo si dice algo que ninguna gráfica muestra y no puede mostrarse de otra forma.
-23. **Énfasis falso** (identificado por el usuario, 2026-09-24): un encabezado o una tarjeta con fondo teñido de un color y una franja delgada más oscura del mismo color en el borde (arriba o a la izquierda). Da énfasis sin decir nada y hoy se reconoce como diseño generado por IA. El color debe llevar un dato: en NodOs, el **mapa de localización** del encabezado (la silueta del atlas con lo que describe la ficha marcado en su color) y los glifos del sistema. La jerarquía la dan el tamaño, el peso y las reglas finas.
+23. **Énfasis falso** (identificado por el usuario, 2026-09-24): un encabezado o una tarjeta con fondo teñido de un color y una franja delgada más oscura del mismo color en el borde (arriba o a la izquierda). Da énfasis sin decir nada y hoy se reconoce como diseño generado por IA. El color debe llevar un dato: en NodOS, el **mapa de localización** del encabezado (la silueta del atlas con lo que describe la ficha marcado en su color) y los glifos del sistema. La jerarquía la dan el tamaño, el peso y las reglas finas.
+24. **Fondo gris genérico de UI: lista negra** (identificado por el usuario, 2026-09-25). Nada de gris claro de relleno (#f5f5f5 y parecidos, el antiguo token `--surface`): ni en bandas, pies, tarjetas o paneles, ni en estados *hover* o activos, ni como relleno de gráficas. Sin excepciones, ni siquiera con razón de producto. El énfasis y la separación los dan la tinta, el subrayado, los filetes finos y el peso. Donde un bloque necesita fondo propio, como el pie, va en azul marino (`--pie-fondo`) con tinta blanca.
 
 ### Decisiones de corrección (aprobadas 2026-09-24)
 
