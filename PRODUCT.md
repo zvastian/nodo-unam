@@ -14,6 +14,8 @@ Estudiantes (licenciatura y posgrado) e investigadores que exploran qué se ha i
 
 NODO UNAM / Atlas de tesis UNAM convierte el catálogo de 609,154 tesis de la UNAM en un mapa semántico navegable: cada tesis se ubica junto a las que tratan temas parecidos (embeddings e5-large, HDBSCAN + Ward, PaCMAP). Éxito: que un estudiante encuentre en minutos su tema, sus antecedentes y quién los asesoró, y que un investigador confíe en lo que ve.
 
+**Nomenclatura (v4.7, 2026-09-24).** Los tres niveles del agrupamiento se llaman **campo** (macro, 130), **tema** (meso, ~440) y **subtema** (micro, 513). Sustituyen a «territorio», «subtema» y «tema fino», que el usuario consideró poco precisos. Se evitan «área», porque es el área administrativa, «especialidad», porque es un nivel de estudios, y «disciplina», porque los grupos se forman por contenido y no son oficiales. En el código y los datos siguen `macro`, `meso` y `micro`.
+
 ## Positioning
 
 Los catálogos de tesis (TESIUNAM) se consultan por búsqueda de palabras y listas. Este atlas organiza el corpus completo por *contenido*, no por área administrativa, y hace visible lo que una lista oculta: vecindarios temáticos, territorios, temas finos, asesores y la relación entre ellos. Referencia de seriedad declarada por el usuario: Gapminder (herramienta de datos seria, clara, para estudiantes).

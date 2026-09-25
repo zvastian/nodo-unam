@@ -1851,3 +1851,22 @@ Siguen el A→Z, el taller y los subtemas.
 - Solo queda en el código que parte las etiquetas de los archivos de datos.
 
 **Verificado:** mapa a nivel subtema y tema fino, búsqueda, fichas y flujos anteriores, en escritorio y móvil. Sin errores de consola.
+
+### v4.7.0: nombres de los niveles, campo, tema y subtema (2026-09-24)
+
+**Pedido del usuario:** «territorio» y «tema fino» no encajaban, y «macro/micro» le parece forzado. Pidió nombres formales, al estilo de «tema, subtema».
+
+**Opciones propuestas:**
+- Campo, Tema, Subtema;
+- Eje temático, Tema, Subtema;
+- Materia, Tema, Subtema. «Materia» choca con el campo *materias* de TESIUNAM.
+
+**Elegida: campo (macro), tema (meso), subtema (micro).**
+- Se cambiaron todos los textos visibles: mapa, miga de pan, leyenda («● TEMA ○ Subtema»), lente «Campos», fichas, búsqueda, relatos de la introducción, rutas y página de método.
+- La sección de la búsqueda pasa a «Campos y temas».
+- Los vecinos se nombran según el nivel: «Campos vecinos», «Temas vecinos», «Subtemas vecinos».
+- «Subtema» cambió de sentido: antes era el nivel intermedio y ahora es el más fino. El reemplazo se hizo del nivel más fino al más general, con marcadores para no renombrar dos veces.
+- En el código y los datos siguen `macro`, `meso` y `micro` e identificadores como `colorTerritorio`.
+- Las secciones anteriores de esta bitácora conservan los nombres viejos.
+
+**Verificado:** sin rastros de los nombres viejos en textos visibles (grep); capturas de miga de pan, leyenda, ficha y búsqueda. Sin errores de consola.

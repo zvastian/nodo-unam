@@ -109,7 +109,7 @@
   .anode:hover circle, .anode.selected circle { stroke: var(--ink); stroke-width: 1.5; }
   /* v4.6: rango del cluster con la gramatica de las fichas (padre = punto lleno, hijo = anillo)
      y la convencion cartografica (mayusculas para lo grande, minusculas para lo chico):
-     subtema = punto lleno + MAYUSCULAS; tema fino = anillo del color del territorio + minusculas. */
+     tema = punto lleno + MAYUSCULAS; subtema = anillo del color del campo + minusculas. */
   .anode.micro circle { fill: #fff; fill-opacity: 1; stroke: var(--c); stroke-width: 2; }
   .anode.micro:hover circle, .anode.micro.selected circle { stroke: var(--ink); stroke-width: 2; }
   .alabel.micro text { text-transform: none; font-weight: 500; }
@@ -167,7 +167,7 @@
   #panel .panel-kw { font-size: 13.5px; color: var(--ink-2); margin-top: 6px; line-height: 1.45; }
   #panel .panel-kw:empty { display: none; }
   /* v4.5: ficha de un cluster con la misma logica que la de una tesis: encabezado con tinte y
-     franja del color del territorio; nivel jerarquico > titulo > palabras clave (c-TF-IDF);
+     franja del color del campo; nivel jerarquico > titulo > palabras clave (c-TF-IDF);
      debajo, secciones separadas por reglas finas con lo que describe su contenido. */
   #panel.clu .panel-head { border-top: 4px solid var(--c); background: color-mix(in srgb, var(--c) 9%, #fff); border-bottom: none; }
   .cs { padding: 14px 0 16px; border-bottom: 1px solid var(--line); }
@@ -530,7 +530,7 @@
     <div class="fb-group">
       <span class="fb-label">Color</span>
       <div class="seg" id="lens" role="group" aria-label="Color de los puntos">
-        <button type="button" data-lens="territory" class="active">Territorios</button><button type="button" data-lens="area">Áreas administrativas</button>
+        <button type="button" data-lens="territory" class="active">Campos</button><button type="button" data-lens="area">Áreas administrativas</button>
       </div>
     </div>
     <span class="fb-count" id="fb-count"></span>
@@ -577,7 +577,7 @@
       <div id="ms-tags"></div>
       <div class="ms-note" id="ms-note"></div>
       <div class="ms-actions">
-        <button class="btn" id="ms-go-territory" type="button" hidden>Ir a su territorio</button>
+        <button class="btn" id="ms-go-territory" type="button" hidden>Ir a su campo</button>
         <button class="btn" id="ms-open-vecindario" type="button" hidden>Ver vecindario completo</button>
       </div>
     </div>
@@ -613,7 +613,7 @@
 
   <footer>
     <span>Proyecto independiente, no oficial. Datos del catálogo público TESIUNAM.</span>
-    <span><button type="button" id="foot-metodo">Cómo se hizo el mapa</button><span class="foot-sep"></span>versión <span id="app-version">4.6.0</span></span>
+    <span><button type="button" id="foot-metodo">Cómo se hizo el mapa</button><span class="foot-sep"></span>versión <span id="app-version">4.7.0</span></span>
   </footer>
 </div>
 
@@ -667,16 +667,16 @@
     <h3>Del texto al mapa</h3>
     <dl>
       <dt>Representación</dt><dd>Cada título se convierte en un vector numérico con el modelo de lenguaje e5-large.</dd>
-      <dt>Agrupamiento</dt><dd>HDBSCAN encuentra grupos densos de títulos parecidos; Ward los organiza en tres niveles: 130 territorios, unos 440 subtemas y 513 temas finos.</dd>
+      <dt>Agrupamiento</dt><dd>HDBSCAN encuentra grupos densos de títulos parecidos; Ward los organiza en tres niveles: 130 campos, unos 440 temas y 513 subtemas.</dd>
       <dt>Proyección</dt><dd>PaCMAP lleva los vectores a dos dimensiones para dibujarlos.</dd>
       <dt>Asesores</dt><dd>El catálogo escribe a una misma persona de varias formas (con y sin acentos, «Ma.» por María, nombre incompleto, errores de captura). Las 117,482 formas se agruparon en 81,151 asesores con reglas conservadoras: ante la duda se dejan separadas, así que alguna persona puede aparecer con dos nombres.</dd>
-      <dt>Vecindarios</dt><dd>Para una tesis, sus vecinas son las de título más parecido en todo el corpus. Dentro de un tema fino, cada tesis se une a sus tres más parecidas.</dd>
+      <dt>Vecindarios</dt><dd>Para una tesis, sus vecinas son las de título más parecido en todo el corpus. Dentro de un subtema, cada tesis se une a sus tres más parecidas.</dd>
     </dl>
     <h3>Cómo leerlo</h3>
     <ul>
       <li>Las posiciones no tienen unidad: importa quién está cerca de quién, no las coordenadas ni las distancias largas.</li>
       <li>El 67% de las tesis no quedó en ningún grupo claro. Se dibujan en gris tenue en lugar de ocultarse.</li>
-      <li>Los nombres de los 130 territorios son un borrador curado a mano y está pendiente su revisión. Los de subtemas y temas finos son las palabras que más distinguen a cada grupo; sus acentos, siglas y nombres propios se restituyen con un diccionario aprendido de los títulos del catálogo, así que puede haber alguna palabra mal escrita.</li>
+      <li>Los nombres de los 130 campos son un borrador curado a mano y está pendiente su revisión. Los de temas y subtemas son las palabras que más distinguen a cada grupo; sus acentos, siglas y nombres propios se restituyen con un diccionario aprendido de los títulos del catálogo, así que puede haber alguna palabra mal escrita.</li>
       <li>Las áreas administrativas vienen del catálogo, no del algoritmo; sirven para comparar, no son la estructura del mapa.</li>
     </ul>
     <h3>Sobre el proyecto</h3>
@@ -1162,7 +1162,7 @@
   function maybeReveal() {
     if (!state.macroGraph || state.introActive || state.iso) return;
     var level = updateLevel(), changed = false;
-    updateCrumbs(); // v4.6: la miga de pan dice el rango real (antes se quedaba en «subtemas» al llegar a temas finos)
+    updateCrumbs(); // v4.6: la miga de pan dice el rango real (antes se quedaba en «temas» al llegar a subtemas)
     state.macros.forEach(function (m) {
       var id = m.macroId, cur = state.revealLevel[id], want = inViewport(m.position) ? level : 'macro';
       if (want === cur || cur === want + '-loading') return;
@@ -1250,7 +1250,7 @@
         var g = document.createElementNS(NS, 'g'); g.setAttribute('class', 'anode entering' + (e.role === 'micro' ? ' micro' : ''));
         var c = document.createElementNS(NS, 'circle'); rec.r = dotRadius(e.n);
         c.setAttribute('r', rec.r); c.setAttribute('fill', nodeColor(e.n)); c.setAttribute('fill-opacity', 0.85);
-        c.style.setProperty('--c', nodeColor(e.n)); // anillo del tema fino
+        c.style.setProperty('--c', nodeColor(e.n)); // anillo del subtema
         g.appendChild(c); gNodes.appendChild(g); rec.dot = g;
         bindNodeEvents(c, e.n);
       }
@@ -1418,7 +1418,7 @@
   }
 
   // ==================== tooltips ====================
-  var LEVEL_NAME = { macro: 'Territorio', meso: 'Subtema', micro: 'Tema fino' };
+  var LEVEL_NAME = { macro: 'Campo', meso: 'Tema', micro: 'Subtema' };
   function showNodeTip(n, ev) {
     tooltip.innerHTML = '<span class="t-meta">' + LEVEL_NAME[n.level || 'macro'] + '</span><span class="t-label">' + escapeHtml(n.name) + '</span>' +
       '<span class="t-meta">' + fmtNum(n.size) + ' tesis, ' + Math.round((n.dominantAreaShare || 0) * 100) + '% de ' + escapeHtml(areaNameFromStr(n.dominantArea)) + '</span>' +
@@ -1447,7 +1447,7 @@
     var anio = info && info.y ? info.y : '';
     tooltip.innerHTML = (comp ? comp.nivel : '') + '<span class="t-label">' + (info ? escapeHtml(info.t) : '<span style="color:var(--ink-3)">Cargando título…</span>') + '</span>' +
       (comp ? '<span class="t-meta">' + anio + '</span><span class="t-meta tc" style="--c:' + comp.c + ';margin-top:3px">' + comp.ruta + '</span>'
-        : '<span class="t-meta">' + anio + (state.iso ? '' : (anio ? '<br>' : '') + (m ? escapeHtml(m.name) : 'Sin territorio')) + '</span>');
+        : '<span class="t-meta">' + anio + (state.iso ? '' : (anio ? '<br>' : '') + (m ? escapeHtml(m.name) : 'Sin campo')) + '</span>');
     tooltip.style.opacity = '1';
     var p = ndcToPx(state.dispX[idx], state.dispY[idx]);
     tooltip.style.transform = 'translate(' + Math.min(state.W - 280, p[0] + 14) + 'px,' + (p[1] + 14) + 'px)';
@@ -1492,7 +1492,7 @@
     $('ms-eyebrow').textContent = 'Tesis';
     $('ms-title').textContent = info ? info.t : 'Cargando título…';
     $('ms-meta').textContent = (info && info.y) || 'Año sin registro';
-    setFicha(idx, row); // v4.4: nivel, area, programa, plantel y asesoria en la ruta; sin nota de territorio
+    setFicha(idx, row); // v4.4: nivel, area, programa, plantel y asesoria en la ruta; sin nota de campo
     $('ms-title').setAttribute('data-idx', idx);
     $('ms-note').innerHTML = '';
     var go = $('ms-go-territory');
@@ -1525,7 +1525,7 @@
         if (ch && chLabel !== parts[1].label) parts.push({ label: chLabel, act: function () { selectNode(ch, true); } });
       }
     }
-    var lvlTxt = { macro: '130 territorios', meso: 'subtemas', micro: 'temas finos' }[lvl];
+    var lvlTxt = { macro: '130 campos', meso: 'temas', micro: 'subtemas' }[lvl];
     var key = parts.map(function (p) { return p.label; }).join('>') + lvlTxt;
     if (c.getAttribute('data-key') === key) return;
     c.setAttribute('data-key', key); c.innerHTML = '';
@@ -1594,11 +1594,11 @@
     var L = $('legend'); L.hidden = false;
     if (state.lens === 'territory') {
       var stops = state.macros.slice().sort(function (a, b) { return a.hueRank - b.hueRank; }).filter(function (_, i) { return i % 7 === 0; }).map(function (m) { return m.color; });
-      L.innerHTML = '<div class="lg-title">Color: territorio</div>' +
+      L.innerHTML = '<div class="lg-title">Color: campo</div>' +
         '<div class="spectrum" style="background:linear-gradient(to right,' + stops.join(',') + ')"></div>' +
-        '<div class="lg-row"><span class="sw" style="background:#c4c4c4"></span>Sin territorio (67% de las tesis)</div>' +
-        '<div class="lg-rank"><span><i class="lg-dot"></i>SUBTEMA</span><span><i class="lg-ring"></i>Tema fino</span></div>' +
-        '<div class="lg-note">Cada territorio reúne tesis con títulos parecidos; no son las áreas oficiales. <a href="#" data-metodo>Cómo se hizo</a></div>';
+        '<div class="lg-row"><span class="sw" style="background:#c4c4c4"></span>Sin campo (67% de las tesis)</div>' +
+        '<div class="lg-rank"><span><i class="lg-dot"></i>TEMA</span><span><i class="lg-ring"></i>Subtema</span></div>' +
+        '<div class="lg-note">Cada campo reúne tesis con títulos parecidos; no son las áreas oficiales. <a href="#" data-metodo>Cómo se hizo</a></div>';
     } else {
       L.innerHTML = '<div class="lg-title">Color: área administrativa</div>' +
         [1, 2, 3, 4, 0].map(function (a) { return '<div class="lg-row"><span class="sw" style="background:' + AREA_HEX[a] + '"></span>' + AREA_NAMES[a] + '</div>'; }).join('') +
@@ -1788,7 +1788,7 @@
     vecinosDe(n).then(function (vs) {
       var el = $('clu-vec'); if (!el || !isCurrent(n) || !vs.length) return;
       el.hidden = false;
-      el.innerHTML = '<h3>Temas vecinos</h3><div class="cs-list">' + vs.map(function (v, k) {
+      el.innerHTML = '<h3>' + { macro: 'Campos', meso: 'Temas', micro: 'Subtemas' }[n.level || 'macro'] + ' vecinos</h3><div class="cs-list">' + vs.map(function (v, k) {
         return '<button type="button" data-k="' + k + '" style="--c:' + colorNodo(v) + '"><span class="dot"></span><span class="n">' + escapeHtml(v.name) + '</span><b>' + fmtNum(v.size) + '</b></button>';
       }).join('') + '</div>';
       el.querySelectorAll('button').forEach(function (b) { b.addEventListener('click', function () { selectNode(vs[+b.getAttribute('data-k')], true); }); });
@@ -1826,7 +1826,7 @@
       '<div class="az-head"><span class="az-mark">A' + AZ_SVG + 'Z</span><span class="az-cap" id="az-cap">Cargando tesis…</span></div>' +
       '<div id="az-list"></div>' +
       '<button type="button" class="btn primary btn-full" id="btn-taller" disabled>Ver listado completo y análisis</button>';
-    if (lvl !== 'micro') body += '<div class="section-label">' + (lvl === 'macro' ? 'Subtemas' : 'Temas finos') + '</div><div class="children" id="panel-children"><div class="vecindario-note">Cargando…</div></div>';
+    if (lvl !== 'micro') body += '<div class="section-label">' + (lvl === 'macro' ? 'Temas' : 'Subtemas') + '</div><div class="children" id="panel-children"><div class="vecindario-note">Cargando…</div></div>';
     if (lvl === 'micro' && state.vecindarioPreview) {
       var ids = (state.vecindarioPreview.byCluster || {})[String(n.clusterId)];
       if (ids && ids.length) body += '<div class="section-label">Vecindarios precargados</div><div class="cta" id="theses-trigger">' + ids.length + ' tesis de referencia y sus 50 vecinas</div>';
@@ -2162,7 +2162,7 @@
   }
   function showSelectionCard(tid, t, resolved, noise) {
     $('ms-eyebrow').textContent = t ? 'Tesis seleccionada' : 'Punto seleccionado';
-    $('ms-title').textContent = t ? t.title : (noise ? 'Tesis sin territorio' : tid);
+    $('ms-title').textContent = t ? t.title : (noise ? 'Tesis sin campo' : tid);
     $('ms-meta').textContent = (t && t.year) || '';
     setFicha(state.thesisIdToIndex.get(tid), null);
     var btn = $('ms-open-vecindario');
@@ -2336,7 +2336,7 @@
   // acentos; la ultima palabra puede estar a medias.
   // Barra de color: TONO = territorio (el del mapa), INTENSIDAD = granularidad.
   var NIVEL_ALFA = { macro: 1, meso: 0.7, micro: 0.45, asesor: 0.7, tesis: 0.3 };
-  var LEVEL_LABEL = { macro: 'Territorio', meso: 'Subtema', micro: 'Tema fino', tesis: 'Tesis', asesor: 'Asesor' };
+  var LEVEL_LABEL = { macro: 'Campo', meso: 'Tema', micro: 'Subtema', tesis: 'Tesis', asesor: 'Asesor' };
   var VACIAS = {};
   ('a al ante bajo con contra de del desde durante e el ella ellos en entre es esta este esto estos estas hacia hasta la las le les lo los mas me mi mis muy ni no o os para pero por que se ser si sin sobre son su sus tal te tu un una unas uno unos y ya como cual cuales donde cuando the of and in on for to an at by with from is its')
     .split(' ').forEach(function (w) { VACIAS[w] = 1; });
@@ -2423,7 +2423,7 @@
   function runSearch() {
     var raw = $('search-input').value, q = norm(raw).trim(), box = $('search-results'), seq = ++search.seq;
     if (!q) {
-      box.innerHTML = '<div class="s-empty">Busca un tema, una palabra de los títulos o un asesor. Se buscan los 130 territorios, sus subtemas y temas finos, los títulos de las 609,154 tesis y 81,151 asesores. Prueba «freud», «amparo», «diabetes» o el apellido de un asesor.</div>';
+      box.innerHTML = '<div class="s-empty">Busca un tema, una palabra de los títulos o un asesor. Se buscan los 130 campos, sus temas y subtemas, los títulos de las 609,154 tesis y 81,151 asesores. Prueba «freud», «amparo», «diabetes» o el apellido de un asesor.</div>';
       search.results = []; return;
     }
     var toks = q.split(/[^a-z0-9]+/).filter(function (t) { return t && !VACIAS[t]; });
@@ -2456,7 +2456,7 @@
   function renderResultados(temas, asesores, muestra, total, seq) {
     var box = $('search-results'), res = [], html = '';
     if (temas.length) {
-      html += '<div class="s-sec">Temas</div>';
+      html += '<div class="s-sec">Campos y temas</div>';
       temas.forEach(function (e) {
         var sub = LEVEL_LABEL[e.level] + (e.level === 'macro' ? '' : ' en ' + escapeHtml((state.macroById[e.macroId] || {}).name || ''));
         html += filaHtml(res.length, colorTerritorio(e.macroId), e.level, escapeHtml(e.name), sub, fmtNum(e.size)); res.push({ type: 'tema', e: e });
@@ -2479,7 +2479,7 @@
       muestra.forEach(function (idx) {
         var info = pointInfo(idx), mc = state.macroCode[idx];
         var anioS = ases.anio && ases.anio[idx] ? ases.anio[idx] + ', ' : '';
-        var sub = anioS + (mc >= 0 ? escapeHtml(state.macroById[mc].name) : 'sin territorio');
+        var sub = anioS + (mc >= 0 ? escapeHtml(state.macroById[mc].name) : 'sin campo');
         html += filaHtml(res.length, colorTerritorio(mc), 'tesis', info ? escapeHtml(info.t) : '<span class="s-load">Cargando título…</span>', sub, '');
         res.push({ type: 'tesis', idx: idx });
       });
@@ -2532,7 +2532,7 @@
     setFicha(null);
     $('ms-meta').textContent = fmtNum(idxs.length) + ' tesis' + (anios.length ? ', de ' + anios[0] + ' a ' + anios[anios.length - 1] : '');
     var enTerr = 0; Object.keys(cnt).forEach(function (k) { enTerr += cnt[k]; });
-    $('ms-note').innerHTML = (nota ? nota + '<br><br>' : '') + (tops.length ? fmtNum(enTerr) + ' de ellas quedaron en algún territorio; donde más: ' + tops.map(function (mc) { return escapeHtml(state.macroById[mc].name) + ' (' + fmtNum(cnt[mc]) + ')'; }).join(', ') + '.' : 'Ninguna quedó en un territorio.') +
+    $('ms-note').innerHTML = (nota ? nota + '<br><br>' : '') + (tops.length ? fmtNum(enTerr) + ' de ellas quedaron en algún campo; donde más: ' + tops.map(function (mc) { return escapeHtml(state.macroById[mc].name) + ' (' + fmtNum(cnt[mc]) + ')'; }).join(', ') + '.' : 'Ninguna quedó en un campo.') +
       '<br>Las demás tesis se atenúan; cierra esta ficha para quitar el resaltado.';
     $('ms-go-territory').hidden = !tops.length;
     $('ms-go-territory').onclick = function () { $('map-selection').hidden = true; selectNode(state.macroById[tops[0]], true); };
@@ -2656,7 +2656,7 @@
       showStory({
         eyebrow: 'Introducción', count: '2 / 2',
         title: 'El mismo corpus, ordenado por lo que dicen los títulos',
-        text: 'Ahora cada tesis está junto a las que tratan temas parecidos, y las áreas se mezclan: <strong>el contenido no respeta las fronteras administrativas</strong>. Los colores pasan a ser los <strong>130 territorios</strong> que encontró el algoritmo. El 67% queda en gris porque no tiene un grupo claro.',
+        text: 'Ahora cada tesis está junto a las que tratan temas parecidos, y las áreas se mezclan: <strong>el contenido no respeta las fronteras administrativas</strong>. Los colores pasan a ser los <strong>130 campos</strong> que encontró el algoritmo. El 67% queda en gris porque no tiene un grupo claro.',
         next: 'Explorar el atlas', dots: [0, 1],
         onNext: closeStory
       });
@@ -2712,17 +2712,17 @@
       // Medido (2026-09-23): el territorio 47 es el 15.o mas disperso de 130 (radio
       // mediano 1.77 u. vs 0.82 global); solo el 53% de sus tesis queda a <2 u. del
       // nucleo. Por eso se vuela al NUCLEO (caja de filosofia, 48) y el texto lo dice.
-      { title: 'El resto de la música tiene su núcleo junto a la filosofía', text: 'Las <strong>549 tesis</strong> sobre obras, composición y Bach no están en la isla. Su núcleo está aquí, al lado de filosofía y traducción. Es uno de los territorios <strong>más dispersos</strong> (15.º de 130): la mitad queda cerca del núcleo y el resto se reparte por el mapa. El mapa distingue <strong>tema</strong> de <strong>formato</strong>.', macros: [47], box: function () { var b = state.macroById[48].box; return { cx: b.cx, cy: b.cy, hw: b.hw * 2.2, hh: b.hh * 2.2 }; } }
+      { title: 'El resto de la música tiene su núcleo junto a la filosofía', text: 'Las <strong>549 tesis</strong> sobre obras, composición y Bach no están en la isla. Su núcleo está aquí, al lado de filosofía y traducción. Es uno de los campos <strong>más dispersos</strong> (15.º de 130): la mitad queda cerca del núcleo y el resto se reparte por el mapa. El mapa distingue <strong>tema</strong> de <strong>formato</strong>.', macros: [47], box: function () { var b = state.macroById[48].box; return { cx: b.cx, cy: b.cy, hw: b.hw * 2.2, hh: b.hh * 2.2 }; } }
     ] },
     { id: 'hueco', title: 'El hueco del centro', sub: 'Una zona casi vacía que no es un vacío del conocimiento', steps: [
-      { title: 'Una zona 15 a 40 veces menos densa', text: 'Parece un tema que la UNAM no investiga, pero no lo es. Aquí caen títulos <strong>cortos y genéricos</strong> de disciplinas sin relación entre sí, en la frontera entre territorios grandes de salud. Es un efecto geométrico del algoritmo, no un hueco temático (análisis en <code>gap.md</code>).', macros: [], box: function () { return ndcBoxFromRaw(-6.8, 0.9, -4.3, 1.6); } }
+      { title: 'Una zona 15 a 40 veces menos densa', text: 'Parece un tema que la UNAM no investiga, pero no lo es. Aquí caen títulos <strong>cortos y genéricos</strong> de disciplinas sin relación entre sí, en la frontera entre campos grandes de salud. Es un efecto geométrico del algoritmo, no un hueco temático (análisis en <code>gap.md</code>).', macros: [], box: function () { return ndcBoxFromRaw(-6.8, 0.9, -4.3, 1.6); } }
     ] },
     { id: 'petroleo', title: 'Una palabra, dos disciplinas', sub: 'Petróleo y química estuvieron fusionados hasta la revisión manual', steps: [
       { title: 'Perforación de pozos y refinerías', text: '<strong>2,383 tesis</strong> de ingeniería petrolera: yacimientos, fracturamiento hidráulico, operación de refinerías.', macros: [126], box: function () { return macrosUnionBox([126, 127]); } },
       { title: 'Síntesis química y materiales, justo al lado', text: '<strong>4,112 tesis</strong> de síntesis orgánica, polímeros y materiales. El corte automático las había juntado con el petróleo porque comparten vocabulario («catalizador», «caracterización»), no tema. <strong>Se separaron después de leer títulos reales</strong>.', macros: [127], box: function () { return macrosUnionBox([126, 127]); } }
     ] },
     { id: 'archipielago', title: 'La medicina es un archipiélago', sub: 'El área más grande no forma un bloque, se reparte en especialidades', steps: [
-      { title: 'Decenas de territorios, no un bloque', text: 'Los <strong>{n} territorios</strong> en verde tienen mayoría del área de <strong>Ciencias Biológicas, Químicas y de la Salud</strong>. El atlas anterior mostraba «Medicina» como un solo bloque; ordenada por contenido se reparte en especialidades: nefrología, pediatría, odontología, oncología…', macros: 'area2', color: '#0f7d5c', box: function () { return { cx: 0, cy: 0, hw: 1, hh: 1 }; } }
+      { title: 'Decenas de campos, no un bloque', text: 'Los <strong>{n} campos</strong> en verde tienen mayoría del área de <strong>Ciencias Biológicas, Químicas y de la Salud</strong>. El atlas anterior mostraba «Medicina» como un solo bloque; ordenada por contenido se reparte en especialidades: nefrología, pediatría, odontología, oncología…', macros: 'area2', color: '#0f7d5c', box: function () { return { cx: 0, cy: 0, hw: 1, hh: 1 }; } }
     ] }
   ];
   function buildRoutesMenu() {
