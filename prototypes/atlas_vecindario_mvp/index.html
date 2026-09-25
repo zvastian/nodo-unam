@@ -164,16 +164,45 @@
   #panel .back-btn:hover { text-decoration: underline; }
   #panel h2 { font-size: 20px; font-weight: 700; line-height: 1.2; margin: 0; letter-spacing: -0.01em; }
   #panel .panel-sub { font-size: 14px; color: var(--ink-3); margin-bottom: 4px; }
+  #panel .panel-sub:empty { display: none; }
+  /* marca de rango: tres glifos del mapa, el nivel actual en su color */
+  .rango { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-2); }
+  .rango .rg { display: inline-flex; align-items: center; gap: 3px; }
+  .rango .rg i { border-radius: 50%; background: #d4d4d4; }
+  .rango .rg .rg-0 { width: 10px; height: 10px; }
+  .rango .rg .rg-1 { width: 8px; height: 8px; }
+  .rango .rg .rg-2 { width: 8px; height: 8px; background: #fff; box-shadow: inset 0 0 0 1.8px #d4d4d4; }
+  .rango .rg i.on { background: var(--c); }
+  .rango .rg .rg-2.on { background: #fff; box-shadow: inset 0 0 0 1.8px var(--c); }
+  .rango button { border: 0; padding: 0; background: none; font: inherit; color: var(--ink-2); cursor: pointer; }
+  .rango button:hover { color: var(--link); text-decoration: underline; }
   #panel .panel-kw { font-size: 13.5px; color: var(--ink-2); margin-top: 6px; line-height: 1.45; }
   #panel .panel-kw:empty { display: none; }
   /* v4.5: ficha de un cluster con la misma logica que la de una tesis: encabezado con tinte y
      franja del color del campo; nivel jerarquico > titulo > palabras clave (c-TF-IDF);
      debajo, secciones separadas por reglas finas con lo que describe su contenido. */
-  #panel.clu .panel-head { border-top: 4px solid var(--c); background: color-mix(in srgb, var(--c) 9%, #fff); border-bottom: none; }
+  /* v4.11: sin fondo tenido ni franja de color (anti-patron #23, «enfasis falso»). El color vive en
+     el mapa de localizacion: la silueta del atlas en gris con el cluster marcado en su color. */
+  #panel.clu .panel-head { display: grid; grid-template-columns: 60px 1fr; column-gap: 14px; align-items: start; }
+  #panel.clu .panel-head > :not(.loc) { grid-column: 2; }
+  #panel .loc { grid-column: 1; grid-row: 1 / span 5; }
+  #panel:not(.clu) .loc { display: none; }
+  canvas.loc { display: block; }
   .cs { padding: 14px 0 16px; border-bottom: 1px solid var(--line); }
   .cs:first-child { padding-top: 2px; }
   .cs h3 { font-size: 14px; font-weight: 600; margin: 0 0 10px; color: var(--ink); }
   .cs .cs-lead { font-size: 14px; color: var(--ink-2); margin: 0 0 8px; }
+  .cs-hist { display: grid; grid-template-columns: auto 1fr; column-gap: 6px; }
+  .cs-plot { position: relative; cursor: crosshair; }
+  .cs-hist .hb { transition: opacity 120ms ease; }
+  .cs-hist.hov .hb { opacity: 0.3; }
+  .cs-hist.hov .hb.on { opacity: 1; }
+  /* etiqueta del hover: numero en grande, anio debajo; encima de la barra, sin caja */
+  .cs-hl { position: absolute; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; pointer-events: none; line-height: 1.1; padding: 0 3px; background: rgba(255,255,255,0.85); }
+  .cs-hl b { font-size: 13px; font-weight: 700; color: var(--ink); }
+  .cs-hl span { font-size: 11px; color: var(--ink-3); }
+  .cs-yax { position: relative; min-width: 14px; font-size: 11px; color: var(--ink-3); }
+  .cs-yax span { position: absolute; right: 0; transform: translateY(-50%); line-height: 1; }
   .cs svg { display: block; overflow: visible; }
   .cs .cs-axis { display: flex; justify-content: space-between; font-size: 12px; color: var(--ink-3); margin-top: 4px; }
   .cs-donut { display: grid; grid-template-columns: 92px 1fr; gap: 16px; align-items: center; }
@@ -193,6 +222,8 @@
   .cs-list button:hover .n { color: var(--link); text-decoration: underline; }
   .cs-list button b { font-weight: 400; color: var(--ink-3); }
   .cs-list .ring { width: 11px; height: 11px; border-radius: 50%; box-shadow: inset 0 0 0 2.2px var(--ink); }
+  .cs-list button:disabled { cursor: default; }
+  .cs-list button:disabled:hover .n { color: inherit; text-decoration: none; }
   .cs-list .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--c); margin-left: 1px; }
   #panel .panel-body { padding: 16px 22px 24px; overflow-y: auto; flex: 1; }
   #panel .stat-row { display: flex; justify-content: space-between; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--grid); font-size: 14px; }
@@ -217,15 +248,6 @@
   .vecindario-note { font-size: 13.5px; color: var(--ink-2); line-height: 1.5; margin: 4px 0 12px; }
   .cta { display: inline-block; cursor: pointer; font-size: 14px; color: var(--link); margin-top: 4px; }  /* [13] enlace, no caja punteada */
   .cta:hover { text-decoration: underline; }
-  .az-head { display: flex; align-items: baseline; gap: 10px; margin: 20px 0 4px; }
-  .az-mark { display: inline-flex; align-items: center; gap: 5px; font-weight: 700; font-size: 22px; line-height: 1; color: var(--ink); }
-  .az-mark svg { width: 22px; height: 12px; stroke: var(--ink-2); stroke-width: 1.6; fill: none; }
-  .az-cap { font-size: 13px; color: var(--ink-3); }
-  .tr { padding: 9px 0; border-bottom: 1px solid var(--grid); cursor: pointer; }
-  .tr:hover .tr-t { color: var(--link); }
-  .tr-t { display: block; font-size: 14px; line-height: 1.4; margin-bottom: 3px; color: var(--ink); }
-  .tr-m { font-size: 13px; color: var(--ink-3); line-height: 1.45; }
-  .tr-m b { font-weight: 400; color: var(--ink-2); }
   .btn-full { width: 100%; justify-content: center; margin-top: 14px; height: 36px; }
 
   /* ---------- ficha de tesis: hoja acoplada a la derecha [3][9] ---------- */
@@ -248,15 +270,36 @@
        con otras tesis; su nombre lleva a ver todas sus tesis en el mapa;
      - acciones al pie, tras otra regla fina. Los tramos unen las paradas sin cruzarlas.
      HOVER (.tc): la misma gramatica a tamano de palabra (Tufte), en gris. */
-  #map-selection.tesis .ms-head { margin: calc(-1 * var(--msy)) calc(-1 * var(--msx)) 0; padding: calc(var(--msy) - 2px) var(--msx) 16px; border-top: 4px solid var(--c); background: color-mix(in srgb, var(--c) 9%, #fff); }
-  #map-selection.tesis .ms-meta { margin: 6px 0 0; font-size: 13.5px; color: color-mix(in srgb, var(--c) 35%, var(--ink-3)); }
-  #map-selection.tesis .ms-title { margin-bottom: 0; }
+  :is(#map-selection.tesis, #map-selection.grupo) .ms-head { display: grid; grid-template-columns: 60px 1fr; column-gap: 14px; align-items: start; padding: 0 28px 14px 0; border-bottom: 1px solid var(--line); }
+  :is(#map-selection.tesis, #map-selection.grupo) .ms-head > :not(.loc) { grid-column: 2; }
+  #map-selection .loc { grid-column: 1; grid-row: 1 / span 5; }
+  #map-selection:not(.tesis):not(.grupo) .loc { display: none; }
+  :is(#map-selection.tesis, #map-selection.grupo) .ms-meta { margin: 6px 0 0; font-size: 13.5px; color: var(--ink-3); }
+  :is(#map-selection.tesis, #map-selection.grupo) .ms-title { margin-bottom: 0; }
   #ms-nivel:empty { display: none; }
+  #ms-nivel .ms-ring { width: 11px; height: 11px; border-radius: 50%; box-shadow: inset 0 0 0 2.2px var(--ink); }
+  /* v4.9: ficha de grupo (asesor o busqueda) y lista de tesis recientes en la ficha del cluster */
+  #map-selection.grupo #ms-tags .cs:first-child { padding-top: 14px; }
+  .cs-foot { font-size: 12.5px; color: var(--ink-3); margin: 12px 0 0; }
+  .cs-sub { font-size: 13px; color: var(--ink-3); margin: 6px 0 0; }
+  .cs-link { display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; padding: 0; border: 0; background: none; font: inherit; font-size: 14px; color: var(--link); cursor: pointer; }
+  .cs-link:hover { text-decoration: underline; }
+  .cs-link:disabled { color: var(--ink-3); cursor: default; text-decoration: none; }
+  #panel .tt { padding: 10px 0 9px; }
+  #panel .tt-t { font-size: 14px; }
+  #panel .tt .tc { font-size: 12.5px; }
+  /* tooltip de campo, tema o subtema: la version compacta de su ficha */
+  .tip .tn-ctx { display: flex; align-items: center; gap: 6px; }
+  .tip .tn-g { width: 8px; height: 8px; border-radius: 50%; background: var(--c); flex-shrink: 0; }
+  .tip .tn-g.ring { background: #fff; box-shadow: inset 0 0 0 2px var(--c); }
+  .tip .tn-g.big { width: 10px; height: 10px; }
+  .tip .tn-bar { display: flex; gap: 2px; height: 4px; margin: 7px 0 4px; }
+  .tip .tn-bar i { display: block; height: 100%; }
   #ms-nivel { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 13px; font-weight: 500; color: var(--ink-2); }
-  #map-selection.tesis .ms-note:empty { display: none; }
-  #map-selection.tesis .ms-actions { display: flex; flex-wrap: wrap; gap: 4px 18px; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); }
-  #map-selection.tesis .ms-actions:not(:has(.btn:not([hidden]))) { display: none; }
-  #map-selection.tesis .ms-actions .btn { margin: 0; }
+  :is(#map-selection.tesis, #map-selection.grupo) .ms-note:empty { display: none; }
+  :is(#map-selection.tesis, #map-selection.grupo) .ms-actions { display: flex; flex-wrap: wrap; gap: 4px 18px; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); }
+  :is(#map-selection.tesis, #map-selection.grupo) .ms-actions:not(:has(.btn:not([hidden]))) { display: none; }
+  :is(#map-selection.tesis, #map-selection.grupo) .ms-actions .btn { margin: 0; }
   .tf { --dt: calc(6px + 0.675em - 4.5px); display: grid; grid-template-columns: 14px 1fr; column-gap: 12px; font-size: 13.5px; line-height: 1.35; }
   .tf-c { padding: 6px 0; min-width: 0; }
   .tf-gap { height: 8px; }
@@ -265,6 +308,8 @@
   .tf-v { color: var(--ink); font-weight: 500; }
   .tf-ar .tf-v { font-weight: 600; }
   .tf-sub { display: block; font-size: 12.5px; color: var(--ink-3); }
+  .tf-c:has(.tf-n) { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+  .tf-n { font-weight: 400; font-size: 13px; color: var(--ink-3); }
   .tf-m { position: relative; }
   /* tramo que baja del encabezado junto al nivel, hasta la primera parada */
   .tf-m.tf-l::after { content: ""; position: absolute; left: 6px; width: 2px; top: 0; height: calc(100% + var(--dt) - 2px); background: var(--c); }
@@ -385,58 +430,112 @@
   .ana-label span { max-width: 240px; overflow: hidden; text-overflow: ellipsis; }
   .ana-label b { font-weight: 400; color: var(--ink-3); }
 
-  /* ---------- modo taller ---------- */
+  /* ---------- modo taller (v4.8): la vista completa de un campo, tema o subtema ----------
+     Mismo sistema que las fichas: encabezado con tinte y franja del color del campo, gramatica
+     de metro (puntos de nivel en azul, anillo = programa, punto gris = plantel, transbordo =
+     asesoria), reglas finas entre secciones. Tres pestanas: Tesis (lista de fichas compactas con
+     facetas de catalogo), Perfil (las graficas de la ficha del cluster, en grande) y Asesores
+     (transbordos ordenados + red de codireccion). Se retiro la vista analitica. */
   #taller, #metodo { position: fixed; inset: 0; z-index: 36; background: #fff; display: flex; flex-direction: column; }
-  #taller .tl-head { position: relative; padding: 18px 32px 0; border-bottom: 1px solid var(--line); }
+  #taller .tl-head { position: relative; padding: 18px 32px 0; }
+  #taller .tl-top > .loc { flex-shrink: 0; margin-right: 4px; }
+  #taller .tl-top > div { flex: 1; min-width: 0; }
   #taller .tl-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
   #taller .tl-crumb { font-size: 14px; color: var(--ink-3); }
+  #taller .tl-crumb:empty { display: none; }
   #taller h2 { font-size: 26px; font-weight: 700; margin: 2px 0 4px; line-height: 1.15; letter-spacing: -0.015em; }
-  /* [21] sin tira de KPIs: una frase que responde «qué es esto» */
-  #taller .tl-kpis { font-size: 15px; color: var(--ink-2); margin-bottom: 14px; }
-  #taller .tabs { display: flex; gap: 24px; }
-  #taller .tabs button { border: none; background: none; padding: 8px 0 9px; font-size: 15px; color: var(--ink-3); cursor: pointer; border-bottom: 2px solid transparent; }
+  #taller .tl-kw { font-size: 14px; color: var(--ink-2); max-width: 90ch; }
+  #taller .tl-kpis { font-size: 14px; color: var(--ink-3); margin: 6px 0 12px; }
+  #taller .tl-kpis:empty { display: block; height: 0; margin: 0 0 12px; }
+  .tl-cap:empty { display: none; }
+  #taller .tabs { display: flex; gap: 28px; }
+  #taller .tabs button { border: none; background: none; padding: 8px 0 10px; font-size: 15px; color: var(--ink-3); cursor: pointer; border-bottom: 3px solid transparent; }
   #taller .tabs button:hover { color: var(--ink); }
-  #taller .tabs button.active { color: var(--ink); font-weight: 600; border-bottom-color: var(--ink); }
-  #taller .tl-body { flex: 1; min-height: 0; overflow: auto; padding: 20px 32px 32px; }
-  .tl-controls { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
-  .tl-controls input { height: 32px; font-size: 14px; padding: 0 10px; border: 1px solid var(--line-strong); border-radius: 2px; background: #fff; color: var(--ink); min-width: 240px; flex: 1; max-width: 420px; }
-  .tl-count { font-size: 13.5px; color: var(--ink-3); }
-  table.tl-table { width: 100%; border-collapse: collapse; font-size: 14px; }
-  .tl-table th { text-align: left; font-size: 13.5px; font-weight: 600; color: var(--ink-2); padding: 7px 16px 7px 0; border-bottom: 1px solid var(--line-strong); position: sticky; top: -20px; background: #fff; }
-  .tl-table td { padding: 8px 16px 8px 0; border-bottom: 1px solid var(--grid); vertical-align: top; color: var(--ink-2); line-height: 1.4; }
-  .tl-table td.t { color: var(--ink); width: 42%; }
-  .tl-table tr { cursor: pointer; }
-  .tl-table tr:hover td.t { color: var(--link); }
-  .tl-more { margin: 14px auto 0; display: flex; }
-  /* [11] panorama: secciones separadas por lineas, no rejilla de tarjetas */
-  .tl-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); column-gap: 48px; }
-  .card { background: none; border: none; border-top: 1px solid var(--line); padding: 16px 0 24px; }
-  .card h4 { margin: 0 0 2px; font-size: 16px; font-weight: 600; }
-  .card .sub { font-size: 13.5px; color: var(--ink-3); margin-bottom: 12px; }
-  .card.wide { grid-column: 1 / -1; }
-  .hbar { display: grid; grid-template-columns: minmax(120px, 42%) 1fr 52px; gap: 10px; align-items: center; margin: 5px 0; font-size: 13.5px; color: var(--ink-2); }
-  .hbar .lbl { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .hbar .trk { height: 8px; }
-  .hbar .bar { height: 8px; background: #7a7a7a; min-width: 2px; }
-  .hbar:hover .bar { background: var(--link); }
-  .hbar .val { color: var(--ink-3); text-align: right; }
-  .hbar.click { cursor: pointer; }
-  .hbar.click:hover .lbl { color: var(--link); }
-  svg.years .col { fill: #7a7a7a; }
-  svg.years .col:hover { fill: var(--link); }
-  svg.years text { font-size: 11px; fill: #8a8a8a; }
-  svg.years line { stroke: var(--grid); }
-  .insight { font-size: 16px; line-height: 1.6; color: var(--ink-2); max-width: 90ch; }
-  .insight b { color: var(--ink); font-weight: 600; }
-  #tl-analytic svg .dot { fill: #6a6a6a; fill-opacity: 0.75; cursor: pointer; }
-  #tl-analytic svg .dot:hover { fill: var(--link); fill-opacity: 1; }
-  #tl-analytic svg .glabel { font-family: "Libre Franklin", sans-serif; font-size: 13px; font-weight: 600; fill: var(--ink-2); }
-  #tl-net svg .lnk { stroke: #9a9a9a; stroke-opacity: 0.5; }
-  #tl-net svg .nd { fill: #b8b8b8; stroke: #fff; stroke-width: 1.5; cursor: pointer; }
-  #tl-net svg .nd.co { fill: #6a6a6a; }
-  #tl-net svg .nd:hover { fill: var(--link); }
-  #tl-net svg text { font-family: "Libre Franklin", sans-serif; font-size: 12px; fill: var(--ink-2); paint-order: stroke; stroke: #fff; stroke-width: 3px; pointer-events: none; }
-  .net-wrap { display: grid; grid-template-columns: 1fr 300px; gap: 48px; }
+  #taller .tabs button.active { color: var(--ink); font-weight: 600; border-bottom-color: var(--c, var(--ink)); }
+  #taller .tabs button b { font-weight: 400; color: var(--ink-3); margin-left: 6px; }
+  #taller .tl-body { flex: 1; min-height: 0; overflow: auto; padding: 0 32px 40px; border-top: 1px solid var(--line); }
+
+  /* --- Tesis: facetas a la izquierda (como un catalogo de biblioteca), fichas a la derecha --- */
+  .tl-tesis { display: grid; grid-template-columns: 250px 1fr; gap: 40px; align-items: start; }
+  .tl-fac { position: sticky; top: 0; padding: 20px 0; max-height: calc(100vh - 190px); overflow-y: auto; }
+  .tl-fac input { width: 100%; height: 34px; font: inherit; font-size: 14px; padding: 0 2px; border: 0; border-bottom: 1px solid var(--line-strong); background: none; color: var(--ink); }
+  .tl-fac input:focus { outline: none; border-bottom-color: var(--ink); }
+  .fc { padding: 14px 0 12px; border-bottom: 1px solid var(--line); }
+  .tl-fac summary { display: none; }
+  .fc h4 { margin: 0 0 8px; font-size: 13.5px; font-weight: 600; color: var(--ink); }
+  .fc-opts { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13.5px; }
+  .fc-opts button { border: 0; background: none; padding: 2px 0; font: inherit; color: var(--ink-3); cursor: pointer; border-bottom: 2px solid transparent; }
+  .fc-opts button.on { color: var(--ink); border-bottom-color: var(--c, var(--ink)); }
+  .fc-list button { display: grid; grid-template-columns: 12px 1fr auto; column-gap: 8px; align-items: center; width: 100%; padding: 3px 0; border: 0; background: none; font: inherit; font-size: 13.5px; color: var(--ink-2); text-align: left; cursor: pointer; }
+  .fc-list button:hover .n { color: var(--link); }
+  .fc-list button.on { color: var(--ink); font-weight: 600; }
+  .fc-list button b { font-weight: 400; color: var(--ink-3); }
+  .fc-list .n { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .fc-list i { width: 8px; height: 8px; border-radius: 50%; background: var(--g); }
+  .fc-list i.ring { background: #fff; box-shadow: inset 0 0 0 2px var(--g); }
+  .fc-list i.tb { width: 10px; height: 10px; background: #fff; box-shadow: inset 0 0 0 2px var(--ink); }
+  .fc-more { border: 0; background: none; padding: 4px 0 0; font: inherit; font-size: 13px; color: var(--link); cursor: pointer; }
+  .fc-clear { border: 0; background: none; padding: 0; font: inherit; font-size: 13px; color: var(--link); cursor: pointer; margin-top: 12px; }
+  .tl-list { padding-top: 12px; min-width: 0; }
+  .tl-cap { font-size: 13.5px; color: var(--ink-3); padding: 8px 0 6px; }
+  .tl-grp { display: flex; justify-content: space-between; align-items: baseline; margin: 22px 0 0; padding-bottom: 6px; border-bottom: 2px solid var(--c, var(--ink)); font-size: 15px; font-weight: 600; color: var(--ink); }
+  .tl-grp b { font-weight: 400; font-size: 13.5px; color: var(--ink-3); }
+  /* ficha compacta de tesis: la gramatica del hover, a tamano de lista */
+  .tt { display: block; width: 100%; padding: 12px 0 11px; border: 0; border-bottom: 1px solid var(--line); background: none; font: inherit; text-align: left; cursor: pointer; }
+  .tt:hover .tt-t { color: var(--link); }
+  .tt-a { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--ink-3); }
+  .tt-a .tc-nv { display: inline-flex; gap: 2px; margin: 0; }
+  .tt-a .tc-nv i { width: 6px; height: 6px; border-radius: 50%; box-shadow: inset 0 0 0 1px #bdbdbd; }
+  .tt .hl { font-weight: 700; color: var(--ink); }
+  .tt-t { display: block; margin: 3px 0 5px; font-size: 15px; font-weight: 500; line-height: 1.35; color: var(--ink); }
+  .tt .tc { font-size: 13px; color: var(--ink-3); }
+  .tl-more { display: block; margin: 18px 0 0; padding: 0; border: 0; background: none; font: inherit; font-size: 14px; color: var(--link); cursor: pointer; }
+  .tl-more:hover { text-decoration: underline; }
+
+  /* --- Perfil: las graficas de la ficha del cluster, en grande --- */
+  .tl-perfil { display: grid; grid-template-columns: 1fr 1fr; column-gap: 56px; }
+  .tl-perfil .cs { padding: 22px 0 24px; }
+  .tl-perfil .cs.ancho { grid-column: 1 / -1; }
+  .tl-perfil .cs h3 { font-size: 16px; margin-bottom: 14px; }
+  .tl-perfil .cs-lead { font-size: 16px; color: var(--ink-2); max-width: 90ch; line-height: 1.55; }
+  .tl-perfil .cs-lead b { color: var(--ink); font-weight: 600; }
+  .tl-perfil .cs-donut { grid-template-columns: 132px 1fr; gap: 28px; }
+  .tl-perfil .cs-leg { font-size: 14px; row-gap: 8px; }
+  .tl-perfil .cs-nv { font-size: 14px; margin-top: 12px; }
+  .tl-perfil .cs-bars { row-gap: 10px; }
+  .tl-perfil .cs-bar { cursor: pointer; }
+  .tl-perfil .cs-bar:hover .t span { color: var(--link); }
+  .tl-perfil .cs-bar .t { font-size: 14px; }
+  .tl-perfil .cs-bar .b { height: 8px; border-radius: 0 4px 4px 0; }
+  .cs-dec { position: relative; height: 16px; margin-top: 4px; font-size: 12px; color: var(--ink-3); }
+  .cs-dec span { position: absolute; transform: translateX(-50%); }
+
+  /* --- Asesores: transbordos ordenados + red de codireccion --- */
+  .tl-ases { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 56px; }
+  .tl-ases .cs { padding: 22px 0 24px; }
+  .tl-ases .cs.ancho { grid-column: 1 / -1; }
+  .as-row { display: grid; grid-template-columns: 14px minmax(0, 1fr) 150px 44px; column-gap: 12px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+  .as-row .ring { width: 12px; height: 12px; border-radius: 50%; box-shadow: inset 0 0 0 2.4px var(--ink); }
+  .as-row .nm { min-width: 0; }
+  .as-row .nm button { border: 0; padding: 0; background: none; font: inherit; color: var(--ink); font-weight: 500; text-align: left; cursor: pointer; }
+  .as-row .nm button:hover { color: var(--link); text-decoration: underline; }
+  .as-row .nm small { display: block; font-size: 12.5px; color: var(--ink-3); }
+  .as-row .nm small a { color: var(--link); cursor: pointer; }
+  .as-row .v { text-align: right; color: var(--ink-2); }
+  .as-row svg { display: block; }
+  .as-head { display: grid; grid-template-columns: 14px minmax(0, 1fr) 150px 44px; column-gap: 12px; font-size: 12.5px; color: var(--ink-3); padding-bottom: 6px; border-bottom: 1px solid var(--line-strong); }
+  .as-head .yr { display: flex; justify-content: space-between; }
+  .as-head .yr i { font-style: normal; }
+  .as-map { border: 0; padding: 0 0 0 6px; background: none; color: var(--ink-3); cursor: pointer; vertical-align: -2px; }
+  .as-map:hover { color: var(--link); }
+  .red-ley { display: flex; gap: 18px; font-size: 13px; color: var(--ink-3); margin-bottom: 6px; }
+  .red-ley span { display: inline-flex; align-items: center; gap: 6px; }
+  .red-ley .ring { width: 11px; height: 11px; border-radius: 50%; box-shadow: inset 0 0 0 2.2px var(--ink); }
+  .red-ley .ln { width: 18px; height: 3px; background: var(--c); }
+  #tl-net svg .lnk { stroke: var(--c, #9a9a9a); stroke-linecap: round; }
+  #tl-net svg .nd { fill: #fff; stroke: var(--ink); cursor: pointer; }
+  #tl-net svg .nd:hover { stroke: var(--link); }
+  #tl-net svg text { font-family: "Libre Franklin", sans-serif; font-size: 12.5px; fill: var(--ink); paint-order: stroke; stroke: #fff; stroke-width: 3.5px; stroke-linejoin: round; pointer-events: none; }
 
   /* ---------- pagina Metodo [18]: aqui vive la informacion tecnica ---------- */
   #metodo { overflow-y: auto; }
@@ -482,10 +581,14 @@
     #story { padding: 14px 16px 12px; }
     #story h3 { font-size: 17px; }
     #story p { font-size: 14px; }
-    .net-wrap { grid-template-columns: 1fr; }
+    .tl-tesis, .tl-perfil, .tl-ases { grid-template-columns: 1fr; gap: 0; }
+    .tl-fac { position: static; max-height: none; padding: 12px 0 0; }
+    .tl-fac summary { display: block; padding: 10px 0; font-size: 14px; font-weight: 600; color: var(--ink); cursor: pointer; border-bottom: 1px solid var(--line); }
+    #taller .tl-head, #taller .tl-body { padding-left: 16px; padding-right: 16px; }
+    .as-row, .as-head { grid-template-columns: 14px minmax(0, 1fr) 44px; }
+    .as-row svg, .as-head span:nth-child(3) { display: none; }
     #taller h2 { font-size: 21px; }
     #metodo dl { grid-template-columns: 1fr; }
-    .tl-table td:nth-child(n+4), .tl-table th:nth-child(n+4) { display: none; }
   }
   @media (prefers-reduced-motion: reduce) {
     .anode, .alabel, aside#panel, #tint { transition: none; }
@@ -556,12 +659,12 @@
       </div>
     </div>
     <div id="ana-labels" aria-hidden="true"></div>
-    <button type="button" class="btn" id="mm-show" hidden>Mostrar vista general</button>
+    <button type="button" class="btn" id="mm-show" hidden>Mostrar minimapa</button>
 
     <div id="minimap" hidden title="Clic o arrastre para moverte">
       <canvas id="mm-base"></canvas>
       <canvas id="mm-view" class="mm-view"></canvas>
-      <div class="mm-cap"><span>Vista general</span><span id="mm-zoom"></span><button type="button" id="mm-hide" title="Ocultar minimapa" aria-label="Ocultar minimapa">Ocultar</button></div>
+      <div class="mm-cap"><span>Minimapa</span><span id="mm-zoom"></span><button type="button" id="mm-hide" title="Ocultar minimapa" aria-label="Ocultar minimapa">Ocultar</button></div>
     </div>
 
     <div id="tooltip" class="tip"></div>
@@ -569,6 +672,7 @@
     <div id="map-selection" hidden>
       <button class="close-btn-mini" id="map-selection-close" type="button" aria-label="Cerrar"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg></button>
       <div class="ms-head">
+        <canvas class="loc" id="ms-loc" aria-hidden="true"></canvas>
         <div id="ms-eyebrow" hidden></div>
         <div id="ms-nivel"></div>
         <div class="ms-title" id="ms-title">—</div>
@@ -585,6 +689,7 @@
     <aside id="panel" aria-label="Detalle">
       <button class="close-btn" id="panel-close" aria-label="Cerrar"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg></button>
       <div class="panel-head">
+        <canvas class="loc" id="panel-loc" aria-hidden="true"></canvas>
         <div class="panel-eyebrow" id="panel-eyebrow"></div>
         <div class="panel-sub" id="panel-sub"></div>
         <h2 id="panel-title">—</h2>
@@ -613,7 +718,7 @@
 
   <footer>
     <span>Proyecto independiente, no oficial. Datos del catálogo público TESIUNAM.</span>
-    <span><button type="button" id="foot-metodo">Cómo se hizo el mapa</button><span class="foot-sep"></span>versión <span id="app-version">4.7.0</span></span>
+    <span><button type="button" id="foot-metodo">Cómo se hizo el mapa</button><span class="foot-sep"></span>versión <span id="app-version">4.13.1</span></span>
   </footer>
 </div>
 
@@ -687,18 +792,19 @@
 <section id="taller" hidden aria-label="Modo taller">
   <div class="tl-head">
     <div class="tl-top">
+      <canvas class="loc" id="tl-loc" aria-hidden="true"></canvas>
       <div>
         <div class="tl-crumb" id="tl-crumb"></div>
         <h2 id="tl-title">—</h2>
+        <div class="tl-kw" id="tl-kw"></div>
+        <div class="tl-kpis" id="tl-kpis"></div>
       </div>
       <button class="tl-close" id="tl-close" type="button" aria-label="Volver al mapa"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg></button>
     </div>
-    <div class="tl-kpis" id="tl-kpis"></div>
     <div class="tabs" role="tablist">
-      <button type="button" data-tab="lista" class="active" role="tab">Listado</button>
-      <button type="button" data-tab="panorama" role="tab">Panorama</button>
-      <button type="button" data-tab="analitica" role="tab">Vista analítica</button>
-      <button type="button" data-tab="red" role="tab">Red de asesores</button>
+      <button type="button" data-tab="tesis" class="active" role="tab">Tesis<b id="tl-n-tesis"></b></button>
+      <button type="button" data-tab="perfil" role="tab">Perfil</button>
+      <button type="button" data-tab="asesores" role="tab">Asesores<b id="tl-n-ases"></b></button>
     </div>
   </div>
   <div class="tl-body" id="tl-body"></div>
@@ -730,6 +836,7 @@
     3: 'Ciencias Sociales',
     4: 'Humanidades y Artes'
   };
+  var ICO_R = '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8h9M9 4.5L12.5 8 9 11.5"/></svg>';
   var ICO_X = '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg>', ICO_L = '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M12.5 8h-9M7 4.5L3.5 8 7 11.5"/></svg>';
   var AREA_HEX = { 0: '#9a9a9a', 1: '#3566a8', 2: '#0f7d5c', 3: '#c98a2e', 4: '#b8412f' };
   var AREA_STR_TO_CODE = { 'area 1': 1, 'area 2': 2, 'area 3': 3, 'area 4': 4 };
@@ -776,6 +883,9 @@
   var ESCRITURA = {};
   function escribir(t) { return String(t || '').replace(/[a-z0-9ñü]+/g, function (w) { return ESCRITURA[w] || w; }); }
   function capital(t) { t = String(t || ''); return t.charAt(0).toUpperCase() + t.slice(1); }
+  // v4.8.1: todo titulo de tesis empieza con mayuscula (el catalogo trae algunos en minuscula, p. ej.
+  // «a considerar…»). Se sube la primera LETRA, saltando comillas, signos de apertura y parentesis.
+  function tituloTesis(t) { return String(t || '').replace(/^([^A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9]*)([a-záéíóúüñ])/, function (m, pre, l) { return pre + l.toUpperCase(); }); }
   // v4.6: sin punto medio (el usuario lo senalo como patron de UI generica); guion largo entre palabras clave
   var SEP = ' – ';
   function nombreTema(label) { return keywords(label).map(function (k) { return capital(escribir(k)); }).join(SEP); }
@@ -849,8 +959,8 @@
     var graph = results[0], meta = results[1], buf = results[2];
     state.vecindarioPreview = results[3];
     if (state.vecindarioPreview) Object.keys(state.vecindarioPreview.theses).forEach(function (k) {
-      var t = state.vecindarioPreview.theses[k]; t.title = capital(escribir(t.title));
-      (t.neighbors || []).forEach(function (nb) { nb.title = capital(escribir(nb.title)); });
+      var t = state.vecindarioPreview.theses[k]; t.title = tituloTesis(escribir(t.title));
+      (t.neighbors || []).forEach(function (nb) { nb.title = tituloTesis(escribir(nb.title)); });
     });
     var curados = (results[4] && results[4].macros) || {};
     state.macroGraph = graph;
@@ -1022,9 +1132,22 @@
       var idx = ev && ev.points && ev.points.length === 1 ? ev.points[0] : null;
       if (idx != null && !state.introActive) onPointClick(idx);
     });
-    plot.subscribe('deselect', function () { if (state.spotlightActive) clearSpotlight(); });
-    plot.subscribe('pointover', function (idx) { if (!state.introActive) showPointTip(idx); });
+    // v4.8.1: clic en una zona vacia del mapa = cerrar la ficha de la tesis (o el vecindario)
+    plot.subscribe('deselect', function () { if (!cerrarFichaTesis() && state.spotlightActive) clearSpotlight(); });
+    // v4.12: la libreria calcula el hover por coordenadas aunque el mapa este tapado por una ficha
+    // o un panel; solo se muestra si el cursor esta de verdad sobre el mapa
+    var sobreMapa = true;
+    document.addEventListener('pointermove', function (ev) { sobreMapa = ev.target === canvas; if (!sobreMapa && hoverIdx >= 0) { hoverIdx = -1; hideTip(); } }, true);
+    plot.subscribe('pointover', function (idx) { if (!state.introActive && sobreMapa) showPointTip(idx); });
     plot.subscribe('pointout', function () { hoverIdx = -1; hideTip(); });
+    // clic sin arrastre y sin tesis debajo = zona vacia: cierra la ficha aunque se haya abierto
+    // desde una lista (en ese caso la libreria no tiene nada seleccionado y no avisa)
+    var down = null;
+    canvas.addEventListener('pointerdown', function (ev) { down = [ev.clientX, ev.clientY]; });
+    canvas.addEventListener('pointerup', function (ev) {
+      if (down && Math.hypot(ev.clientX - down[0], ev.clientY - down[1]) < 5 && hoverIdx < 0 && !state.introActive) cerrarFichaTesis();
+      down = null;
+    });
   }
 
   function resizeRenderer() {
@@ -1419,10 +1542,16 @@
 
   // ==================== tooltips ====================
   var LEVEL_NAME = { macro: 'Campo', meso: 'Tema', micro: 'Subtema' };
+  // v4.9: la version compacta de la ficha del cluster: glifo de rango (campo y tema = punto,
+  // subtema = anillo), nombre, cuatro palabras clave y una barra de areas
   function showNodeTip(n, ev) {
-    tooltip.innerHTML = '<span class="t-meta">' + LEVEL_NAME[n.level || 'macro'] + '</span><span class="t-label">' + escapeHtml(n.name) + '</span>' +
-      '<span class="t-meta">' + fmtNum(n.size) + ' tesis, ' + Math.round((n.dominantAreaShare || 0) * 100) + '% de ' + escapeHtml(areaNameFromStr(n.dominantArea)) + '</span>' +
-      '<span class="t-hint">Clic para acercarte y ver el detalle</span>';
+    var lvl = n.level || 'macro', c = colorNodo(n), segs = [];
+    if (n.areaMix) [['area 1', 1], ['area 2', 2], ['area 3', 3], ['area 4', 4], ['sin_area', 0]].forEach(function (a) { if (n.areaMix[a[0]]) segs.push([n.areaMix[a[0]], AREA_HEX[a[1]]]); });
+    else { var da = AREA_STR_TO_CODE[(n.dominantArea || '').toLowerCase()] || 0, sh = n.dominantAreaShare || 0; segs.push([sh, AREA_HEX[da]]); if (sh < 1) segs.push([1 - sh, '#dcdcdc']); }
+    segs.sort(function (a, b) { return b[0] - a[0]; });
+    tooltip.innerHTML = '<span class="t-label">' + escapeHtml(n.name) + '</span><span class="t-meta tn-ctx">' + rangoHtml(n, false) + '</span>' +
+      '<span class="tn-bar">' + segs.map(function (g) { return '<i style="flex:' + g[0].toFixed(3) + ';background:' + g[1] + '"></i>'; }).join('') + '</span>' +
+      '<span class="t-meta">' + fmtNum(n.size) + ' tesis</span>';
     tooltip.style.opacity = '1'; moveTip(ev);
   }
   // Tooltip de punto (v3.2): TITULO + anio. Pendiente decidir cuanta info mas cabe
@@ -1450,11 +1579,12 @@
         : '<span class="t-meta">' + anio + (state.iso ? '' : (anio ? '<br>' : '') + (m ? escapeHtml(m.name) : 'Sin campo')) + '</span>');
     tooltip.style.opacity = '1';
     var p = ndcToPx(state.dispX[idx], state.dispY[idx]);
-    tooltip.style.transform = 'translate(' + Math.min(state.W - 280, p[0] + 14) + 'px,' + (p[1] + 14) + 'px)';
+    tooltip.style.transform = 'translate(' + Math.max(4, Math.min(state.W - (tooltip.offsetWidth || 280) - 8, p[0] + 14)) + 'px,' + (p[1] + 14) + 'px)';
   }
   function moveTip(ev) {
     var r = main.getBoundingClientRect();
-    tooltip.style.transform = 'translate(' + Math.min(state.W - 280, ev.clientX - r.left + 14) + 'px,' + (ev.clientY - r.top + 14) + 'px)';
+    var w = tooltip.offsetWidth || 280; // ancho real: el tooltip de un tema largo se salia por la derecha
+    tooltip.style.transform = 'translate(' + Math.max(4, Math.min(state.W - w - 8, ev.clientX - r.left + 14)) + 'px,' + (ev.clientY - r.top + 14) + 'px)';
   }
   function hideTip() { tooltip.style.opacity = '0'; tooltip.style.transform = 'translate(-9999px,-9999px)'; }
 
@@ -1538,6 +1668,61 @@
     var l = document.createElement('span'); l.className = 'lvl'; l.textContent = lvlTxt; c.appendChild(l);
   }
 
+  // ==================== mapa de localizacion (v4.11) ====================
+  // Recuadro de atlas en el encabezado de cada ficha: silueta del mapa en gris y lo que describe
+  // la ficha en su color (una tesis con dos lineas guia que se cruzan en ella; un conjunto, sus puntos).
+  var locBases = {}, locMarco = null;
+  // encuadre: el cuadrado que contiene el 99% del mapa (el mapa no llena todo el marco NDC)
+  function locEncuadre() {
+    if (locMarco) return locMarco;
+    var xs = [], ys = [];
+    for (var i = 0; i < state.n; i += 50) { xs.push(state.ndcX[i]); ys.push(state.ndcY[i]); }
+    xs.sort(function (a, b) { return a - b; }); ys.sort(function (a, b) { return a - b; });
+    var q = function (a, f) { return a[Math.floor(f * (a.length - 1))]; };
+    var x0 = q(xs, 0.005), x1 = q(xs, 0.995), y0 = q(ys, 0.005), y1 = q(ys, 0.995), sp = Math.max(x1 - x0, y1 - y0) * 1.06;
+    return (locMarco = { cx: (x0 + x1) / 2, cy: (y0 + y1) / 2, sp: sp });
+  }
+  function locXY(i, px) { var m = locEncuadre(); return [((state.ndcX[i] - m.cx) / m.sp + 0.5) * px, (0.5 - (state.ndcY[i] - m.cy) / m.sp) * px]; }
+  function locBase(px) {
+    if (locBases[px]) return locBases[px];
+    var cv = document.createElement('canvas'); cv.width = cv.height = px;
+    var ctx = cv.getContext('2d'), paso = Math.max(1, Math.round(state.n / 40000)), d = Math.max(1, px / 110);
+    ctx.fillStyle = '#c4c4c4'; ctx.globalAlpha = 0.6;
+    for (var i = 0; i < state.n; i += paso) { var q = locXY(i, px); ctx.fillRect(q[0], q[1], d, d); }
+    return (locBases[px] = cv);
+  }
+  // v4.12, tonal (pedido del usuario: el recuadro con el color de fondo): fondo en un tinte claro
+  // del color, la silueta del mapa en un tono medio y lo que describe la ficha en el color pleno.
+  function mezclaBlanco(hex, f) {
+    var v = parseInt(String(hex).slice(1), 16), m = function (c) { return Math.round(c * f + 255 * (1 - f)); };
+    return 'rgb(' + m((v >> 16) & 255) + ',' + m((v >> 8) & 255) + ',' + m(v & 255) + ')';
+  }
+  function pintaLocator(cv, size, idxs, color) {
+    if (!cv || !state.ndcX) return;
+    var dpr = window.devicePixelRatio || 1, px = Math.round(size * dpr), tono = color || '#8c8c8c';
+    cv.width = cv.height = px; cv.style.width = cv.style.height = size + 'px';
+    var ctx = cv.getContext('2d');
+    ctx.fillStyle = mezclaBlanco(tono, 0.16); ctx.fillRect(0, 0, px, px);
+    // silueta recoloreada: se tine la base gris con el tono medio
+    var sil = document.createElement('canvas'); sil.width = sil.height = px;
+    var sc = sil.getContext('2d'); sc.drawImage(locBase(px), 0, 0);
+    sc.globalCompositeOperation = 'source-in'; sc.fillStyle = mezclaBlanco(tono, 0.5); sc.fillRect(0, 0, px, px);
+    ctx.drawImage(sil, 0, 0);
+    if (!idxs || !idxs.length) return;
+    var P = function (i) { return locXY(i, px); };
+    if (idxs.length === 1) {
+      var q = P(idxs[0]);
+      ctx.strokeStyle = '#17181a'; ctx.globalAlpha = 0.55; ctx.lineWidth = dpr; ctx.beginPath();
+      ctx.moveTo(0, q[1]); ctx.lineTo(px, q[1]); ctx.moveTo(q[0], 0); ctx.lineTo(q[0], px); ctx.stroke(); ctx.globalAlpha = 1;
+      ctx.fillStyle = '#17181a'; ctx.beginPath(); ctx.arc(q[0], q[1], 3.2 * dpr, 0, 2 * Math.PI); ctx.fill();
+      return;
+    }
+    var t = idxs.length < 30 ? 4 * dpr : Math.max(1.5 * dpr, px / 80), st = Math.max(1, Math.floor(idxs.length / 6000)); // pocos puntos: mas grandes
+    ctx.fillStyle = tono; ctx.globalAlpha = 1; // el dato en el color pleno, sobre la silueta en tono medio
+    for (var k = 0; k < idxs.length; k += st) { var r = P(idxs[k]); ctx.fillRect(r[0] - t / 2, r[1] - t / 2, t, t); }
+    ctx.globalAlpha = 1;
+  }
+
   // ==================== minimapa ====================
   var MM_W = 190;
   function buildMinimapBase() {
@@ -1598,7 +1783,7 @@
         '<div class="spectrum" style="background:linear-gradient(to right,' + stops.join(',') + ')"></div>' +
         '<div class="lg-row"><span class="sw" style="background:#c4c4c4"></span>Sin campo (67% de las tesis)</div>' +
         '<div class="lg-rank"><span><i class="lg-dot"></i>TEMA</span><span><i class="lg-ring"></i>Subtema</span></div>' +
-        '<div class="lg-note">Cada campo reúne tesis con títulos parecidos; no son las áreas oficiales. <a href="#" data-metodo>Cómo se hizo</a></div>';
+        '<div class="lg-note">Cada campo reúne tesis con títulos parecidos; no son las áreas oficiales.</div>';
     } else {
       L.innerHTML = '<div class="lg-title">Color: área administrativa</div>' +
         [1, 2, 3, 4, 0].map(function (a) { return '<div class="lg-row"><span class="sw" style="background:' + AREA_HEX[a] + '"></span>' + AREA_NAMES[a] + '</div>'; }).join('') +
@@ -1634,7 +1819,7 @@
   }
   function rowObj(r) {
     var can = asesoresDe(state.thesisIdToIndex.get(r[0])); // nombres unificados (v4.2)
-    return { id: r[0], t: r[1], y: r[2], pl: pretty(r[3]), pr: pretty(r[4]), nv: r[5], as: can || r[6] || [], k: norm(r[1]).replace(/[^a-z0-9 ]/g, '') };
+    return { id: r[0], t: tituloTesis(r[1]), y: r[2], pl: pretty(r[3]), pr: pretty(r[4]), nv: r[5], as: can || r[6] || [], k: norm(r[1]).replace(/[^a-z0-9 ]/g, '') };
   }
   var nodeThesesCache = {};
   function loadThesesFor(n) {
@@ -1668,12 +1853,6 @@
     rows.forEach(function (r) { [].concat(fn(r)).forEach(function (v) { if (v) m.set(v, (m.get(v) || 0) + 1); }); });
     return Array.from(m.entries()).sort(function (a, b) { return b[1] - a[1]; });
   }
-  var AZ_SVG = '<svg viewBox="0 0 30 12" aria-hidden="true"><line x1="1" y1="6" x2="27" y2="6" stroke="currentColor" stroke-width="1.4"/><path d="M22 1.5 L28 6 L22 10.5" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>';
-  function thesisRowHtml(r) {
-    return '<div class="tr" data-tid="' + r.id + '"><span class="tr-t">' + escapeHtml(r.t) + '</span>' +
-      '<div class="tr-m"><span class="y">' + (r.y || '—') + '</span>, ' + escapeHtml(r.nv || '') + '<br><b>' + escapeHtml(r.pr) + '</b><br>' +
-      escapeHtml(r.pl) + '<br>Asesoría: ' + escapeHtml(fmtAsesores(r.as)) + '</div></div>';
-  }
 
   // ==================== panel lateral ====================
   function openPanel(n) {
@@ -1693,7 +1872,7 @@
     var lvl = top.node.level || 'macro';
     if (top.type === 'node') {
       $('panel-eyebrow').innerHTML = back;
-      $('panel-sub').textContent = LEVEL_NAME[lvl] + (top.node.parentMacro ? ' en ' + top.node.parentMacro.name : '');
+      $('panel-sub').textContent = '';
       renderNodeView(top.node);
     } else { $('panel-eyebrow').innerHTML = back; $('panel-sub').textContent = 'Tesis representativas'; $('panel-kw').textContent = ''; panel.classList.remove('clu'); renderThesesView(top.node); }
     var bb = $('panel-back'); if (bb) bb.addEventListener('click', function () { state.panelStack.pop(); renderPanel(); });
@@ -1703,72 +1882,141 @@
   function pctTxt(v) { return v > 0 && v < 0.005 ? '<1%' : Math.round(v * 100) + '%'; }
   // nombres cortos de area para leyendas estrechas (el nombre completo va en el title)
   var AREA_CORTO = { 0: 'Sin área', 1: 'Físico-Matemáticas', 2: 'Biológicas y Salud', 3: 'Ciencias Sociales', 4: 'Humanidades y Artes' };
-  function renderCluStats(n, rows) {
-    var box = $('clu-stats'); if (!box) return;
-    var c = colorNodo(n), N = rows.length, idxs = rows.map(function (r) { return state.thesisIdToIndex.get(r.id); }); // alineado con rows
-    var html = '';
-    // 1) cuando: histograma por anio (el 1% mas antiguo se junta en la primera barra)
+  // Graficas del perfil de un conjunto de tesis, compartidas por la ficha del cluster (chica)
+  // y la pestana Perfil del taller (grande): mismos colores y reglas en los dos tamanos.
+  function perfilDatos(rows, idxs) {
     var ys = rows.map(function (r) { return r.y; }).filter(Boolean).sort(function (a, b) { return a - b; });
-    if (ys.length) {
-      var lo = ys[Math.floor(ys.length * 0.01)], hi = ys[ys.length - 1], w = Math.max(1, Math.ceil((hi - lo + 1) / 50));
-      var nb = Math.ceil((hi - lo + 1) / w), bins = new Array(nb).fill(0);
-      ys.forEach(function (y) { bins[Math.max(0, Math.min(nb - 1, Math.floor((y - lo) / w)))]++; });
-      var mx = Math.max.apply(null, bins), W = 316, H = 46, bw = W / nb, svg = '';
-      bins.forEach(function (v, k) {
-        var h = v ? Math.max(2, v / mx * H) : 0, a0 = lo + k * w, a1 = a0 + w - 1;
-        var etq = (k === 0 && ys[0] < lo ? 'Hasta ' + a1 : w === 1 ? a0 : a0 + ' a ' + a1) + ': ' + fmtNum(v) + ' tesis';
-        svg += '<rect x="' + (k * bw + 0.5).toFixed(1) + '" y="' + (H - h).toFixed(1) + '" width="' + Math.max(1, bw - 1.5).toFixed(1) + '" height="' + h.toFixed(1) + '" fill="' + c + '" rx="1"><title>' + etq + '</title></rect>';
-      });
-      html += '<div class="cs"><p class="cs-lead">' + fmtNum(N) + ' tesis, de ' + ys[0] + ' a ' + hi + '.</p>' +
-        '<svg width="100%" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" role="img" aria-label="Tesis por año">' + svg +
-        '<line x1="0" y1="' + H + '" x2="' + W + '" y2="' + H + '" stroke="#d6d6d6"/></svg>' +
-        '<div class="cs-axis"><span>' + lo + '</span><span>Tesis por año</span><span>' + hi + '</span></div></div>';
-    } else html += '<div class="cs"><p class="cs-lead">' + fmtNum(N) + ' tesis.</p></div>';
-    // 2) areas: dona (4 areas + sin area; parte de un todo con pocos segmentos)
-    var ar = [0, 0, 0, 0, 0], tot = 0; idxs.forEach(function (i) { if (i != null) { ar[state.areaCode[i] || 0]++; tot++; } });
-    tot = tot || 1; var orden = [1, 2, 3, 4, 0].filter(function (a) { return ar[a]; }).sort(function (a, b) { return ar[b] - ar[a]; });
-    var R = 38, SW = 13, C = 2 * Math.PI * R, off = 0, arcs = '', leg = '';
+    var ar = [0, 0, 0, 0, 0], tot = 0, nvc = [0, 0, 0, 0], nvt = 0, prog = {};
+    rows.forEach(function (r, k) {
+      var i = idxs[k], a = i == null ? 0 : state.areaCode[i] || 0;
+      if (i != null) { ar[a]++; tot++; }
+      var v = tmeta && i != null ? tmeta.nv[i] : ['licenciatura', 'especialidad', 'maestria', 'doctorado'].indexOf(norm(r.nv)) + 1;
+      if (v) { nvc[v - 1]++; nvt++; }
+      if (r.pr) { var e = prog[r.pr] || (prog[r.pr] = { n: 0, a: [0, 0, 0, 0, 0] }); e.n++; e.a[a]++; }
+    });
+    var prs = Object.keys(prog).sort(function (a, b) { return prog[b].n - prog[a].n; }).map(function (p) {
+      return { nom: p, n: prog[p].n, a: prog[p].a.indexOf(Math.max.apply(null, prog[p].a)) };
+    });
+    return { ys: ys, ar: ar, tot: tot || 1, nvc: nvc, nvt: nvt, prs: prs };
+  }
+  // Linea de tiempo (v4.12). Con 10 tesis o mas, barras por anio (histograma, pedido del
+  // usuario); con menos, paletas (un tallo y un punto por anio), para no volver al bloque de
+  // una sola barra a todo el ancho. Rango minimo de 10 anios; eje con numeros. Al pasar el
+  // cursor, la barra se marca, las demas se atenuan y encima aparece cuantas tesis y el anio.
+  function histHtml(d, c, W, H, grande) {
+    var ys = d.ys; if (!ys.length) return '';
+    var lo = ys[Math.floor(ys.length * 0.01)], hi = ys[ys.length - 1];
+    if (hi - lo < 10) { var pad = Math.ceil((10 - (hi - lo)) / 2); lo -= pad; hi += pad; }
+    var w = Math.max(1, Math.ceil((hi - lo + 1) / (grande ? 120 : 50))), nb = Math.ceil((hi - lo + 1) / w), bins = new Array(nb).fill(0);
+    ys.forEach(function (y) { bins[Math.max(0, Math.min(nb - 1, Math.floor((y - lo) / w)))]++; });
+    var mx = Math.max.apply(null, bins), tope = topeRedondo(mx), svg = '', marcas = '';
+    var X = function (k) { return (k + 0.5) / nb * W; }, Y = function (v) { return H - v / tope * H; }, vx = ' vector-effect="non-scaling-stroke"';
+    [tope, tope / 2].forEach(function (v) {
+      if (v !== Math.round(v) || v <= 0) return;
+      svg += '<line x1="0" x2="' + W + '" y1="' + Y(v).toFixed(1) + '" y2="' + Y(v).toFixed(1) + '" stroke="#ececec"' + vx + '/>';
+      marcas += '<span style="top:' + (Y(v) / H * 100).toFixed(1) + '%">' + fmtNum(v) + '</span>';
+    });
+    var paletas = ys.length < 10;
+    bins.forEach(function (v, k) {
+      if (!v) return;
+      if (paletas) svg += '<g class="hb" data-k="' + k + '"><line x1="' + X(k).toFixed(1) + '" x2="' + X(k).toFixed(1) + '" y1="' + H + '" y2="' + Y(v).toFixed(1) + '" stroke="' + c + '" stroke-width="2"' + vx + '/>' +
+        '<line x1="' + X(k).toFixed(1) + '" x2="' + X(k).toFixed(1) + '" y1="' + Y(v).toFixed(1) + '" y2="' + Y(v).toFixed(1) + '" stroke="' + c + '" stroke-width="8" stroke-linecap="round"' + vx + '/></g>';
+      else svg += '<rect class="hb" data-k="' + k + '" x="' + (k / nb * W + 0.5).toFixed(1) + '" y="' + Y(v).toFixed(1) + '" width="' + Math.max(1, W / nb - (grande ? 2 : 1.5)).toFixed(1) + '" height="' + (H - Y(v)).toFixed(1) + '" fill="' + c + '" rx="1"/>';
+    });
+    var eje;
+    if (grande) {
+      eje = '<div class="cs-dec">';
+      for (var dcd = Math.ceil(lo / 10) * 10; dcd <= hi; dcd += 10) eje += '<span style="left:' + ((dcd - lo) / (hi - lo + 1) * 100).toFixed(2) + '%">' + dcd + '</span>';
+      eje += '</div>';
+    } else eje = '<div class="cs-axis"><span>' + lo + '</span><span>' + hi + '</span></div>';
+    return '<div class="cs-hist" data-lo="' + lo + '" data-w="' + w + '" data-nb="' + nb + '" data-h="' + H + '" data-tope="' + tope + '" data-viejo="' + (ys[0] < lo ? 1 : 0) + '" data-bins="' + bins.join(',') + '">' +
+      '<div class="cs-yax" style="height:' + H + 'px">' + marcas + '</div><div class="cs-plot">' +
+      '<svg width="100%" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" role="img" aria-label="Tesis por año">' + svg +
+      '<line x1="0" y1="' + H + '" x2="' + W + '" y2="' + H + '" stroke="#d6d6d6"' + vx + '/></svg>' +
+      '<div class="cs-hl" hidden><b></b><span></span></div>' + eje + '</div></div>';
+  }
+  // hover de las lineas de tiempo: un solo manejador para todas (fichas y taller)
+  function hoverHist(ev) {
+    var plot = ev.target && ev.target.closest ? ev.target.closest('.cs-plot') : null, h = plot && plot.parentNode;
+    document.querySelectorAll('.cs-hist.hov').forEach(function (o) { if (o !== h) { o.classList.remove('hov'); o.querySelector('.cs-hl').hidden = true; } });
+    if (!h) return;
+    var svg = plot.querySelector('svg'), r = svg.getBoundingClientRect();
+    if (ev.clientY > r.bottom + 2) { h.classList.remove('hov'); plot.querySelector('.cs-hl').hidden = true; return; }
+    var nb = +h.getAttribute('data-nb'), k = Math.max(0, Math.min(nb - 1, Math.floor((ev.clientX - r.left) / r.width * nb)));
+    var bins = h._bins || (h._bins = h.getAttribute('data-bins').split(',').map(Number)), v = bins[k];
+    var lo = +h.getAttribute('data-lo'), w = +h.getAttribute('data-w'), a0 = lo + k * w, a1 = a0 + w - 1;
+    var anio = k === 0 && h.getAttribute('data-viejo') === '1' ? 'Hasta ' + a1 : w === 1 ? String(a0) : a0 + ' a ' + a1;
+    h.classList.add('hov');
+    svg.querySelectorAll('.hb').forEach(function (e) { e.classList.toggle('on', +e.getAttribute('data-k') === k); });
+    var lab = plot.querySelector('.cs-hl'), H = +h.getAttribute('data-h'), tope = +h.getAttribute('data-tope');
+    lab.firstChild.textContent = fmtNum(v); lab.lastChild.textContent = anio;
+    lab.hidden = false;
+    var x = (k + 0.5) / nb * r.width, lw = lab.offsetWidth, top = H - v / tope * H;
+    lab.style.left = Math.max(lw / 2, Math.min(r.width - lw / 2, x)) + 'px';
+    lab.style.top = Math.max(0, top - lab.offsetHeight - 4) + 'px';
+  }
+  document.addEventListener('pointermove', hoverHist);
+  document.addEventListener('pointerdown', hoverHist); // en pantalla tactil, tocar una barra
+  function topeRedondo(v) {
+    var p = Math.pow(10, Math.floor(Math.log10(Math.max(1, v)))), pasos = [1, 1.2, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10];
+    for (var i = 0; i < pasos.length; i++) if (pasos[i] * p >= v) return pasos[i] * p;
+    return 10 * p;
+  }
+  // areas: dona (4 areas + sin area; parte de un todo con pocos segmentos)
+  function areasHtml(d, S) {
+    var ar = d.ar, tot = d.tot, orden = [1, 2, 3, 4, 0].filter(function (a) { return ar[a]; }).sort(function (a, b) { return ar[b] - ar[a]; });
+    if (!orden.length) return '';
+    var h = S / 2, SW = S * 0.14, R = h - SW / 2 - 2, C = 2 * Math.PI * R, off = 0, arcs = '', leg = '';
     orden.forEach(function (a) {
       var f = ar[a] / tot, len = f * C, gap = orden.length > 1 ? Math.min(2, len / 2) : 0;
-      arcs += '<circle r="' + R + '" cx="46" cy="46" fill="none" stroke="' + AREA_HEX[a] + '" stroke-width="' + SW + '" stroke-dasharray="' + (len - gap).toFixed(2) + ' ' + (C - len + gap).toFixed(2) + '" stroke-dashoffset="' + (-off).toFixed(2) + '" transform="rotate(-90 46 46)"><title>' + AREA_NAMES[a] + ': ' + pctTxt(f) + '</title></circle>';
+      arcs += '<circle r="' + R.toFixed(2) + '" cx="' + h + '" cy="' + h + '" fill="none" stroke="' + AREA_HEX[a] + '" stroke-width="' + SW.toFixed(1) + '" stroke-dasharray="' + (len - gap).toFixed(2) + ' ' + (C - len + gap).toFixed(2) + '" stroke-dashoffset="' + (-off).toFixed(2) + '" transform="rotate(-90 ' + h + ' ' + h + ')"><title>' + AREA_NAMES[a] + ': ' + pctTxt(f) + '</title></circle>';
       off += len;
       leg += '<i style="--c:' + AREA_HEX[a] + '"></i><span title="' + escapeHtml(AREA_NAMES[a]) + '">' + AREA_CORTO[a] + '</span><span class="v">' + pctTxt(f) + '</span>';
     });
-    html += '<div class="cs"><h3>Áreas</h3><div class="cs-donut"><svg width="92" height="92" viewBox="0 0 92 92" role="img" aria-label="Tesis por área">' + arcs +
-      '<text x="46" y="51" text-anchor="middle" font-size="15" font-weight="700" fill="#17181a">' + pctTxt(ar[orden[0]] / tot) + '</text></svg><div class="cs-leg">' + leg + '</div></div></div>';
-    // 3) niveles: barra apilada con la escala azul de la ficha de tesis
-    var nvc = [0, 0, 0, 0], nvt = 0;
-    rows.forEach(function (r, k) {
-      var v = tmeta && idxs[k] != null ? tmeta.nv[idxs[k]] : ['licenciatura', 'especialidad', 'maestria', 'doctorado'].indexOf(norm(r.nv)) + 1;
-      if (v) { nvc[v - 1]++; nvt++; }
+    return '<div class="cs-donut"><svg width="' + S + '" height="' + S + '" viewBox="0 0 ' + S + ' ' + S + '" role="img" aria-label="Tesis por área">' + arcs +
+      '<text x="' + h + '" y="' + (h + S * 0.055).toFixed(1) + '" text-anchor="middle" font-size="' + Math.round(S * 0.165) + '" font-weight="700" fill="#17181a">' + pctTxt(ar[orden[0]] / tot) + '</text></svg><div class="cs-leg">' + leg + '</div></div>';
+  }
+  // niveles: barra apilada con la escala azul de la ficha de tesis
+  function nivelesHtml(d, W, H) {
+    if (!d.nvt) return '';
+    var x = 0, segs = '', lab = '';
+    d.nvc.forEach(function (v, k) {
+      if (!v) return;
+      var wd = v / d.nvt * W;
+      segs += '<rect x="' + x.toFixed(1) + '" y="0" width="' + Math.max(1, wd - 2).toFixed(1) + '" height="' + H + '" fill="' + NIVEL_COLOR[k] + '"><title>' + NIVELES[k] + ': ' + pctTxt(v / d.nvt) + '</title></rect>';
+      x += wd;
+      lab += '<span><i style="--c:' + NIVEL_COLOR[k] + '"></i>' + NIVELES[k] + ' <b>' + pctTxt(v / d.nvt) + '</b></span>';
     });
-    if (nvt) {
-      var x = 0, segs = '', lab = '';
-      nvc.forEach(function (v, k) {
-        if (!v) return;
-        var wd = v / nvt * 316;
-        segs += '<rect x="' + x.toFixed(1) + '" y="0" width="' + Math.max(1, wd - 2).toFixed(1) + '" height="10" fill="' + NIVEL_COLOR[k] + '"><title>' + NIVELES[k] + ': ' + pctTxt(v / nvt) + '</title></rect>';
-        x += wd;
-        lab += '<span><i style="--c:' + NIVEL_COLOR[k] + '"></i>' + NIVELES[k] + ' <b>' + pctTxt(v / nvt) + '</b></span>';
-      });
-      html += '<div class="cs"><h3>Niveles</h3><svg width="100%" height="10" viewBox="0 0 316 10" preserveAspectRatio="none" role="img" aria-label="Tesis por nivel">' + segs + '</svg><div class="cs-nv">' + lab + '</div></div>';
-    }
-    // 4) programas principales, cada uno en el color de su area
-    var prog = {};
-    rows.forEach(function (r, k) {
-      if (!r.pr) return;
-      var e = prog[r.pr] || (prog[r.pr] = { n: 0, a: [0, 0, 0, 0, 0] });
-      e.n++; e.a[state.areaCode[idxs[k]] || 0]++;
-    });
-    var tops = Object.keys(prog).sort(function (a, b) { return prog[b].n - prog[a].n; }).slice(0, 5);
-    if (tops.length) {
-      var pmx = prog[tops[0]].n;
-      html += '<div class="cs"><h3>Programas principales</h3><div class="cs-bars">' + tops.map(function (k) {
-        var e = prog[k], a = e.a.indexOf(Math.max.apply(null, e.a));
-        return '<div class="cs-bar"><div class="t"><span>' + escapeHtml(k) + '</span><b>' + fmtNum(e.n) + '</b></div><div class="b" style="--c:' + AREA_HEX[a] + ';width:' + (e.n / pmx * 100).toFixed(1) + '%"></div></div>';
-      }).join('') + '</div></div>';
-    }
-    // 5) asesores principales (estaciones de transbordo, como en la ficha de tesis) y 6) temas vecinos
+    return '<svg width="100%" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" role="img" aria-label="Tesis por nivel">' + segs + '</svg><div class="cs-nv">' + lab + '</div>';
+  }
+  // programas principales, cada uno en el color de su area; en el taller cada barra filtra la lista
+  function programasHtml(d, k, clic) {
+    var tops = d.prs.slice(0, k); if (!tops.length) return '';
+    var pmx = tops[0].n;
+    return '<div class="cs-bars">' + tops.map(function (p) {
+      return '<div class="cs-bar"' + (clic ? ' data-f="fpr" data-v="' + escapeHtml(p.nom) + '" title="Ver sus tesis"' : '') + '><div class="t"><span>' + escapeHtml(p.nom) + '</span><b>' + fmtNum(p.n) + '</b></div><div class="b" style="--c:' + AREA_HEX[p.a] + ';width:' + (p.n / pmx * 100).toFixed(1) + '%"></div></div>';
+    }).join('') + '</div>';
+  }
+  // v4.13: el contexto de un cluster sin frase («Tema en Filosofia y letras» tapaba el titulo).
+  // Marca de rango: los tres glifos del mapa (campo = punto grande, tema = punto, subtema =
+  // anillo), el nivel actual en su color y los otros en gris; al lado, el campo al que pertenece.
+  function rangoHtml(n, enlace) {
+    var lvl = n.level || 'macro', k = { macro: 0, meso: 1, micro: 2 }[lvl], g = '';
+    ['campo', 'tema', 'subtema'].forEach(function (nom, i) { g += '<i class="rg-' + i + (i === k ? ' on' : '') + '"></i>'; });
+    var m = n.parentMacro;
+    return '<span class="rango" style="--c:' + colorNodo(n) + '" title="' + LEVEL_NAME[lvl] + (m ? ' en ' + escapeHtml(m.name) : '') + '"><span class="rg">' + g + '</span>' +
+      (m ? (enlace ? '<button type="button" data-macro="' + m.macroId + '">' + escapeHtml(m.name) + '</button>' : '<span>' + escapeHtml(m.name) + '</span>') : '') + '</span>';
+  }
+  function renderCluStats(n, rows) {
+    var box = $('clu-stats'); if (!box) return;
+    var c = colorNodo(n), N = rows.length, idxs = rows.map(function (r) { return state.thesisIdToIndex.get(r.id); }); // alineado con rows
+    var d = perfilDatos(rows, idxs);
+    pintaLocator($('panel-loc'), 60, idxs.filter(function (i) { return i != null; }), c);
+    // v4.13.1: sin palabras clave (el usuario: redundantes, el nombre ya esta hecho de ellas)
+    var html = '<div class="cs">' + histHtml(d, c, 316, 46, false) + '</div>';
+    html += '<div class="cs"><h3>Áreas</h3>' + areasHtml(d, 92) + '</div>';
+    if (d.nvt) html += '<div class="cs"><h3>Niveles</h3>' + nivelesHtml(d, 316, 10) + '</div>';
+    if (d.prs.length) html += '<div class="cs"><h3>Programas principales</h3>' + programasHtml(d, 5, false) + '</div>';
     html += '<div class="cs" id="clu-ases"></div><div class="cs" id="clu-vec" hidden></div>';
     box.innerHTML = html;
     var pintaAses = function () {
@@ -1778,7 +2026,7 @@
       else rows.forEach(function (r) { r.as.forEach(function (a) { cnt[a] = (cnt[a] || 0) + 1; }); });
       var top = Object.keys(cnt).sort(function (a, b) { return cnt[b] - cnt[a]; }).slice(0, 5);
       if (!top.length) { el.hidden = true; return; }
-      el.innerHTML = '<h3>Asesores con más tesis aquí</h3><div class="cs-list">' + top.map(function (k) {
+      el.innerHTML = '<h3>Asesores</h3><div class="cs-list">' + top.map(function (k) {
         var nom = ases.off ? ases.nombres[k] : k;
         return '<button type="button"' + (ases.off ? ' data-aid="' + k + '"' : ' disabled') + ' title="Ver todas sus tesis en el mapa"><span class="ring"></span><span class="n">' + escapeHtml(nom) + '</span><b>' + fmtNum(cnt[k]) + '</b></button>';
       }).join('') + '</div>';
@@ -1796,7 +2044,11 @@
   }
   $('panel-body').addEventListener('click', function (ev) {
     var b = ev.target.closest && ev.target.closest('#clu-ases button[data-aid]');
-    if (b) verAsesor(+b.getAttribute('data-aid'));
+    if (b) { verAsesor(+b.getAttribute('data-aid')); return; }
+  });
+  $('panel-kw').addEventListener('click', function (ev) {
+    var b = ev.target.closest && ev.target.closest('[data-macro]');
+    if (b) selectNode(state.macroById[+b.getAttribute('data-macro')], true);
   });
   // los 3 clusters mas parecidos del mismo nivel (enlaces que ya trae el mapa)
   function vecinosDe(n) {
@@ -1821,11 +2073,11 @@
     $('panel-title').textContent = n.name;
     // encabezado: color del territorio y todas sus palabras clave (el nombre solo lleva dos o tres)
     panel.classList.add('clu'); panel.style.setProperty('--c', colorNodo(n));
-    $('panel-kw').textContent = keywords(n.label).slice(0, 8).map(function (k) { return escribir(k); }).join(', ');
-    var body = '<div id="clu-stats"><div class="cs"><p class="cs-lead">' + fmtNum(n.size) + ' tesis. Calculando su perfil…</p></div></div>' +
-      '<div class="az-head"><span class="az-mark">A' + AZ_SVG + 'Z</span><span class="az-cap" id="az-cap">Cargando tesis…</span></div>' +
-      '<div id="az-list"></div>' +
-      '<button type="button" class="btn primary btn-full" id="btn-taller" disabled>Ver listado completo y análisis</button>';
+    pintaLocator($('panel-loc'), 60, null, null); // la silueta de inmediato; sus puntos al cargar sus tesis
+    $('panel-kw').innerHTML = rangoHtml(n, true);
+    var body = '<div id="clu-stats"><div class="cs"><p class="cs-sub">Cargando…</p></div></div>' +
+      '<div class="cs"><h3>Tesis recientes</h3><div id="az-list"><p class="cs-sub">Cargando tesis…</p></div>' +
+      '<button type="button" class="cs-link" id="btn-taller" disabled>Ver las tesis y su análisis' + ICO_R + '</button></div>';
     if (lvl !== 'micro') body += '<div class="section-label">' + (lvl === 'macro' ? 'Temas' : 'Subtemas') + '</div><div class="children" id="panel-children"><div class="vecindario-note">Cargando…</div></div>';
     if (lvl === 'micro' && state.vecindarioPreview) {
       var ids = (state.vecindarioPreview.byCluster || {})[String(n.clusterId)];
@@ -1837,11 +2089,15 @@
     loadThesesFor(n).then(function (rows) {
       if (!isCurrent(n)) return;
       renderCluStats(n, rows);
-      $('az-cap').textContent = 'Orden alfabético, ' + Math.min(6, rows.length) + ' de ' + fmtNum(rows.length);
-      $('az-list').innerHTML = rows.slice(0, 6).map(thesisRowHtml).join('');
+      // v4.9: las 5 mas recientes con la gramatica de la ficha (antes, las 6 primeras en orden alfabetico)
+      $('az-list').innerHTML = rows.slice().sort(function (a, b) { return (b.y || 0) - (a.y || 0); }).slice(0, 5).map(function (r) {
+        var i = state.thesisIdToIndex.get(r.id);
+        var nv = tmeta && i != null ? tmeta.nv[i] : ['licenciatura', 'especialidad', 'maestria', 'doctorado'].indexOf(norm(r.nv)) + 1;
+        return tarjetaTesis(r, nv, i == null ? 0 : state.areaCode[i] || 0, null, 'data-tid="' + escapeHtml(r.id) + '"');
+      }).join('');
       bindThesisRows($('az-list'), rows);
       var bt = $('btn-taller'); bt.disabled = false;
-      bt.textContent = 'Ver las ' + fmtNum(rows.length) + ' tesis y su análisis';
+      bt.innerHTML = 'Ver las ' + fmtNum(rows.length) + ' tesis y su análisis' + ICO_R;
       bt.addEventListener('click', function () { openTaller(n, rows); });
 
       if (lvl !== 'micro') {
@@ -1858,7 +2114,7 @@
           });
         });
       }
-    }).catch(function () { $('az-cap').textContent = 'No se pudieron cargar las tesis de este tema.'; });
+    }).catch(function () { var l = $('az-list'); if (l) l.innerHTML = '<p class="cs-sub">No se pudieron cargar las tesis.</p>'; });
   }
   function bindThesisRows(container, rows) {
     var byId = {}; rows.forEach(function (r) { byId[r.id] = r; });
@@ -1910,19 +2166,37 @@
     focusThesis(idx, { t: r.t, y: r.y }, state.iso ? cur : Math.min(cur, 1 / (K_MICRO * 1.1)));
   }
 
-  // ==================== modo taller ====================
-  var taller = { node: null, rows: [], tab: 'lista', filtered: [], shown: 0, q: '', sort: 'az', fpl: '', fpr: '', fas: '' };
+  // ==================== modo taller (v4.8) ====================
+  // La vista completa de un campo, tema o subtema, con el sistema de las fichas. Tres pestanas:
+  // Tesis (fichas compactas + facetas de catalogo; absorbe la antigua vista analitica como
+  // «agrupar por»), Perfil (las graficas de la ficha del cluster, en grande; cada barra filtra
+  // Tesis) y Asesores (transbordos ordenados con su linea de tiempo + red de codireccion).
+  var taller = { node: null, rows: [], idx: [], m: [], tab: 'tesis', flat: [], shown: 0, q: '', sort: 'az', grp: '', fnv: 0, fpr: '', fpl: '', fas: '', masPr: false, masPl: false, masAs: false };
   function openTaller(n, rows) {
-    taller.node = n; taller.rows = rows; taller.q = ''; taller.fpl = ''; taller.fpr = ''; taller.fas = ''; taller.sort = 'az';
-    var lvl = n.level || 'macro', crumb = ['Atlas'];
-    if (n.parentMacro) crumb.push(n.parentMacro.name);
-    crumb.push(LEVEL_NAME[lvl]);
-    $('tl-crumb').textContent = crumb.join(' › ');
+    cerrarFichaTesis();
+    Object.assign(taller, { node: n, rows: rows, q: '', sort: 'az', grp: '', fnv: 0, fpr: '', fpl: '', fas: '', masPr: false, masPl: false, masAs: false });
+    var lvl = n.level || 'macro';
+    $('taller').style.setProperty('--c', colorNodo(n));
+    $('tl-crumb').textContent = '';
     $('tl-title').textContent = n.name;
+    $('tl-kw').innerHTML = rangoHtml(n, false);
     var yr = yearRange(rows);
-    $('tl-kpis').textContent = fmtNum(rows.length) + ' tesis' + (yr ? ', de ' + yr[0] + ' a ' + yr[1] : '') + '.';
+    $('tl-kpis').textContent = ''; // v4.10: el conteo ya va en la pestaña y el rango en el Perfil
+    var nAs = {}; rows.forEach(function (r) { r.as.forEach(function (a) { nAs[a] = 1; }); });
+    $('tl-n-tesis').textContent = fmtNum(rows.length); $('tl-n-ases').textContent = fmtNum(Object.keys(nAs).length);
+    prepTaller();
+    pintaLocator($('tl-loc'), 92, taller.idx.filter(function (i) { return i != null; }), colorNodo(n));
     $('taller').hidden = false;
-    setTab('lista');
+    setTab('tesis');
+    // nivel y area por tesis vienen de tesis_meta; si llega despues, se repinta
+    if (!tmeta) loadTesisMeta().then(function () { if (!$('taller').hidden && taller.node === n) { prepTaller(); setTab(taller.tab); } });
+  }
+  function prepTaller() {
+    taller.idx = taller.rows.map(function (r) { return state.thesisIdToIndex.get(r.id); });
+    taller.m = taller.rows.map(function (r, k) {
+      var i = taller.idx[k];
+      return { nv: i != null && tmeta ? tmeta.nv[i] : ['licenciatura', 'especialidad', 'maestria', 'doctorado'].indexOf(norm(r.nv)) + 1, ar: i == null ? 0 : state.areaCode[i] || 0 };
+    });
   }
   function closeTaller() { $('taller').hidden = true; vmHide(); }
   $('tl-close').addEventListener('click', closeTaller);
@@ -1931,213 +2205,295 @@
     taller.tab = tab;
     document.querySelectorAll('#taller .tabs button').forEach(function (b) { b.classList.toggle('active', b.getAttribute('data-tab') === tab); });
     $('tl-body').scrollTop = 0;
-    if (tab === 'lista') renderLista();
-    else if (tab === 'panorama') renderPanorama();
-    else if (tab === 'analitica') renderAnalitica();
-    else renderRed();
+    if (tab === 'tesis') renderTesis();
+    else if (tab === 'perfil') renderPerfil();
+    else renderAsesoresTab();
+  }
+  // filtros que llegan desde Perfil o Asesores
+  function filtrarTesis(f) {
+    Object.assign(taller, { q: '', fnv: 0, fpr: '', fpl: '', fas: '' }, f);
+    setTab('tesis');
   }
 
-  // --- Listado: buscar, ordenar, filtrar; 150 filas por pagina ---
-  function renderLista() {
-    var rows = taller.rows, pls = countBy(rows, function (r) { return r.pl; }), prs = countBy(rows, function (r) { return r.pr; });
-    var opt = function (list, sel, all) { return '<option value="">' + all + '</option>' + list.slice(0, 60).map(function (e) { return '<option value="' + escapeHtml(e[0]) + '"' + (e[0] === sel ? ' selected' : '') + '>' + escapeHtml(e[0]) + ' (' + e[1] + ')</option>'; }).join(''); };
-    $('tl-body').innerHTML = '<div class="tl-controls">' +
-      '<input id="tl-q" type="search" placeholder="Filtrar por título, asesor o programa…" value="' + escapeHtml(taller.q) + '">' +
-      '<select id="tl-sort"><option value="az">Título, A–Z</option><option value="za">Título, Z–A</option><option value="new">Más recientes</option><option value="old">Más antiguas</option></select>' +
-      '<select id="tl-fpr">' + opt(prs, taller.fpr, 'Todos los programas') + '</select>' +
-      '<select id="tl-fpl">' + opt(pls, taller.fpl, 'Todos los planteles') + '</select>' +
-      (taller.fas ? '<button type="button" class="btn" id="tl-fas" aria-label="Quitar filtro de asesor">Asesor: ' + escapeHtml(taller.fas) + ICO_X + '</button>' : '') +
-      '<span class="tl-count" id="tl-count"></span></div>' +
-      '<table class="tl-table"><thead><tr><th>Título</th><th>Año</th><th>Nivel</th><th>Programa</th><th>Plantel</th><th>Asesoría</th></tr></thead><tbody id="tl-tbody"></tbody></table>' +
-      '<button type="button" class="btn tl-more" id="tl-more">Mostrar más</button>';
-    $('tl-sort').value = taller.sort;
-    $('tl-q').addEventListener('input', function (e) { taller.q = e.target.value; applyLista(); });
-    $('tl-sort').addEventListener('change', function (e) { taller.sort = e.target.value; applyLista(); });
-    $('tl-fpr').addEventListener('change', function (e) { taller.fpr = e.target.value; applyLista(); });
-    $('tl-fpl').addEventListener('change', function (e) { taller.fpl = e.target.value; applyLista(); });
-    var fa = $('tl-fas'); if (fa) fa.addEventListener('click', function () { taller.fas = ''; renderLista(); });
-    $('tl-more').addEventListener('click', function () { appendRows(150); });
-    applyLista();
+  // --- Tesis ---
+  function renderTesis() {
+    $('tl-body').innerHTML = '<div class="tl-tesis"><aside class="tl-fac" id="tl-fac"></aside>' +
+      '<div class="tl-list"><div class="tl-cap" id="tl-cap"></div><div id="tl-items"></div><button type="button" class="tl-more" id="tl-more">Mostrar más</button></div></div>';
+    renderFacetas();
+    $('tl-more').addEventListener('click', function () { appendTesis(150); });
+    applyTesis();
   }
-  function applyLista() {
-    var q = norm(taller.q).trim(), toks = q ? q.split(/\s+/) : [];
-    var f = taller.rows.filter(function (r) {
-      if (taller.fpl && r.pl !== taller.fpl) return false;
-      if (taller.fpr && r.pr !== taller.fpr) return false;
-      if (taller.fas && r.as.indexOf(taller.fas) < 0) return false;
-      if (!toks.length) return true;
-      var hay = r.k + ' ' + norm(r.as.join(' ') + ' ' + r.pr);
-      return toks.every(function (t) { return hay.indexOf(t) >= 0; });
-    });
-    var s = taller.sort;
-    if (s === 'za') f = f.slice().reverse();
-    else if (s === 'new' || s === 'old') f = f.slice().sort(function (a, b) { return s === 'new' ? (b.y || 0) - (a.y || 0) : (a.y || 9999) - (b.y || 9999); });
-    taller.filtered = f; taller.shown = 0;
-    $('tl-tbody').innerHTML = '';
-    appendRows(150);
-  }
-  function appendRows(k) {
-    var f = taller.filtered, from = taller.shown, to = Math.min(f.length, from + k), html = '';
-    for (var i = from; i < to; i++) {
-      var r = f[i];
-      html += '<tr data-i="' + i + '"><td class="t">' + escapeHtml(r.t) + '</td><td class="y">' + (r.y || '—') + '</td><td>' + escapeHtml(r.nv) + '</td><td>' + escapeHtml(r.pr) + '</td><td>' + escapeHtml(r.pl) + '</td><td>' + escapeHtml(r.as.join(', ') || '—') + '</td></tr>';
-    }
-    $('tl-tbody').insertAdjacentHTML('beforeend', html);
-    taller.shown = to;
-    $('tl-count').textContent = fmtNum(to) + ' de ' + fmtNum(f.length) + (f.length !== taller.rows.length ? ' (filtradas de ' + fmtNum(taller.rows.length) + ')' : '');
-    $('tl-more').hidden = to >= f.length;
+  function renderFacetas() {
+    var rows = taller.rows, M = taller.m;
+    var opts = function (tit, key, list) {
+      return '<div class="fc"><h4>' + tit + '</h4><div class="fc-opts">' + list.map(function (o) {
+        return '<button type="button" data-o="' + key + '" data-v="' + o[0] + '"' + (taller[key] === o[0] ? ' class="on"' : '') + '>' + o[1] + '</button>';
+      }).join('') + '</div></div>';
+    };
+    var fila = function (f, v, on, glifo, nom, n) {
+      return '<button type="button" data-f="' + f + '" data-v="' + escapeHtml(String(v)) + '"' + (on ? ' class="on"' : '') + '>' + glifo + '<span class="n" title="' + escapeHtml(nom) + '">' + escapeHtml(nom) + '</span><b>' + fmtNum(n) + '</b></button>';
+    };
+    var h = '<input id="tl-q" type="search" placeholder="Buscar en esta lista" value="' + escapeHtml(taller.q) + '">';
+    h += opts('Orden', 'sort', [['az', 'A–Z'], ['new', 'Más recientes'], ['old', 'Más antiguas']]);
+    h += opts('Agrupar', 'grp', [['', 'Sin agrupar'], ['dec', 'Década'], ['pr', 'Programa'], ['nv', 'Nivel']]);
+    if (taller.fas) h += '<div class="fc"><h4>Asesoría</h4><div class="fc-list">' + fila('fas', '', true, '<i class="tb"></i>', taller.fas, rows.filter(function (r) { return r.as.indexOf(taller.fas) >= 0; }).length) + '</div></div>';
+    var nvc = [0, 0, 0, 0]; M.forEach(function (m) { if (m.nv) nvc[m.nv - 1]++; });
+    h += '<div class="fc"><h4>Nivel</h4><div class="fc-list">' + nvc.map(function (n, k) {
+      return n ? fila('fnv', k + 1, taller.fnv === k + 1, '<i style="--g:' + NIVEL_COLOR[k] + '"></i>', NIVELES[k], n) : '';
+    }).join('') + '</div></div>';
+    // programa: anillo del color de su area dominante (la gramatica de la ficha)
+    var prog = {}; rows.forEach(function (r, k) { if (!r.pr) return; var e = prog[r.pr] || (prog[r.pr] = { n: 0, a: [0, 0, 0, 0, 0] }); e.n++; e.a[M[k].ar]++; });
+    var prs = Object.keys(prog).sort(function (a, b) { return prog[b].n - prog[a].n; });
+    h += '<div class="fc"><h4>Programa</h4><div class="fc-list">' + prs.slice(0, taller.masPr ? 80 : 8).map(function (p) {
+      var a = prog[p].a.indexOf(Math.max.apply(null, prog[p].a));
+      return fila('fpr', p, taller.fpr === p, '<i class="ring" style="--g:' + AREA_HEX[a] + '"></i>', p, prog[p].n);
+    }).join('') + '</div>' + (prs.length > 8 ? '<button type="button" class="fc-more" data-mas="masPr">' + (taller.masPr ? 'Ver menos' : 'Ver los ' + fmtNum(prs.length)) + '</button>' : '') + '</div>';
+    var pls = countBy(rows, function (r) { return r.pl; });
+    h += '<div class="fc"><h4>Plantel</h4><div class="fc-list">' + pls.slice(0, taller.masPl ? 80 : 6).map(function (e) {
+      return fila('fpl', e[0], taller.fpl === e[0], '<i style="--g:#4d4d4d"></i>', e[0], e[1]);
+    }).join('') + '</div>' + (pls.length > 6 ? '<button type="button" class="fc-more" data-mas="masPl">' + (taller.masPl ? 'Ver menos' : 'Ver los ' + fmtNum(pls.length)) + '</button>' : '') + '</div>';
+    if (taller.q || taller.fnv || taller.fpr || taller.fpl || taller.fas) h += '<button type="button" class="fc-clear" data-clear>Quitar filtros</button>';
+    // en movil las facetas se pliegan para que la lista quede a la vista
+    var movil = window.matchMedia('(max-width: 860px)').matches, act = [taller.q, taller.fnv, taller.fpr, taller.fpl, taller.fas].filter(Boolean).length;
+    h = '<details id="tl-det"' + (!movil || taller.facOpen ? ' open' : '') + '><summary>Filtrar y ordenar' + (act ? ' (' + act + (act === 1 ? ' filtro)' : ' filtros)') : '') + '</summary>' + h + '</details>';
+    var fac = $('tl-fac'); fac.innerHTML = h;
+    $('tl-det').addEventListener('toggle', function (e) { taller.facOpen = e.target.open; });
+    $('tl-q').addEventListener('input', function (e) { taller.q = e.target.value; applyTesis(); });
   }
   $('tl-body').addEventListener('click', function (ev) {
-    var tr = ev.target.closest && ev.target.closest('#tl-tbody tr[data-i]');
-    if (tr) showThesisOnMap(taller.filtered[+tr.getAttribute('data-i')]);
-  });
-
-  // --- Panorama: una medida por grafica, un solo tono, sin eje doble ---
-  function hbarsHtml(list, total, clickKey) {
-    var max = list.length ? list[0][1] : 1;
-    return list.map(function (e) {
-      return '<div class="hbar' + (clickKey ? ' click' : '') + '" data-k="' + (clickKey || '') + '" data-v="' + escapeHtml(e[0]) + '" title="' + escapeHtml(e[0]) + ': ' + fmtNum(e[1]) + ' tesis (' + Math.round(100 * e[1] / total) + '%)"><span class="lbl">' + escapeHtml(e[0]) + '</span><span class="trk"><span class="bar" style="display:block;width:' + (100 * e[1] / max).toFixed(1) + '%"></span></span><span class="val">' + fmtNum(e[1]) + '</span></div>';
-    }).join('');
-  }
-  function bindHbars() {
-    document.querySelectorAll('#tl-body .hbar.click').forEach(function (el) {
-      el.addEventListener('click', function () {
-        var k = el.getAttribute('data-k'), v = el.getAttribute('data-v');
-        taller.fpr = k === 'pr' ? v : ''; taller.fpl = k === 'pl' ? v : ''; taller.fas = k === 'as' ? v : ''; taller.q = '';
-        setTab('lista');
-      });
-    });
-  }
-  function renderPanorama() {
-    var rows = taller.rows, n = rows.length;
-    var prs = countBy(rows, function (r) { return r.pr; }), pls = countBy(rows, function (r) { return r.pl; }), nvs = countBy(rows, function (r) { return r.nv; });
-    var ases = countBy(rows, function (r) { return r.as; });
-    var dec = countBy(rows, function (r) { return r.y ? Math.floor(r.y / 10) * 10 + 's' : ''; });
-    var multi = rows.filter(function (r) { return r.as.length > 1; }).length, sinAs = rows.filter(function (r) { return !r.as.length; }).length;
-    var insight = '<b>' + fmtNum(n) + ' tesis</b>. La década con más producción es <b>' + (dec[0] ? dec[0][0] : '—') + '</b> (' + (dec[0] ? fmtNum(dec[0][1]) : 0) + '). ' +
-      'El programa más frecuente es <b>' + escapeHtml((prs[0] || ['—'])[0]) + '</b> (' + Math.round(100 * ((prs[0] || [0, 0])[1]) / n) + '%). ' +
-      (ases[0] ? 'Quien más tesis dirigió aquí es <b>' + escapeHtml(ases[0][0]) + '</b> (' + ases[0][1] + '). ' : '') +
-      Math.round(100 * multi / n) + '% tiene más de un asesor; ' + Math.round(100 * sinAs / n) + '% no tiene asesor registrado.';
-    $('tl-body').innerHTML = '<div class="tl-grid">' +
-      '<div class="card wide" style="border-top:none;padding-top:0"><div class="insight">' + insight + '</div></div>' +
-      '<div class="card wide"><h4>Tesis por año</h4><div class="sub">Cada barra es un año; pasa el cursor para ver el total</div><div id="tl-years"></div></div>' +
-      '<div class="card"><h4>Programas</h4><div class="sub">Los 10 más frecuentes; clic para filtrar el listado</div>' + hbarsHtml(prs.slice(0, 10), n, 'pr') + '</div>' +
-      '<div class="card"><h4>Planteles</h4><div class="sub">Los 8 más frecuentes; clic para filtrar el listado</div>' + hbarsHtml(pls.slice(0, 8), n, 'pl') + '</div>' +
-      '<div class="card"><h4>Nivel</h4><div class="sub">Grado obtenido</div>' + hbarsHtml(nvs, n) + '</div>' +
-      '<div class="card"><h4>Asesores con más tesis</h4><div class="sub">Clic para ver sus tesis</div>' + hbarsHtml(ases.slice(0, 8), n, 'as') + '</div>' +
-      '</div>';
-    bindHbars();
-    drawYears($('tl-years'), rows);
-  }
-  function drawYears(host, rows) {
-    var ys = rows.map(function (r) { return r.y; }).filter(Boolean);
-    if (!ys.length) { host.textContent = 'Sin años registrados.'; return; }
-    var y0 = Math.min.apply(null, ys), y1 = Math.max.apply(null, ys), counts = {}, max = 0;
-    ys.forEach(function (y) { counts[y] = (counts[y] || 0) + 1; if (counts[y] > max) max = counts[y]; });
-    var W = Math.max(320, host.clientWidth || 800), H = 170, pl = 30, pb = 22, pt = 8, nY = y1 - y0 + 1;
-    var bw = (W - pl) / nY, gap = bw > 4 ? 2 : 0.5;
-    var svg = '<svg class="years" width="' + W + '" height="' + H + '" role="img" aria-label="Tesis por año">';
-    [0.5, 1].forEach(function (f) { var yy = pt + (H - pt - pb) * (1 - f); svg += '<line x1="' + pl + '" x2="' + W + '" y1="' + yy + '" y2="' + yy + '"/><text x="' + (pl - 4) + '" y="' + (yy + 3) + '" text-anchor="end">' + Math.round(max * f) + '</text>'; });
-    for (var y = y0; y <= y1; y++) {
-      var c = counts[y] || 0, h = (H - pt - pb) * c / max, x = pl + (y - y0) * bw;
-      if (c) svg += '<rect class="col" x="' + (x + gap / 2).toFixed(1) + '" y="' + (H - pb - h).toFixed(1) + '" width="' + Math.max(0.8, bw - gap).toFixed(1) + '" height="' + h.toFixed(1) + '" rx="' + (bw > 6 ? 2 : 0) + '"><title>' + y + ': ' + c + ' tesis</title></rect>';
-      if ((y % 10 === 0 && nY > 15) || nY <= 15) svg += '<text x="' + (x + bw / 2) + '" y="' + (H - 6) + '" text-anchor="middle">' + y + '</text>';
+    var t = ev.target.closest ? ev.target : null; if (!t) return;
+    var b = t.closest('#tl-fac button');
+    if (b) {
+      if (b.hasAttribute('data-clear')) { Object.assign(taller, { q: '', fnv: 0, fpr: '', fpl: '', fas: '' }); }
+      else if (b.getAttribute('data-mas')) { var k = b.getAttribute('data-mas'); taller[k] = !taller[k]; }
+      else if (b.getAttribute('data-o')) { taller[b.getAttribute('data-o')] = b.getAttribute('data-v'); }
+      else if (b.getAttribute('data-f')) {
+        var f = b.getAttribute('data-f'), v = f === 'fnv' ? +b.getAttribute('data-v') : b.getAttribute('data-v');
+        taller[f] = taller[f] === v ? (f === 'fnv' ? 0 : '') : v;
+      }
+      renderFacetas(); applyTesis(); return;
     }
-    host.innerHTML = svg + '</svg>';
-  }
-
-  // --- Vista analitica: cada punto una tesis, agrupadas; orden A->Z dentro del grupo ---
-  var anaGroup = 'decada', anaRows = [];
-  function renderAnalitica() {
-    $('tl-body').innerHTML = '<div class="tl-controls"><select id="tl-agrp"><option value="decada">Agrupar por década</option><option value="nivel">Agrupar por nivel</option><option value="programa">Agrupar por programa</option><option value="plantel">Agrupar por plantel</option></select><span class="tl-count">Cada punto es una tesis. Pasa el cursor para ver el título y haz clic para ubicarla en el mapa.</span></div><div id="tl-analytic"></div>';
-    $('tl-agrp').value = anaGroup;
-    $('tl-agrp').addEventListener('change', function (e) { anaGroup = e.target.value; drawAnalitica(); });
-    drawAnalitica();
-  }
-  function drawAnalitica() {
-    var rows = taller.rows, keyFn = {
-      decada: function (r) { return r.y ? Math.floor(r.y / 10) * 10 + 's' : 'sin año'; },
-      nivel: function (r) { return r.nv || 'sin nivel'; }, programa: function (r) { return r.pr || '—'; }, plantel: function (r) { return r.pl || '—'; }
-    }[anaGroup];
-    var groups = new Map();
-    rows.forEach(function (r) { var k = keyFn(r); if (!groups.has(k)) groups.set(k, []); groups.get(k).push(r); });
-    var list = Array.from(groups.entries());
-    if (anaGroup === 'decada') list.sort(function (a, b) { return a[0] < b[0] ? -1 : 1; }); else list.sort(function (a, b) { return b[1].length - a[1].length; });
-    if (list.length > 9) { var rest = []; list.slice(8).forEach(function (g) { rest = rest.concat(g[1]); }); list = list.slice(0, 8).concat([['otros (' + (groups.size - 8) + ')', rest]]); }
-    var host = $('tl-analytic'), W = Math.max(360, host.clientWidth || 1000), r = rows.length > 3000 ? 2.4 : rows.length > 1000 ? 3.2 : 4.2, step = r * 2 + 2;
-    var cols = Math.max(1, Math.floor((W - 20) / step)), y = 0, svg = '';
-    anaRows = [];
-    list.forEach(function (g) {
-      svg += '<text class="glabel" x="0" y="' + (y + 12) + '">' + escapeHtml(pretty(g[0])) + ' (' + fmtNum(g[1].length) + ')</text>';
-      y += 22;
-      g[1].forEach(function (row, i) {
-        anaRows.push(row);
-        svg += '<circle class="dot" data-i="' + (anaRows.length - 1) + '" cx="' + (r + 1 + (i % cols) * step).toFixed(1) + '" cy="' + (y + r + Math.floor(i / cols) * step).toFixed(1) + '" r="' + r + '"/>';
+    var it = t.closest('.tt[data-k]');
+    if (it) { showThesisOnMap(taller.rows[+it.getAttribute('data-k')]); return; }
+    var bar = t.closest('.tl-perfil .cs-bar[data-f]');
+    if (bar) { var o = {}; o[bar.getAttribute('data-f')] = bar.getAttribute('data-v'); filtrarTesis(o); return; }
+    var an = t.closest('[data-as]');
+    if (an) { filtrarTesis({ fas: an.getAttribute('data-as') }); return; }
+    var am = t.closest('[data-aid]');
+    if (am) { closeTaller(); verAsesor(+am.getAttribute('data-aid')); }
+  });
+  function applyTesis() {
+    var rows = taller.rows, M = taller.m, q = norm(taller.q).trim(), toks = q ? q.split(/\s+/) : [];
+    taller.toks = toks;
+    var ks = [];
+    rows.forEach(function (r, k) {
+      if (taller.fnv && M[k].nv !== taller.fnv) return;
+      if (taller.fpr && r.pr !== taller.fpr) return;
+      if (taller.fpl && r.pl !== taller.fpl) return;
+      if (taller.fas && r.as.indexOf(taller.fas) < 0) return;
+      if (toks.length) { var hay = r.k + ' ' + norm(r.as.join(' ') + ' ' + r.pr); if (!toks.every(function (t) { return hay.indexOf(t) >= 0; })) return; }
+      ks.push(k);
+    });
+    var s = taller.sort;
+    if (s === 'new' || s === 'old') ks.sort(function (a, b) { return s === 'new' ? (rows[b].y || 0) - (rows[a].y || 0) : (rows[a].y || 9999) - (rows[b].y || 9999); });
+    // agrupar: encabezados de seccion dentro de la misma lista (antes, la vista analitica)
+    var g = taller.grp, gk = null;
+    if (g === 'dec') gk = function (k) { var y = rows[k].y; return y ? Math.floor(y / 10) * 10 : -1; };
+    if (g === 'nv') gk = function (k) { return M[k].nv || 9; };
+    if (g === 'pr') gk = function (k) { return rows[k].pr || '—'; };
+    taller.gk = gk;
+    if (gk) {
+      var cnt = {}; ks.forEach(function (k) { var v = gk(k); cnt[v] = (cnt[v] || 0) + 1; });
+      taller.gcnt = cnt;
+      var pos = ks.slice(), ord = {}; pos.forEach(function (k, i) { ord[k] = i; });
+      ks.sort(function (a, b) {
+        var va = gk(a), vb = gk(b);
+        if (va !== vb) {
+          if (g === 'pr') return (cnt[vb] - cnt[va]) || (va < vb ? -1 : 1);
+          if (g === 'dec' && s === 'new') return vb - va;
+          return va - vb;
+        }
+        return ord[a] - ord[b];
       });
-      y += Math.ceil(g[1].length / cols) * step + 16;
-    });
-    host.innerHTML = '<svg width="' + W + '" height="' + y + '">' + svg + '</svg>';
-    var s = host.querySelector('svg');
-    s.addEventListener('mousemove', function (ev) {
-      var t = ev.target; if (!t.classList.contains('dot')) { vmHide(); return; }
-      var row = anaRows[+t.getAttribute('data-i')], tt = $('vtooltip');
-      tt.innerHTML = '<span class="t-label">' + escapeHtml(row.t) + '</span><span class="t-meta">' + (row.y || '—') + '</span><span class="t-meta">' + escapeHtml(row.pr) + '</span><span class="t-meta">' + escapeHtml(fmtAsesores(row.as)) + '</span>';
-      tt.style.opacity = '1'; vmMove(ev);
-    });
-    s.addEventListener('mouseleave', vmHide);
-    s.addEventListener('click', function (ev) { var t = ev.target; if (t.classList.contains('dot')) showThesisOnMap(anaRows[+t.getAttribute('data-i')]); });
+    }
+    taller.flat = ks; taller.shown = 0;
+    $('tl-items').innerHTML = '';
+    var tot = rows.length;
+    $('tl-cap').textContent = ks.length === tot ? '' : fmtNum(ks.length) + ' de ' + fmtNum(tot) + ' tesis'; // solo con filtros
+    appendTesis(150);
+  }
+  function grupoNombre(v) {
+    var g = taller.grp;
+    if (g === 'dec') return v < 0 ? 'Año sin registro' : v + ' a ' + (v + 9);
+    if (g === 'nv') return v === 9 ? 'Nivel sin registro' : NIVELES[v - 1];
+    return v;
+  }
+  function appendTesis(k) {
+    var ks = taller.flat, from = taller.shown, to = Math.min(ks.length, from + k), html = '', gk = taller.gk;
+    for (var i = from; i < to; i++) {
+      var kk = ks[i];
+      if (gk && (i === 0 || gk(ks[i - 1]) !== gk(kk))) html += '<div class="tl-grp">' + escapeHtml(String(grupoNombre(gk(kk)))) + '<b>' + fmtNum(taller.gcnt[gk(kk)]) + ' tesis</b></div>';
+      html += tesisItemHtml(kk);
+    }
+    $('tl-items').insertAdjacentHTML('beforeend', html);
+    taller.shown = to;
+    var faltan = ks.length - to, more = $('tl-more');
+    more.hidden = faltan <= 0; more.textContent = 'Mostrar ' + fmtNum(Math.min(150, faltan)) + ' más';
+  }
+  // v4.8.1: lo buscado se marca en negritas (sin distinguir acentos ni mayusculas)
+  var ESC = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+  function esc1(c) { return ESC[c] || c; }
+  function resaltarHtml(text, toks) {
+    text = String(text || '');
+    if (!toks || !toks.length) return text.replace(/[&<>"']/g, esc1);
+    var base = '', map = [], marca = new Uint8Array(text.length);
+    for (var i = 0; i < text.length; i++) { var n = norm(text[i]); for (var j = 0; j < n.length; j++) { base += n[j]; map.push(i); } }
+    toks.forEach(function (t) { for (var p = base.indexOf(t); p >= 0; p = base.indexOf(t, p + t.length)) for (var q = p; q < p + t.length; q++) marca[map[q]] = 1; });
+    var out = '', on = false;
+    for (var k = 0; k < text.length; k++) {
+      if (!!marca[k] !== on) { out += marca[k] ? '<b class="hl">' : '</b>'; on = !!marca[k]; }
+      out += esc1(text[k]);
+    }
+    return out + (on ? '</b>' : '');
+  }
+  // ficha compacta: puntos de nivel y anio; titulo; ruta con glifos (area, programa, plantel, asesoria)
+  function tesisItemHtml(k) { return tarjetaTesis(taller.rows[k], taller.m[k].nv, taller.m[k].ar, taller.toks, 'data-k="' + k + '"'); }
+  function tarjetaTesis(r, nv, ar, tk, attr) {
+    var m = { nv: nv, ar: ar };
+    var item = function (g, t, tt) { return t ? '<span class="tc-i" title="' + tt + '"><span class="' + g + '"></span><span class="tc-t">' + resaltarHtml(t, tk) + '</span></span>' : ''; };
+    return '<button type="button" class="tt" ' + attr + '><span class="tt-a">' +
+      (m.nv ? '<span class="tc-nv" title="' + NIVELES[m.nv - 1] + '">' + puntosNivel(m.nv, 'i') + '</span>' : '') +
+      '<span>' + (r.y || 'Año sin registro') + '</span></span>' +
+      '<span class="tt-t">' + resaltarHtml(r.t, tk) + '</span>' +
+      '<span class="tc" style="--c:' + AREA_HEX[m.ar] + '"><span class="tc-r" title="' + escapeHtml(AREA_NAMES[m.ar]) + '"></span>' +
+      item('tc-p', r.pr, 'Programa') + item('tc-l', r.pl ? plantelCorto(r.pl) : '', 'Plantel') + item('tc-a', r.as.join(', '), 'Asesoría') + '</span></button>';
   }
 
-  // --- Red de asesores: nodo = asesor (tamano = tesis dirigidas en este tema),
-  // enlace = codireccion (dirigieron juntos al menos una tesis). Relacion real del
-  // catalogo, no inferida. Se muestran los 70 con mas tesis.
-  function renderRed() {
-    var rows = taller.rows, cnt = new Map(), pl = new Map(), co = new Map();
+  // --- Perfil: las graficas de la ficha del cluster, en grande ---
+  function renderPerfil() {
+    var rows = taller.rows, d = perfilDatos(rows, taller.idx), c = colorNodo(taller.node), n = rows.length;
+    var pls = countBy(rows, function (r) { return r.pl; }).slice(0, 8), pmx = pls.length ? pls[0][1] : 1;
+    $('tl-body').innerHTML = '<div class="tl-perfil">' +
+      '<div class="cs ancho">' + histHtml(d, c, 1000, 150, true) + '</div>' +
+      '<div class="cs"><h3>Áreas</h3>' + areasHtml(d, 132) + '</div>' +
+      '<div class="cs"><h3>Niveles</h3>' + nivelesHtml(d, 600, 12) + '</div>' +
+      '<div class="cs"><h3>Programas principales</h3>' + programasHtml(d, 10, true) + '</div>' +
+      '<div class="cs"><h3>Planteles principales</h3><div class="cs-bars">' + pls.map(function (e) {
+        return '<div class="cs-bar" data-f="fpl" data-v="' + escapeHtml(e[0]) + '" title="Ver sus tesis"><div class="t"><span>' + escapeHtml(e[0]) + '</span><b>' + fmtNum(e[1]) + '</b></div><div class="b" style="--c:#8c8c8c;width:' + (e[1] / pmx * 100).toFixed(1) + '%"></div></div>';
+      }).join('') + '</div></div></div>';
+  }
+
+  // --- Asesores: transbordos ordenados + red de codireccion ---
+  function renderAsesoresTab() {
+    var rows = taller.rows, info = new Map(), co = new Map(), multi = 0;
     rows.forEach(function (r) {
-      r.as.forEach(function (a) { cnt.set(a, (cnt.get(a) || 0) + 1); var m = pl.get(a) || new Map(); m.set(r.pl, (m.get(r.pl) || 0) + 1); pl.set(a, m); });
-      for (var i = 0; i < r.as.length; i++) for (var j = i + 1; j < r.as.length; j++) { var k = [r.as[i], r.as[j]].sort().join('||'); co.set(k, (co.get(k) || 0) + 1); }
+      if (r.as.length > 1) multi++;
+      r.as.forEach(function (a) { var e = info.get(a) || { n: 0, ys: [] }; e.n++; if (r.y) e.ys.push(r.y); info.set(a, e); });
+      for (var i = 0; i < r.as.length; i++) for (var j = i + 1; j < r.as.length; j++) { var key = [r.as[i], r.as[j]].sort().join('||'); co.set(key, (co.get(key) || 0) + 1); }
     });
-    var top = Array.from(cnt.entries()).sort(function (a, b) { return b[1] - a[1]; }).slice(0, 70), inTop = new Set(top.map(function (e) { return e[0]; }));
-    var links = [];
-    co.forEach(function (w, k) { var p = k.split('||'); if (inTop.has(p[0]) && inTop.has(p[1])) links.push({ source: p[0], target: p[1], w: w }); });
-    var withCo = new Set(); links.forEach(function (l) { withCo.add(l.source); withCo.add(l.target); });
-    var multi = rows.filter(function (r) { return r.as.length > 1; }).length;
-    $('tl-body').innerHTML = '<div class="net-wrap"><div class="card"><h4>Red de codirección</h4><div class="sub">Cada círculo es un asesor (tamaño = tesis que dirigió en este tema). Una línea une a dos asesores que dirigieron juntos al menos una tesis. En gris oscuro, quienes codirigieron.</div><div id="tl-net"></div></div>' +
-      '<div class="card"><h4>Lectura</h4><div class="insight"><b>' + fmtNum(cnt.size) + ' asesores</b> dirigieron las ' + fmtNum(rows.length) + ' tesis de este tema. ' +
-      '<b>' + Math.round(100 * multi / Math.max(1, rows.length)) + '%</b> de las tesis tiene más de un asesor. Se muestran los ' + top.length + ' con más tesis y ' + links.length + ' pares de codirección entre ellos.' +
-      (links.length < 3 ? '<br><br>Casi no hay codirección: en este tema cada tesis suele tener un solo asesor.' : '') +
-      '</div><h4 style="margin-top:14px">Con más tesis</h4>' + hbarsHtml(top.slice(0, 10), rows.length, 'as') + '</div></div>';
-    bindHbars();
-    var host = $('tl-net'), W = Math.max(360, host.clientWidth || 700), H = 520;
-    var nodes = top.map(function (e) { return { id: e[0], n: e[1], r: Math.min(18, 3.5 + Math.sqrt(e[1]) * 2.2) }; });
-    if (!nodes.length) { host.textContent = 'Ninguna tesis de este tema tiene asesor registrado.'; return; }
+    var top = Array.from(info.entries()).sort(function (a, b) { return b[1].n - a[1].n; });
+    var socios = new Map(); co.forEach(function (w, key) { key.split('||').forEach(function (a) { socios.set(a, (socios.get(a) || 0) + 1); }); });
+    var d = perfilDatos(rows, taller.idx), lo = d.ys.length ? d.ys[Math.floor(d.ys.length * 0.01)] : 0, hi = d.ys.length ? d.ys[d.ys.length - 1] : 1;
+    var aidDe = nombreAAid();
+    var linea = function (ys) {
+      var W = 150, H = 18, span = Math.max(1, hi - lo + 1), cnt = {}, mx = 1, s = '';
+      ys.forEach(function (y) { var v = Math.max(lo, y); cnt[v] = (cnt[v] || 0) + 1; if (cnt[v] > mx) mx = cnt[v]; });
+      Object.keys(cnt).forEach(function (y) { var h = 3 + (H - 3) * cnt[y] / mx; s += '<rect x="' + ((y - lo) / span * (W - 2)).toFixed(1) + '" y="' + (H - h).toFixed(1) + '" width="2" height="' + h.toFixed(1) + '"/>'; });
+      return '<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" aria-hidden="true" style="fill:var(--c)"><line x1="0" y1="' + H + '" x2="' + W + '" y2="' + H + '" stroke="#d6d6d6"/>' + s + '</svg>';
+    };
+    var lista = top.slice(0, taller.masAs ? 100 : 25).map(function (e) {
+      var nom = e[0], aid = aidDe.get(nom);
+      return '<div class="as-row"><span class="ring"></span><span class="nm"><button type="button" data-as="' + escapeHtml(nom) + '" title="Ver sus tesis de este tema">' + escapeHtml(nom) + '</button>' +
+        (aid != null ? '<button type="button" class="as-map" data-aid="' + aid + '" title="Ver todas sus tesis en el mapa">' + ICO_R + '</button>' : '') + '</span>' +
+        linea(e[1].ys) + '<span class="v">' + fmtNum(e[1].n) + '</span></div>';
+    }).join('');
+    $('tl-body').innerHTML = '<div class="tl-ases">' +
+      '<div class="cs ancho"><h3>Asesoría por tesis</h3>' + asesoriaHtml(rows) + '</div>' +
+      '<div class="cs"><h3>Con más tesis aquí</h3><div class="as-head"><span></span><span></span><span class="yr"><i>' + lo + '</i><i>' + hi + '</i></span><span></span></div>' + lista +
+      (top.length > 25 ? '<button type="button" class="tl-more" id="as-mas">' + (taller.masAs ? 'Ver menos' : 'Ver los ' + Math.min(100, top.length) + ' con más tesis') + '</button>' : '') + '</div>' +
+      '<div class="cs"><h3>Codirección</h3><div class="red-ley"><span><i class="ring"></i>Asesor</span><span><i class="ln"></i>Tesis compartidas</span></div><div id="tl-net"></div></div></div>';
+    var mas = $('as-mas'); if (mas) mas.addEventListener('click', function () { taller.masAs = !taller.masAs; renderAsesoresTab(); });
+    dibujaRed(top, co);
+  }
+  // cuantas tesis tienen un asesor, dos o mas, o ninguno registrado: barra apilada, no un parrafo
+  function asesoriaHtml(rows) {
+    var g = [0, 0, 0]; rows.forEach(function (r) { g[r.as.length === 0 ? 2 : r.as.length === 1 ? 0 : 1]++; });
+    var n = Math.max(1, rows.length), cols = ['#6e6e6e', '#17181a', '#d6d6d6'], nom = ['Un asesor', 'Dos o más', 'Sin registro'], x = 0, segs = '', lab = '';
+    g.forEach(function (v, k) {
+      if (!v) return;
+      var wd = v / n * 1000;
+      segs += '<rect x="' + x.toFixed(1) + '" y="0" width="' + Math.max(1, wd - 3).toFixed(1) + '" height="12" fill="' + cols[k] + '"><title>' + nom[k] + ': ' + pctTxt(v / n) + '</title></rect>';
+      x += wd; lab += '<span><i style="--c:' + cols[k] + '"></i>' + nom[k] + ' <b>' + pctTxt(v / n) + '</b></span>';
+    });
+    return '<svg width="100%" height="12" viewBox="0 0 1000 12" preserveAspectRatio="none" role="img" aria-label="Asesoría por tesis">' + segs + '</svg><div class="cs-nv">' + lab + '</div>';
+  }
+  function nombreAAid() {
+    if (!ases.off) return new Map();
+    if (!ases.porNombre) { ases.porNombre = new Map(); ases.nombres.forEach(function (nm, i) { if (!ases.porNombre.has(nm)) ases.porNombre.set(nm, i); }); }
+    return ases.porNombre;
+  }
+  function dibujaRed(top, co) {
+    var host = $('tl-net'), cand = new Set(top.slice(0, 40).map(function (e) { return e[0]; })), links = [];
+    co.forEach(function (w, key) { var p = key.split('||'); if (cand.has(p[0]) && cand.has(p[1])) links.push({ source: p[0], target: p[1], w: w }); });
+    var conLazo = new Set(); links.forEach(function (l) { conLazo.add(l.source); conLazo.add(l.target); });
+    var estrecho = (host.clientWidth || 560) < 600; // en movil caben menos nombres: los 12 principales
+    // se eligen de forma que la red quede conectada: se parte del que tiene mas tesis y se suman,
+    // por numero de tesis, quienes codirigieron con alguien ya elegido (hasta 24, o 12 en movil)
+    var vec = new Map(); links.forEach(function (l) { [[l.source, l.target], [l.target, l.source]].forEach(function (p) { (vec.get(p[0]) || vec.set(p[0], new Set()).get(p[0])).add(p[1]); }); });
+    var cands = top.filter(function (e) { return conLazo.has(e[0]); }), elegidos = new Set(), cap = estrecho ? 12 : 24, cambio = true;
+    if (cands.length) elegidos.add(cands[0][0]);
+    while (cambio && elegidos.size < cap) {
+      cambio = false;
+      for (var q = 0; q < cands.length && elegidos.size < cap; q++) {
+        var id = cands[q][0];
+        if (!elegidos.has(id) && Array.from(vec.get(id) || []).some(function (v) { return elegidos.has(v); })) { elegidos.add(id); cambio = true; break; }
+      }
+    }
+    var nodes = cands.filter(function (e) { return elegidos.has(e[0]); }).map(function (e) { return { id: e[0], n: e[1].n }; });
+    var keep = new Set(nodes.map(function (d) { return d.id; }));
+    links = links.filter(function (l) { return keep.has(l.source) && keep.has(l.target); });
+    if (nodes.length < 3 || links.length < 2) { host.innerHTML = '<p class="cs-lead" style="font-size:14px">Casi no hay codirección entre los asesores principales de este tema: cada tesis suele tener un solo asesor.</p>'; return; }
+    var W = Math.max(300, host.clientWidth || 560), H = estrecho ? 600 : 540, mx = nodes[0].n;
+    nodes.forEach(function (d) { d.r = 5 + 9 * Math.sqrt(d.n / mx); });
     var sim = d3.forceSimulation(nodes)
-      .force('link', d3.forceLink(links).id(function (d) { return d.id; }).distance(34).strength(0.6))
-      .force('charge', d3.forceManyBody().strength(-26))
-      .force('collide', d3.forceCollide(function (d) { return d.r + 2; }))
-      .force('x', d3.forceX(W / 2).strength(0.06)).force('y', d3.forceY(H / 2).strength(0.09)).stop();
-    for (var i = 0; i < 320; i++) sim.tick();
+      .force('link', d3.forceLink(links).id(function (d) { return d.id; }).distance(95).strength(0.35))
+      .force('charge', d3.forceManyBody().strength(-320))
+      .force('collide', d3.forceCollide(function (d) { return d.r + 26; }))
+      .force('x', d3.forceX(W / 2).strength(0.05)).force('y', d3.forceY(H / 2).strength(0.08)).stop();
+    for (var i = 0; i < 360; i++) sim.tick();
     var xs = d3.extent(nodes, function (d) { return d.x; }), ys = d3.extent(nodes, function (d) { return d.y; });
-    var sc = Math.min((W - 60) / Math.max(1, xs[1] - xs[0]), (H - 40) / Math.max(1, ys[1] - ys[0]), 1.6);
-    var ox = ((W - 60) - (xs[1] - xs[0]) * sc) / 2 + 20, oy = ((H - 40) - (ys[1] - ys[0]) * sc) / 2 + 20;
+    // la red se centra con margen a ambos lados, para que los rotulos quepan a izquierda o derecha
+    var dx = Math.max(1, xs[1] - xs[0]), dy = Math.max(1, ys[1] - ys[0]);
+    var sc = Math.min((W - (estrecho ? 110 : 240)) / dx, (H - 60) / dy, 1.4), ox = (W - dx * sc) / 2, oy = (H - dy * sc) / 2;
     var px = function (v) { return ox + (v - xs[0]) * sc; }, py = function (v) { return oy + (v - ys[0]) * sc; };
-    var svg = '<svg width="' + W + '" height="' + H + '" role="img" aria-label="Red de codirección de asesores">';
-    links.forEach(function (l) { svg += '<line class="lnk" x1="' + px(l.source.x) + '" y1="' + py(l.source.y) + '" x2="' + px(l.target.x) + '" y2="' + py(l.target.y) + '" stroke-width="' + Math.min(4, 0.8 + l.w * 0.7) + '"/>'; });
-    nodes.forEach(function (d, k) { svg += '<circle class="nd' + (withCo.has(d.id) ? ' co' : '') + '" data-k="' + k + '" cx="' + px(d.x) + '" cy="' + py(d.y) + '" r="' + d.r + '"/>'; });
-    nodes.slice(0, 12).forEach(function (d) { svg += '<text x="' + (px(d.x) + d.r + 3) + '" y="' + (py(d.y) + 3) + '">' + escapeHtml(d.id.split(' ').slice(0, 2).join(' ')) + '</text>'; });
-    host.innerHTML = svg + '</svg>';
-    var s = host.querySelector('svg');
-    s.addEventListener('mousemove', function (ev) {
-      var t = ev.target; if (!t.classList.contains('nd')) { vmHide(); return; }
-      var d = nodes[+t.getAttribute('data-k')];
-      var partners = links.filter(function (l) { return l.source.id === d.id || l.target.id === d.id; }).map(function (l) { return l.source.id === d.id ? l.target.id : l.source.id; });
-      var mainPl = Array.from(pl.get(d.id).entries()).sort(function (a, b) { return b[1] - a[1]; })[0][0];
-      var tt = $('vtooltip');
-      tt.innerHTML = '<span class="t-label">' + escapeHtml(d.id) + '</span><span class="t-meta">' + d.n + ' tesis en este tema</span><span class="t-meta">' + escapeHtml(mainPl) + '</span>' + (partners.length ? '<span class="t-meta">Codirigió con: ' + escapeHtml(partners.slice(0, 3).join(', ')) + (partners.length > 3 ? '…' : '') + '</span>' : '') + '<span class="t-hint">Clic para ver sus tesis</span>';
-      tt.style.opacity = '1'; vmMove(ev);
+    var svg = '<svg width="' + W + '" height="' + H + '" role="img" aria-label="Red de codirección">';
+    links.forEach(function (l) { svg += '<line class="lnk" x1="' + px(l.source.x).toFixed(1) + '" y1="' + py(l.source.y).toFixed(1) + '" x2="' + px(l.target.x).toFixed(1) + '" y2="' + py(l.target.y).toFixed(1) + '" stroke-width="' + Math.min(6, 1.5 + l.w).toFixed(1) + '"/>'; });
+    nodes.forEach(function (d, k) { svg += '<circle class="nd" data-k="' + k + '" cx="' + px(d.x).toFixed(1) + '" cy="' + py(d.y).toFixed(1) + '" r="' + d.r.toFixed(1) + '" stroke-width="' + (1.8 + d.r / 6).toFixed(1) + '"><title>' + escapeHtml(d.id) + ': ' + d.n + ' tesis aquí</title></circle>'; });
+    // v4.8.1: todo asesor lleva su nombre. Se prueban cuatro posiciones (derecha, izquierda, arriba,
+    // abajo) con el ancho real del texto; gana la que no se sale ni choca con circulos o rotulos
+    // ya puestos, o la que menos se encima si ninguna esta libre.
+    var ctx = document.createElement('canvas').getContext('2d'); ctx.font = '12.5px "Libre Franklin", sans-serif';
+    var ocupados = nodes.map(function (d) { return [px(d.x) - d.r - 2, py(d.y) - d.r - 2, px(d.x) + d.r + 2, py(d.y) + d.r + 2]; });
+    var inter = function (a, b) { return Math.max(0, Math.min(a[2], b[2]) - Math.max(a[0], b[0])) * Math.max(0, Math.min(a[3], b[3]) - Math.max(a[1], b[1])); };
+    nodes.forEach(function (d, k) {
+      var cx = px(d.x), cy = py(d.y), w = ctx.measureText(d.id).width, r = d.r;
+      var opciones = [
+        { x: cx + r + 5, y: cy + 4, a: 'start', box: [cx + r + 4, cy - 8, cx + r + 6 + w, cy + 6] },
+        { x: cx - r - 5, y: cy + 4, a: 'end', box: [cx - r - 6 - w, cy - 8, cx - r - 4, cy + 6] },
+        { x: cx, y: cy - r - 6, a: 'middle', box: [cx - w / 2 - 1, cy - r - 18, cx + w / 2 + 1, cy - r - 3] },
+        { x: cx, y: cy + r + 15, a: 'middle', box: [cx - w / 2 - 1, cy + r + 3, cx + w / 2 + 1, cy + r + 18] }
+      ];
+      var mejor = null;
+      opciones.forEach(function (o) {
+        var fuera = Math.max(0, 2 - o.box[0]) + Math.max(0, o.box[2] - (W - 2)) + Math.max(0, 2 - o.box[1]) + Math.max(0, o.box[3] - (H - 2));
+        var costo = fuera * 1000 + ocupados.reduce(function (s, b, j) { return s + (j === k ? 0 : inter(o.box, b)); }, 0);
+        if (!mejor || costo < mejor.costo) { mejor = o; mejor.costo = costo; }
+      });
+      ocupados.push(mejor.box);
+      svg += '<text x="' + mejor.x.toFixed(1) + '" y="' + mejor.y.toFixed(1) + '" text-anchor="' + mejor.a + '">' + escapeHtml(d.id) + '</text>';
     });
-    s.addEventListener('mouseleave', vmHide);
-    s.addEventListener('click', function (ev) { var t = ev.target; if (t.classList.contains('nd')) { vmHide(); taller.fas = nodes[+t.getAttribute('data-k')].id; taller.fpl = ''; taller.fpr = ''; taller.q = ''; setTab('lista'); } });
+    host.innerHTML = svg + '</svg>';
+    host.querySelector('svg').addEventListener('click', function (ev) { var t = ev.target; if (t.classList.contains('nd')) filtrarTesis({ fas: nodes[+t.getAttribute('data-k')].id }); });
   }
 
   // ==================== spotlight: clic en una tesis ====================
@@ -2174,6 +2530,14 @@
       btn.hidden = true;
     }
     $('map-selection').hidden = false;
+  }
+  // v4.8.1: la ficha de una tesis se cierra al cambiar de modo (analizar, taller, ruta, introduccion)
+  // y al hacer clic en una zona vacia del mapa. Devuelve true si habia una abierta.
+  function cerrarFichaTesis() {
+    var ms = $('map-selection');
+    if (ms.hidden || !ms.classList.contains('tesis')) return false;
+    $('map-selection-close').click();
+    return true;
   }
   $('map-selection-close').addEventListener('click', function () {
     clearFocus(); state.scatterplot.deselect({ preventEvent: true });
@@ -2229,7 +2593,7 @@
       paradas.push({ m: 'asesor', html: a.aid == null ? '<span class="tf-v">' + escapeHtml(a.nombre) + '</span><span class="tf-sub">Asesoría</span>'
         : '<button type="button" class="tf-as" data-aid="' + a.aid + '" title="Ver sus tesis en el mapa">' + escapeHtml(a.nombre) +
           '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8h9M9 4.5L12.5 8 9 11.5"/></svg></button>' +
-          '<span class="tf-sub">Asesoría de ' + fmtNum(ases.n[a.aid]) + ' tesis</span>' });
+          '<b class="tf-n" title="Tesis que dirigió en total">' + fmtNum(ases.n[a.aid]) + '</b>' });
     });
     paradas.forEach(function (st, k) {
       html += '<span class="tf-m tf-p' + (st.m ? ' ' + st.m : '') + (k < paradas.length - 1 ? ' sigue' : '') + '"></span>' +
@@ -2273,9 +2637,10 @@
   function setFicha(idx, row) {
     var box = $('ms-tags'), card = $('map-selection');
     box.setAttribute('data-idx', idx == null ? '' : idx);
-    card.classList.toggle('tesis', idx != null);
+    card.classList.toggle('tesis', idx != null); card.classList.remove('grupo'); card.removeAttribute('data-grupo');
     if (idx == null) { box.innerHTML = ''; $('ms-nivel').innerHTML = ''; return; }
     card.style.setProperty('--c', AREA_HEX[state.areaCode[idx] || 0]);
+    pintaLocator($('ms-loc'), 60, [idx], AREA_HEX[state.areaCode[idx] || 0]);
     var pinta = function () {
       if (box.getAttribute('data-idx') !== String(idx)) return;
       box.innerHTML = fichaTesisHtml(idx, row);
@@ -2286,8 +2651,10 @@
     if (!ases.off && !ases.fail) loadAsesores().then(pinta).catch(function () { ases.fail = true; });
   }
   $('ms-tags').addEventListener('click', function (ev) {
-    var b = ev.target.closest && ev.target.closest('.tf-as[data-aid]');
-    if (b) verAsesor(+b.getAttribute('data-aid'));
+    var b = ev.target.closest && ev.target.closest('[data-aid]');
+    if (b) { verAsesor(+b.getAttribute('data-aid')); return; }
+    var mb = ev.target.closest && ev.target.closest('[data-macro]');
+    if (mb) { $('map-selection-close').click(); selectNode(state.macroById[+mb.getAttribute('data-macro')], true); }
   });
 
   // ==================== asesores unificados (v4.2) ====================
@@ -2474,7 +2841,7 @@
       });
     }
     if (total) {
-      html += '<div class="s-sec">Tesis <span>' + fmtNum(total) + (total === 1 ? ' título coincide' : ' títulos coinciden') + (total > muestra.length ? '; las más recientes' : '') + '</span>' +
+      html += '<div class="s-sec">Tesis <span>' + fmtNum(total) + '</span>' +
         (total > 1 ? '<button type="button" class="s-all" id="s-all">Ver las ' + fmtNum(total) + ' en el mapa</button>' : '') + '</div>';
       muestra.forEach(function (idx) {
         var info = pointInfo(idx), mc = state.macroCode[idx];
@@ -2493,7 +2860,7 @@
     box.innerHTML = html;
     var first = box.querySelector('.sr-item'); if (first) first.classList.add('active');
     box.querySelectorAll('.sr-item').forEach(function (b) { b.addEventListener('click', function () { pickResult(+b.getAttribute('data-i')); }); });
-    var all = $('s-all'); if (all) all.addEventListener('click', function () { verEnMapa(search.hits, 'Tesis cuyo título contiene «' + search.q + '»'); });
+    var all = $('s-all'); if (all) all.addEventListener('click', function () { verEnMapa(search.hits, '«' + search.q + '»', { q: search.q }); });
     // titulos que faltan: se cargan por tesela y se rellenan sin volver a buscar
     muestra.forEach(function (idx, k) {
       if (pointInfo(idx) !== undefined) return;
@@ -2516,7 +2883,10 @@
     var bx = visibleBox(), vw = Math.max(1, bx.r - bx.l), vh = Math.max(1, bx.b - bx.t);
     flyToVisible((x0 + x1) / 2, (y0 + y1) / 2, Math.max((x1 - x0) / 2 * state.H / vw, (y1 - y0) / 2 * state.H / vh) * 1.35 + 0.02);
   }
-  function verEnMapa(idxs, titulo, nota) {
+  // v4.9: un conjunto de tesis (las de un asesor o las que coinciden con una busqueda) en el mapa,
+  // con una ficha del mismo sistema: encabezado en el color del campo donde mas aparece, su
+  // perfil (histograma, campos, areas, niveles) y, si es un asesor, con quien codirigio.
+  function verEnMapa(idxs, titulo, opts) {
     closeSearch();
     if (state.iso) exitIsolation();
     idxs = Array.prototype.slice.call(idxs);
@@ -2524,25 +2894,56 @@
     clearFocus();
     pinIndices('busq|' + titulo, idxs);
     state.pin.contour = buildContour(idxs);
-    var cnt = {}, tops = [];
-    idxs.forEach(function (i) { var mc = state.macroCode[i]; if (mc >= 0) cnt[mc] = (cnt[mc] || 0) + 1; });
-    tops = Object.keys(cnt).sort(function (a, b) { return cnt[b] - cnt[a]; }).slice(0, 3);
-    var anios = ases.anio ? idxs.map(function (i) { return ases.anio[i]; }).filter(Boolean).sort(function (a, b) { return a - b; }) : [];
-    $('ms-title').textContent = titulo;
-    setFicha(null);
-    $('ms-meta').textContent = fmtNum(idxs.length) + ' tesis' + (anios.length ? ', de ' + anios[0] + ' a ' + anios[anios.length - 1] : '');
-    var enTerr = 0; Object.keys(cnt).forEach(function (k) { enTerr += cnt[k]; });
-    $('ms-note').innerHTML = (nota ? nota + '<br><br>' : '') + (tops.length ? fmtNum(enTerr) + ' de ellas quedaron en algún campo; donde más: ' + tops.map(function (mc) { return escapeHtml(state.macroById[mc].name) + ' (' + fmtNum(cnt[mc]) + ')'; }).join(', ') + '.' : 'Ninguna quedó en un campo.') +
-      '<br>Las demás tesis se atenúan; cierra esta ficha para quitar el resaltado.';
-    $('ms-go-territory').hidden = !tops.length;
-    $('ms-go-territory').onclick = function () { $('map-selection').hidden = true; selectNode(state.macroById[tops[0]], true); };
-    $('ms-open-vecindario').hidden = true;
+    fichaGrupo(idxs, titulo, opts || {});
+    $('ms-go-territory').hidden = true; $('ms-open-vecindario').hidden = true;
     $('map-selection').hidden = false;
     encuadrar(idxs);
   }
+  function fichaGrupo(idxs, titulo, opts) {
+    setFicha(null);
+    var ms = $('map-selection'), clave = 'g|' + titulo + '|' + idxs.length;
+    ms.classList.add('grupo'); ms.setAttribute('data-grupo', clave);
+    var cnt = {}, sin = 0;
+    idxs.forEach(function (i) { var mc = state.macroCode[i]; if (mc >= 0) cnt[mc] = (cnt[mc] || 0) + 1; else sin++; });
+    var tops = Object.keys(cnt).sort(function (a, b) { return cnt[b] - cnt[a]; });
+    var c = tops.length ? state.macroById[tops[0]].color : '#8c8c8c';
+    ms.style.setProperty('--c', c);
+    pintaLocator($('ms-loc'), 60, idxs, tops.length ? c : '#17181a'); // sin campo: en tinta, no gris sobre gris
+    $('ms-nivel').innerHTML = opts.aid != null ? '<span class="ms-ring"></span>Asesoría' : 'Búsqueda en títulos';
+    $('ms-title').textContent = titulo;
+    $('ms-note').innerHTML = '';
+    var pinta = function () {
+      if (ms.getAttribute('data-grupo') !== clave) return;
+      var filas = idxs.map(function (i) { return { y: ases.anio ? ases.anio[i] : 0, nv: '', pr: tmeta && tmeta.pr[i] ? pretty(tmeta.m.programas[tmeta.pr[i] - 1]) : '' }; });
+      var d = perfilDatos(filas, idxs);
+      // v4.10, orden pedido por el usuario: linea de tiempo, areas y niveles (datos del catalogo);
+      // al final los campos, que son inferidos por el agrupamiento. Sin subtitulo de conteo y rango:
+      // la linea de tiempo ya lo dice.
+      $('ms-meta').textContent = '';
+      var h = d.ys.length ? '<div class="cs">' + histHtml(d, c, 316, 46, false) + '</div>' : '';
+      h += '<div class="cs"><h3>Áreas</h3>' + areasHtml(d, 92) + '</div>';
+      if (d.nvt) h += '<div class="cs"><h3>Niveles</h3>' + nivelesHtml(d, 316, 10) + '</div>';
+      h += '<div class="cs"><h3>' + (opts.aid != null ? 'Campos donde dirigió' : 'Campos donde aparece') + '</h3><div class="cs-list">' +
+        tops.slice(0, 5).map(function (mc) {
+          var m = state.macroById[mc];
+          return '<button type="button" data-macro="' + mc + '" style="--c:' + m.color + '" title="Ir a este campo"><span class="dot"></span><span class="n">' + escapeHtml(m.name) + '</span><b>' + fmtNum(cnt[mc]) + '</b></button>';
+        }).join('') +
+        (sin ? '<button type="button" disabled style="--c:#c4c4c4"><span class="dot"></span><span class="n">Sin campo</span><b>' + fmtNum(sin) + '</b></button>' : '') + '</div></div>';
+      if (opts.aid != null && ases.off) {
+        var co = {};
+        idxs.forEach(function (i) { for (var j = ases.off[i]; j < ases.off[i + 1]; j++) if (ases.ids[j] !== opts.aid) co[ases.ids[j]] = (co[ases.ids[j]] || 0) + 1; });
+        var cs = Object.keys(co).sort(function (a, b) { return co[b] - co[a]; }).slice(0, 5);
+        if (cs.length) h += '<div class="cs"><h3>Codirigió con</h3><div class="cs-list">' + cs.map(function (k) {
+          return '<button type="button" data-aid="' + k + '" title="Ver su ficha"><span class="ring"></span><span class="n">' + escapeHtml(ases.nombres[k]) + '</span><b>' + fmtNum(co[k]) + '</b></button>';
+        }).join('') + '</div></div>';
+      }
+      $('ms-tags').innerHTML = h;
+    };
+    pinta();
+    if (!tmeta || !ases.off) Promise.all([loadTesisMeta(), loadAsesores().catch(function () {})]).then(pinta);
+  }
   function verAsesor(aid) {
-    var ts = tesisDeAsesor(aid);
-    verEnMapa(ts, ases.nombres[aid], 'Tesis que dirigió o codirigió.');
+    verEnMapa(tesisDeAsesor(aid), ases.nombres[aid], { aid: aid });
   }
   function pickResult(i) {
     var r = search.results[i]; if (!r) return;
@@ -2634,6 +3035,7 @@
     }
   }
   function startIntro() {
+    cerrarFichaTesis();
     if (state.iso) exitIsolation(true);
     $('story').hidden = true; story = null;
     setChromeForIntro(true);
@@ -2738,6 +3140,7 @@
   $('btn-routes').addEventListener('click', function (ev) { ev.stopPropagation(); if (!state.introActive) toggleRoutesMenu(); });
   document.addEventListener('click', function (ev) { if (!$('routes-menu').hidden && !$('routes-menu').contains(ev.target) && ev.target !== $('btn-routes')) toggleRoutesMenu(false); });
   function startRoute(id, stepIdx) {
+    cerrarFichaTesis();
     var r = ROUTES.filter(function (x) { return x.id === id; })[0]; if (!r) return;
     stepIdx = stepIdx || 0;
     var st = r.steps[stepIdx];
@@ -2783,7 +3186,7 @@
       var rec = titleTiles[k] = { map: null, p: null };
       rec.p = fetchJson('./data/titulos_teselas/' + k + '.json').then(function (d) {
         var mp = new Map();
-        for (var j = 0; j < d.i.length; j++) mp.set(d.i[j], { t: d.t[j], y: d.y[j] });
+        for (var j = 0; j < d.i.length; j++) mp.set(d.i[j], { t: tituloTesis(d.t[j]), y: d.y[j] });
         rec.map = mp; return mp;
       }).catch(function () { rec.map = new Map(); return rec.map; });
     }
@@ -2815,6 +3218,7 @@
   // ampliada alrededor del centro del tema (conserva quien esta cerca de quien) y
   // una relajacion de colisiones garantiza ISO_MIN_PX entre centros en pantalla.
   var ISO_MIN_PX = 24;      // separacion minima entre centros de dos tesis (v3.3: antes 15; referencia del usuario)
+  var EDGE_MAX = 1200;      // enlaces dibujados como maximo en un subtema aislado (v4.8.1)
   var ISO_DOT_PX = 15;      // diametro del punto en estado 'eco'
   var ISO_EXPAND = 3.2;     // cuanto se amplia el tema como minimo respecto a su tamano real
   var ANA_STEP_PX = 20, ANA_DOT_PX = 12;
@@ -3091,6 +3495,15 @@
       // enlaces reales (vecinas e5 dentro del tema, ver generar_atlas_tesis_por_micro.py)
       var edges = (raw.edges || []).map(function (e) { return [rowIdx[e[0]], rowIdx[e[1]], e[2]]; })
         .filter(function (e) { return e[0] != null && e[1] != null; });
+      // v4.8.1: en subtemas grandes la marana de enlaces (3 por tesis) no se lee y frena el dibujo.
+      // Se queda cada tesis con su enlace mas fuerte (nadie queda suelto) y, hasta EDGE_MAX, los
+      // mas fuertes del resto.
+      if (edges.length > EDGE_MAX) {
+        edges.sort(function (a, b) { return b[2] - a[2]; });
+        var cubre = new Set(), keep = [], resto = [];
+        edges.forEach(function (e) { if (!cubre.has(e[0]) || !cubre.has(e[1])) { keep.push(e); cubre.add(e[0]); cubre.add(e[1]); } else resto.push(e); });
+        edges = keep.concat(resto.slice(0, Math.max(0, EDGE_MAX - keep.length)));
+      }
 
       var posOf = {}; idxs.forEach(function (i, k) { posOf[i] = k; });
       state.iso = { node: n, idxs: idxs, byIdx: byIdx, posOf: posOf, cats: cats, ecoCats: cats, X: NX, Y: NY, ecoX: NX, ecoY: NY, cx: cx, cy: cy, D: D, edges: edges, mode: 'eco', groupBy: 'plantel' };
@@ -3268,6 +3681,7 @@
   };
   function enterAnalysis(groupBy, instant) {
     var iso = state.iso; if (!iso) return;
+    cerrarFichaTesis();
     iso.mode = 'ana'; iso.groupBy = groupBy || iso.groupBy || 'plantel';
     stopFlow(); setChipMode('ana');
     var keyFn = ANA_KEYS[iso.groupBy], groups = new Map();
@@ -3311,6 +3725,7 @@
   }
   function exitAnalysis() {
     var iso = state.iso; if (!iso) return;
+    cerrarFichaTesis();
     iso.mode = 'eco'; iso.cats = iso.ecoCats; iso.X = iso.ecoX; iso.Y = iso.ecoY;
     hideAnaLabels(); setChipMode('eco');
     state.dispX = iso.ecoX; state.dispY = iso.ecoY;
@@ -3440,7 +3855,6 @@
   $('foot-metodo').addEventListener('click', function () { showMetodo(true); });
   $('metodo-close').addEventListener('click', function () { showMetodo(false); });
   $('nav-map').addEventListener('click', function () { showMetodo(false); if (!$('taller').hidden) closeTaller(); });
-  $('legend').addEventListener('click', function (ev) { if (ev.target.hasAttribute('data-metodo')) { ev.preventDefault(); showMetodo(true); } });
 
   // ==================== teclado, resize, debug ====================
   document.addEventListener('keydown', function (ev) {
@@ -3496,7 +3910,7 @@
     state: state, flyTo: flyTo, flyToNode: flyToNode, flyHome: flyHome, selectNode: selectNode, setLens: setLens,
     openSearch: openSearch, runSearch: runSearch, pickResult: pickResult, startIntro: startIntro, startRoute: startRoute,
     applySpotlight: applySpotlight, clearSpotlight: clearSpotlight, highlightMacros: highlightMacros, openVecindarioModal: openVecindarioModal,
-    verEnMapa: verEnMapa, focusThesis: focusThesis, loadMicro: loadMicro, onPointClick: onPointClick, loadTesisMeta: loadTesisMeta,
+    verEnMapa: verEnMapa, focusThesis: focusThesis, loadMicro: loadMicro, loadMeso: loadMeso, onPointClick: onPointClick, loadTesisMeta: loadTesisMeta,
     runIntroTransition: runIntroTransition, closeStory: closeStory, live: live, flow: flow,
     onPointClick: onPointClick, loadAsesores: loadAsesores, asesoresDe: asesoresDe, tesisDeAsesor: tesisDeAsesor
   };

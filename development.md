@@ -1870,3 +1870,134 @@ Siguen el A→Z, el taller y los subtemas.
 - Las secciones anteriores de esta bitácora conservan los nombres viejos.
 
 **Verificado:** sin rastros de los nombres viejos en textos visibles (grep); capturas de miga de pan, leyenda, ficha y búsqueda. Sin errores de consola.
+
+### v4.8.0: taller rediseñado: Tesis, Perfil y Asesores (2026-09-24)
+
+**Pedido del usuario:** la vista «Ver las N tesis y su análisis» era genérica y la vista analítica no le convencía.
+
+**Cambios:**
+- **Encabezado** con el sistema de fichas: franja y tinte del color del campo, nivel jerárquico, título y palabras clave. Las pestañas llevan su conteo.
+- **Tesis:**
+  - fichas compactas con la gramática del hover;
+  - facetas de catálogo: buscar, orden, agrupar por década, programa o nivel, nivel en azul, programa con anillo del color de su área y plantel en gris;
+  - en móvil las facetas se pliegan;
+  - el agrupado sustituye a la vista analítica, que agrupaba mal: mandaba las décadas más grandes a «Otros».
+- **Perfil:** las gráficas de la ficha del cluster en grande, extraídas a funciones compartidas (`perfilDatos`, `histHtml`, `areasHtml`, `nivelesHtml`, `programasHtml`). Cada barra filtra Tesis.
+- **Asesores:** transbordos ordenados con su línea de tiempo, y la red de codirección con círculos de transbordo y líneas del color del campo.
+
+### v4.8.1: títulos, minimapa, red de asesores y ajustes de la lista del usuario (2026-09-24)
+
+- **Títulos:** todo título de tesis empieza con mayúscula (`tituloTesis`), saltando signos de apertura.
+- **Minimapa:** «Vista general» pasa a «Minimapa» y el botón a «Mostrar minimapa».
+- **«Cómo se hizo el mapa»:** queda solo en el pie.
+- **Red de codirección:**
+  - todo asesor lleva su nombre: se prueban cuatro posiciones y el ancho medido;
+  - la red es conexa: se elige a partir del asesor con más tesis;
+  - en móvil se muestran 12 asesores.
+- **Búsqueda del taller:** el fragmento buscado va en negritas (`resaltarHtml`, sin distinguir acentos).
+- **Enlaces en subtemas grandes:** como máximo 1,200, y cada tesis conserva su enlace más fuerte. En Filosofía – Nietzsche quedan 1,572 de ~5,500.
+- **Ficha de tesis:** se cierra al cambiar de modo y al hacer clic en una zona vacía del mapa.
+
+### v4.9.0: ficha de asesor o búsqueda, tooltip de cluster y tesis recientes (2026-09-24)
+
+- **Ficha de un conjunto** (asesor o búsqueda) con el sistema de fichas: color del campo dominante, perfil, campos (clicables) y, en un asesor, «Codirigió con» (se navega de asesor en asesor).
+- **Tooltip de campo, tema o subtema:** glifo de rango, palabras clave y barra de áreas. Se quitó «Clic para acercarte». Además se acomoda a su ancho real; antes se salía por la derecha.
+- **Ficha del cluster:** el A→Z pasa a «Tesis recientes» (5 fichas compactas) y el botón negro a un enlace.
+
+### v4.10.0: fuera los subtítulos innecesarios (2026-09-24)
+
+**Anti-patrón nuevo (#22 en PRODUCT.md), identificado por el usuario:** subtítulos que repiten lo que la gráfica ya dice («48 tesis, de 1991 a 2013» sobre la línea de tiempo), notas de instrucción y conteos en prosa. **Regla:** el dato se dice con la gráfica, con jerarquía visual o como un elemento del sistema. Una frase entra solo si dice algo que nada más muestra.
+
+**Qué se quitó o sustituyó:**
+- **Histogramas:**
+  - ahora tienen **eje con números**: el tope «redondo» y su mitad, con líneas de referencia tenues;
+  - se quitó el rótulo «Tesis por año».
+- **Ficha de asesor o búsqueda:**
+  - nuevo orden pedido por el usuario: línea de tiempo, áreas y niveles (datos del catálogo), y al final los campos, que son inferidos;
+  - sin subtítulo de conteo y rango;
+  - «17 tesis no quedaron en ningún campo» pasa a ser una fila «Sin campo» con punto gris;
+  - sin nota «cierra esta ficha para…».
+- **Ficha del cluster:** sin «N tesis, de X a Y»; «Asesores con más tesis aquí» pasa a «Asesores».
+- **Ficha de tesis:** «Asesoría de 48 tesis» pasa a ser un número alineado a la derecha del asesor.
+- **Tooltip de cluster:** «93 % de Humanidades» se quitó, porque ya lo dice la barra.
+- **Búsqueda:** «153 títulos coinciden; las más recientes» pasa a ser el número solo.
+- **Taller:**
+  - sin la línea de conteo y rango en el encabezado;
+  - el conteo de la lista solo aparece al filtrar;
+  - Perfil sin párrafo de lectura;
+  - Asesores: el párrafo pasa a una barra «Asesoría por tesis» (un asesor, dos o más, sin registro), las filas pierden «Codirigió con N personas…» (queda una flecha al mapa) y la descripción de la red pasa a una leyenda de glifos.
+
+**Se conserva a propósito:** la nota de la leyenda del mapa («no son las áreas oficiales»), por el principio de honestidad sobre el método.
+
+**Verificado:** capturas de la ficha de asesor, de búsqueda y de cluster, y del Perfil y Asesores del taller. Sin errores de consola.
+
+### v4.11.0: línea de tiempo sin bloques y encabezados sin «énfasis falso» (2026-09-24)
+
+**Reportes del usuario:**
+1. Con pocos años, el histograma se volvía un bloque: una sola barra a todo el ancho (asesor Saul Cruz Ramos: 2 tesis en 1982).
+2. El encabezado con fondo teñido y franja de color más oscura es «énfasis falso» y se reconoce como diseño generado por IA. Queda como anti-patrón #23 en PRODUCT.md.
+
+**Línea de tiempo** (`histHtml`, usada por las fichas de cluster, asesor y búsqueda, y por el Perfil del taller):
+- el rango mínimo es de 10 años, así un dato aislado queda en su contexto;
+- con 8 años con tesis o menos, **paletas**: un tallo y un punto por año;
+- con más, **línea** con área tenue;
+- el eje con números se conserva;
+- los puntos son líneas de longitud cero con extremo redondo y `vector-effect: non-scaling-stroke`, para que sigan siendo círculos aunque la gráfica se estire.
+
+**Encabezados** (ficha de tesis, de asesor o búsqueda, de cluster y del taller):
+- sin fondo teñido ni franja; blanco, con una regla fina abajo;
+- el color pasa a un **mapa de localización**, como el recuadro de ubicación de los atlas: la silueta del mapa en gris, recortada al 99 % de su extensión, y lo que describe la ficha en su color:
+  - una tesis, con dos líneas guía que se cruzan en su punto;
+  - un cluster o conjunto, con sus puntos (en tinta si ninguno está en un campo).
+
+**Verificado:** asesor con 2 tesis (paleta), asesor con 48 (línea), tesis, tema y taller, en escritorio y móvil. Sin errores de consola.
+
+### v4.12.0: histograma con hover, localizador tonal y tooltip del mapa bloqueado bajo las fichas (2026-09-24)
+
+**Pedidos del usuario:**
+- volver al histograma cuando hay ~10 tesis o más;
+- un hover que diga el número y el año de cada barra;
+- el localizador con color de fondo.
+
+**Línea de tiempo:**
+- con 10 tesis o más, barras por año; con menos, paletas, así no reaparece el bloque de una barra;
+- rango mínimo de 10 años y eje con números, como antes;
+- **hover** (un solo manejador para todas las gráficas, en fichas y taller, con ratón o toque): la barra se marca, las demás bajan a 30 % y encima aparece el número en negritas con el año debajo, sin caja, acotado a los bordes de la gráfica.
+
+**Localizador tonal:** en lugar de un fondo sólido, todo el recuadro en el tono del dato:
+- fondo en un tinte claro (16 %);
+- silueta del mapa en tono medio (50 %);
+- el dato en el color pleno; en una tesis, líneas guía de tinta al 55 % y punto de tinta.
+
+Se distingue de un vistazo y el color sigue diciendo de qué campo o área se trata.
+
+**Bug que ya existía:** regl-scatterplot calcula el hover por coordenadas, aunque el mapa esté tapado por una ficha o un panel, así que al pasar el cursor sobre una ficha aparecía el tooltip de la tesis de abajo. Ahora solo se muestra si el cursor está sobre el lienzo del mapa.
+
+**Hallazgo pendiente de confirmar** (posible bug 4 del usuario): en Analizar, la cuadrícula de un subtema grande sale por debajo de la pantalla (Filosofía – Nietzsche: tesis en y ≈ 768 px, bajo el pie). Si el límite de paneo no deja bajar, esas tesis no se alcanzan. Al volver a «Ver conexiones», cámara y posiciones quedan igual que antes (verificado).
+
+**Verificado:** hover en asesor con 48 tesis (barras: «1, 2005»), con 2 tesis (paleta: «2, 1982») y en el Perfil del taller («114, 2012»); el tooltip del mapa no aparece bajo la ficha; el hover del mapa sigue funcionando. Sin errores de consola.
+
+### v4.13.0: palabras clave medidas y marca de rango en lugar de la frase de contexto (2026-09-24)
+
+**Pedido del usuario:**
+- las palabras clave eran «solo palabras», fuera del sistema visual;
+- la frase «Tema en Filosofía y letras» sobre el título le restaba protagonismo y era un subtítulo explicativo (anti-patrón #22).
+
+**Palabras clave medidas** (`palabrasHtml`): una barra por palabra clave con la proporción de títulos del cluster que la contienen. Es un dato real de sus títulos, no un peso inventado. Van ordenadas por esa proporción, en el color del campo. Al hacer clic se abre el taller con la lista filtrada y el término en negritas. Aparecen en la ficha del cluster (primera sección) y en el Perfil del taller.
+
+**Marca de rango** (`rangoHtml`), en lugar de la frase:
+- el título va arriba de todo;
+- debajo, los tres glifos del mapa: campo (punto grande), tema (punto) y subtema (anillo), con el nivel actual en su color y los otros en gris;
+- al lado, el campo al que pertenece (enlace en la ficha).
+
+Dice «tema dentro de Filosofía y letras» sin escribirlo. Se aplica en la ficha del cluster, el encabezado del taller y el tooltip del mapa.
+
+**Verificado:** subtema, campo, taller (palabra «obra»: 299 de 5,469 tesis, con el término resaltado), Perfil y tooltip, en escritorio y móvil. Sin errores de consola.
+
+### v4.13.1: fuera las palabras clave (2026-09-24)
+
+**Reporte del usuario:** las palabras clave eran redundantes. En «Álvaro Obregón – Delegación Álvaro», las barras decían Obregón 90 %, Álvaro 89 %, Álvaro Obregón 87 %…: el nombre ya está hecho de esas palabras y los n-gramas se repiten entre sí.
+
+**Cambio:** se quitaron de la ficha del cluster, del Perfil del taller y del tooltip del mapa, con su código (`palabrasHtml` y sus manejadores). La marca de rango de v4.13.0 se queda.
+
+**Verificado:** ficha, taller y tooltip; flujos anteriores en escritorio y móvil. Sin errores de consola.
