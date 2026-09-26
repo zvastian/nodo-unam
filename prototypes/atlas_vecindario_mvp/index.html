@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>NodOS</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6' fill='%231d4f91'/%3E%3C/svg%3E">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -38,6 +38,8 @@
     --ink: #eceae4; --ink-2: #bcc2cf; --ink-3: #8f98ab;
     --line: #283044; --line-strong: #3b4559; --grid: #1a2030;
     --link: #8fb8f2;
+    /* logo de noche: el marino del trazo no se leeria sobre el fondo oscuro */
+    --nodos-azul-1: #eceae4; --nodos-azul-2: #86b3ec; --nodos-punto-izq: #4f82c4; --nodos-punto-der: #cfe3ff; --nodos-punto-centro: #86b3ec;
     --map-edge: #6d7890; --map-tick: #4c566d; --map-region: #59627a; --map-label: #d9dbe2; --map-minor: #a3aabb;
     color-scheme: dark;
   }
@@ -87,8 +89,9 @@
   /* ---------- navegacion global [2] ---------- */
   header.nav { display: flex; align-items: center; gap: 28px; height: var(--nav-h); padding: 0 24px; background: var(--paper); border-bottom: 1px solid var(--line); position: relative; z-index: 14; flex-shrink: 0; }
   .brand { display: flex; align-items: baseline; gap: 8px; text-decoration: none; color: var(--ink); white-space: nowrap; }
-  .brand-name { font-size: 17px; font-weight: 700; letter-spacing: -0.01em; }  /* [4] sin mayusculas espaciadas */
-  .brand-org { font-size: 14px; color: var(--ink-3); }
+  /* v4.22: logo oficial (marca/nodos-logo.svg) en lugar del nombre; sus colores salen de sus variables --nodos-* */
+  .brand { align-items: center; }
+  .brand-logo { height: 42px; width: auto; display: block; flex-shrink: 0; }
   .navlinks { display: flex; align-items: stretch; gap: 22px; height: 100%; }
   .navlinks button { border: none; background: none; cursor: pointer; font-size: 14px; color: var(--ink-2); padding: 0; border-bottom: 2px solid transparent; border-top: 2px solid transparent; }
   .navlinks button:hover { color: var(--ink); }
@@ -254,6 +257,12 @@
   .cs-list button b { font-weight: 400; color: var(--ink-3); }
   .cs-list .ring { width: 11px; height: 11px; border-radius: 50%; box-shadow: inset 0 0 0 2.2px var(--ink); }
   .cs-list button:disabled { cursor: default; }
+  /* v4.20: tesis codirigidas, abiertas bajo el nombre del codirector */
+  .co-tesis { list-style: none; margin: 2px 0 10px 22px; padding: 0; font-size: 13px; line-height: 1.4; }
+  .co-tesis li { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; column-gap: 8px; padding: 5px 0; border-top: 1px solid var(--line); }
+  .co-tesis .y { color: var(--ink-3); }
+  .co-tesis a { color: var(--ink); text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 3px; }
+  .co-tesis a:hover { text-decoration-color: var(--ink); }
   .cs-list button:disabled:hover .n { color: inherit; text-decoration: none; }
   .cs-list .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--c); margin-left: 1px; }
   #panel .panel-body { padding: 16px 22px 24px; overflow-y: auto; flex: 1; }
@@ -286,6 +295,9 @@
   #map-selection .ms-head { display: flex; flex-direction: column; }
   #map-selection .close-btn-mini { z-index: 1; }
   #map-selection .ms-title { font-size: 18px; font-weight: 700; line-height: 1.3; margin-bottom: 6px; padding-right: 30px; letter-spacing: -0.005em; }
+  /* v4.19: el titulo de una tesis abre su registro en TESIUNAM; en tinta, con subrayado fino que se marca al pasar */
+  #map-selection .ms-title a { color: var(--ink); text-decoration: underline; text-decoration-color: var(--line-strong); text-decoration-thickness: 1px; text-underline-offset: 4px; }
+  #map-selection .ms-title a:hover { text-decoration-color: var(--ink); }
   #map-selection .ms-meta { font-size: 13.5px; color: var(--ink-3); margin-bottom: 10px; }
   #map-selection .ms-note { font-size: 14px; color: var(--ink-2); line-height: 1.55; }
   /* v4.4: la tesis en dos tamanos con una sola gramatica, la del plano de metro de Vignelli
@@ -485,6 +497,15 @@
   .tl-grp b { font-weight: 400; font-size: 13.5px; color: var(--ink-3); }
   /* ficha compacta de tesis: la gramatica del hover, a tamano de lista */
   .tt { display: block; width: 100%; padding: 12px 0 11px; border: 0; border-bottom: 1px solid var(--line); background: none; font: inherit; text-align: left; cursor: pointer; }
+  /* v4.21: la fila de una tesis lleva su boton de guardar al lado (un boton no puede ir dentro de otro) */
+  .tt-fila { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 8px; border-bottom: 1px solid var(--line); }
+  .tt-fila .tt { border-bottom: 0; }
+  .tt-fila .guardar { padding-top: 12px; }
+  #panel .tt-fila .guardar { padding-top: 10px; }
+  .guardar { align-self: start; background: none; border: 0; padding: 2px; cursor: pointer; color: var(--ink-3); line-height: 0; }
+  .guardar:hover, .guardar-txt:hover .ico { color: var(--ink); }
+  .guardar .ico, .guardar-txt .ico { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linejoin: round; }
+  .guardar-txt { gap: 6px; }
   .tt:hover .tt-t { color: var(--link); }
   .tt-a { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--ink-3); }
   .tt-a .tc-nv { display: inline-flex; gap: 2px; margin: 0; }
@@ -559,14 +580,18 @@
   footer button:hover { text-decoration: underline; }
   footer .foot-sep { display: inline-block; width: 1px; height: 11px; background: var(--line-strong); margin: 0 10px; vertical-align: -1px; }
   .loading-note { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 12px; font-size: 15px; color: var(--ink-3); z-index: 10; background: var(--paper); transition: opacity 400ms ease; }
-  .loading-note .bar { width: 160px; height: 2px; background: var(--grid); overflow: hidden; }
-  .loading-note .bar i { display: block; height: 100%; width: 40%; background: var(--ink-3); animation: slide 1.1s ease-in-out infinite; }
-  @keyframes slide { 0% { transform: translateX(-100%); } 100% { transform: translateX(260%); } }
+  /* v4.22: carga con el logo; los tres puntos se encienden por turnos, como nodos que se conectan */
+  .loading-logo { width: 132px; height: auto; display: block; }
+  .loading-logo :is(.lg-punto-izq, .lg-punto-centro, .lg-punto-der) { animation: nodo-carga 1.5s ease-in-out infinite; opacity: .2; }
+  .loading-logo .lg-punto-centro { animation-delay: .25s; }
+  .loading-logo .lg-punto-der { animation-delay: .5s; }
+  @keyframes nodo-carga { 0%, 100% { opacity: .2; } 35%, 55% { opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { .loading-logo :is(.lg-punto-izq, .lg-punto-centro, .lg-punto-der) { animation: none; opacity: 1; } }
+  #loading-text:empty { display: none; }
   #debug-log { font: 10px monospace; background: #fffbe6; border-bottom: 1px solid #ddd; padding: 4px 10px; max-height: 140px; overflow: auto; white-space: pre-wrap; }
 
   @media (max-width: 860px) {
     header.nav { gap: 16px; padding: 0 14px; }
-    .brand-org { display: none; }
     .navlinks { gap: 14px; }
     .navsearch { width: 40px; padding: 0; justify-content: center; }
     .navsearch span { display: none; }
@@ -621,7 +646,7 @@
 <body>
 <div class="app">
   <header class="nav">
-    <a class="brand" href="./" title="NodOS: atlas de 609,154 tesis de la UNAM ordenadas por lo que dicen sus títulos"><span class="brand-name">NodOS</span><span class="brand-org">Atlas de tesis UNAM</span></a>
+    <a class="brand" href="./" title="NodOS: mapa de 609,154 tesis de la UNAM ordenadas por lo que dicen sus títulos"><svg class="brand-logo" viewBox="226 142 873 864" fill-rule="evenodd" role="img" aria-label="NodOS"><path class="lg-nodo-1" fill="var(--nodos-azul-1, #143a6b)" d="M591.3 766.3C600.2 762.1 606.1 757.1 611 749.8C618.5 738.6 620.8 725.1 617.5 711.3C616.7 707.9 612.5 697.9 608.1 689C598.3 669.1 594.7 659.4 591.3 643.2C588.9 631.9 588.6 628.4 588.6 610.5C588.6 589 589.8 579.9 594.6 563.3C604.5 529 629.6 510.7 661 515C690.4 518.9 737 544.2 742.1 559C742.7 560.6 743.5 562 743.8 562C744.2 562 745.5 557.8 746.7 552.7C749.8 540 754.1 532 762.6 523L769.8 515.5L761.6 515.4C739.4 515.1 707.6 503.3 686.8 487.6C670.2 475.1 661.7 461.7 657.4 441.3C652.3 416.5 646.7 407.2 629 393.4C606.2 375.7 596.4 360.5 591 333.9C589.1 324.9 588.9 321.2 589.3 306.5C589.7 291.7 590.2 288 592.8 277.7C596.4 264 603.2 249.2 611.3 237.2C618.8 226.3 620.7 222.3 623.1 213.3C627.6 195.4 623.2 178.4 610.5 165.4C596.5 151.2 574.4 146.3 555.7 153.4C543.3 158.1 534.1 166.1 528.5 177.2C524.1 186 522.6 193.5 523.3 203.5C524 214.5 527 223 533.6 233.6C550.9 261 557.3 279.4 558.7 304.6C560 330.8 553.3 356.6 540.4 374.1C534.6 382.1 523.7 391.6 516.3 395.1C500.4 402.7 479 398.8 457.4 384.5C447.7 378 438.1 368 428.5 354.4C416.2 336.9 406.6 328.9 393.5 325.5C373.2 320.3 352.1 329.9 342.9 348.6C340.2 354 339.6 356.7 339.2 363.4C338.3 381.4 346.6 395.8 362.5 403.6L368.5 406.5L394.5 406.6C423.9 406.7 432.5 407.8 449.5 413.7C473 421.8 487.7 434.6 494.2 452.5C497.1 460.5 497.8 475.3 495.7 483.3C491.2 500.5 472.5 517.1 451.5 522.5C448.2 523.4 437.4 524.5 427.5 525C417.6 525.5 407.2 526.6 404.3 527.4C391.8 530.8 383.1 536.7 375.4 547.2C371.4 552.7 370.1 556 364.1 575.5C360.4 588 352.2 599.6 341.8 607.6C332.1 614.8 321.1 619.7 305 623.6C297.2 625.5 288.9 628 286.6 629.2C271.9 636.5 265.5 655.6 272.7 670.8C277.4 680.8 289.3 687.6 300.5 686.7C313.1 685.7 321 679.4 329.1 663.6C336.2 649.7 339.9 644.4 347.2 637.4C354.9 630 364.9 624 375.5 620.4C382.8 617.9 385.3 617.6 405 617C428.6 616.2 433.5 615.2 442.4 609.1C452.7 602 458.4 592.8 465.7 571.6C472.1 552.7 477 544 486 534.9C496.1 524.7 504.3 520.6 514.4 520.6C520.2 520.6 522.5 521 526.8 523.3C540.8 530.6 551 547.7 556.2 572.6C558.2 582.2 558.5 586.3 558.5 607C558.4 627.3 558.1 631.8 556.3 640.3C552.7 656.7 549 666.7 539.8 684.9C527.4 709.5 524.7 719.2 527 732C530 749 541.2 762.2 557.5 767.9C562.4 769.7 565.4 770 574 769.7C583.4 769.5 585.2 769.1 591.3 766.3Z"/><path class="lg-nodo-2" fill="var(--nodos-azul-2, #2d65a8)" d="M891.3 726.4C897.7 724.2 905.2 717.3 908.1 710.8C909.9 706.8 910.4 703.7 910.5 698C910.5 691.5 910.1 689.8 907.5 685.2C904.1 678.9 900.3 676.1 887 669.8C866.4 660 855.9 648.2 847.7 625.5C837.9 598.1 845.8 565.4 867.5 543.4C885.1 525.6 906.3 516.3 934.5 513.9C948.7 512.7 954.8 510.3 960.9 503.4C965.8 497.8 968 491.6 968 483C968 470.9 962.4 463.3 948.7 456.4C937.5 450.7 931.1 446.3 923.1 438.6C911.7 427.6 904.9 416.1 899.9 399.5C899.3 397.2 898.5 384.7 898.1 370C897.4 346.8 897.2 344 895.1 338.8C889.6 324.8 878.9 315.3 863.1 310.5C845.1 305 839.5 302.9 834.2 299.8C817.6 289.7 804.9 273.6 796 251.3C791.3 239.3 789.2 229.4 788.4 215.2C787.6 200.4 786 195.8 779.1 188.9C772.5 182.3 766.7 180 757 180C748 180 742 182.3 735.6 188.1C728.3 194.7 725.5 201.1 725.6 211C725.7 224.4 731.2 231.9 746.9 240C765.9 249.7 779.8 263.8 789.1 282.5C798 300.6 799.8 314.6 796.3 338.8C795 348.4 794.9 351.6 795.9 357.8C798.9 377.7 811.6 390.6 836 398.5C847.1 402.1 859.9 408.6 867.9 414.6C880 423.7 891 440.5 894.4 455C900 478.5 889.1 499.5 867 508.2C857.7 511.8 842.7 511.9 825.5 508.4C795.3 502.4 778.6 506.3 762.7 522.9C754.2 531.9 749.9 539.8 746.7 552.8C745.4 557.8 744 562.3 743.7 562.7C743.3 563 743 564.1 743 565.1C743 568.2 738.2 578 734.3 582.9C719.6 601.2 694.1 614.1 664.3 618.5C651.1 620.4 647.6 621.5 642.7 625.1C631.5 633.1 627.2 647.4 632 660.2C636.2 671.5 645.1 678 657.6 678.8C670 679.6 678.3 674.4 685.5 661.3C696.8 640.9 712 626.5 732.4 616.9C756 605.9 777.7 605.7 800.6 616.5C811.6 621.6 818.6 626.6 826 634.7C840.9 650.7 849.2 670.8 850.6 694.4C851.7 711.3 856.1 719.4 867.2 724.9C872.2 727.4 874.5 728 880 728C883.6 728 888.7 727.3 891.3 726.4Z"/><path class="lg-punto-izq" fill="var(--nodos-punto-izq, #9cc3e6)" d="M495.4 337.9C502.3 335.4 510.3 328.2 513.7 321.6C515.8 317.6 516.4 314.6 516.8 307.8C517.2 299.7 517 298.7 514.1 292.4C508.9 281.3 500.5 274.9 488.5 273C466.1 269.4 446.2 290.6 450.9 313.2C455.1 333.2 476.4 345.1 495.4 337.9Z"/><path class="lg-punto-der" fill="var(--nodos-punto-der, #5b95cf)" d="M871 221.1C878 217.8 882.3 213.7 886.1 206.8C889.3 200.9 889.5 199.9 889.5 191C889.5 183.1 889.1 180.7 887.2 176.8C883.7 169.8 877.6 163.4 871.2 160.3C866.3 157.9 864.3 157.5 856.5 157.5C848.1 157.5 847.1 157.7 841.2 160.9C826.6 168.8 820 184.8 824.8 200.6C830.7 220 852.7 229.7 871 221.1Z"/><path class="lg-punto-centro" fill="var(--nodos-punto-centro, #5b95cf)" d="M778.5 466.6C785.2 463.6 791.5 457.1 794.9 450C797 445.4 797.5 443.1 797.5 436C797.5 428.9 797.1 426.6 794.9 421.9C791.4 414.6 786.4 409.1 779.8 405.4C774.9 402.7 773.7 402.5 764.5 402.5C753 402.5 748.7 404.1 741.2 411.4C721.7 430 730.4 462.3 756.7 469C762.6 470.4 772.5 469.4 778.5 466.6Z"/><path class="lg-palabra-nod" fill="var(--nodos-azul-1, #143a6b)" d="M662.6 993.5C671.2 990.6 678.9 986 684 980.6L687.5 976.9L688 985.2L688.5 993.5L705.8 993.8L723 994L722.8 902.8L722.5 811.5L705.5 811.5L688.5 811.5L688.2 844.4L688 877.3L682.6 872.2C672.1 862.3 659.1 857.5 642.5 857.6C629.7 857.7 619.8 860.4 609.1 866.7C574.8 887 568.1 945.5 596.4 977.7C611.1 994.5 639.5 1001.3 662.6 993.5ZM509.9 994.5C537.5 988.7 558.3 968.8 564.3 942.5C566.7 931.7 567.1 926.2 565.9 917C562 885.4 542.3 863.8 511 856.5C501.3 854.3 482.2 854.5 472.4 857C451.5 862.3 435.6 874.6 426.1 893C420.1 904.4 418.6 911.3 418.7 926.5C418.7 937.8 419.1 940.6 421.3 947.5C429.2 971.5 448.5 989 473.2 994.4C481.8 996.3 501.2 996.4 509.9 994.5ZM270 933C270 899.5 270.3 872 270.8 872.1C271.5 872.1 287 891.9 326.9 943.4C354.4 979 365.1 992.4 366.6 993.3C367.3 993.7 375 993.9 383.7 993.8L399.5 993.5L399.5 903.5L399.5 813.5L381.8 813.2L364 813L364 873C364 906 363.6 933 363.2 933C362.7 933 357.9 927.3 352.5 920.2C328.7 889.5 281.6 831 270.8 818.5L267.3 814.6L250.9 814.6L234.5 814.7L234.2 903.1C234.1 951.7 234.2 992.1 234.5 992.8C234.8 993.7 239.4 994 252.5 994L270 994L270 933ZM485.7 966C454 960.5 441.4 920.5 463.9 896.7C482.9 876.6 516.5 882 528.4 907C531.3 913.1 531.5 914.2 531.5 925C531.5 935.4 531.2 937.1 528.8 942.2C525.3 949.6 521.7 954.4 516.2 958.6C508.1 964.8 495.9 967.7 485.7 966ZM638 964.5C631.4 962.6 623.1 957.4 619.6 952.8C618.2 950.9 615.8 946.7 614.3 943.5C611.8 938.2 611.5 936.3 611.5 927.4C611.5 917.8 611.7 917.1 615.3 909.8C625 890.1 646.4 882.8 666 892.7C677.1 898.2 684 907.9 686.1 921.2C689.7 943.8 673.5 964.2 650.9 965.6C646.1 965.8 641.6 965.5 638 964.5Z"/><path class="lg-palabra-os" fill="var(--nodos-azul-2, #2d65a8)" d="M848.1 998C862.4 996.6 872.6 993.8 884.5 988C897.2 981.8 906.5 974.7 914.7 965.1C930.2 946.9 938 926.1 938 902.8C938 884.9 935.2 873.3 927.4 858C911.5 826.9 882.1 808.9 844.5 807.3C823.1 806.4 803.1 811.3 785.6 821.7C774.7 828.3 759.8 843 753.2 853.9C731.1 890.3 735.7 937.8 764.4 968.7C781.9 987.5 804.8 997.3 835 998.9C836.4 998.9 842.3 998.5 848.1 998ZM1044.5 995.1C1071.5 987.9 1088 971.2 1091.1 948C1093.9 926.1 1082.5 906.9 1060 895.6C1054.9 893.1 1040.8 887.8 1028.7 883.9C1005.6 876.5 1000.1 874.2 996.2 870.6C985.2 860.6 992.3 845.2 1010.1 840.5C1017.2 838.6 1030 838.6 1037.5 840.5C1045.5 842.5 1056.5 848 1061.9 852.6L1066.3 856.4L1069.6 852.5C1071.5 850.3 1076.2 844.3 1080.2 839.1L1087.4 829.8L1084.9 827.9C1063.2 810.7 1034.8 803.9 1006 809.1C973.8 815 954 835.2 954 862.4C954 877.2 958.3 887.3 968.6 897C977.2 905 987.1 909.7 1013.4 918.1C1043.5 927.8 1048.1 930.3 1051.5 938.3C1053.4 943 1053.4 947.3 1051.4 951.3C1046.4 961.1 1035.5 966 1018.5 966C1002 966 987.7 960.4 976.2 949.4C972.5 945.9 969.3 943 969 943C967.8 943 943.5 965.3 943.8 966.2C944.5 968.7 951.1 975.7 957.3 980.6C968 989 981.4 994.4 997.6 997C1008.1 998.6 1035.4 997.5 1044.5 995.1ZM822.2 964C811.1 961.1 803.5 956.6 794.5 947.5C781.6 934.5 776.6 921.9 776.7 902.5C776.7 888.8 779.7 878.8 786.9 867.9C805.1 840.3 837.9 831.4 867.6 846C881.4 852.7 892 865.2 897.8 881.2C900.1 887.6 900.4 890.1 900.4 901C900.5 911.2 900.1 914.8 898.3 920.5C889.8 947.2 864.5 966.1 837.5 965.9C833 965.9 826.3 965.1 822.2 964Z"/></svg></a>
     <nav class="navlinks" aria-label="Secciones">
       <button type="button" id="nav-map" class="active">Mapa</button>
       <button type="button" id="btn-intro">Introducción</button>
@@ -640,7 +665,7 @@
   <!-- Barra general de filtros (v3.2). Hoy: color. Siguientes: programa, plantel,
        año, nivel -- cada filtro nuevo es otro .fb-group aqui. -->
   <div class="filterbar" id="filterbar" role="toolbar" aria-label="Filtros del mapa">
-    <nav id="crumbs" aria-label="Ubicación en el atlas" hidden></nav>
+    <nav id="crumbs" aria-label="Ubicación en el mapa" hidden></nav>
     <span class="fb-count" id="fb-count"></span>
   </div>
   <div id="debug-log" hidden></div>
@@ -683,6 +708,7 @@
       <div class="ms-note" id="ms-note"></div>
       <div class="ms-actions">
         <button class="btn" id="ms-go-territory" type="button" hidden>Ir a su campo</button>
+        <button class="btn guardar-txt" id="ms-guardar" type="button" hidden></button>
       </div>
     </div>
 
@@ -712,16 +738,16 @@
       </div>
     </section>
 
-    <div class="loading-note" id="loading"><div id="loading-text">Cargando 609,154 tesis…</div><div class="bar"><i></i></div></div>
+    <div class="loading-note" id="loading" role="status" aria-label="Cargando el mapa"><svg class="loading-logo" viewBox="226 142 873 864" fill-rule="evenodd" aria-hidden="true"><path class="lg-nodo-1" fill="var(--nodos-azul-1, #143a6b)" d="M591.3 766.3C600.2 762.1 606.1 757.1 611 749.8C618.5 738.6 620.8 725.1 617.5 711.3C616.7 707.9 612.5 697.9 608.1 689C598.3 669.1 594.7 659.4 591.3 643.2C588.9 631.9 588.6 628.4 588.6 610.5C588.6 589 589.8 579.9 594.6 563.3C604.5 529 629.6 510.7 661 515C690.4 518.9 737 544.2 742.1 559C742.7 560.6 743.5 562 743.8 562C744.2 562 745.5 557.8 746.7 552.7C749.8 540 754.1 532 762.6 523L769.8 515.5L761.6 515.4C739.4 515.1 707.6 503.3 686.8 487.6C670.2 475.1 661.7 461.7 657.4 441.3C652.3 416.5 646.7 407.2 629 393.4C606.2 375.7 596.4 360.5 591 333.9C589.1 324.9 588.9 321.2 589.3 306.5C589.7 291.7 590.2 288 592.8 277.7C596.4 264 603.2 249.2 611.3 237.2C618.8 226.3 620.7 222.3 623.1 213.3C627.6 195.4 623.2 178.4 610.5 165.4C596.5 151.2 574.4 146.3 555.7 153.4C543.3 158.1 534.1 166.1 528.5 177.2C524.1 186 522.6 193.5 523.3 203.5C524 214.5 527 223 533.6 233.6C550.9 261 557.3 279.4 558.7 304.6C560 330.8 553.3 356.6 540.4 374.1C534.6 382.1 523.7 391.6 516.3 395.1C500.4 402.7 479 398.8 457.4 384.5C447.7 378 438.1 368 428.5 354.4C416.2 336.9 406.6 328.9 393.5 325.5C373.2 320.3 352.1 329.9 342.9 348.6C340.2 354 339.6 356.7 339.2 363.4C338.3 381.4 346.6 395.8 362.5 403.6L368.5 406.5L394.5 406.6C423.9 406.7 432.5 407.8 449.5 413.7C473 421.8 487.7 434.6 494.2 452.5C497.1 460.5 497.8 475.3 495.7 483.3C491.2 500.5 472.5 517.1 451.5 522.5C448.2 523.4 437.4 524.5 427.5 525C417.6 525.5 407.2 526.6 404.3 527.4C391.8 530.8 383.1 536.7 375.4 547.2C371.4 552.7 370.1 556 364.1 575.5C360.4 588 352.2 599.6 341.8 607.6C332.1 614.8 321.1 619.7 305 623.6C297.2 625.5 288.9 628 286.6 629.2C271.9 636.5 265.5 655.6 272.7 670.8C277.4 680.8 289.3 687.6 300.5 686.7C313.1 685.7 321 679.4 329.1 663.6C336.2 649.7 339.9 644.4 347.2 637.4C354.9 630 364.9 624 375.5 620.4C382.8 617.9 385.3 617.6 405 617C428.6 616.2 433.5 615.2 442.4 609.1C452.7 602 458.4 592.8 465.7 571.6C472.1 552.7 477 544 486 534.9C496.1 524.7 504.3 520.6 514.4 520.6C520.2 520.6 522.5 521 526.8 523.3C540.8 530.6 551 547.7 556.2 572.6C558.2 582.2 558.5 586.3 558.5 607C558.4 627.3 558.1 631.8 556.3 640.3C552.7 656.7 549 666.7 539.8 684.9C527.4 709.5 524.7 719.2 527 732C530 749 541.2 762.2 557.5 767.9C562.4 769.7 565.4 770 574 769.7C583.4 769.5 585.2 769.1 591.3 766.3Z"/><path class="lg-nodo-2" fill="var(--nodos-azul-2, #2d65a8)" d="M891.3 726.4C897.7 724.2 905.2 717.3 908.1 710.8C909.9 706.8 910.4 703.7 910.5 698C910.5 691.5 910.1 689.8 907.5 685.2C904.1 678.9 900.3 676.1 887 669.8C866.4 660 855.9 648.2 847.7 625.5C837.9 598.1 845.8 565.4 867.5 543.4C885.1 525.6 906.3 516.3 934.5 513.9C948.7 512.7 954.8 510.3 960.9 503.4C965.8 497.8 968 491.6 968 483C968 470.9 962.4 463.3 948.7 456.4C937.5 450.7 931.1 446.3 923.1 438.6C911.7 427.6 904.9 416.1 899.9 399.5C899.3 397.2 898.5 384.7 898.1 370C897.4 346.8 897.2 344 895.1 338.8C889.6 324.8 878.9 315.3 863.1 310.5C845.1 305 839.5 302.9 834.2 299.8C817.6 289.7 804.9 273.6 796 251.3C791.3 239.3 789.2 229.4 788.4 215.2C787.6 200.4 786 195.8 779.1 188.9C772.5 182.3 766.7 180 757 180C748 180 742 182.3 735.6 188.1C728.3 194.7 725.5 201.1 725.6 211C725.7 224.4 731.2 231.9 746.9 240C765.9 249.7 779.8 263.8 789.1 282.5C798 300.6 799.8 314.6 796.3 338.8C795 348.4 794.9 351.6 795.9 357.8C798.9 377.7 811.6 390.6 836 398.5C847.1 402.1 859.9 408.6 867.9 414.6C880 423.7 891 440.5 894.4 455C900 478.5 889.1 499.5 867 508.2C857.7 511.8 842.7 511.9 825.5 508.4C795.3 502.4 778.6 506.3 762.7 522.9C754.2 531.9 749.9 539.8 746.7 552.8C745.4 557.8 744 562.3 743.7 562.7C743.3 563 743 564.1 743 565.1C743 568.2 738.2 578 734.3 582.9C719.6 601.2 694.1 614.1 664.3 618.5C651.1 620.4 647.6 621.5 642.7 625.1C631.5 633.1 627.2 647.4 632 660.2C636.2 671.5 645.1 678 657.6 678.8C670 679.6 678.3 674.4 685.5 661.3C696.8 640.9 712 626.5 732.4 616.9C756 605.9 777.7 605.7 800.6 616.5C811.6 621.6 818.6 626.6 826 634.7C840.9 650.7 849.2 670.8 850.6 694.4C851.7 711.3 856.1 719.4 867.2 724.9C872.2 727.4 874.5 728 880 728C883.6 728 888.7 727.3 891.3 726.4Z"/><path class="lg-punto-izq" fill="var(--nodos-punto-izq, #9cc3e6)" d="M495.4 337.9C502.3 335.4 510.3 328.2 513.7 321.6C515.8 317.6 516.4 314.6 516.8 307.8C517.2 299.7 517 298.7 514.1 292.4C508.9 281.3 500.5 274.9 488.5 273C466.1 269.4 446.2 290.6 450.9 313.2C455.1 333.2 476.4 345.1 495.4 337.9Z"/><path class="lg-punto-der" fill="var(--nodos-punto-der, #5b95cf)" d="M871 221.1C878 217.8 882.3 213.7 886.1 206.8C889.3 200.9 889.5 199.9 889.5 191C889.5 183.1 889.1 180.7 887.2 176.8C883.7 169.8 877.6 163.4 871.2 160.3C866.3 157.9 864.3 157.5 856.5 157.5C848.1 157.5 847.1 157.7 841.2 160.9C826.6 168.8 820 184.8 824.8 200.6C830.7 220 852.7 229.7 871 221.1Z"/><path class="lg-punto-centro" fill="var(--nodos-punto-centro, #5b95cf)" d="M778.5 466.6C785.2 463.6 791.5 457.1 794.9 450C797 445.4 797.5 443.1 797.5 436C797.5 428.9 797.1 426.6 794.9 421.9C791.4 414.6 786.4 409.1 779.8 405.4C774.9 402.7 773.7 402.5 764.5 402.5C753 402.5 748.7 404.1 741.2 411.4C721.7 430 730.4 462.3 756.7 469C762.6 470.4 772.5 469.4 778.5 466.6Z"/><path class="lg-palabra-nod" fill="var(--nodos-azul-1, #143a6b)" d="M662.6 993.5C671.2 990.6 678.9 986 684 980.6L687.5 976.9L688 985.2L688.5 993.5L705.8 993.8L723 994L722.8 902.8L722.5 811.5L705.5 811.5L688.5 811.5L688.2 844.4L688 877.3L682.6 872.2C672.1 862.3 659.1 857.5 642.5 857.6C629.7 857.7 619.8 860.4 609.1 866.7C574.8 887 568.1 945.5 596.4 977.7C611.1 994.5 639.5 1001.3 662.6 993.5ZM509.9 994.5C537.5 988.7 558.3 968.8 564.3 942.5C566.7 931.7 567.1 926.2 565.9 917C562 885.4 542.3 863.8 511 856.5C501.3 854.3 482.2 854.5 472.4 857C451.5 862.3 435.6 874.6 426.1 893C420.1 904.4 418.6 911.3 418.7 926.5C418.7 937.8 419.1 940.6 421.3 947.5C429.2 971.5 448.5 989 473.2 994.4C481.8 996.3 501.2 996.4 509.9 994.5ZM270 933C270 899.5 270.3 872 270.8 872.1C271.5 872.1 287 891.9 326.9 943.4C354.4 979 365.1 992.4 366.6 993.3C367.3 993.7 375 993.9 383.7 993.8L399.5 993.5L399.5 903.5L399.5 813.5L381.8 813.2L364 813L364 873C364 906 363.6 933 363.2 933C362.7 933 357.9 927.3 352.5 920.2C328.7 889.5 281.6 831 270.8 818.5L267.3 814.6L250.9 814.6L234.5 814.7L234.2 903.1C234.1 951.7 234.2 992.1 234.5 992.8C234.8 993.7 239.4 994 252.5 994L270 994L270 933ZM485.7 966C454 960.5 441.4 920.5 463.9 896.7C482.9 876.6 516.5 882 528.4 907C531.3 913.1 531.5 914.2 531.5 925C531.5 935.4 531.2 937.1 528.8 942.2C525.3 949.6 521.7 954.4 516.2 958.6C508.1 964.8 495.9 967.7 485.7 966ZM638 964.5C631.4 962.6 623.1 957.4 619.6 952.8C618.2 950.9 615.8 946.7 614.3 943.5C611.8 938.2 611.5 936.3 611.5 927.4C611.5 917.8 611.7 917.1 615.3 909.8C625 890.1 646.4 882.8 666 892.7C677.1 898.2 684 907.9 686.1 921.2C689.7 943.8 673.5 964.2 650.9 965.6C646.1 965.8 641.6 965.5 638 964.5Z"/><path class="lg-palabra-os" fill="var(--nodos-azul-2, #2d65a8)" d="M848.1 998C862.4 996.6 872.6 993.8 884.5 988C897.2 981.8 906.5 974.7 914.7 965.1C930.2 946.9 938 926.1 938 902.8C938 884.9 935.2 873.3 927.4 858C911.5 826.9 882.1 808.9 844.5 807.3C823.1 806.4 803.1 811.3 785.6 821.7C774.7 828.3 759.8 843 753.2 853.9C731.1 890.3 735.7 937.8 764.4 968.7C781.9 987.5 804.8 997.3 835 998.9C836.4 998.9 842.3 998.5 848.1 998ZM1044.5 995.1C1071.5 987.9 1088 971.2 1091.1 948C1093.9 926.1 1082.5 906.9 1060 895.6C1054.9 893.1 1040.8 887.8 1028.7 883.9C1005.6 876.5 1000.1 874.2 996.2 870.6C985.2 860.6 992.3 845.2 1010.1 840.5C1017.2 838.6 1030 838.6 1037.5 840.5C1045.5 842.5 1056.5 848 1061.9 852.6L1066.3 856.4L1069.6 852.5C1071.5 850.3 1076.2 844.3 1080.2 839.1L1087.4 829.8L1084.9 827.9C1063.2 810.7 1034.8 803.9 1006 809.1C973.8 815 954 835.2 954 862.4C954 877.2 958.3 887.3 968.6 897C977.2 905 987.1 909.7 1013.4 918.1C1043.5 927.8 1048.1 930.3 1051.5 938.3C1053.4 943 1053.4 947.3 1051.4 951.3C1046.4 961.1 1035.5 966 1018.5 966C1002 966 987.7 960.4 976.2 949.4C972.5 945.9 969.3 943 969 943C967.8 943 943.5 965.3 943.8 966.2C944.5 968.7 951.1 975.7 957.3 980.6C968 989 981.4 994.4 997.6 997C1008.1 998.6 1035.4 997.5 1044.5 995.1ZM822.2 964C811.1 961.1 803.5 956.6 794.5 947.5C781.6 934.5 776.6 921.9 776.7 902.5C776.7 888.8 779.7 878.8 786.9 867.9C805.1 840.3 837.9 831.4 867.6 846C881.4 852.7 892 865.2 897.8 881.2C900.1 887.6 900.4 890.1 900.4 901C900.5 911.2 900.1 914.8 898.3 920.5C889.8 947.2 864.5 966.1 837.5 965.9C833 965.9 826.3 965.1 822.2 964Z"/></svg><div id="loading-text"></div></div>
   </main>
 
   <footer>
     <span>Proyecto independiente, no oficial. Datos del catálogo público TESIUNAM.</span>
-    <span><button type="button" id="foot-metodo">Cómo se hizo el mapa</button><span class="foot-sep"></span>versión <span id="app-version">4.18.2</span></span>
+    <span><button type="button" id="foot-metodo">Cómo se hizo el mapa</button><span class="foot-sep"></span>versión <span id="app-version">4.22.2</span></span>
   </footer>
 </div>
 
-<div id="search" hidden role="dialog" aria-label="Buscar en el atlas">
+<div id="search" hidden role="dialog" aria-label="Buscar en el mapa">
   <div class="s-backdrop"></div>
   <div class="s-card">
     <input id="search-input" type="search" placeholder="Busca un tema, una palabra del título o un asesor (ej. «freud», «amparo»)" autocomplete="off" spellcheck="false">
@@ -753,9 +779,9 @@
   <article>
     <button class="page-close" id="metodo-close" type="button" aria-label="Volver al mapa"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg></button>
     <h2>Cómo se hizo el mapa</h2>
-    <p class="lead">El atlas ordena 609,154 tesis de la UNAM por lo que dicen sus títulos. Dos tesis quedan cerca cuando tratan temas parecidos, aunque vengan de facultades distintas.</p>
+    <p class="lead">El mapa ordena 609,154 tesis de la UNAM por lo que dicen sus títulos. Dos tesis quedan cerca cuando tratan temas parecidos, aunque vengan de facultades distintas.</p>
     <h3>Datos</h3>
-    <p>Títulos, año, plantel, programa, nivel y asesores del catálogo público TESIUNAM. El atlas no muestra el nombre de quien escribió la tesis: se retira del título cuando el catálogo lo incluye. Sí muestra a los asesores.</p>
+    <p>Títulos, año, plantel, programa, nivel y asesores del catálogo público TESIUNAM. El mapa no muestra el nombre de quien escribió la tesis: se retira del título cuando el catálogo lo incluye. Sí muestra a los asesores.</p>
     <h3>Del texto al mapa</h3>
     <dl>
       <dt>Representación</dt><dd>Cada título se convierte en un vector numérico con el modelo de lenguaje e5-large.</dd>
@@ -2368,12 +2394,12 @@
   function tarjetaTesis(r, nv, ar, tk, attr) {
     var m = { nv: nv, ar: ar };
     var item = function (g, t, tt) { return t ? '<span class="tc-i" title="' + tt + '"><span class="' + g + '"></span><span class="tc-t">' + resaltarHtml(t, tk) + '</span></span>' : ''; };
-    return '<button type="button" class="tt" ' + attr + '><span class="tt-a">' +
+    return '<div class="tt-fila"><button type="button" class="tt" ' + attr + '><span class="tt-a">' +
       (m.nv ? '<span class="tc-nv" title="' + NIVELES[m.nv - 1] + '">' + puntosNivel(m.nv, 'i') + '</span>' : '') +
       '<span>' + (r.y || 'Año sin registro') + '</span></span>' +
       '<span class="tt-t">' + resaltarHtml(r.t, tk) + '</span>' +
       '<span class="tc" style="--c:' + AREA_HEX[m.ar] + '"><span class="tc-r" title="' + escapeHtml(AREA_NAMES[m.ar]) + '"></span>' +
-      item('tc-p', r.pr, 'Programa') + item('tc-l', r.pl ? plantelCorto(r.pl) : '', 'Plantel') + item('tc-a', r.as.join(', '), 'Asesoría') + '</span></button>';
+      item('tc-p', r.pr, 'Programa') + item('tc-l', r.pl ? plantelCorto(r.pl) : '', 'Plantel') + item('tc-a', r.as.join(', '), 'Asesoría') + '</span></button>' + btnGuardar(state.thesisIdToIndex.get(r.id)) + '</div>';
   }
 
   // --- Perfil: las graficas de la ficha del cluster, en grande ---
@@ -2538,6 +2564,38 @@
     }).catch(function (e) { dlog('tesis_meta ' + e.message); tmetaP = null; });
     return tmetaP;
   }
+  // v4.19: numero de registro de TESIUNAM por tesis (pipeline/generar_atlas_catalogo.py; 0 = sin
+  // numero). Las ligas de Aleph del catalogo caducaron; Koha conservo el numero como biblionumber.
+  var CATALOGO = 'https://tesiunam.dgb.unam.mx/', catalogo = null, catalogoP = null;
+  function loadCatalogo() {
+    if (!catalogoP) catalogoP = fetch('data/tesis_catalogo.v1.bin').then(function (r) { return r.arrayBuffer(); })
+      .then(function (b) { catalogo = new Uint32Array(b); return catalogo; })
+      .catch(function (e) { dlog('tesis_catalogo ' + e.message); catalogoP = null; });
+    return catalogoP;
+  }
+  // sin numero, al buscador del catalogo: no se arma una busqueda por titulo (el firewall de
+  // TESIUNAM bloquea opac-search a clientes automatizados)
+  function ligaCatalogo(idx) {
+    var n = catalogo && catalogo[idx];
+    return n ? CATALOGO + 'cgi-bin/koha/opac-detail.pl?biblionumber=' + n : CATALOGO;
+  }
+  function enlazarTitulo(idx) {
+    var tt = $('ms-title'), n = catalogo && catalogo[idx];
+    tt.innerHTML = '<a href="' + ligaCatalogo(idx) + '" target="_blank" rel="noopener" title="' +
+      (n ? 'Ver el registro en el catálogo TESIUNAM' : 'Sin registro directo: se abre el buscador del catálogo TESIUNAM') + '">' + escapeHtml(tt.textContent) + '</a>';
+  }
+  // v4.21: guardar una tesis. Donde se muestre una tesis concreta hay un boton de guardar.
+  // PENDIENTE: sin cuenta, el boton es la invitacion a crearla: abrira una pagina propia
+  // (como Ajustes, con el fondo desenfocado) y, ya con cuenta, guardara la tesis.
+  var ICO_GUARDAR = '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5h8v11l-4-3-4 3z"/></svg>';
+  function btnGuardar(idx) {
+    return idx == null ? '' : '<button type="button" class="guardar" data-guardar="' + idx + '" title="Guardar tesis" aria-label="Guardar tesis">' + ICO_GUARDAR + '</button>';
+  }
+  function guardarTesis(idx) { dlog('guardar tesis ' + state.thesisIds[idx] + ' (pendiente: cuenta)'); }
+  document.addEventListener('click', function (ev) {
+    var g = ev.target.closest && ev.target.closest('[data-guardar]');
+    if (g) { ev.stopPropagation(); guardarTesis(+g.getAttribute('data-guardar')); }
+  }, true);
   // row (opcional): fila de tesis_por_micro, por si el archivo aun no llega
   function nivelDe(idx, row) {
     if (tmeta) return tmeta.nv[idx];
@@ -2611,10 +2669,15 @@
     if (idx != null) ultimaFicha = function () { setFicha(idx, row); };
     var box = $('ms-tags'), card = $('map-selection');
     box.setAttribute('data-idx', idx == null ? '' : idx);
+    var gb = $('ms-guardar'); gb.hidden = idx == null;
+    if (idx != null) { gb.setAttribute('data-guardar', idx); gb.innerHTML = ICO_GUARDAR + 'Guardar tesis'; }
     card.classList.toggle('tesis', idx != null); card.classList.remove('grupo'); card.removeAttribute('data-grupo');
     if (idx == null) { box.innerHTML = ''; $('ms-nivel').innerHTML = ''; return; }
     card.style.setProperty('--c', AREA_HEX[state.areaCode[idx] || 0]);
     pintaLocator($('ms-loc'), 60, [idx], AREA_HEX[state.areaCode[idx] || 0]);
+    // el titulo abre la tesis en TESIUNAM; si el numero aun no llega, se enlaza al llegar
+    if (catalogo) enlazarTitulo(idx);
+    else loadCatalogo().then(function () { if (box.getAttribute('data-idx') === String(idx)) enlazarTitulo(idx); });
     var pinta = function () {
       if (box.getAttribute('data-idx') !== String(idx)) return;
       box.innerHTML = fichaTesisHtml(idx, row);
@@ -2625,6 +2688,8 @@
     if (!ases.off && !ases.fail) loadAsesores().then(pinta).catch(function () { ases.fail = true; });
   }
   $('ms-tags').addEventListener('click', function (ev) {
+    var co = ev.target.closest && ev.target.closest('[data-co]');
+    if (co && grupoCo) { grupoCo(+co.getAttribute('data-co')); return; }
     var b = ev.target.closest && ev.target.closest('[data-aid]');
     if (b) { verAsesor(+b.getAttribute('data-aid')); return; }
     var mb = ev.target.closest && ev.target.closest('[data-macro]');
@@ -2873,8 +2938,11 @@
     $('map-selection').hidden = false;
     encuadrar(idxs);
   }
+  // v4.20: codirector abierto en la ficha del asesor (su lista de tesis en comun, en la misma ficha)
+  var grupoCo = null;
   function fichaGrupo(idxs, titulo, opts) {
     ultimaFicha = function () { fichaGrupo(idxs, titulo, opts); };
+    var abierto = null, pedido = {};
     setFicha(null);
     var ms = $('map-selection'), clave = 'g|' + titulo + '|' + idxs.length;
     ms.classList.add('grupo'); ms.setAttribute('data-grupo', clave);
@@ -2908,12 +2976,29 @@
         var co = {};
         idxs.forEach(function (i) { for (var j = ases.off[i]; j < ases.off[i + 1]; j++) if (ases.ids[j] !== opts.aid) co[ases.ids[j]] = (co[ases.ids[j]] || 0) + 1; });
         var cs = Object.keys(co).sort(function (a, b) { return co[b] - co[a]; }).slice(0, 5);
+        // v4.20, pedido del usuario: un clic abre aqui mismo las tesis que codirigieron (antes volaba
+        // al mapa con el otro asesor); el titulo lleva al catalogo, como en la ficha de una tesis
         if (cs.length) h += '<div class="cs"><h3>Codirigió con</h3><div class="cs-list">' + cs.map(function (k) {
-          return '<button type="button" data-aid="' + k + '" title="Ver su ficha"><span class="ring"></span><span class="n">' + escapeHtml(ases.nombres[k]) + '</span><b>' + fmtNum(co[k]) + '</b></button>';
+          var on = abierto === +k;
+          return '<button type="button" data-co="' + k + '" aria-expanded="' + on + '" title="' + (on ? 'Cerrar la lista' : 'Ver las tesis que codirigieron') + '"><span class="ring"></span><span class="n">' + escapeHtml(ases.nombres[k]) + '</span><b>' + fmtNum(co[k]) + '</b></button>' +
+            (on ? coTesisHtml(opts.aid, +k) : '');
         }).join('') + '</div></div>';
       }
       $('ms-tags').innerHTML = h;
     };
+    // tesis de los dos, de la mas reciente a la mas antigua; los titulos que falten se piden y se repinta
+    function coTesisHtml(a, b) {
+      var l = idxs.filter(function (i) { var t = false; for (var j = ases.off[i]; j < ases.off[i + 1]; j++) if (ases.ids[j] === b) t = true; return t; })
+        .sort(function (x, y) { return (ases.anio[y] || 0) - (ases.anio[x] || 0); });
+      var faltan = l.filter(function (i) { return pointInfo(i) === undefined; });
+      // una sola peticion por codirector: si un archivo falla, no se reintenta en cada repintado
+      if (!pedido[b]) { pedido[b] = true; Promise.all(faltan.map(titleTileFor).concat(catalogo ? [] : [loadCatalogo()])).then(pinta); }
+      return '<ol class="co-tesis">' + l.map(function (i) {
+        var info = pointInfo(i), t = info ? info.t : (info === null ? 'Título sin registro' : 'Cargando título…');
+        return '<li><span class="y">' + (ases.anio[i] || '') + '</span><a href="' + ligaCatalogo(i) + '" target="_blank" rel="noopener" title="Ver el registro en el catálogo TESIUNAM">' + escapeHtml(t) + '</a>' + btnGuardar(i) + '</li>';
+      }).join('') + '</ol>';
+    }
+    grupoCo = function (k) { abierto = abierto === k ? null : k; pinta(); };
     pinta();
     if (!tmeta || !ases.off) Promise.all([loadTesisMeta(), loadAsesores().catch(function () {})]).then(pinta);
   }
@@ -3036,7 +3121,7 @@
         eyebrow: 'Introducción', count: '2 / 2',
         title: 'El mismo corpus, ordenado por lo que dicen los títulos',
         text: 'Ahora cada tesis está junto a las que tratan temas parecidos, y las áreas se mezclan: <strong>el contenido no respeta las fronteras administrativas</strong>. Los colores pasan a ser los <strong>130 campos</strong> que encontró el algoritmo. El 67% queda en gris porque no tiene un grupo claro.',
-        next: 'Explorar el atlas', dots: [0, 1],
+        next: 'Explorar el mapa', dots: [0, 1],
         onNext: closeStory
       });
       setTimeout(function () { finishSemantic(true); }, 900);
@@ -3646,7 +3731,7 @@
 
   loadEverything().catch(function (err) {
     console.error(err);
-    $('loading-text').textContent = 'No se pudo cargar el atlas: ' + err.message;
+    $('loading-text').textContent = 'No se pudo cargar el mapa: ' + err.message;
   });
 
   // Hook de desarrollo (prototipo local, no produccion).
