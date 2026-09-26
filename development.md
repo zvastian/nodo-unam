@@ -2809,3 +2809,17 @@ Proton Mail y Outlook.com no sirven gratis: el dominio propio es de pago.
 - La descarga desde Cloud Storage al arrancar va con el despliegue (paso 4).
 
 **Siguiente:** paso 2, que es el Worker puerta, Supabase Auth y D1.
+
+### Docker para probar el servicio del Lab: en curso (2026-09-26)
+
+- **Commits.** `108eae7` (interfaz) y `0a79be7` (ADR-0015 y servicio de datos) están en `main` y publicados.
+- **WSL.** El usuario corrió `wsl --install --no-distribution` en una terminal de administrador. WSL 2.7.14 quedó instalado y se activó el componente `VirtualMachinePlatform`. Windows marca un reinicio pendiente, necesario para usarlo.
+- **Pasos que faltan (los hace el usuario):**
+  1. Reiniciar Windows.
+  2. `winget install -e --id Docker.DockerDesktop`.
+  3. Abrir Docker Desktop, aceptar sus términos y esperar «Engine running».
+- **Después (Claude):**
+  - Construir la imagen de `services/lab/Dockerfile` y correrla con `artefactos/` montado.
+  - Repetir las pruebas: `/salud`, unos 400 ms por petición, 422 con entradas inválidas y CORS.
+  - Medir la memoria del contenedor, que es la cifra comparable con Cloud Run.
+- La máquina tiene 16 GB de RAM y 258 GB libres en C:. El servicio usa unos 3 GB.
