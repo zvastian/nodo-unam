@@ -5,10 +5,10 @@ Mapa semántico navegable de 609,154 tesis de la UNAM. El trabajo activo es la *
 
 ## Leer antes de tocar nada
 
-- `PRODUCT.md`: usuarios, propósito y la lista de **21 anti-patrones de UI genérica** acordada
+- `PRODUCT.md`: usuarios, propósito y la lista de **24 anti-patrones de UI genérica** acordada
   con el usuario. Ninguno se reintroduce sin una razón de producto escrita.
-- `development.md`: bitácora completa. Lee al menos la última sección (versión actual) y los
-  «Pendientes consolidados».
+- `development.md`: bitácora completa. Lee al menos «Estado del proyecto y hoja de ruta
+  (2026-09-25)», que es la lista viva de pendientes, y la última sección.
 
 ## Correr la interfaz
 

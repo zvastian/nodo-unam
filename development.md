@@ -1410,6 +1410,8 @@ Respaldo de la versión anterior: `index.v3.0.0.html`.
 
 ## Pendientes consolidados (2026-09-23)
 
+> **Histórico.** La lista viva de pendientes está en «Estado del proyecto y hoja de ruta (2026-09-25)», al final de este archivo.
+
 Orden de prioridad. **P0 = riesgo de privacidad/seguridad, antes que cualquier feature.**
 
 **P0 — privacidad y seguridad**
@@ -2495,3 +2497,188 @@ El usuario pidió dos cosas:
 **Pendiente:** el titular del © y la licencia. El usuario quiere licencia MIT.
 
 **Verificación:** capturas en 1440×900 (inicio, sección, pie y noche) y en 390×844. El título mide 46 px en escritorio y 30 px en móvil. Sin desplazamiento horizontal y consola sin errores.
+
+## Estado del proyecto y hoja de ruta (2026-09-25)
+
+Diagnóstico de todo el proyecto al cierre del 25-sep-2026. **Reemplaza a «Pendientes consolidados (2026-09-23)»** como lista viva de lo que falta; esa sección queda como histórico. Los porcentajes son estimaciones de avance, no métricas.
+
+### Dónde estamos
+
+| Frente | Avance | Estado |
+|---|---|---|
+| Datos (pipeline offline) | ~90 % | Corpus de 609,154 tesis limpio y sin autores en el título; e5-large, HDBSCAN + Ward + PaCMAP; jerarquía corregida a mano; dataset público `data_unam.parquet` (sin publicar). |
+| Frontend del atlas | ~85 % | v4.18.2: mapa WebGL, búsqueda, fichas de tesis, cluster y asesor, taller, modo noche, Ajustes, introducción y Método. Faltan matices y los puntos de abajo. |
+| Frontend del Laboratorio | ~40 % | Solo existe la plantilla del **análisis terminado**, como boceto con un caso real (`bocetos/lab/`). No hay formulario de entrada, estados de error ni guardados, y no está integrado a la app. |
+| Backend del Laboratorio | ~5 % | `pipeline/lab_contexto.py` calcula el contexto real, pero offline. El backend viejo (`app/MI-TESIS-UNAM_github/scripts/`, FastAPI con Groq y Cerebras) tiene 9 errores documentados y usa el modelo viejo: se reescribe, no se porta. |
+| Producción | 0 % del producto nuevo | Todo corre en local. El sitio viejo (`MI-TESIS-UNAM`, Cloudflare Pages) sigue con datos anteriores. |
+| Pruebas | ~10 % | Verificación visual manual con `tools/cdp.mjs`. Sin pruebas automáticas y sin CI. |
+| Ciberseguridad | ~15 % | Privacidad de autores resuelta en los datos nuevos. Sin CSP ni cabeceras de seguridad; librerías de CDN sin versión fija; pendientes del repo viejo. |
+
+### Hecho (resumen; el detalle está en las secciones de arriba)
+
+- **Datos:**
+  - limpieza de columnas (ADR-0004 a 0011);
+  - títulos sin mención de autor (`titulo_sin_autor.py`, 92.7 % cortados y verificados);
+  - embeddings e5-large del corpus completo y de Nobel;
+  - clustering y jerarquía de 130 campos, ~440 temas y 513 subtemas;
+  - vecindarios precomputados (ADR-0014);
+  - 81,151 asesores unificados a partir de 117,482 formas.
+- **Atlas:** interfaz v4.0 a v4.18.2 con la identidad acordada (Libre Franklin, tokens, 24 anti-patrones vetados), modo noche completo y marca NodOS.
+- **Laboratorio (diseño):**
+  - decisiones de producto: Problematiza, 3 llamadas de IA, 2 análisis guardados y 2 nuevos al día, Bloom con léxico, asesores sin IA;
+  - plantilla del análisis con datos reales;
+  - especificación de los prompts nuevos.
+- **Marca:** logo oficial en `marca/` (color y blanco sobre azul marino).
+
+### Qué falta, por frente
+
+**1. Decisiones de arquitectura (bloquean lo demás).** Van como RFC y luego ADR.
+- **Propuesta investigada: [`rfc/0002-arquitectura-produccion-gratuita.md`](rfc/0002-arquitectura-produccion-gratuita.md)** (25-sep-2026).
+  - Arquitectura a costo cero:
+    - Cloudflare Pages para el sitio;
+    - un Worker como puerta de la API, con Turnstile y cuota en D1;
+    - Google Cloud Run con e5-large ONNX int8 y FAISS SQ8 para la parte de datos del Lab;
+    - Groq, con Workers AI de respaldo, para la parte de IA;
+    - cuentas desde la primera versión (decisión del usuario), con Supabase Auth para la identidad y D1 para los guardados.
+  - Descartados con datos: Hugging Face Spaces con Docker (ya exige PRO), Vectorize (excede su capa), Gemini gratis (entrena con los datos) y Cerebras (sin capa gratuita).
+- [ ] **Hosting del sitio estático.** Opciones: Cloudflare Pages solo, o Pages + R2 para `data/`.
+  - ADR-0001 sigue «Propuesto».
+  - Hoy el bundle cabe en Pages: 3,230 archivos y el mayor de 24.4 MB, con un límite de 20,000 archivos y 25 MiB por archivo. Pero no hay margen para el vecindario completo.
+- [ ] **Backend del Laboratorio.** La consulta **tiene que** embeberse con el mismo `multilingual-e5-large` del corpus: otro modelo rompe la búsqueda.
+  - Opciones:
+    - (a) servidor pequeño con FastAPI, el modelo en ONNX int8 y el índice en memoria;
+    - (b) endpoint de inferencia administrado solo para el embedding, con la búsqueda y la API aparte.
+  - Números de referencia (estimados, por medir):
+    - índice de 609,154 × 1024: 2.5 GB en float32 y 1.25 GB en float16, o unos 100 a 200 MB con FAISS IVF-PQ;
+    - búsqueda exhaustiva: decenas de milisegundos en CPU;
+    - e5-large en CPU: alrededor de 1 s por consulta.
+  - Con 4 GB de RAM cabe todo.
+- [ ] **Autenticación y base de datos** para las sesiones, los 2 análisis guardados, las tesis guardadas y MI TESIS. Por ejemplo Postgres administrado con auth incluido, o D1 con un proveedor de auth.
+- [ ] **Proveedor de LLM y modelo** para nota, Bloom y preguntas. llama-3.1-8b ya no es gratis en Groq. Elegir con un conjunto de evaluación de 6 a 8 casos de campos distintos.
+- [ ] **Economía unitaria** (RFC-0001, punto 2): costo por análisis × 2 al día × usuarios esperados; tope de gasto en el proveedor.
+- [ ] **Cerrar RFC-0001.** Recomendación: lanzar el **Laboratorio en dos tiempos**.
+  - Primero la parte de datos (ubicación, parecidas, asesores, saturación), que solo necesita embedding y búsqueda, sin costo de LLM.
+  - Después la parte de IA (nota, Bloom, preguntas), con sesión y cuota.
+- [ ] **Diagrama C4** del sistema (contexto y contenedores): sitio estático, datos, API del Lab, IA, base de datos y pipeline.
+
+**2. Frontend: lo que falta.**
+- Atlas:
+  - [ ] Leer `?tesis=` (y campo, tema, subtema) en la URL: abrir la ficha y volar a la tesis. Lo necesitan los enlaces del Lab y compartir.
+  - [ ] **MI TESIS** en el mapa (nodo especial con flecha) y tesis guardadas; requieren sesión.
+  - [ ] Página **Método**:
+    - añadir el Laboratorio (qué es dato y qué es IA, límites);
+    - añadir privacidad;
+    - cambiar «NODO UNAM» por NodOS;
+    - revisar la versión que muestra.
+  - [ ] Pie y marca del atlas alineados con el Laboratorio (logo, enlaces legales).
+  - [ ] Revisión humana de los 130 nombres de campo y de los 26 hitos; decidir los nombres de tema y subtema.
+  - [ ] Nobel más cercano (ADR-0012), si sigue en alcance.
+  - [ ] Prueba en el navegador real (GPU, trackpad), en móvil y de accesibilidad (teclado, lector de pantalla, contraste).
+- Laboratorio:
+  - [ ] **Formulario de entrada**: título, Problematiza, objetivos con léxico de Bloom en vivo y los casos límite de su tabla, palabras clave, programa, grado y periodo; retroalimentación por campo.
+  - [ ] Integrar la plantilla a la app y conectarla a la API real por streaming (SSE): cada sección aparece al llegar.
+  - [ ] Estados de carga, error, cuota agotada y sin sesión; «mis análisis» con los 2 guardados y la opción de borrar.
+- Páginas:
+  - [ ] Aviso de privacidad, contacto, licencia y «Apoya este proyecto»; hoy apuntan a `#`.
+  - [ ] Titular del © y archivo `LICENSE` (MIT para el código; datos y marca excluidos).
+  - [ ] Correo de contacto: cuenta de Gmail solo del proyecto y, con dominio, `contacto@` reenviado ahí (ver «Correo de contacto del proyecto (2026-09-25)»).
+
+**3. Backend del Laboratorio.**
+- [ ] API nueva, no el FastAPI viejo:
+  - un endpoint de análisis embebe la consulta, busca las 100 vecinas y calcula el contexto (portar `lab_contexto.py`);
+  - la respuesta llega por SSE: primero los datos, luego las 3 llamadas de IA.
+- [ ] Prompts nuevos según la plantilla:
+  - nota sin `intro` ni `central_problem`;
+  - Bloom con verbo, nivel y banderas;
+  - preguntas con `type` de lista cerrada y `methodological_angle`.
+  - Esquemas validados y reintento controlado.
+- [ ] Léxico de Bloom corregido: un nivel por verbo, verbo rector, lematización. Compartido entre el formulario (JS) y el backend.
+- [ ] Umbral de similitud para la «confianza» de ubicación, calibrado con el conjunto de evaluación (la similitud e5 está comprimida entre 0.86 y 0.91).
+- [ ] Sesión, cuotas (2 análisis al día, 2 guardados) y almacenamiento de análisis y tesis guardadas.
+- [ ] Rescatar `validators.py`, `ai_advisors.py` y `ai_bibliography.py` del repo `MI-TESIS-UNAM` antes de purgarlo, como referencia.
+
+**4. Producción y despliegue.**
+- [ ] Dominio y HTTPS; entornos de previsualización por rama y de producción.
+- [ ] Despliegue automático desde `main` (GitHub Actions a Pages; la API aparte).
+- [ ] Datos versionados por ruta (`data/v1/…`) con `Cache-Control: immutable` y brotli; rollback cambiando la versión (ADR-0001).
+- [ ] Librerías (regl, regl-scatterplot, d3, pub-sub-es) con versión exacta y SRI, o servidas desde el propio dominio. Hoy `d3@7` no tiene versión exacta.
+- [ ] Observabilidad: errores de frontend y API, analítica sin cookies, alertas de gasto del LLM y de caída.
+- [ ] Respaldo de la base de datos de usuarios.
+- [ ] Retirar o redirigir el sitio viejo `MI-TESIS-UNAM`, que sirve datos anteriores.
+
+**5. Pruebas.**
+- [ ] CI en cada push:
+  - pruebas del pipeline, sobre todo una **prueba de privacidad** que falle si algún título publicado trae mención de autor;
+  - normalización de entidades.
+- [ ] Pruebas de extremo a extremo del atlas y del Lab con el harness `tools/cdp.mjs` o con Playwright: escritorio, móvil y noche, con la consola sin errores como criterio.
+- [ ] Backend:
+  - contratos de la API y validación de esquemas;
+  - la **tabla de casos límite de Bloom** como pruebas;
+  - casos de inyección de prompt.
+- [ ] Conjunto de evaluación de la IA (6 a 8 casos) con revisión humana antes de cambiar de modelo o de prompt.
+- [ ] Rendimiento: tiempo de primera carga (hoy se descargan varios MB antes de ver el mapa), fps con GPU real, carga de la API.
+
+**6. Ciberseguridad y privacidad.**
+- [ ] **Cabeceras del sitio:**
+  - Content-Security-Policy con orígenes explícitos de scripts y fuentes;
+  - HSTS;
+  - `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy` y `frame-ancestors`.
+- [ ] **XSS:** toda salida del modelo y todo texto del usuario se escapa al pintar. El boceto ya usa `esc()`; auditarlo al integrar.
+- [ ] **API del Lab:**
+  - autenticación y límite de tasa por usuario y por IP;
+  - tope de tamaño de entrada;
+  - CORS con orígenes explícitos (el backend viejo tenía `*` con credenciales);
+  - sin tracebacks al cliente;
+  - protección contra bots (desafío tipo Turnstile);
+  - tope de gasto en el proveedor de IA.
+- [ ] **Inyección de prompt:** el texto del usuario viaja como dato delimitado; la salida se valida contra un esquema y nunca se ejecuta.
+- [ ] **Secretos:**
+  - en variables de entorno o en el gestor de secretos del hosting, nunca en el repo;
+  - las 4 claves de `app/AI Pipeline/Scripts/` siguen en disco. El usuario decidió no rotarlas; conviene hacerlo antes de producción, y el backend nuevo tendrá claves propias.
+- [ ] **Repo viejo `MI-TESIS-UNAM`:** purgar el historial de Git LFS (autores expuestos) después del rescate; su `thesis_lookup.parquet` todavía trae `author` y `title_raw` con autor.
+- [ ] **Privacidad de usuarios:**
+  - aviso de privacidad conforme a la ley mexicana de protección de datos personales;
+  - consentimiento explícito de que el texto de la tesis se envía a un proveedor de IA (revisar su política de retención y entrenamiento);
+  - retención y borrado de análisis;
+  - nada del texto del usuario en los logs.
+- [ ] Dependencias con versión fija y alertas de vulnerabilidades (Dependabot) en el repo.
+
+### Orden propuesto
+
+1. **Decisiones de arquitectura** (frente 1) y cierre de RFC-0001.
+2. **Lanzar el atlas solo (v0), estático.** Es lo seguro y está casi listo:
+   - cabeceras y CSP;
+   - librerías con versión fija;
+   - páginas legales y Método;
+   - `?tesis=` en la URL;
+   - CI con prueba de privacidad y de extremo a extremo;
+   - dominio y despliegue automático;
+   - retirar el sitio viejo.
+3. **Backend del Lab, parte de datos:** embedding, búsqueda y contexto, con límite de tasa.
+4. **Frontend del Lab:** formulario e integración de la plantilla con la API. Lanzar la parte de datos, sin IA.
+5. **Sesión, cuotas y guardados;** MI TESIS en el mapa.
+6. **Parte de IA del Lab:** prompts nuevos, conjunto de evaluación, tope de gasto y consentimiento. Beta cerrada y luego abierta.
+7. Después: dataset público (Kaggle), Nobel más cercano e ideas del backlog.
+
+## Correo de contacto del proyecto (2026-09-25)
+
+Investigación, sin decisión todavía. Depende de la decisión del dominio (RFC-0002, secciones 8 y 9).
+
+**El correo propio sale del dominio.** Recibir en `contacto@algo.com` exige controlar el DNS de `algo.com` para fijar sus registros MX.
+
+- Con `nodostesis.pages.dev` no hay correo propio: `pages.dev` es de Cloudflare y nadie más controla su DNS. El contacto tendría que ser una dirección normal, por ejemplo de Gmail.
+- Con dominio propio (`nodostesis.com`) o de eu.org (`nodos.eu.org`) sí:
+  - **recibir:** Cloudflare Email Routing, gratis, reenvía `contacto@` a otra dirección sin servidor ni buzón aparte;
+  - **responder desde `contacto@`:** «Enviar como» en Gmail, también gratis.
+
+**Separarlo del correo personal.** Opciones gratuitas:
+
+| Opción | Cómo | A favor | En contra |
+|---|---|---|---|
+| **Cuenta de Gmail solo del proyecto (recomendada)** | Crear, p. ej., `nodostesis@gmail.com`. Sin dominio, es el contacto; con dominio, Email Routing reenvía `contacto@` ahí y se responde con «Enviar como» | Nada se mezcla con la cuenta personal; se cambia de cuenta con un toque; se puede dar acceso a un colaborador sin abrir la cuenta personal | Una cuenta más que cuidar (contraseña, 2FA) |
+| Filtro en el Gmail personal | Filtro `to:contacto@…` con «Omitir Recibidos» y la etiqueta «NodOS» | Lo más rápido | El correo del proyecto sigue viviendo en la cuenta personal |
+| Zoho Mail, plan gratuito | Buzón real con el dominio, sin reenvío | Buzón propio del dominio | Solo web y app, sin IMAP; sustituye a Email Routing (los MX apuntan a uno o al otro); sus condiciones gratuitas han cambiado, revisarlas antes |
+
+Proton Mail y Outlook.com no sirven gratis: el dominio propio es de pago.
+
+**Pendiente:** crear la cuenta del proyecto y usarla como destino del reenvío cuando exista el dominio. Es la dirección que irá en «Contacto» del pie y en el aviso de privacidad.
