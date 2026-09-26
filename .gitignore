@@ -80,3 +80,9 @@ app/AI Pipeline/Scripts/ai_bloom.py
 app/AI Pipeline/Scripts/ai_initial_note_cerebras.py
 app/AI Pipeline/Scripts/ai_questions.py
 app/AI Pipeline/Scripts/ai_rerank.py
+
+# --- Servicio del Laboratorio (ADR-0015): entorno y artefactos pesados (modelo ONNX, índice
+# FAISS, metadatos). Se regeneran con services/lab/construir.py y en producción bajan de
+# Cloud Storage. ---
+services/lab/.venv/
+services/lab/artefactos/

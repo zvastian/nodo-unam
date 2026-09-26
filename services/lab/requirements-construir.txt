@@ -1,0 +1,11 @@
+# Para construir.py y evaluar.py (con el Python del pipeline y los datos locales de data/).
+torch
+transformers
+sentence-transformers
+onnx
+onnxscript
+onnxruntime
+faiss-cpu
+numpy
+pandas
+pyarrow

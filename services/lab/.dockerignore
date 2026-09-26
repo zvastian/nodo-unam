@@ -1,0 +1,8 @@
+.venv
+artefactos
+__pycache__
+*.pyc
+construir.py
+evaluar.py
+casos_evaluacion.json
+requirements-construir.txt

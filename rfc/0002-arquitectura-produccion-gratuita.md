@@ -1,6 +1,6 @@
 # RFC-0002: Arquitectura de producción gratuita para NodOS (atlas + Laboratorio)
 
-- **Estado**: En discusión (abierto 2026-09-25). Es una propuesta, no una decisión. Cuando se resuelva, cada pieza se registra como ADR; en particular, un ADR nuevo reemplazará a ADR-0001, que sigue «Propuesto».
+- **Estado**: Cerrado (2026-09-26). Aceptado con dos cambios en [ADR-0015](../adr/0015-arquitectura-produccion-gratuita.md): Groq y Workers AI se reparten la IA con el mismo modelo, y todo el Laboratorio requiere sesión. ADR-0015 reemplaza a ADR-0001.
 - **Autor de la propuesta**: investigación de la sesión 2026-09-25, con las capas gratuitas verificadas en la documentación oficial ese día (fuentes al final).
 
 ## Contexto

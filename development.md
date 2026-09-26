@@ -2498,6 +2498,17 @@ El usuario pidió dos cosas:
 
 **Verificación:** capturas en 1440×900 (inicio, sección, pie y noche) y en 390×844. El título mide 46 px en escritorio y 30 px en móvil. Sin desplazamiento horizontal y consola sin errores.
 
+### Laboratorio: ficha del título en el color del área administrativa (boceto, 26-sep-2026)
+
+**Pedido del usuario:** que el fondo de la sección del título cambie según el área administrativa de la tesis.
+
+- `header.ficha` lleva fondo pleno. El área es la misma que ya usa la meta: la más frecuente entre las parecidas del mismo programa. `pintarMeta` la escribe en `--area` sobre la ficha y se repinta al cambiar a noche.
+- El color se oscurece con `color-mix(in oklch, var(--area) 72%, black)` (55 % en noche) para que la tinta clara lea en las cuatro áreas. El ocre de Ciencias Sociales, el peor caso, queda en L≈0.49.
+- Dentro de la ficha, `--ink`, `--ink-2`, `--ink-3` y `--line-strong` pasan a los tokens del pie (`--pie-tinta`…), así que no hay colores fijos nuevos. La barra del área, el anillo del programa y los guiones de los objetos van en tinta, porque en el color del área desaparecerían.
+- Sin datos, el fondo es `--pie-fondo`. En móvil la ficha va a sangre (margen −16 px).
+
+**Verificación:** capturas en 1600×900 y 390×844, de día y de noche, con el ejemplo (Economía, Ciencias Sociales). Consola sin errores.
+
 ## Estado del proyecto y hoja de ruta (2026-09-25)
 
 Diagnóstico de todo el proyecto al cierre del 25-sep-2026. **Reemplaza a «Pendientes consolidados (2026-09-23)»** como lista viva de lo que falta; esa sección queda como histórico. Los porcentajes son estimaciones de avance, no métricas.
@@ -2682,3 +2693,119 @@ Investigación, sin decisión todavía. Depende de la decisión del dominio (RFC
 Proton Mail y Outlook.com no sirven gratis: el dominio propio es de pago.
 
 **Pendiente:** crear la cuenta del proyecto y usarla como destino del reenvío cuando exista el dominio. Es la dirección que irá en «Contacto» del pie y en el aviso de privacidad.
+
+## v4.19.0: el título de cada tesis abre su registro en TESIUNAM (2026-09-26)
+
+**Pedido del usuario:** que al hacer clic en el título de una tesis se abra en el catálogo, porque las ligas no servían.
+
+**Hallazgo.**
+- Las ligas de `texto_completo_url` en base6 son de Aleph (`/F/<sesión>?func=service&doc_library=TES01&doc_number=…`). Dependen de una sesión caducada y ya no abren.
+- En los registros MARC, `system_number` es `TES01` + `00` + `biblionumber` en las 46,944 filas que tienen ambos. Koha conservó el número de Aleph como `biblionumber`.
+- La liga permanente es `https://tesiunam.dgb.unam.mx/cgi-bin/koha/opac-detail.pl?biblionumber=<n>`: `doc_number` en base6 y `biblionumber` en marc_recovered.
+- Se probó con una sola tesis (`biblionumber=612579`) y abre el registro correcto.
+- La búsqueda por título (`opac-search.pl`) se descartó. El firewall de TESIUNAM la bloqueó con curl (403) y con Chrome headless («Web Page Blocked!»).
+
+**Cambios.**
+- `pipeline/generar_atlas_catalogo.py` genera `data/tesis_catalogo.v1.bin`: un `Uint32` por tesis en el orden del mapa, 0 = sin número; pesa 2.4 MB. Tienen número 593,354 de 609,154 tesis (97.4 %). Dos números se repiten entre dos tesis. Solo lee identificadores, sin autores.
+- Atlas: el título de la ficha de una tesis es un enlace, en tinta con subrayado fino, que abre en otra pestaña. El archivo se pide con la primera ficha.
+- Laboratorio: los títulos de las tesis cercanas y de los asesores van al catálogo. Antes iban a `index.html?tesis=…`, que el atlas no lee.
+- Sin número, a pedido del usuario, la liga abre la página principal del catálogo para que la persona busque; no se arma una búsqueda.
+
+**Verificación:** Chrome headless a 1600×900, solo contra el servidor local. La ficha de la tesis 309565 enlaza a `biblionumber=612579`, y la 540, sin número, al buscador. En el Laboratorio, 107 de 108 títulos tienen liga directa. Consola sin errores.
+
+### Laboratorio: el lomo ya no pega con el pie; regla contra el exceso de blanco (boceto, 26-sep-2026)
+
+- **Bug del lomo.** El título vertical del borde izquierdo y su filete bajaban hasta tocar el pie. `.lomo` iba de `top: 0` a `bottom: 0` de `.page`, y eso incluía los 96 px de relleno inferior; el contenido, en cambio, termina 96 px antes. Ahora el lomo acaba en `bottom: var(--page-pie)`, el mismo valor que el relleno de `.page`, así que ambos terminan en la misma línea.
+- **Regla nueva (PRODUCT.md, anti-patrón 25).** Recomendación fuerte del usuario: una página casi toda blanca se corrige con un bloque de fondo pleno que lleve un dato, como la ficha del título en el color del área.
+
+**Verificación:** Chrome headless a 1600×900, al final de la página. Antes, el lomo terminaba en y=1101 y el pie empezaba en y=1101. Ahora el lomo termina en 454, alineado con el filete de la última sección, y el pie empieza en 550. Consola sin errores. En móvil el lomo está oculto.
+
+## v4.20.0: «Codirigió con» abre las tesis en la misma ficha; «Atlas» pasa a «Mapa» (2026-09-26)
+
+**Pedidos del usuario.**
+- En la ficha de un asesor, un clic en un nombre de «Codirigió con» volaba al mapa con el otro asesor y no mostraba ninguna tesis concreta. El usuario pidió abrir, en la misma ficha, la lista de las tesis que codirigieron, sin tocar el mapa.
+- Donde la interfaz dice «Atlas», decir «Mapa», porque es un mapa.
+
+**Cambios.**
+- **Codirección.** Cada codirector es un botón que despliega o cierra su lista bajo el nombre (`aria-expanded`). La lista va de la tesis más reciente a la más antigua; cada fila lleva el año y el título. El título enlaza a TESIUNAM como en v4.19. Los títulos que falten se piden a `titulos_teselas`, una sola vez por codirector: si un archivo falla, no se reintenta en cada repintado. El botón usa `data-co`; `data-aid` sigue abriendo la ficha de un asesor desde la ficha de una tesis.
+- **Nombre.** «Mapa de tesis UNAM» en la marca del atlas y del Laboratorio. También «Ubicación en el mapa», «Buscar en el mapa», «Explorar el mapa» y el texto de «Cómo se hizo el mapa», los rótulos accesibles y los mensajes de error. Los nombres de archivos, funciones y datos (`atlas_chaos_mode`, `__debugAtlas`…) no cambian, porque no se ven.
+
+**Verificación:** Chrome headless a 1600×900 y a 390×844, solo local. Se abrió la ficha de la tesis 309565, luego la de su primer asesor, y se hizo clic en el primer codirector. Aparecen 16 filas, igual al conteo del botón, y las 16 tienen liga directa. Un segundo clic cierra la lista. En móvil la lista cabe sin desplazamiento horizontal. Consola sin errores.
+
+## v4.21.0: botón de guardar en cada tesis concreta (2026-09-26)
+
+**Pedido del usuario.** Guardar desde la lista de «Codirigió con», y en general un botón de guardar activo dondequiera que aparezca una tesis concreta. Sin cuenta, el botón será la invitación a crearla. Abrirá una página propia, como Ajustes, con el fondo desenfocado. Esa página se hará después.
+
+**Cambios.**
+- Una sola función, `guardarTesis(idx)`, recibe todos los botones (`data-guardar`, delegación en captura). Por ahora solo deja constancia en el registro de depuración: la página de cuenta está **pendiente** y se conectará ahí.
+- El ícono de marcador es el mismo del Laboratorio.
+- **Ficha de una tesis:** «Guardar tesis», con el ícono, junto a «Ir a su campo». Se oculta en las fichas de grupo.
+- **Lista de «Codirigió con»:** ícono al final de cada fila.
+- **Filas de tesis** (las 5 recientes del panel y la lista de Tesis): la fila pasa a `.tt-fila`, con el botón de la tesis y el de guardar lado a lado, porque un botón no puede ir dentro de otro. El filete inferior pasa de `.tt` a `.tt-fila`.
+- Los resultados del buscador no llevan botón: elegir uno abre la ficha, que ya lo tiene.
+
+**Verificación:** Chrome headless a 1600×900, solo local. La ficha de la tesis 309565 muestra «Guardar tesis» con el índice correcto. La lista de codirección tiene 16 botones para 16 tesis, y guardar no cierra la lista. En el panel, las 5 filas tienen botón; guardar no abre la ficha y el clic en la fila sí la abre. Consola sin errores.
+
+## v4.22.0: logo oficial en la barra y en la carga (2026-09-26)
+
+**Pedido del usuario:** el logo oficial en lugar del nombre NodOS en la esquina superior izquierda del mapa, y durante la carga, el logo con una animación en vez de «Cargando 609,154 tesis…».
+
+- **Origen.** El SVG de `marca/nodos-logo.svg` va en línea, dos veces. Cada `id` de forma pasa a clase (`lg-nodo-1`, `lg-punto-der`…) para no duplicar ids en la página.
+- **Barra.** El logo mide 42 px de alto y va seguido de «Mapa de tesis UNAM».
+- **Noche.** Se redefinen las variables del logo (`--nodos-azul-1`…) en tonos claros, porque el marino del trazo no se leería sobre el fondo oscuro.
+- **Carga.** El logo mide 132 px y los tres puntos se encienden por turnos, con opacidad de 0.2 a 1 y desfases de 0.25 s, como nodos que se conectan. No hay halos ni brillos. Con `prefers-reduced-motion` los puntos quedan fijos. `#loading-text` queda vacío y oculto; solo aparece con el mensaje de error. Se quitaron la barra y su animación `slide`.
+
+**Verificación:** capturas en headless a 1600×900 y a 390×844 de la carga, la barra de día y la barra de noche. Consola sin errores.
+
+### v4.22.1: solo el logo en la barra, en el mapa y en el Laboratorio (2026-09-26)
+
+- «Mapa de tesis UNAM» junto al logo era redundante (pedido del usuario): se quitó del mapa y del Laboratorio, con sus reglas `.brand-org`.
+- El Laboratorio pasa del nombre en texto al mismo logo en línea que el mapa, de 42 px, con las variables de noche del logo en `body.noche`.
+- **Verificación:** capturas del mapa de día y del Laboratorio de noche a 1600×900. Consola sin errores.
+
+## Arquitectura de producción decidida: ADR-0015; favicon (2026-09-26)
+
+- **ADR-0015 acepta RFC-0002** y reemplaza a ADR-0001. Tiene dos cambios del usuario:
+  - Groq y Workers AI **se reparten** la IA con el mismo `gpt-oss-120b`: Groq primero y, ante un 429 o con su presupuesto diario agotado, Workers AI. Son unos 80 análisis al día.
+  - **Todo el Laboratorio requiere sesión**, también la parte de datos.
+- **Orden de construcción:** (1) servicio de datos del Lab en local; (2) Worker, Supabase Auth y D1; (3) IA; (4) despliegue.
+- **Favicon (v4.22.2).** `favicon.svg` es el símbolo del logo sin la palabra, que no se lee a 16 px, recortado de `marca/nodos-logo.svg`. Va copiado también como `marca/nodos-favicon.svg`. Con tema oscuro del sistema usa los colores de noche. Lo enlazan el mapa y el Laboratorio; reemplaza el círculo azul de antes. Verificado a 16 y 32 px en headless.
+
+## Backend del Laboratorio, paso 1: servicio de datos en local (2026-09-26)
+
+**Qué es.** `services/lab/` es un FastAPI que recibe lo que escribe el usuario y devuelve el contexto de datos del análisis, sin IA: ubicación, saturación, tesis cercanas, asesores y las 100 vecinas. La salida tiene el mismo formato que `pipeline/lab_contexto.py`, del que está portado. Detalle en `services/lab/README.md`.
+
+**Piezas.**
+- `construir.py` genera los artefactos (unos 3 GB, fuera de git):
+  - e5-large exportado a ONNX;
+  - índice FAISS;
+  - `meta.parquet`, sin autores;
+  - `precalculo.json`, con nombres, décadas y estadísticas de 168,960 asesores.
+- `app/` tiene el servicio: embedding con ONNX Runtime sin torch, contexto y API.
+- `evaluar.py` y `casos_evaluacion.json` forman la prueba de aceptación, con 8 tesis inventadas de campos distintos.
+
+**Hallazgos.**
+- **El int8 dinámico de RFC-0002 no sirve.** Coincide en 84.1 % del top-100 con la referencia, y en 72 % en el peor caso (derecho). También se descartaron el int8 por canal (87 %), el int8 solo en las multiplicaciones (86 %) y el de 8 bits solo en pesos (98.6 %, pero tarda 1.1 s). El servicio usa **ONNX en float32**: 100 % y 260 ms. Queda como enmienda en ADR-0015.
+- **El índice va en IVF-SQ8 con nprobe 768:** 99.1 % en 180 ms. El SQ8 plano daba 99.5 %, pero tardaba 750 ms.
+- **Paridad con el script offline.** El script original contaba las `cercanas_sobre_umbral` solo entre las 100 leídas, y así se conserva. Una primera versión contaba en todo el corpus: daba 1,776 contra 100 y era lenta.
+- **Solo un tercio de las tesis tiene subtema**, porque el script original solo conoce las de los temas finos. Queda pendiente votar con las 609,154.
+
+**Resultado.**
+- Unos **400 ms por petición**: 200 ms de embedding y 180 ms de contexto.
+- Arranca en 5 s y usa unos 3 GB de memoria, así que en Cloud Run va la instancia de 8 GiB.
+- Una entrada vacía o demasiado larga recibe 422.
+- CORS responde solo a los orígenes configurados.
+- El log no contiene el texto de la tesis.
+
+**Laboratorio.** La plantilla pide la parte de datos al servicio (`http://127.0.0.1:8770` en local, o `?api=URL`). Mientras no haya formulario, manda `entrada_ejemplo.json`. Si el servicio no responde, usa `datos_ejemplo.json` y lo avisa en la consola.
+
+**Verificación:**
+- `evaluar.py` da ACEPTADO.
+- En headless, con el servicio arriba, la página hizo un POST al servicio y pintó el título, los 108 enlaces y los rótulos del mapa.
+- Con `?api=` apuntando a un puerto cerrado, pintó lo mismo desde el ejemplo, con el aviso en consola.
+
+**Pendiente del paso 1:**
+- Probar el `Dockerfile`: no hay Docker en esta máquina.
+- La descarga desde Cloud Storage al arrancar va con el despliegue (paso 4).
+
+**Siguiente:** paso 2, que es el Worker puerta, Supabase Auth y D1.
