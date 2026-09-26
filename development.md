@@ -2810,16 +2810,21 @@ Proton Mail y Outlook.com no sirven gratis: el dominio propio es de pago.
 
 **Siguiente:** paso 2, que es el Worker puerta, Supabase Auth y D1.
 
-### Docker para probar el servicio del Lab: en curso (2026-09-26)
+### Docker: el servicio del Lab probado en contenedor (2026-09-26)
 
-- **Commits.** `108eae7` (interfaz) y `0a79be7` (ADR-0015 y servicio de datos) están en `main` y publicados.
-- **WSL.** El usuario corrió `wsl --install --no-distribution` en una terminal de administrador. WSL 2.7.14 quedó instalado y se activó el componente `VirtualMachinePlatform`. Windows marca un reinicio pendiente, necesario para usarlo.
-- **Pasos que faltan (los hace el usuario):**
-  1. Reiniciar Windows.
-  2. `winget install -e --id Docker.DockerDesktop`.
-  3. Abrir Docker Desktop, aceptar sus términos y esperar «Engine running».
-- **Después (Claude):**
-  - Construir la imagen de `services/lab/Dockerfile` y correrla con `artefactos/` montado.
-  - Repetir las pruebas: `/salud`, unos 400 ms por petición, 422 con entradas inválidas y CORS.
-  - Medir la memoria del contenedor, que es la cifra comparable con Cloud Run.
-- La máquina tiene 16 GB de RAM y 258 GB libres en C:. El servicio usa unos 3 GB.
+**Instalación.** WSL 2.7.14 (tras el reinicio) y Docker Desktop 4.91 con winget; motor 29.8. La VM de Docker tiene 7.7 GiB.
+
+**Qué se probó.** Se construyó `services/lab/Dockerfile` (`nodos-lab:local`, 200 MB comprimida y 846 MB en disco) y se corrió con `artefactos/` montado en `/artefactos` y el puerto 8770.
+
+**Resultado.**
+- **Paridad.** En los 8 casos de `casos_evaluacion.json`, la respuesta del contenedor es idéntica, campo por campo salvo `tiempos_ms`, a la del servicio local en Windows.
+- **Tiempo.** Mediana de 303 ms por petición (de 249 a 369 ms): unos 230 ms de embedding y 40 ms de contexto. El contexto es más rápido que en Windows (180 ms).
+- **Memoria.** 3 GiB en uso, la misma cifra que en Windows. Se mantiene la instancia de 8 GiB en Cloud Run.
+- 422 con título vacío o de más de 400 caracteres.
+- CORS devuelve el origen configurado y nada a un origen ajeno.
+- **Arranque: 36 s**, contra 5 s en Windows. La causa es el montaje: los 3 GB se leen del disco de Windows a través de WSL, que es lento. No representa Cloud Run, donde el arranque lo dominará la descarga desde Cloud Storage (paso 4).
+- El usuario sin privilegios (uid 10001) lee los artefactos montados en solo lectura sin problema.
+
+**Verificación.** Script de comparación contra el servicio local en el puerto 8771; `docker stats` para la memoria; logs del contenedor sin textos de tesis.
+
+**Pendiente:** la descarga de artefactos al arrancar sigue en el paso 4.

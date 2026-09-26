@@ -54,6 +54,17 @@ python services/lab/evaluar.py
 El Laboratorio (`prototypes/atlas_vecindario_mvp/bocetos/lab/analisis.html`) lo llama en
 `http://127.0.0.1:8770`, o en `?api=URL`. Si no responde, usa `datos_ejemplo.json`.
 
+### Con Docker
+
+```sh
+docker build -t nodos-lab:local services/lab
+docker run --rm -p 8770:8080 -e LAB_ORIGENES="http://127.0.0.1:8765"   -v "$PWD/services/lab/artefactos:/artefactos:ro" nodos-lab:local
+```
+
+Da la misma salida que el servicio en Windows, a unos 300 ms por petición y con 3 GiB de memoria.
+Con los artefactos montados desde Windows arranca en unos 36 s, porque la lectura a través de WSL
+es lenta.
+
 ## API
 
 - `GET /salud`: `{"ok": true, "arranque_s": 5.0}`.
@@ -79,7 +90,6 @@ El Laboratorio (`prototypes/atlas_vecindario_mvp/bocetos/lab/analisis.html`) lo 
 
 ## Pendiente
 
-- Docker: el `Dockerfile` no se probó (esta máquina no tiene Docker).
 - Descarga de artefactos desde Cloud Storage al arrancar, y medir el arranque en frío en Cloud Run
   (paso 4).
 - Hoy solo un tercio de las tesis tiene subtema asignado: el script original solo conoce las de los
