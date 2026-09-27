@@ -17,12 +17,19 @@
     --m: #8c96a8;            /* color actual de la mascota (JS): cambia en cada paso */
     /* pie: azul marino con tinta blanca (el logo va en blanco); ocre de la marca para el acento */
     --pie-fondo: #12294d; --pie-tinta: #ffffff; --pie-tinta-2: rgba(255, 255, 255, 0.7); --pie-linea: rgba(255, 255, 255, 0.18); --marca-ocre: #d9a04a;
+    /* escalera de Bloom: rampa de azul de claro (recordar) a oscuro (crear). -t: la misma rampa para
+       texto, con contraste AA sobre el papel */
+    --bloom-1: #9dbde4; --bloom-2: #7ea8da; --bloom-3: #5588c7; --bloom-4: #346bb0; --bloom-5: #1f4f8f; --bloom-6: #123566;
+    --bloom-1t: #4676b1; --bloom-2t: #3d6eaa; --bloom-3t: #33639f; --bloom-4t: #285692; --bloom-5t: #1c477e; --bloom-6t: #123566;
     --nav-h: 56px; color-scheme: light;
   }
   body.noche {
     --bg: #0f1422; --paper: #161c2a;
     --ink: #eceae4; --ink-2: #bcc2cf; --ink-3: #8f98ab;
     --line: #283044; --line-strong: #3b4559; --grid: #1a2030; --link: #8fb8f2; --grano: 0.07; color-scheme: dark;
+    /* en noche, más alto = más claro */
+    --bloom-1: #2f4f7c; --bloom-2: #3d68a3; --bloom-3: #4f82c4; --bloom-4: #6d9ee0; --bloom-5: #94bdf0; --bloom-6: #cfe3ff;
+    --bloom-1t: #6f97cf; --bloom-2t: #7ea5dc; --bloom-3t: #8fb3e6; --bloom-4t: #a3c3ef; --bloom-5t: #bcd5f6; --bloom-6t: #dcebff;
     --nodos-azul-1: #eceae4; --nodos-azul-2: #86b3ec; --nodos-punto-izq: #4f82c4; --nodos-punto-der: #cfe3ff; --nodos-punto-centro: #86b3ec;
   }
   * { box-sizing: border-box; }
@@ -111,18 +118,46 @@
   .meta > span { display: inline-flex; align-items: center; }
 
   /* ficha de la tesis del usuario */
-  /* fondo pleno del color del área administrativa (--area, lo pone pintarMeta), oscurecido para que la
-     tinta clara del pie lea bien en las cuatro áreas; dentro, los tokens de tinta pasan a los del pie */
-  .ficha { --area: var(--pie-fondo); padding: 32px 32px 32px; margin-top: 32px; background: color-mix(in oklch, var(--area) 72%, black); transition: background 700ms ease;
+  /* --area-tesis (en :root) es el color del área administrativa de la tesis: lo ponen pintarPrograma
+     al escribir y pintarMeta en el análisis. Lo llevan la banda del título, los marcadores de los
+     subtítulos y la mascota; sin programa elegido, marino (en noche, tinta 3 para que se vea). */
+  body { --marca: var(--area-tesis, var(--pie-fondo)); }
+  body.noche { --marca: var(--area-tesis, var(--ink-3)); }
+  .ficha { margin-top: 32px; }
+  /* banda del título: fondo pleno del color del área, oscurecido para que la tinta clara del pie lea
+     bien en las cuatro áreas; dentro, los tokens de tinta pasan a los del pie */
+  .banda { position: relative; padding: 32px 32px 32px; background: color-mix(in oklch, var(--area-tesis, var(--pie-fondo)) 72%, black); transition: background 700ms ease;
     --ink: var(--pie-tinta); --ink-2: var(--pie-tinta-2); --ink-3: var(--pie-tinta-2); --line-strong: var(--pie-linea); color: var(--ink); }
-  body.noche .ficha { background: color-mix(in oklch, var(--area) 55%, black); }
-  .ficha .g-ar, .ficha .objetos li i { background: var(--ink); }
-  .ficha .g-pr { box-shadow: inset 0 0 0 1.5px var(--ink); }
+  body.noche .banda { background: color-mix(in oklch, var(--area-tesis, var(--pie-fondo)) 55%, black); }
+  .banda > :not(.emblema) { position: relative; z-index: 1; }
+  .ficha-cuerpo { padding-top: 26px; }
+  /* marcador de subtítulo: rectángulo del color del área de la tesis (el dato de la banda, repetido) */
+  .ficha-cuerpo .f-rot, .objetos-h, #f-obj-h, #f-claves-s h2 { display: flex; align-items: center; gap: 9px; }
+  .ficha-cuerpo .f-rot::before, .objetos-h::before, #f-obj-h::before, #f-claves-s h2::before { content: ''; width: 6px; height: 18px; flex-shrink: 0; background: var(--marca); transition: background 700ms ease; }
+  .objetos-h[hidden] { display: none; }
+  /* emblema: grabado de línea del área, abajo a la derecha de la banda; al cambiar de área el trazo
+     viejo se borra y el nuevo se dibuja (pintarEmblema) */
+  .emblema { position: absolute; right: 22px; bottom: 16px; width: 180px; height: 120px; overflow: visible; pointer-events: none; }
+  .emblema * { fill: none; stroke: var(--pie-tinta); stroke-opacity: .42; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round;
+    stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset 320ms ease; }
+  /* el título nunca pasa por debajo del grabado: le deja su ancho a la derecha */
+  .ficha .banda h1, .banda .f-titulo { max-width: min(22ch, calc(100% - 150px)); }
+  .banda .meta { max-width: calc(100% - 150px); }
+  body:not(.escribiendo) .emblema { width: 132px; height: 88px; }
+  .emblema.vis * { stroke-dashoffset: 0; transition-duration: 1100ms; transition-timing-function: cubic-bezier(.35,.1,.25,1); transition-delay: calc(var(--i) * 70ms); }
   /* el título de la tesis es lo primero que se lee: tamaño de portada, peso 800, interletrado cerrado, renglones equilibrados */
-  .ficha h1 { font-size: clamp(34px, 3.3vw, 46px); line-height: 1.06; font-weight: 800; margin: 6px 0 20px; letter-spacing: -0.025em; max-width: 22ch; text-wrap: balance; }
+  .ficha h1 { font-size: clamp(34px, 3.3vw, 46px); line-height: 1.06; font-weight: 800; margin: 6px 0 0; letter-spacing: -0.025em; max-width: 22ch; text-wrap: balance; }
   .problematiza { font-size: 19px; line-height: 1.5; color: var(--ink); max-width: 56ch; margin: 0 0 26px; }
   .meta { display: flex; flex-wrap: wrap; gap: 6px 22px; font-size: 14px; color: var(--ink-3); margin: 0 0 14px; }
   .meta b { color: var(--ink); font-weight: 500; }
+  .meta:empty { display: none; }
+  /* en la banda: glifos en tinta clara, que el color de fondo ya dice el área */
+  .banda .meta { margin: 16px 0 0; font-size: 15px; color: var(--ink-2); }
+  .banda .meta b { font-weight: 600; }
+  .banda .g-ar { background: var(--ink); }
+  .banda .g-pr { box-shadow: inset 0 0 0 1.5px var(--ink); }
+  .banda .g-nv i { box-shadow: inset 0 0 0 1px var(--ink-2) !important; background: none !important; }
+  .banda .g-nv i.si { background: var(--ink) !important; box-shadow: none !important; }
   /* objetos de estudio: lista compacta en flujo; guion del color del campo (no choca con los glifos de programa ni de plantel) */
   .objetos { list-style: none; padding: 0; margin: 0 0 16px; display: flex; flex-wrap: wrap; gap: 8px 22px; max-width: 70ch; }
   .objetos li { display: inline-flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 500; color: var(--ink); opacity: 0; transform: translateY(5px); transition: opacity 450ms ease, transform 450ms ease; }
@@ -276,18 +311,28 @@
   .f-fs { border: 0; margin: 0; padding: 0; min-width: 0; }
   .f-fs legend { padding: 0; }
   .f-crece { flex: 1; min-width: 0; }
-  .f-claves { font-size: 16px; max-width: 70ch; }
+  /* palabras clave: un renglón por palabra o frase corta (1 a 3 palabras); Enter abre el siguiente */
+  .f-claves { list-style: none; margin: 0; padding: 0; max-width: 44ch; }
+  .f-claves li { display: grid; grid-template-columns: minmax(0, 1fr) 24px; column-gap: 6px; padding: 4px 0 6px; border-bottom: 1px solid var(--line); transition: border-color 150ms ease; }
+  .f-claves li:first-child { border-top: 1px solid var(--line); }
+  .f-claves li:focus-within { border-bottom-color: var(--ink); }
+  .f-claves .campo { border-bottom: none; font-size: 16px; padding: 4px 0; }
+  .f-claves .campo:focus-visible { border-bottom: none; padding-bottom: 4px; }
+  .f-claves li:hover .f-quitar, .f-claves li:focus-within .f-quitar { opacity: 1; }
+  .f-claves .f-nota { grid-column: 1 / 3; }
   .f-rot { display: block; font-size: 13px; color: var(--ink-3); margin: 0 0 4px; }
   .f-err { display: flex; gap: 6px; align-items: flex-start; font-size: 13.5px; line-height: 1.4; color: var(--ink); margin: 7px 0 0; }
   .f-err .ico { width: 15px; height: 15px; margin-top: 1px; }
   /* en la portada */
-  .ficha .campo::placeholder { color: var(--ink-2); }
+  .banda .campo::placeholder { color: var(--ink-2); }
+  .banda .campo:focus-visible { outline: none; }
   .f-titulo { font-size: clamp(34px, 3.3vw, 46px); line-height: 1.08; font-weight: 800; letter-spacing: -0.025em; max-width: 22ch; margin: 6px 0 0; }
   .f-prob { font-size: 19px; line-height: 1.5; max-width: 56ch; }
   .f-bloque { margin-top: 26px; }
+  .f-programa { max-width: 56ch; }
   .f-meta { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 24px 48px; margin-top: 30px; padding-top: 22px; border-top: 1px solid var(--line-strong); align-items: start; }
   .f-campo { min-width: 0; position: relative; }
-  .f-prog { display: flex; align-items: center; }
+  .f-prog { display: flex; align-items: center; --c: var(--marca); }
   .f-prog .g-ar, .f-prog .g-pr { transition: opacity 300ms ease; }
   .f-prog.sin .g-ar, .f-prog.sin .g-pr { opacity: .35; }
   .f-prog .campo { font-size: 16px; font-weight: 500; }
@@ -327,12 +372,75 @@
   .f-objs .num { font-size: 15px; font-weight: 600; color: var(--ink-3); padding-top: 6px; }
   .f-objs .campo { border-bottom: none; font-size: 16px; line-height: 1.5; padding: 4px 0; }
   .f-objs .campo:focus-visible { border-bottom: none; padding-bottom: 4px; }
+  /* el verbo rector se resalta en el color de su peldaño: una capa espejo con el mismo texto va detrás
+     del textarea (texto transparente, cursor visible). Negrita con trazo, no con peso: el peso 700
+     ensancha las letras y desalinearía el cursor. */
+  .obj-in { position: relative; min-width: 0; }
+  .obj-in .espejo { position: absolute; inset: 0; padding: 4px 0; font-size: 16px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: break-word; color: var(--ink);
+    font-feature-settings: "tnum" 1; pointer-events: none; }
+  .obj-in .espejo .vb { -webkit-text-stroke: 0.55px currentColor; }
+  .obj-in textarea { position: relative; color: transparent; caret-color: var(--ink); }
+  .obj-in textarea::selection { color: transparent; }
   .f-quitar { align-self: start; margin-top: 6px; background: none; border: none; padding: 2px; cursor: pointer; color: var(--ink-3); opacity: 0; transition: opacity 150ms ease; }
   .f-objs li:hover .f-quitar, .f-objs li:focus-within .f-quitar, .f-quitar:focus-visible { opacity: 1; }
   .f-quitar:hover { color: var(--ink); }
   .f-quitar:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
   .f-nota { grid-column: 2 / 4; font-size: 13.5px; line-height: 1.45; color: var(--ink-2); margin: 2px 0 2px; }
   .f-nota b { color: var(--ink); font-weight: 600; }
+  /* verbos por nivel: se ofrecen solo cuando el objetivo no tiene un verbo reconocible; un clic lo pone al inicio */
+  .f-verbos { grid-column: 2 / 4; margin: 2px 0 4px; font-size: 13.5px; }
+  .f-verbos summary { cursor: pointer; color: var(--ink); font-weight: 600; width: fit-content; list-style: none; display: inline-flex; align-items: center; gap: 6px; }
+  .f-verbos summary::-webkit-details-marker { display: none; }
+  .f-verbos summary .ico { width: 12px; height: 12px; transition: transform 150ms ease; }
+  .f-verbos[open] summary .ico { transform: rotate(90deg); }
+  .f-verbos summary:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .f-verbos dl { display: grid; grid-template-columns: 116px minmax(0, 1fr); gap: 6px 14px; margin: 10px 0 8px; }
+  .f-verbos dt { font-weight: 700; color: var(--vc, var(--ink)); display: flex; align-items: baseline; gap: 6px; }
+  .f-verbos dt i { font-style: normal; font-weight: 400; color: var(--ink-3); font-size: 12px; }
+  .f-verbos dd { margin: 0; display: flex; flex-wrap: wrap; gap: 2px 12px; }
+  .f-verbo { background: none; border: none; border-bottom: 1px solid transparent; padding: 0 0 1px; cursor: pointer; color: var(--vc, var(--ink-2)); font-weight: 600; font-size: 13.5px; }
+  .f-verbo:hover { border-bottom-color: currentColor; }
+  .f-verbo:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+  .f-bloom-q { display: inline-flex; align-items: center; gap: 8px; background: none; border: none; padding: 0; cursor: pointer; color: var(--ink-2); font-size: 13.5px; }
+  .f-bloom-q:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+  /* «?» en círculo gris: abre la explicación de la escalera */
+  .ayuda { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; flex-shrink: 0; padding: 0; border: 1.5px solid var(--ink-3); border-radius: 50%; background: none;
+    color: var(--ink-3); font-size: 12px; font-weight: 700; line-height: 1; cursor: pointer; transition: color 120ms ease, border-color 120ms ease; }
+  .ayuda:hover { color: var(--ink); border-color: var(--ink); }
+  .ayuda:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+  .obj-esc { position: relative; }
+  .obj-esc > .ayuda { position: absolute; top: 0; right: 0; z-index: 1; }
+  /* explicación emergente: capa difuminada y lámina centrada (patrón de Ajustes del mapa) */
+  .dlg-capa { position: fixed; inset: 0; z-index: 60; background: color-mix(in srgb, var(--bg) 35%, transparent); -webkit-backdrop-filter: blur(7px); backdrop-filter: blur(7px); }
+  .dlg { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 61; width: min(640px, calc(100vw - 32px)); max-height: calc(100vh - 32px); overflow-y: auto;
+    background: var(--paper); border: 1px solid var(--line-strong); border-top: 3px solid var(--ink); padding: 22px 28px 26px; }
+  .dlg[hidden], .dlg-capa[hidden] { display: none; }
+  .dlg-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .dlg-head h3 { margin: 0; font-size: 22px; font-weight: 700; }
+  .dlg-head button { border: 0; background: none; padding: 4px; color: var(--ink-2); cursor: pointer; display: inline-flex; }
+  .dlg-head button:hover { color: var(--ink); }
+  .dlg p { margin: 0 0 12px; max-width: 62ch; }
+  .dlg h4 { margin: 22px 0 8px; font-size: 15px; font-weight: 600; padding-top: 16px; border-top: 1px solid var(--line); }
+  .dlg svg.graf { display: block; width: 100%; height: auto; }
+  /* los autores de la taxonomía enlazan a sus obras, subrayados */
+  .dlg p a { color: var(--link); text-decoration: underline; text-underline-offset: 2px; }
+  .dlg .lee { font-size: 17px; line-height: 1.5; margin: 4px 0 6px; }
+  .dlg .lee b.lee-v { font-weight: 700; color: var(--bloom-4t); border-bottom: 3px solid var(--bloom-4); }
+  .dlg p b { font-weight: 700; }
+  /* escalera animada de la explicación: los bloques suben uno tras otro, luego sus verbos y la flecha */
+  .esc-ayuda .rell { transform-box: fill-box; transform-origin: bottom; transform: scaleY(0); transition: transform 560ms cubic-bezier(.2,.7,.2,1) calc(var(--i) * 150ms); }
+  .esc-ayuda .vs { opacity: 0; transform: translateY(6px); transition: opacity 380ms ease, transform 380ms ease; transition-delay: calc(var(--i) * 150ms + 420ms); }
+  .esc-ayuda .silueta { stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset 900ms ease; }
+  .esc-ayuda .sube { stroke-dashoffset: 1; opacity: 0; transition: stroke-dashoffset 800ms ease 1500ms, opacity 1ms linear 1500ms; }
+  .esc-ayuda.vis .rell { transform: none; }
+  .esc-ayuda.vis .vs { opacity: 1; transform: none; }
+  .esc-ayuda.vis .silueta, .esc-ayuda.vis .sube { stroke-dashoffset: 0; opacity: 1; }
+  @media (prefers-reduced-motion: reduce) { .esc-ayuda *, .esc-ayuda .pel * { transition: none !important; } }
+  .dlg .lee-nota { font-size: 13.5px; color: var(--ink-2); }
+  .grado-esp { display: grid; grid-template-columns: 104px repeat(6, minmax(0, 1fr)); gap: 4px 3px; align-items: center; font-size: 13px; }
+  .grado-esp .gh { font-size: 11.5px; color: var(--ink-3); text-align: center; }
+  .grado-esp .gn { color: var(--ink); font-weight: 500; }
+  .grado-esp i { height: 10px; background: var(--line); }
   .f-mas { margin-top: 14px; display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: var(--ink); font-weight: 600; }
   .f-mas:hover { text-decoration: underline; text-underline-offset: 3px; }
   .f-mas:disabled { color: var(--ink-3); font-weight: 400; text-decoration: none; cursor: default; }
@@ -365,7 +473,7 @@
   .crece-x { transform-box: fill-box; transform-origin: left; transform: scaleX(0); transition: transform 700ms cubic-bezier(.2,.7,.2,1); }
   .crece-x.vis { transform: scaleX(1); }
   @media (prefers-reduced-motion: reduce) {
-    .aparece, .crece-x, .fb .b, .hist .lleno, .objetos li, .objetos li i, .lomo-txt, .pasos button::after { transition: none !important; }
+    .aparece, .crece-x, .fb .b, .hist .lleno, .objetos li, .objetos li i, .lomo-txt, .pasos button::after, .emblema * { transition: none !important; }
     .pendiente .barra::after { animation: none; }
   }
 
@@ -422,7 +530,9 @@
     .f-prob { font-size: 17px; }
     .f-quitar { opacity: 1; }
     .f-envio .btn-cta { width: 100%; justify-content: center; }
-    .ficha { margin: 0 -16px; padding: 24px 16px; }
+    .banda { margin: 0 -16px; padding: 24px 16px; }
+    .emblema, body:not(.escribiendo) .emblema { right: 8px; bottom: 10px; width: 72px; height: 48px; }
+    .ficha .banda h1, .banda .f-titulo, .banda .meta { max-width: calc(100% - 84px); }
     .filas { grid-template-columns: minmax(0, 1fr); gap: 2px 0; }
     .filas > dd { margin-bottom: 14px; }
     .preguntas li { grid-template-columns: 88px minmax(0, 1fr); gap: 16px; }
@@ -461,25 +571,32 @@
   <div class="inicio">
     <div class="inicio-izq">
     <header class="ficha" id="ficha">
-      <div>
+      <div class="banda">
         <p class="lamina"><span><b>Laboratorio</b> <span id="lamina-txt">Tu tesis</span></span><span class="lamina-der"><span>Versión beta</span><span id="lamina-fecha"></span></span></p>
+        <label class="oculto solo-escritura" for="f-titulo">Título de tu tesis</label>
+        <textarea id="f-titulo" form="f-ficha" class="campo f-titulo solo-escritura" rows="1" maxlength="400" placeholder="El título de tu tesis" autocomplete="off" spellcheck="true"></textarea>
+        <p class="f-err solo-escritura" id="e-titulo" hidden></p>
+        <h1 id="titulo" class="solo-analisis"></h1>
+        <!-- programa y grado son datos de la tesis: van en su banda (al escribir, en vivo) -->
+        <p class="meta" id="meta"></p>
+        <svg class="emblema" id="emblema" viewBox="0 0 180 120" aria-hidden="true"></svg>
+      </div>
+      <div class="ficha-cuerpo">
         <form class="solo-escritura" id="f-ficha" novalidate onsubmit="return false">
-          <label class="oculto" for="f-titulo">Título de tu tesis</label>
-          <textarea id="f-titulo" class="campo f-titulo" rows="1" maxlength="400" placeholder="El título de tu tesis" autocomplete="off" spellcheck="true"></textarea>
-          <p class="f-err" id="e-titulo" hidden></p>
+          <!-- el programa va primero: al elegirlo, la banda de arriba cambia de color y de grabado a la vista -->
+          <div class="f-campo f-programa">
+            <label class="f-rot" for="f-prog-in">Programa</label>
+            <div class="f-prog sin" id="f-prog"><i class="g-ar"></i><i class="g-pr"></i>
+              <input id="f-prog-in" class="campo" type="text" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="f-lista" placeholder="Escribe y elige de la lista">
+            </div>
+            <p class="f-area" id="f-area" aria-live="polite"></p>
+          </div>
           <div class="f-bloque">
             <label class="f-rot" for="f-prob">Problematiza</label>
             <textarea id="f-prob" class="campo f-prob" rows="2" maxlength="2000" placeholder="En pocas palabras, ¿qué problema o pregunta quieres resolver?"></textarea>
             <p class="f-err" id="e-prob" hidden></p>
           </div>
           <div class="f-meta">
-            <div class="f-campo">
-              <label class="f-rot" for="f-prog-in">Programa</label>
-              <div class="f-prog sin" id="f-prog"><i class="g-ar"></i><i class="g-pr"></i>
-                <input id="f-prog-in" class="campo" type="text" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="f-lista" placeholder="Escribe y elige de la lista">
-              </div>
-              <p class="f-area" id="f-area" aria-live="polite"></p>
-            </div>
             <div class="f-campo">
               <fieldset class="f-fs">
                 <legend class="f-rot">Grado</legend>
@@ -498,8 +615,6 @@
             </div>
           </div>
         </form>
-        <h1 id="titulo" class="solo-analisis"></h1>
-        <p class="meta solo-analisis" id="meta"></p>
         <p class="objetos-h" id="objetos-h" hidden>Objetos de estudio</p>
         <ul class="objetos solo-analisis" id="objetos" aria-label="Objetos de estudio"></ul>
         <p class="guardado solo-analisis" id="guardado-p" hidden><svg class="ico" viewBox="0 0 16 16"><path d="M4 2.5h8v11l-4-3-4 3z"/></svg><span id="guardado">Guardado en tu espacio el 25 de septiembre de 2026. En el mapa aparece como MI TESIS.</span></p>
@@ -525,14 +640,17 @@
           <p class="f-err" id="e-obj" hidden></p>
         </div>
         <div class="obj-esc">
+          <button type="button" class="ayuda" id="f-esc-ayuda" aria-haspopup="dialog" title="¿Qué es la taxonomía de Bloom?" aria-label="¿Qué es la taxonomía de Bloom?">?</button>
           <div id="f-esc"></div>
           <ul class="f-est" id="f-est"></ul>
         </div>
       </div>
     </section>
     <section class="sec solo-escritura" id="f-claves-s">
-      <h2><label for="f-claves">Palabras clave</label></h2>
-      <input id="f-claves" class="campo f-claves" type="text" autocomplete="off" placeholder="Por ejemplo: banca, sistema financiero, desarrollo económico">
+      <h2 id="f-claves-h">Palabras clave</h2>
+      <ul class="f-claves" id="f-claves" aria-labelledby="f-claves-h"></ul>
+      <button type="button" class="linkbtn f-mas" id="f-claves-mas"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg>Agregar palabra clave</button>
+      <p class="f-err" id="e-claves" hidden></p>
     </section>
     <div class="f-envio solo-escritura" id="f-envio">
       <button type="button" class="btn-cta" id="f-enviar">Analizar mi tesis</button>
@@ -593,6 +711,12 @@
 </footer>
 <div class="tip" id="tip" hidden></div>
 <ul class="f-lista" id="f-lista" role="listbox" aria-label="Programas" hidden></ul>
+<!-- explicación de la taxonomía de Bloom: capa difuminada como la de Ajustes del mapa -->
+<div class="dlg-capa" id="bloom-capa" hidden></div>
+<div class="dlg" id="bloom-dlg" role="dialog" aria-modal="true" aria-labelledby="bloom-titulo" hidden>
+  <div class="dlg-head"><h3 id="bloom-titulo">La taxonomía de Bloom</h3><button type="button" id="bloom-cerrar" aria-label="Cerrar"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 4.5l7 7M11.5 4.5l-7 7"/></svg></button></div>
+  <div id="bloom-cuerpo"></div>
+</div>
 
 <script>
 (function () {
@@ -721,13 +845,17 @@
     return i;
   }
   function cabecera() {
-    if (!terminado) return;
+    if (!terminado || document.body.classList.contains('escribiendo')) return;
     var i = seccionActual(); if (i === actual) return;
     actual = i; estado('<b>' + SECCIONES[i].nombre + '</b>');
     Array.prototype.forEach.call($('pasos').children, function (b, k) { b.classList.toggle('ok', k <= i); b.setAttribute('aria-current', k === i ? 'true' : 'false'); });
   }
   var cabeceraPendiente = false;
-  window.addEventListener('scroll', function () { if (cabeceraPendiente) return; cabeceraPendiente = true; requestAnimationFrame(function () { cabeceraPendiente = false; cabecera(); }); }, { passive: true });
+  function pedirCabecera() { if (cabeceraPendiente) return; cabeceraPendiente = true; requestAnimationFrame(function () { cabeceraPendiente = false; cabecera(); }); }
+  window.addEventListener('scroll', pedirCabecera, { passive: true });
+  // el alto cambia sin scroll (secciones que se abren, filtros de las 100, ventana): se vuelve a medir
+  window.addEventListener('resize', pedirCabecera);
+  if ('ResizeObserver' in window) new ResizeObserver(pedirCabecera).observe(document.querySelector('.page'));
   $('pasos').addEventListener('click', function (e) {
     if (document.body.classList.contains('escribiendo')) return; // en el formulario, cada guion lleva a su campo
     var b = e.target.closest('button'); if (!b || b.disabled) return;
@@ -953,19 +1081,20 @@
     s += '<path d="' + d + '" fill="none" stroke="var(--line)" stroke-width="1"/>';
     NIVELES.forEach(function (n, i) {
       var x = 6 + i * pw, lleno = !!porNivel[i];
-      s += '<line x1="' + x + '" x2="' + (x + pw) + '" y1="' + y(i) + '" y2="' + y(i) + '" stroke="' + (lleno ? color : 'var(--line-strong)') + '" stroke-width="' + (lleno ? 4 : 1.5) + '"/>' +
-        '<text x="' + (x + pw / 2) + '" y="' + (base + 18) + '" text-anchor="middle" font-size="11.5" class="' + (lleno ? 't-ink' : 't-3') + '"' + (lleno ? ' font-weight="600"' : '') + '>' + n + '</text>';
+      // cada peldaño lleva su azul (rampa --bloom-1…6); grueso si hay un objetivo en él
+      s += '<line x1="' + x + '" x2="' + (x + pw) + '" y1="' + y(i) + '" y2="' + y(i) + '" stroke="var(--bloom-' + (i + 1) + ')" stroke-width="' + (lleno ? 5 : 1.5) + '"/>' +
+        '<text x="' + (x + pw / 2) + '" y="' + (base + 18) + '" text-anchor="middle" font-size="11.5"' + (lleno ? ' style="fill:var(--bloom-' + (i + 1) + 't)" font-weight="700"' : ' class="t-3"') + '>' + n + '</text>';
     });
     for (var k = 1; k < niveles.length; k++) {
       var a = niveles[k - 1], b = niveles[k], x1 = 6 + a * pw + pw / 2, x2 = 6 + b * pw + pw / 2, salto = b - a > 1;
-      s += '<path d="M' + x1 + ' ' + (y(a) - 30) + ' Q' + ((x1 + x2) / 2) + ' ' + (y(b) - 58) + ' ' + x2 + ' ' + (y(b) - 30) + '" fill="none" stroke="' + (salto ? 'var(--ink-3)' : color) + '" stroke-width="1.6"' + (salto ? ' stroke-dasharray="4 4"' : '') + '/>';
+      s += '<path d="M' + x1 + ' ' + (y(a) - 30) + ' Q' + ((x1 + x2) / 2) + ' ' + (y(b) - 58) + ' ' + x2 + ' ' + (y(b) - 30) + '" fill="none" stroke="' + (salto ? 'var(--ink-3)' : 'var(--bloom-' + (b + 1) + ')') + '" stroke-width="1.6"' + (salto ? ' stroke-dasharray="4 4"' : '') + '/>';
       if (salto) s += '<text class="t-3 halo-txt" x="' + ((x1 + x2) / 2) + '" y="' + ((y(a) + y(b)) / 2 - 50) + '" text-anchor="middle" font-size="11" font-style="italic">sin ' + esc(NIVELES.slice(a + 1, b).join(', ')) + '</text>';
     }
     niveles.forEach(function (i) {
       porNivel[i].forEach(function (it, j) {
         var x = 6 + i * pw + pw / 2, yy = y(i) - 10 - j * 16;
         s += '<g class="esc-verbo" data-tip="' + esc(JSON.stringify({ t: it.texto, e: it.extra || '' })) + '"><rect x="' + (x - pw / 2) + '" y="' + (yy - 14) + '" width="' + pw + '" height="18" fill="transparent"/>' +
-          '<text class="t-ink v halo-txt" x="' + x + '" y="' + yy + '" text-anchor="middle" font-size="13" font-weight="700">' + esc(it.verbo) + '</text></g>';
+          '<text class="v halo-txt" style="fill:var(--bloom-' + (i + 1) + 't)" x="' + x + '" y="' + yy + '" text-anchor="middle" font-size="13" font-weight="700">' + esc(it.verbo) + '</text></g>';
       });
     });
     // verbos ambiguos (léxico compartido): debajo de los nombres de nivel, un corchete sobre los peldaños
@@ -986,9 +1115,9 @@
     var sinNivel = autor.filter(function (a) { return a.nivel < 0; });
     c.innerHTML = '<p class="riesgo aparece">' + esc(b.main_risk) + '</p>' +
       '<div class="dos-esc">' +
-        '<div class="aparece"><h3>Tus objetivos</h3>' + escalera(autor, 'var(--ink)', 'Tus objetivos en la escalera de Bloom') +
+        '<div class="aparece"><h3>Tus objetivos</h3>' + escalera(autor, 'var(--ink)', 'Tus objetivos en la taxonomía de Bloom') +
           (sinNivel.length ? '<p class="chico ink3">Sin nivel claro: ' + sinNivel.map(function (a) { return '<b>' + esc(a.verbo) + '</b>'; }).join(', ') + '. Elige un verbo que diga qué harás exactamente.</p>' : '') + '</div>' +
-        '<div class="aparece"><h3>Propuesta</h3>' + escalera(prop, 'var(--c)', 'Objetivos propuestos en la escalera de Bloom') +
+        '<div class="aparece"><h3>Propuesta</h3>' + escalera(prop, 'var(--c)', 'Objetivos propuestos en la taxonomía de Bloom') +
           '<ol class="revisados">' + prop.map(function (r) { return '<li><span class="nv">' + (r.nivel >= 0 ? NIVELES[r.nivel] : '') + '</span><span>' + esc(r.texto) + '</span></li>'; }).join('') + '</ol></div>' +
       '</div>';
     mostrar(c, '.aparece', 200);
@@ -1205,31 +1334,33 @@
   // Datos (segundos) y luego IA; la mascota toma un color con cada hallazgo y celebra al final.
   async function secuencia() {
     var mia = ++corrida; terminado = false; actual = -1; pintarPasos();
+    // «Repetir» o un análisis nuevo empiezan otra corrida: esta se detiene tras cada espera
+    function sigue() { return mia === corrida; }
     colorMascota('#8c96a8'); faseMapa = 0;
     estado('<b>Ubicando tu tesis</b> entre 609,154 del catálogo', 'investiga');
     var proy = dibujarMapa(vistaTotal); capaMapa(proy);
-    await espera(700);
-    await animarCamara(1500);
+    await espera(700); if (!sigue()) return;
+    await animarCamara(1500); if (!sigue()) return;
     faseMapa = 1; proy = dibujarMapa(vistaFinal); capaMapa(proy);
     var area = contar(S.vec, function (t) { return t.area; })[0][0];
     colorMascota(areaHex(area)); estado('<b>Tu tesis es de ' + AREA_NOMBRE[area] + '.</b> Reuniendo las tesis parecidas', 'investiga');
-    await espera(900);
+    await espera(900); if (!sigue()) return;
     faseMapa = 2; capaMapa(proy);
     renderParecidas(abrir('s4')); listo('s4');
     var campo = S.datos.ubicacion.campo[0];
-    await espera(900);
+    await espera(900); if (!sigue()) return;
     colorMascota(colorCampo(campo.id)); estado('<b>Cae en ' + esc(campo.nombre) + '.</b> Buscando asesores', 'investiga');
     renderAsesores(abrir('s5')); listo('s5');
-    await espera(1500);
+    await espera(1500); if (!sigue()) return;
     if (S.ia) {
       estado('<b>Leyendo el planteamiento</b>', 'investiga');
-      await espera(1400);
+      await espera(1400); if (!sigue()) return;
       renderNota(abrir('s1')); listo('inicio');
       estado('<b>Formulando preguntas</b>', 'investiga');
-      await espera(1800);
+      await espera(1800); if (!sigue()) return;
       renderPreguntas(abrir('s2')); listo('s2');
       estado('<b>Revisando los objetivos</b>', 'investiga');
-      await espera(1600);
+      await espera(1600); if (!sigue()) return;
       renderBloom(abrir('s3')); listo('s3');
     } else {
       // sin lectura de IA (el boceto solo la tiene para el caso de ejemplo): el planteamiento queda con
@@ -1239,8 +1370,7 @@
     pose($('m-estado'), 'celebra');
     // la mascota celebra con «Análisis listo» y la barra pasa a ser la cabecera de la sección que lees
     estado(S.ia ? '<b>Análisis listo.</b>' : '<b>Análisis de datos listo.</b> La lectura con IA llega con la cuenta.');
-    await espera(1800);
-    if (mia !== corrida) return; // «Repetir» empezó otra corrida
+    await espera(1800); if (!sigue()) return;
     terminado = true; cabecera();
   }
   function reiniciar() {
@@ -1364,15 +1494,46 @@
   }
   // el color de la portada lleva un dato: el área del programa elegido (marino mientras no hay)
   function pintarPrograma() {
-    var p = F.prog, ficha = $('ficha');
+    var p = F.prog;
     $('f-prog').classList.toggle('sin', !p);
     if (p) {
-      ficha.style.setProperty('--area', areaHex(p.area));
+      colorArea(areaHex(p.area));
       $('f-area').textContent = p.area ? AREA_NOMBRE[p.area] : 'Sin área registrada';
       colorMascota(areaHex(p.area));
     } else {
-      ficha.style.removeProperty('--area'); $('f-area').textContent = ''; colorMascota(tok('--link'));
+      colorArea(null); $('f-area').textContent = ''; colorMascota(tok('--link'));
     }
+    pintarEmblema(p ? p.area : 0); pintarMetaForm();
+  }
+  function colorArea(c) {
+    if (c) document.documentElement.style.setProperty('--area-tesis', c);
+    else document.documentElement.style.removeProperty('--area-tesis');
+  }
+  // grabados de lámina por área (viewBox 180 × 120, solo trazo); sin área, la rosa de los vientos
+  var EMBLEMAS = {
+    0: '<circle cx="90" cy="60" r="44"/><circle cx="90" cy="60" r="36"/><path d="M90 8L98 60L90 112L82 60Z"/><path d="M38 60L90 52L142 60L90 68Z"/><path d="M62 32L93 57M118 88L87 63M118 32L93 63M62 88L87 57"/><circle cx="90" cy="60" r="4"/>',
+    // Físico-Matemáticas: un compás trazando su arco y el triángulo de Pitágoras con sus cuadrados
+    1: '<path d="M40 16V22"/><circle cx="40" cy="26" r="4"/><path d="M38 30L25 78M42 30L55 78"/><path d="M30.5 58Q40 54 49.5 58"/><path d="M25 78L24 84M55 78L57 84"/><path d="M56.0 92.0A33 33 0 0 1 52.0 101.5"/><path d="M49.3 105.2A33 33 0 0 1 41.5 112.0"/><path d="M37.4 114.1A33 33 0 0 1 27.4 116.8"/><path d="M22.8 117.0A33 33 0 0 1 12.7 115.0"/><path d="M120 58L150 78L120 78Z"/><path d="M120 78H150V108H120Z"/><path d="M120 58V78H100V58Z"/><path d="M120 58L150 78L170 48L140 28Z"/><path d="M120 72H126V78"/>',
+    // Biológicas, Químicas y de la Salud: anillo de benceno con sus enlaces y una hoja con nervaduras
+    2: '<path d="M52 26L78 41L78 71L52 86L26 71L26 41Z"/><path d="M71.5 45L71.5 67M52 79L33 68M33 44L52 33"/><path d="M78 41L98 29M52 86L52 106M26 41L10 31"/><path d="M112 108C112 66 136 34 172 16C170 62 150 96 112 108Z"/><path d="M112 108Q140 70 172 16"/><path d="M128 84L124 66M138 70L136 50M148 56L150 40M134 78L150 76M144 64L160 58"/>',
+    // Ciencias Sociales: una red de actores y la silueta de una cabeza de perfil que la mira
+    3: '<path d="M18 40L50 24L62 62L28 82L18 40M50 24L84 46L62 62M28 82L66 100L62 62"/><circle cx="18" cy="40" r="5"/><circle cx="50" cy="24" r="5"/><circle cx="62" cy="62" r="6"/><circle cx="28" cy="82" r="5"/><circle cx="84" cy="46" r="4"/><circle cx="66" cy="100" r="4"/><path d="M129.2 109L170.5 109C168 101.5 164.2 89 164.8 79C168 69 178 60.2 178 46.5C178 26.5 161.8 14.5 140.5 14.5C119.2 14.5 108 29 108 44C108 50.2 106.8 54 104.2 56.5L98.2 62.8C97.2 64.5 99.2 66.5 103.8 67.8C102.2 70.2 102.8 72 104.8 73.5C103 75.5 103.8 77.5 106.8 79C104.8 81.5 105.2 86 108.8 89C113 92 121.8 91.5 126.8 94C128.8 97.8 129.2 102.8 129.2 109Z"/>',
+    // Humanidades y Artes: capitel jónico con sus volutas y un libro abierto
+    4: '<path d="M14 26H106V34H14Z"/><path d="M22 34Q60 56 98 34"/><circle cx="24" cy="46" r="11"/><circle cx="24" cy="46" r="5.5"/><circle cx="96" cy="46" r="11"/><circle cx="96" cy="46" r="5.5"/><path d="M36 56V112M84 56V112M48 58V112M60 58V112M72 58V112"/><path d="M118 62Q136 54 152 62Q168 54 178 60V104Q168 98 152 106Q136 98 118 104Z"/><path d="M152 62V106"/><path d="M126 72Q136 68 146 72M126 82Q136 78 146 82M126 92Q136 88 146 92M158 72Q166 68 172 70M158 82Q166 78 172 80"/>'
+  };
+  var emblemaArea = null, emblemaT = null;
+  function pintarEmblema(area) {
+    var svg = $('emblema');
+    if (area === emblemaArea || !EMBLEMAS[area]) return;
+    var primero = emblemaArea === null;
+    emblemaArea = area; clearTimeout(emblemaT);
+    svg.classList.remove('vis');
+    emblemaT = setTimeout(function () {
+      svg.innerHTML = EMBLEMAS[area];
+      Array.prototype.forEach.call(svg.children, function (el, i) { el.setAttribute('pathLength', '1'); el.style.setProperty('--i', i); });
+      svg.getBoundingClientRect();
+      svg.classList.add('vis');
+    }, primero || REDUCIDO ? 0 : 340);
   }
   function programaExacto(texto) {
     var c = sinAcento(texto).trim();
@@ -1389,6 +1550,15 @@
   function pintarPuntosGrado() {
     var nv = GRADOS.indexOf(gradoElegido()) + 1, col = noche() ? NIVEL_NOCHE : NIVEL_DIA;
     Array.prototype.forEach.call($('f-grado-nv').children, function (i, k) { i.style.background = k < nv ? col[k] : ''; i.style.boxShadow = k < nv ? 'none' : ''; });
+    pintarMetaForm();
+  }
+  // al escribir, la banda repite programa y grado en cuanto se eligen, con la gramática de la meta del análisis
+  function pintarMetaForm() {
+    if (!document.body.classList.contains('escribiendo')) return;
+    var g = gradoElegido(), nv = GRADOS.indexOf(g) + 1, dots = '';
+    for (var k = 0; k < 4; k++) dots += '<i' + (k < nv ? ' class="si"' : '') + '></i>';
+    $('meta').innerHTML = (F.prog ? '<span title="' + esc(AREA_NOMBRE[F.prog.area] || '') + '"><i class="g-ar"></i><i class="g-pr"></i><b>' + esc(F.prog.nombre) + '</b></span>' : '') +
+      (g ? '<span title="' + esc(g) + ', nivel ' + nv + ' de 4"><span class="g-nv">' + dots + '</span>' + esc(g) + '</span>' : '');
   }
 
   // --- periodo: dos años y la línea de tiempo de dos puntos ---
@@ -1405,9 +1575,10 @@
   // --- objetivos: renglones numerados; el léxico los clasifica en vivo ---
   function filaObjetivo(texto) {
     var li = document.createElement('li');
-    li.innerHTML = '<span class="num" aria-hidden="true"></span><textarea class="campo" rows="1" maxlength="600" aria-label="Objetivo" placeholder="Analizar…"></textarea>' +
-      '<button type="button" class="f-quitar" title="Quitar este objetivo" aria-label="Quitar este objetivo">' + ICO_X + '</button><p class="f-nota" hidden></p>';
+    li.innerHTML = '<span class="num" aria-hidden="true"></span><div class="obj-in"><div class="espejo" aria-hidden="true"></div><textarea class="campo" rows="1" maxlength="600" aria-label="Objetivo" placeholder="Analizar…"></textarea></div>' +
+      '<button type="button" class="f-quitar" title="Quitar este objetivo" aria-label="Quitar este objetivo">' + ICO_X + '</button><p class="f-nota" hidden></p><details class="f-verbos" hidden></details>';
     li.querySelector('textarea').value = texto || '';
+    if (texto) li.querySelector('textarea').dataset.revisar = '1'; // lo que llega escrito (borrador, ejemplo) se revisa de una vez
     $('f-objs').appendChild(li); numerar();
     return li.querySelector('textarea');
   }
@@ -1416,6 +1587,42 @@
     Array.prototype.forEach.call(lis, function (li, i) { li.querySelector('.num').textContent = i + 1; li.querySelector('textarea').setAttribute('aria-label', 'Objetivo ' + (i + 1)); });
     $('f-mas').disabled = lis.length >= 8;
   }
+  // --- palabras clave: renglones de 1 a 3 palabras, máximo 8 ---
+  var MAX_CLAVES = 8, MAX_PALABRAS = 3;
+  function filaClave(texto) {
+    var li = document.createElement('li');
+    li.innerHTML = '<input class="campo" type="text" maxlength="40" autocomplete="off" spellcheck="true" placeholder="Por ejemplo: sistema bancario">' +
+      '<button type="button" class="f-quitar" title="Quitar esta palabra clave" aria-label="Quitar esta palabra clave">' + ICO_X + '</button><p class="f-nota" hidden></p>';
+    li.querySelector('input').value = texto || '';
+    $('f-claves').appendChild(li); numerarClaves();
+    return li.querySelector('input');
+  }
+  function numerarClaves() {
+    var lis = $('f-claves').children;
+    Array.prototype.forEach.call(lis, function (li, i) { li.querySelector('input').setAttribute('aria-label', 'Palabra clave ' + (i + 1)); });
+    $('f-claves-mas').disabled = lis.length >= MAX_CLAVES;
+  }
+  // letras, números, espacios, guion y apóstrofo; los separadores (coma, punto y coma) parten en renglones
+  function limpiarClave(t) { return t.replace(/[^\p{L}\p{N}\s'’-]/gu, '').replace(/\s+/g, ' ').replace(/^\s+/, ''); }
+  function palabras(t) { return t.trim().split(/\s+/).filter(Boolean).length; }
+  function notaClave(li) {
+    var n = palabras(li.querySelector('input').value), p = li.querySelector('.f-nota');
+    p.hidden = n <= MAX_PALABRAS;
+    if (!p.hidden) p.textContent = 'Una palabra clave tiene de 1 a 3 palabras; esto parece una frase. Pártela en dos o quédate con lo esencial.';
+  }
+  // reparte un texto con separadores en renglones, a partir del renglón li
+  function repartirClaves(li, texto) {
+    var partes = texto.split(/[,;\n]+/).map(function (k) { return limpiarClave(k).trim(); }).filter(Boolean);
+    if (!partes.length) return;
+    var inp = li.querySelector('input'), ultimo = inp;
+    inp.value = partes.shift(); notaClave(li);
+    partes.forEach(function (k) {
+      if ($('f-claves').children.length >= MAX_CLAVES) return;
+      var n = filaClave(k); ultimo.closest('li').after(n.closest('li')); notaClave(n.closest('li')); ultimo = n;
+    });
+    numerarClaves(); ultimo.focus();
+  }
+  function textosClaves() { return Array.prototype.map.call($('f-claves').querySelectorAll('input'), function (t) { return t.value.trim(); }).filter(Boolean); }
   function textosObjetivos() { return Array.prototype.map.call($('f-objs').querySelectorAll('textarea'), function (t) { return t.value.trim(); }); }
 
   // lo que el léxico dice de cada objetivo, en una línea y solo en los casos límite
@@ -1424,8 +1631,10 @@
     if (b.indexOf('otro_idioma') >= 0) return 'Redáctalo en español.';
     if (b.indexOf('tramite') >= 0) return 'Es una tarea escolar, no un objetivo de investigación. ¿Qué quieres averiguar o producir?';
     if (b.indexOf('metodo') >= 0) return 'Describe un método, no un objetivo. Di para qué lo harás: por ejemplo, «Analizar las respuestas de…».';
+    if (b.indexOf('sin_verbo') >= 0 && b.indexOf('vago') >= 0) return 'Empieza con un sustantivo, y su verbo («' + esc(o.sugerencias[0] || '') + '») no se puede comprobar. Elige abajo uno que diga qué harás.';
     if (b.indexOf('sin_verbo') >= 0) return 'Empieza con un sustantivo. Prueba con el verbo: <b>«' + esc(capital(o.sugerencias[0] || '').replace('Disenar', 'Diseñar')) + '…»</b>.';
     if (b.indexOf('vago') >= 0) return v + ' no se puede comprobar. ¿Qué harás exactamente? Por ejemplo: describir, analizar, comparar o evaluar.';
+    if (b.indexOf('fuera_lexico') >= 0 && !pareceVerbo(o)) return 'No empieza con un verbo. Empieza por lo que harás: por ejemplo, «Analizar…», «Comparar…» o «Proponer…».';
     if (b.indexOf('fuera_lexico') >= 0) return v + ' no dice qué harás. Prueba con un verbo observable: describir, analizar, comparar, evaluar o proponer.';
     if (b.indexOf('varios_verbos') >= 0) return 'Mezcla dos objetivos. Conviene partirlo en dos, uno por verbo.';
     if (b.indexOf('ambiguo') >= 0) return v + ' admite varios niveles; la lectura con IA lo decidirá por el contexto.';
@@ -1438,21 +1647,120 @@
   };
   function actualizarBloom() {
     var tas = $('f-objs').querySelectorAll('textarea');
-    if (!F.bloom) { $('f-esc').innerHTML = escalera([], 'var(--ink)', 'Escalera de Bloom'); return; }
+    if (!F.bloom) { Array.prototype.forEach.call(tas, function (t) { pintarEspejo(t, null); }); $('f-esc').innerHTML = escalera([], 'var(--ink)', 'Taxonomía de Bloom'); return; }
     var textos = Array.prototype.map.call(tas, function (t) { return t.value; });
     var lx = F.bloom.clasificarObjetivos(textos, gradoElegido());
     F.lexico = lx;
-    // nota por renglón: cada uno se clasifica solo (los vacíos no llevan nota)
+    // nota por renglón, solo cuando el estudiante terminó de escribirlo (salió del renglón o hizo una
+    // pausa con varias palabras): mientras escribe no se le corrige. La escalera sí se dibuja en vivo.
+    var escribiendo = false;
     Array.prototype.forEach.call(tas, function (t) {
-      var nota = t.parentNode.querySelector('.f-nota'), o = F.bloom.clasificarObjetivo(t.value);
-      var html = o.banderas.indexOf('vacio') >= 0 ? '' : notaObjetivo(o);
-      nota.innerHTML = html; nota.hidden = !html;
+      var li = t.closest('li'), nota = li.querySelector('.f-nota'), ver = li.querySelector('.f-verbos'), o = F.bloom.clasificarObjetivo(t.value);
+      pintarEspejo(t, o);
+      var listo = t.dataset.revisar === '1' && o.banderas.indexOf('vacio') < 0;
+      if (t.value.trim() && !listo) escribiendo = true;
+      var html = listo ? notaObjetivo(o) : '', sinVerbo = listo && SIN_VERBO.some(function (b) { return o.banderas.indexOf(b) >= 0; });
+      if (nota.dataset.html !== html) { nota.dataset.html = html; nota.innerHTML = html; nota.hidden = !html; }
+      if (ver.hidden === sinVerbo) { ver.hidden = !sinVerbo; if (sinVerbo && !ver.firstChild) ver.innerHTML = listaVerbos(); if (!sinVerbo) ver.open = false; }
     });
     var items = lx.objetivos.map(function (o) {
       return { verbo: o.verbo || '…', nivel: o.nivel === null ? -1 : o.nivel, rango: o.rango, texto: o.texto, extra: notaObjetivo(o).replace(/<[^>]+>/g, '') };
     });
-    $('f-esc').innerHTML = escalera(items, 'var(--ink)', 'Tus objetivos en la escalera de Bloom');
-    $('f-est').innerHTML = lx.estructura.filter(function (e) { return ESTRUCTURA[e]; }).map(function (e) { return '<li>' + ESTRUCTURA[e](lx) + '</li>'; }).join('');
+    $('f-esc').innerHTML = escalera(items, 'var(--ink)', 'Tus objetivos en la taxonomía de Bloom');
+    // las observaciones de conjunto esperan a que ningún objetivo esté a medio escribir
+    $('f-est').innerHTML = escribiendo ? '' : lx.estructura.filter(function (e) { return ESTRUCTURA[e]; }).map(function (e) { return '<li>' + ESTRUCTURA[e](lx) + '</li>'; }).join('');
+  }
+  // el espejo repite el texto y pinta el verbo rector en el color de su peldaño (ambiguo: tinta)
+  function pintarEspejo(t, o) {
+    var esp = t.parentNode.querySelector('.espejo'), txt = t.value, html = esc(txt);
+    var ok = o && o.verbo && (o.nivel !== null || o.rango) && !SIN_VERBO.some(function (b) { return o.banderas.indexOf(b) >= 0; });
+    if (ok) {
+      var re = /[\p{L}\p{N}]+/gu, m;
+      while ((m = re.exec(txt))) {
+        if (sinAcento(m[0]) === o.verbo) {
+          var col = o.nivel !== null ? 'var(--bloom-' + (o.nivel + 1) + 't)' : 'var(--ink)';
+          html = esc(txt.slice(0, m.index)) + '<b class="vb" style="color:' + col + '">' + esc(m[0]) + '</b>' + esc(txt.slice(m.index + m[0].length));
+          break;
+        }
+      }
+    }
+    esp.innerHTML = html + (/\n$/.test(txt) ? ' ' : '');
+  }
+  // banderas en las que el objetivo no trae un verbo reconocible: ahí se ofrece la lista de verbos
+  var SIN_VERBO = ['sin_verbo', 'fuera_lexico', 'vago'];
+  function verboBonito(v) { return v === 'disenar' ? 'diseñar' : v; }
+  function listaVerbos() {
+    return '<summary><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.5L10.5 8 6 12.5"/></svg>Elegir un verbo por nivel</summary><dl>' +
+      F.bloom.VERBOS_POR_NIVEL.map(function (vs, n) {
+        return '<dt style="--vc:var(--bloom-' + (n + 1) + 't)">' + NIVELES[n] + '<i>' + (n + 1) + '</i></dt><dd style="--vc:var(--bloom-' + (n + 1) + 't)">' + vs.map(function (v) {
+          return '<button type="button" class="f-verbo" data-v="' + v + '">' + verboBonito(v) + '</button>';
+        }).join('') + '</dd>';
+      }).join('') + '</dl><button type="button" class="f-bloom-q"><span class="ayuda" aria-hidden="true">?</span>¿Qué es la taxonomía de Bloom?</button>';
+  }
+  // el verbo elegido va al inicio: sustituye la primera palabra si era un verbo vago o fuera del
+  // léxico; si el objetivo empezaba con un sustantivo, se antepone
+  // el léxico marca «fuera del léxico» la primera palabra cuando no halla verbo («Las políticas…»):
+  // solo cuenta como verbo si parece un infinitivo
+  function pareceVerbo(o) { return !!o.lema || /(ar|er|ir)$/.test(sinAcento(o.verbo || '')) && (o.verbo || '').length > 4; }
+  function ponerVerbo(t, v) {
+    var o = F.bloom.clasificarObjetivo(t.value), txt = t.value.trim(), V = capital(verboBonito(v));
+    var m = txt.match(/^\S+\s+(del?)\s+/i);
+    if (o.banderas.indexOf('sin_verbo') >= 0) txt = m ? V + ' ' + (m[1].toLowerCase() === 'del' ? 'el ' : '') + txt.slice(m[0].length) : txt.replace(/^\S+/, V); // «Estudio de la vivienda» -> «Comparar la vivienda»
+    else if (!pareceVerbo(o) || !txt) txt = V + ' ' + txt.charAt(0).toLowerCase() + txt.slice(1);                                                                   // «Las políticas…» -> «Comparar las políticas…»
+    else txt = txt.replace(/^\S+/, V);                                                                                                                                  // «Conocer las…» -> «Comparar las…»
+    t.value = txt.trim(); crecer(t); t.dataset.revisar = '1';
+    t.focus(); t.setSelectionRange(t.value.length, t.value.length); cambio();
+  }
+  var revisionT = null;
+  function programarRevision(t) {
+    delete t.dataset.revisar; clearTimeout(revisionT);
+    revisionT = setTimeout(function () { if (t.value.trim().split(/\s+/).length >= 3) { t.dataset.revisar = '1'; actualizarBloom(); } }, 1500);
+  }
+
+  // --- explicación de la escalera: diagramas deterministas, sin IA ---
+  function pintarAyudaBloom() {
+    var ej = [['reconocer', 'definir'], ['describir', 'explicar'], ['aplicar', 'calcular'], ['analizar', 'comparar'], ['evaluar', 'justificar'], ['proponer', 'diseñar']];
+    var nv = function (i, txt) { return '<b style="color:var(--bloom-' + (i + 1) + 't)">' + (txt || NIVELES[i].toLowerCase()) + '</b>'; };
+    // escalera animada: cada peldaño sube en su azul, uno tras otro; después sus verbos y la flecha de subida
+    var W = 580, pw = W / 6, base = 176, alto = 24, s = '<svg class="graf esc-ayuda" viewBox="0 0 ' + W + ' 206" role="img" aria-label="Los seis niveles de la taxonomía de Bloom, de recordar a crear, con dos verbos de ejemplo cada uno">';
+    var d = 'M0 ' + base; NIVELES.forEach(function (n, i) { d += ' V' + (base - (i + 1) * alto) + ' H' + (i + 1) * pw; }); d += ' V' + base + ' Z';
+    s += '<path class="silueta" pathLength="1" d="' + d + '" fill="none" stroke="var(--line-strong)" stroke-width="1"/>';
+    NIVELES.forEach(function (n, i) {
+      var x = i * pw, y = base - (i + 1) * alto;
+      s += '<g class="pel" style="--i:' + i + '">' +
+        '<rect class="rell" x="' + x + '" y="' + y + '" width="' + pw + '" height="' + (base - y) + '" style="fill:var(--bloom-' + (i + 1) + ')"/>' +
+        '<text class="vs" x="' + (x + 6) + '" y="' + (y - 24) + '" font-size="12.5" font-weight="600" style="fill:var(--bloom-' + (i + 1) + 't)">' + ej[i][0] + '</text>' +
+        '<text class="vs" x="' + (x + 6) + '" y="' + (y - 9) + '" font-size="12.5" font-weight="600" style="fill:var(--bloom-' + (i + 1) + 't)">' + ej[i][1] + '</text>' +
+        '<text x="' + (x + pw / 2) + '" y="' + (base + 20) + '" text-anchor="middle" font-size="12.5" font-weight="700" style="fill:var(--bloom-' + (i + 1) + 't)">' + n + '</text></g>';
+    });
+    s += '<path class="sube" pathLength="1" d="M' + (pw * 0.5) + ' ' + (base - alto - 46) + ' L' + (pw * 5.2) + ' ' + (base - 6 * alto - 46) + '" fill="none" stroke="var(--ink-3)" stroke-width="1.2" stroke-dasharray="1" marker-end="url(#flecha-bloom)"/>' +
+      '<defs><marker id="flecha-bloom" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1L9 5L1 9" fill="none" stroke="var(--ink-3)" stroke-width="1.5"/></marker></defs></svg>';
+    var grados = [['Licenciatura', 'licenciatura'], ['Especialidad', 'especialidad'], ['Maestría', 'maestria'], ['Doctorado', 'doctorado']];
+    var g = '<div class="grado-esp" role="table" aria-label="Nivel más alto que se espera según el grado"><span></span>' + NIVELES.map(function (n, i) { return '<span class="gh" style="color:var(--bloom-' + (i + 1) + 't)">' + n + '</span>'; }).join('') +
+      grados.map(function (gr) {
+        var e = F.bloom ? F.bloom.ESPERADO_POR_GRADO[gr[1]] : 3;
+        return '<span class="gn">' + gr[0] + '</span>' + NIVELES.map(function (n, i) { return '<i' + (i <= e ? ' style="background:var(--bloom-' + (i + 1) + ')" title="Se espera llegar hasta aquí"' : '') + '></i>'; }).join('');
+      }).join('') + '</div>';
+    $('bloom-cuerpo').innerHTML =
+      '<p>Es una forma de ordenar lo que hace una investigación, <b>de lo más sencillo a lo más complejo</b>: primero ' + nv(0) + ' y ' + nv(1) + ', después ' + nv(2) + ' y ' + nv(3) + ', y al final ' + nv(4) + ' y ' + nv(5) + '. La propuso <a href="https://openlibrary.org/works/OL8402087W" target="_blank" rel="noopener">Benjamin Bloom</a> en 1956 y la revisaron <a href="https://archive.org/details/taxonomyforlearn00unse" target="_blank" rel="noopener">Lorin Anderson y David Krathwohl</a> en 2001.</p>' +
+      '<p><b>Cada objetivo de tu tesis empieza con un verbo, y ese verbo dice en qué nivel de la taxonomía está.</b> Los niveles superiores se apoyan en los inferiores: para ' + nv(5, 'proponer') + ' algo, antes hay que ' + nv(3, 'analizarlo') + ' y ' + nv(4, 'evaluarlo') + '.</p>' +
+      '<h4>Los seis niveles</h4>' + s +
+      '<h4>Cómo se lee un objetivo</h4><p class="lee"><b class="lee-v">Comparar</b> las políticas de vivienda de la Ciudad de México y Bogotá entre 2000 y 2020.</p>' +
+      '<p class="lee-nota">El verbo del inicio, <b>«comparar»</b>, pone este objetivo en ' + nv(3, 'Analizar') + ', el cuarto nivel. Lo demás dice <b>sobre qué</b> y <b>cuándo</b>. Verbos como <b>«conocer»</b> o <b>«entender»</b> no dicen qué harás ni se pueden comprobar.</p>' +
+      '<h4>Hasta dónde se espera llegar según el grado</h4>' + g +
+      '<p class="lee-nota" style="margin-top:12px"><b>Es una guía, no una calificación:</b> una buena tesis puede tener objetivos en varios niveles.</p>';
+    // la animación se repite cada vez que se abre
+    var esc_ = $('bloom-cuerpo').querySelector('.esc-ayuda');
+    esc_.getBoundingClientRect(); setTimeout(function () { esc_.classList.add('vis'); }, 30);
+  }
+  var ayudaDesde = null;
+  function abrirAyudaBloom(desde) {
+    ayudaDesde = desde || document.activeElement; pintarAyudaBloom();
+    $('bloom-capa').hidden = false; $('bloom-dlg').hidden = false; $('bloom-cerrar').focus();
+  }
+  function cerrarAyudaBloom() {
+    $('bloom-capa').hidden = true; $('bloom-dlg').hidden = true;
+    if (ayudaDesde && ayudaDesde.focus) ayudaDesde.focus();
   }
 
   // --- pasos del formulario: título, Problematiza, objetivos, programa y grado ---
@@ -1475,7 +1783,7 @@
 
   // --- borrador en el navegador (conveniencia; nunca la única copia de nada importante) ---
   function leerForm() {
-    var p = periodoForm(), claves = $('f-claves').value.split(',').map(function (k) { return k.trim().slice(0, 80); }).filter(Boolean).slice(0, 12);
+    var p = periodoForm(), claves = textosClaves().slice(0, MAX_CLAVES);
     return {
       title: $('f-titulo').value.trim(), problematiza: $('f-prob').value.trim(), keywords: claves,
       objectives: textosObjetivos().filter(Boolean).slice(0, 8), program: $('f-prog-in').value.trim(), degree: gradoElegido(),
@@ -1489,7 +1797,7 @@
   }
   function llenarForm(e) {
     $('f-titulo').value = e.title || ''; $('f-prob').value = e.problematiza || '';
-    $('f-claves').value = (e.keywords || []).join(', ');
+    $('f-claves').innerHTML = ''; (e.keywords && e.keywords.length ? e.keywords : ['']).slice(0, MAX_CLAVES).forEach(function (k) { notaClave(filaClave(k).closest('li')); });
     $('f-objs').innerHTML = '';
     (e.objectives && e.objectives.length ? e.objectives : ['']).forEach(function (o) { filaObjetivo(o); });
     $('f-prog-in').value = e.program || ''; F.prog = programaExacto(e.program || '');
@@ -1497,7 +1805,7 @@
     var sp = e.study_period || {};
     $('f-periodo-campos').hidden = !sp.applies; $('f-periodo-si').hidden = !!sp.applies;
     $('f-desde').value = sp.applies && sp.start_year ? sp.start_year : ''; $('f-hasta').value = sp.applies && sp.end_year ? sp.end_year : '';
-    document.querySelectorAll('#f-ficha textarea, #f-objs textarea').forEach(crecer);
+    document.querySelectorAll('#f-titulo, #f-ficha textarea, #f-objs textarea').forEach(crecer);
     pintarPrograma(); pintarPuntosGrado(); pintarPeriodo();
   }
   function crecer(t) { t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; }
@@ -1523,6 +1831,8 @@
     marca('e-grado', document.querySelector('input[name="grado"]'), e.degree ? '' : 'Elige tu grado: de él depende qué se espera de tus objetivos.');
     marca('e-periodo', $('f-desde'), p.on && !p.ok ? 'Escribe dos años, el primero antes del segundo, o quita el periodo.' : '');
     marca('e-obj', $('f-objs').querySelector('textarea'), e.objectives.length ? '' : 'Escribe al menos un objetivo: qué harás para responder tu pregunta.');
+    var larga = Array.prototype.filter.call($('f-claves').querySelectorAll('input'), function (t) { return palabras(t.value) > MAX_PALABRAS; })[0];
+    marca('e-claves', larga, larga ? 'Deja cada palabra clave en 1 a 3 palabras; la búsqueda las usa como frases exactas.' : '');
     if (enfocar && primero) primero.focus();
     return !primero;
   }
@@ -1543,6 +1853,7 @@
   // --- de escribir a analizar: la portada se queda y el análisis se despliega debajo ---
   async function analizar(e) {
     cerrarLista();
+    corrida++; terminado = false; actual = -1;
     document.body.classList.remove('escribiendo');
     $('lamina-txt').textContent = 'Análisis de tesis';
     $('titulo').textContent = e.title;
@@ -1566,7 +1877,7 @@
   function errorDatos() {
     document.body.classList.add('escribiendo');
     $('lamina-txt').textContent = 'Tu tesis';
-    pasosForm(); estadoForm();
+    pasosForm(); estadoForm(); pintarMetaForm();
     estado('<b>No pudimos ubicar tu tesis.</b> El servicio de datos no respondió; tu borrador sigue aquí. Inténtalo en unos minutos.', 'senala');
     $('f-envio').hidden = false; $('f-sesion').hidden = true;
   }
@@ -1575,9 +1886,39 @@
   function conectarFormulario() {
     ['f-titulo', 'f-prob'].forEach(function (id) {
       $(id).addEventListener('input', function () { crecer(this); cambio(); });
-      $(id).addEventListener('keydown', function (ev) { if (ev.key === 'Enter' && this.id === 'f-titulo') { ev.preventDefault(); $('f-prob').focus(); } });
+      $(id).addEventListener('keydown', function (ev) { if (ev.key === 'Enter' && this.id === 'f-titulo') { ev.preventDefault(); $('f-prog-in').focus(); } });
     });
-    $('f-claves').addEventListener('input', guardarBorrador);
+    $('f-claves').addEventListener('input', function (ev) {
+      var t = ev.target; if (t.tagName !== 'INPUT') return;
+      if (/[,;]/.test(t.value)) { repartirClaves(t.closest('li'), t.value); guardarBorrador(); return; }
+      var limpio = limpiarClave(t.value);
+      if (limpio !== t.value) { var pos = Math.max(0, t.selectionStart - (t.value.length - limpio.length)); t.value = limpio; t.setSelectionRange(pos, pos); }
+      notaClave(t.closest('li')); if (F.errores['e-claves']) error('e-claves', null, ''); guardarBorrador();
+    });
+    $('f-claves').addEventListener('paste', function (ev) {
+      var t = ev.target, txt = (ev.clipboardData || window.clipboardData).getData('text');
+      if (t.tagName !== 'INPUT' || !/[,;\n]/.test(txt)) return;
+      ev.preventDefault(); repartirClaves(t.closest('li'), t.value.slice(0, t.selectionStart) + txt + t.value.slice(t.selectionEnd)); guardarBorrador();
+    });
+    $('f-claves').addEventListener('keydown', function (ev) {
+      var t = ev.target; if (t.tagName !== 'INPUT') return;
+      var li = t.closest('li');
+      if (ev.key === 'Enter') {
+        ev.preventDefault();
+        if (t.value.trim() && $('f-claves').children.length < MAX_CLAVES) { var n = filaClave(''); li.after(n.closest('li')); numerarClaves(); n.focus(); }
+      } else if (ev.key === 'Backspace' && !t.value && $('f-claves').children.length > 1) {
+        ev.preventDefault(); var prev = li.previousElementSibling || li.nextElementSibling; li.remove(); numerarClaves();
+        var pi = prev.querySelector('input'); pi.focus(); pi.setSelectionRange(pi.value.length, pi.value.length); guardarBorrador();
+      }
+    });
+    $('f-claves').addEventListener('click', function (ev) {
+      var b = ev.target.closest('.f-quitar'); if (!b) return;
+      var li = b.closest('li');
+      if ($('f-claves').children.length > 1) { var sig = li.nextElementSibling || li.previousElementSibling; li.remove(); numerarClaves(); sig.querySelector('input').focus(); }
+      else { li.querySelector('input').value = ''; notaClave(li); li.querySelector('input').focus(); }
+      guardarBorrador();
+    });
+    $('f-claves-mas').addEventListener('click', function () { filaClave('').focus(); });
     $('f-prog-in').addEventListener('input', function () { F.prog = programaExacto(this.value); pintarPrograma(); abrirLista(); cambio(); });
     $('f-prog-in').addEventListener('focus', function () { if (this.value.trim() && !F.prog) abrirLista(); });
     $('f-prog-in').addEventListener('blur', function () { setTimeout(cerrarLista, 150); });
@@ -1596,7 +1937,22 @@
     $('f-periodo-no').addEventListener('click', function () { $('f-periodo-campos').hidden = true; $('f-periodo-si').hidden = false; $('f-desde').value = $('f-hasta').value = ''; pintarPeriodo(); $('f-periodo-si').focus(); cambio(); });
     ['f-desde', 'f-hasta'].forEach(function (id) { $(id).addEventListener('input', function () { this.value = this.value.replace(/\D/g, ''); pintarPeriodo(); cambio(); }); });
     // objetivos: Enter abre el siguiente; retroceso en uno vacío lo quita y vuelve al anterior
-    $('f-objs').addEventListener('input', function (ev) { if (ev.target.tagName === 'TEXTAREA') { crecer(ev.target); cambio(); } });
+    $('f-objs').addEventListener('input', function (ev) { if (ev.target.tagName === 'TEXTAREA') { crecer(ev.target); programarRevision(ev.target); cambio(); } });
+    // al salir de un objetivo escrito, se revisa
+    $('f-objs').addEventListener('focusout', function (ev) {
+      var t = ev.target; if (t.tagName !== 'TEXTAREA' || !t.value.trim() || t.dataset.revisar === '1') return;
+      clearTimeout(revisionT); t.dataset.revisar = '1'; actualizarBloom();
+    });
+    // verbos por nivel y explicación de la escalera
+    $('f-objs').addEventListener('click', function (ev) {
+      var v = ev.target.closest('.f-verbo');
+      if (v) { ponerVerbo(v.closest('li').querySelector('textarea'), v.dataset.v); return; }
+      if (ev.target.closest('.f-bloom-q')) abrirAyudaBloom(ev.target.closest('.f-bloom-q'));
+    });
+    $('f-esc-ayuda').addEventListener('click', function () { abrirAyudaBloom(this); });
+    $('bloom-cerrar').addEventListener('click', cerrarAyudaBloom);
+    $('bloom-capa').addEventListener('click', cerrarAyudaBloom);
+    document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape' && !$('bloom-dlg').hidden) cerrarAyudaBloom(); });
     $('f-objs').addEventListener('keydown', function (ev) {
       var t = ev.target; if (t.tagName !== 'TEXTAREA') return;
       var li = t.closest('li');
@@ -1639,7 +1995,7 @@
     llenarForm(e || {});
     conectarFormulario();
     $('lamina-fecha').textContent = new Date().toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' });
-    pose($('m-estado'), 'senala'); estadoForm(); actualizarBloom();
+    pose($('m-estado'), 'senala'); pintarPrograma(); estadoForm(); actualizarBloom();
     // el léxico de Bloom es el mismo módulo que usa el Worker (compartido/bloom.js)
     import('../../compartido/bloom.js').then(function (m) { F.bloom = m; actualizarBloom(); estadoForm(); })
       .catch(function (err) { console.error('No se pudo cargar el léxico de Bloom', err); });
@@ -1648,10 +2004,10 @@
   // área y anillo del programa en el color del área (la del programa entre las 100 parecidas)
   function pintarMeta() {
     var e = S.datos.entrada, nv = GRADOS.indexOf(e.degree) + 1, col = noche() ? NIVEL_NOCHE : NIVEL_DIA, dots = '';
-    for (var k = 0; k < 4; k++) dots += k < nv ? '<i style="background:' + col[k] + ';box-shadow:none"></i>' : '<i></i>';
+    for (var k = 0; k < 4; k++) dots += k < nv ? '<i class="si" style="background:' + col[k] + ';box-shadow:none"></i>' : '<i></i>';
     var mismos = S.vec.filter(function (t) { return sinAcento(t.programa) === sinAcento(e.program); });
     var ar = mismos.length ? contar(mismos, function (t) { return t.area; })[0][0] : (F.prog ? F.prog.area : 0);
-    $('ficha').style.setProperty('--area', areaHex(ar));
+    colorArea(areaHex(ar)); pintarEmblema(ar);
     $('meta').innerHTML = (e.program ? '<span style="--c:' + areaHex(ar) + '" title="' + AREA_NOMBRE[ar] + '"><i class="g-ar"></i><i class="g-pr"></i><b>' + esc(e.program) + '</b></span>' : '') +
       '<span title="' + esc(e.degree) + ', nivel ' + nv + ' de 4"><span class="g-nv">' + dots + '</span>' + esc(e.degree) + '</span>' +
       (e.study_period.applies ? '<span>' + esc(e.study_period.label) + '</span>' : '');

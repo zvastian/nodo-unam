@@ -2523,7 +2523,7 @@ Actualizado el 27-sep-2026. La columna del 25-sep queda como punto de partida.
 | Frontend del atlas | ~85 % | ~87 % | v4.22.2: a lo de v4.18 se suman los enlaces a TESIUNAM, «Codirigió con», el botón de guardar, el logo y el favicon. Falta leer `?tesis=` en la URL, MI TESIS y la página Método. |
 | Frontend del Laboratorio | ~40 % | ~60 % | Formulario construido en el boceto: la ficha se escribe, Bloom en vivo, errores, borrador e invitación a entrar. `DESIGN.md` documenta el sistema. Falta el inicio de sesión real, conectar el formulario al Worker por SSE, cuota y «mis análisis». El usuario anunció cambios. |
 | Backend del Laboratorio | ~5 % | ~65 % | Servicio de datos (local, Docker y Modal), Worker puerta (JWT, D1, cuotas y guardados) e IA por SSE con Groq y Workers AI, más la evaluación de 11 casos. Falta probar con un token real de Supabase, reducir tokens, el límite por IP y el despliegue. |
-| Producción | 0 % | ~10 % | Proyecto de Supabase, cuenta de Cloudflare y el servicio de datos en Modal (1 USD sin tarjeta, solo para desarrollo). Nada público todavía; el sitio viejo sigue en línea. |
+| Producción | 0 % | ~10 % | Proyecto de Supabase, cuenta de Cloudflare y el servicio de datos en Modal (1 USD sin tarjeta, solo para desarrollo). Nada público todavía; el sitio viejo se retiró el 27-sep. |
 | Pruebas | ~10 % | ~25 % | 8 pruebas de integración del Worker, 13 del léxico, evaluación de IA con chequeos automáticos y verificación visual con `tools/cdp.mjs`. Falta CI, pruebas de extremo a extremo y la revisión humana de la IA. |
 | Ciberseguridad | ~15 % | ~30 % | **API:** verificación de JWT, CORS explícito, Turnstile, cuotas atómicas, clave compartida con el servicio, pruebas de acceso cruzado (IDOR), sin textos en los logs y Groq sin retención de datos. **Falta:** limpieza de entradas antes de cada llamada a la IA y en el formulario (ver el frente 6), CSP y cabeceras, librerías con versión fija, aviso de privacidad y rotar las claves viejas. |
 
@@ -2622,7 +2622,7 @@ Actualizado el 27-sep-2026. La columna del 25-sep queda como punto de partida.
 - [ ] Librerías (regl, regl-scatterplot, d3, pub-sub-es) con versión exacta y SRI, o servidas desde el propio dominio. Hoy `d3@7` no tiene versión exacta.
 - [ ] Observabilidad: errores de frontend y API, analítica sin cookies, alertas de gasto del LLM y de caída.
 - [ ] Respaldo de la base de datos de usuarios.
-- [ ] Retirar o redirigir el sitio viejo `MI-TESIS-UNAM`, que sirve datos anteriores.
+- [x] Retirar el sitio viejo `MI-TESIS-UNAM` (27-sep-2026: Pages y R2 borrados). Falta borrar sus dos repos en GitHub.
 
 **5. Pruebas.**
 - [ ] CI en cada push:
@@ -3210,3 +3210,181 @@ La consola queda limpia, salvo el aviso previsto cuando el servicio de datos no 
 - la animación de ancho de las barras-filtro es previa;
 - el radio de 3 px de las barras ya se documentó como `barra` en `DESIGN.md`;
 - los tamaños de 16 y 12 px se documentaron como `campo` y `grafica`, y los de 30 y 17 px en móvil, en Layout.
+
+## Retiro del sitio viejo `nodo-unam.pages.dev` (2026-09-27)
+
+**Pedido del usuario:** quitar el sitio viejo de Cloudflare y de GitHub y conservarlo solo como boceto local.
+
+**Hallazgo de privacidad.** El bucket R2 `nodo-unam-data` seguía público en `r2.dev`. Su `explore/thesis_atlas_index.json` traía el campo `author` en las 50,000 tesis de la muestra vieja. Poner el repo en privado no lo había cerrado.
+
+**Qué se hizo.** El sitio vivía en la cuenta de Cloudflare de estudiante (`comunidad.unam.mx`), no en la del proyecto.
+- Sesión de wrangler aparte (`XDG_CONFIG_HOME`), sin tocar la del Worker del Lab. Al terminar se cerró y se borró.
+- Acceso público del bucket desactivado; el archivo respondió 401.
+- Proyecto de Pages `nodo-unam` borrado; el dominio ya no resuelve.
+- El usuario vació y borró el bucket; `wrangler r2 bucket list` sale vacío.
+
+**Respaldo.** La copia local `app/MI-TESIS-UNAM_github/` (ignorada por git) tiene el historial completo, el archivo LFS y los dos archivos del bucket. El de Nobel se comparó contra R2: mismo contenido.
+
+**Copia v1 antes de borrar los repos.** `app/MI-TESIS-UNAM_v1/` (ignorada por git; ver su `LEEME.md`) tiene:
+- el sitio, que carga sin errores en consola;
+- el código;
+- el prototipo de abril;
+- los dos repos completos como `git bundle`, verificados.
+
+A los JSON del sitio y del código se les quitaron 46,491 campos de autor. Ningún repo tenía claves de API en su historial, y la rama `cleanup/workshop-wa2-css` ya estaba fusionada en `main`.
+
+**Pendiente.** Borrar en GitHub `zvastian/MI-TESIS-UNAM` y `ssebastian-diazz/MI-TESIS-UNAM`, los dos privados. Con eso también se cierra la purga del LFS con autores.
+
+## Laboratorio: la banda del título lleva el área, marcadores y grabados (boceto, 27-sep-2026)
+
+**Pedido del usuario:** que el programa elegido solo pinte el fondo del título, que haya rectángulos del color del área antes de cada subtítulo y que en la esquina inferior derecha aparezca un dibujo de cada área, con animación.
+
+**Decisiones del usuario** (tomadas antes de codificar):
+- Fondo de color solo en la banda del título. La mascota sigue tomando el color del área.
+- Marcador de rectángulo ancho, de 6 × 18 px.
+- Emblema en estilo de grabado de lámina.
+- La portada del análisis sigue las mismas reglas.
+
+**Qué cambió en `bocetos/lab/analisis.html`:**
+- **Dos partes en la ficha.** La `.banda` (línea «Laboratorio» y título) lleva el fondo del área, oscurecido. El `.ficha-cuerpo` (Problematiza, programa, grado, periodo, meta y objetos de estudio) va sobre papel con tinta normal. El `textarea` del título usa `form="f-ficha"` para seguir en el formulario.
+- **Una variable de color.** `--area-tesis` vive en `:root` y la ponen `pintarPrograma` y `pintarMeta`, con `colorArea()`. De ahí salen la banda, los marcadores (`--marca`) y el glifo del programa. Sin programa elegido, el marcador es marino (en noche, `--ink-3`).
+- **Marcadores** antes de Problematiza, Programa, Grado, Periodo, Objetivos, Palabras clave y Objetos de estudio.
+- **Grabados** (`EMBLEMAS` y `pintarEmblema`), en línea fina de tinta clara al 42 %:
+  - Físico-Matemáticas: compás y triángulo de Pitágoras;
+  - Biológicas y Salud: benceno y hoja;
+  - Ciencias Sociales: red de actores y cabeza de perfil;
+  - Humanidades y Artes: capitel jónico y libro abierto;
+  - sin área: rosa de los vientos.
+- **Animación del grabado.** Al cambiar de área, el trazo viejo se borra en 320 ms y el nuevo se dibuja en 1.1 s, escalonado (`stroke-dashoffset` con `pathLength=1`). Sin animación con movimiento reducido.
+- **El título deja libre el hueco del grabado.** En la columna angosta del análisis el grabado baja a 132 px, y en móvil a 72 px.
+- **Revisión del usuario sobre la marcha:** la pirámide de población pasó a cabeza de perfil, y los dibujos de matemáticas (ejes, onda y círculo, muy juntos) se rehicieron.
+
+**Verificación headless** (`tools/cdp.mjs`, 1600, 1100 y la ventana mínima de unos 500 px):
+- **Colores calculados:** banda, marcador y `--area-tesis` en las cuatro áreas, sin programa y en noche.
+- **Grabados:** el DOM y `stroke-dashoffset` se comprobaron a los 2 s de cada cambio.
+- **Título contra grabado:** se probaron tres títulos (corto, largo y medio) contra el rectángulo del grabado, sin choques en los tres anchos. Antes de la corrección chocaban: la regla de ancho perdía contra `.ficha h1`.
+- **Consola:** limpia.
+
+**Límites de la verificación:**
+- Las capturas headless llegan con un cuadro de retraso durante las transiciones, así que los colores se midieron en lugar de fiarse de la imagen.
+- En Windows, Chrome headless no baja de unos 500 px de ancho: el móvil de 390 px está pendiente de probar en un teléfono real o con emulación.
+
+**Ajuste posterior (pedido del usuario): el programa va antes de Problematiza.** Al elegir programa, el cambio de color y el grabado de la banda quedan a la vista, justo arriba del campo. Grado y Periodo siguen en la fila de abajo. Enter en el título lleva ahora al programa. Se verificó con una captura en escritorio, el foco tras Enter y la consola limpia.
+
+### Laboratorio: la barra de avance ya no se congela (boceto, 27-sep-2026)
+
+**Reporte del usuario:** los guiones de arriba a la derecha, que siguen la sección que lees, a veces se quedaban congelados en una sección.
+
+**Causas encontradas en `bocetos/lab/analisis.html`:**
+1. **La corrida vieja seguía viva.** Con «Repetir» a mitad del análisis, la secuencia anterior seguía corriendo: solo revisaba al final si la habían reemplazado. Mientras tanto marcaba guiones y escribía en la barra de la corrida nueva.
+2. **`terminado` quedaba en verdadero** de la corrida anterior mientras se pedían los datos de una nueva, o al volver al formulario porque el servicio falló. El scroll pintaba secciones del análisis sobre los guiones del formulario.
+3. **Sin recálculo cuando cambia el alto.** La cabecera solo se medía con el scroll. Si el alto cambiaba sin scroll (secciones que se abren, filtros de las 100 tesis, cambio de ventana), quedaba en la sección anterior.
+
+**Arreglos:**
+- La secuencia revisa `sigue()` tras cada espera y se detiene si empezó otra corrida.
+- `analizar` reinicia `terminado` y `actual` e invalida la corrida anterior.
+- `cabecera()` no corre en modo escritura.
+- `pedirCabecera` se llama con scroll, con `resize` y con un `ResizeObserver` sobre `.page`.
+
+**Verificación headless** (`?demo`, 1600 × 900, con `requestAnimationFrame` sustituido por un temporizador porque en headless no se dispara):
+- en cada punto, al bajar y al subir en pasos de 400 px, los guiones y el texto de la barra coinciden con la sección que cruza el 35 % de la pantalla;
+- al insertar 1,200 px arriba sin scroll, la barra pasa de Objetivos a Preguntas;
+- dos «Repetir» seguidos dejan la barra consistente.
+
+### Laboratorio: palabras clave en renglones y Bloom sin regaños (boceto, 27-sep-2026)
+
+**Palabras clave** (propuesta aceptada por el usuario):
+- **Formato.** Pasan de un campo con comas a una lista de renglones, como los objetivos.
+- **Tope por renglón:** de 1 a 3 palabras y 40 caracteres, porque son frases clave.
+  - **Por qué frases:** el servicio de datos (`services/lab/app/contexto.py`) usa las palabras clave dos veces.
+    - En la consulta de e5 casi da igual cómo se escriban.
+    - En `cobertura_palabras` se buscan **como frase exacta** en los títulos de las 100 parecidas. Ahí «sistema bancario» dice mucho más que «sistema» y «bancario» por separado.
+- **Cómo se edita:**
+  - Enter o «Agregar palabra clave» abre el renglón siguiente, y retroceso en uno vacío lo quita;
+  - como máximo 8 renglones;
+  - solo letras, números, espacios, guion y apóstrofo;
+  - una coma o un punto y coma parten el renglón, y lo mismo pasa al pegar una lista.
+- **Validación:** con más de 3 palabras sale una nota bajo el renglón. Al enviar, el error bloquea.
+
+**Bloom** (pedido del usuario: «en cuanto empiezas a escribir te dice que está mal»):
+- **Mientras escribes, sin notas.** Cada renglón se revisa al salir de él (`focusout`), o tras 1.5 s de pausa si ya tiene 3 palabras o más. La escalera sigue dibujándose en vivo.
+- **Observaciones de estructura** (crear sin evaluar, nivel bajo para el grado): esperan a que ningún objetivo esté a medio escribir.
+- **Sin verbo reconocible** (`sin_verbo`, `fuera_lexico` o `vago`): la nota sugiere, y debajo se despliega «Elegir un verbo por nivel», con los verbos de `VERBOS_POR_NIVEL` por nivel. Al pulsar uno, se coloca al inicio del objetivo:
+  - sustituye el verbo vago: «Conocer las…» pasa a «Comparar las…»;
+  - reemplaza el sustantivo y su «de»: «Estudio de la vivienda» pasa a «Comparar la vivienda», y «Análisis del sistema» a «Comparar el sistema»;
+  - se antepone si el objetivo empieza con un artículo: «Las políticas…» pasa a «Comparar las políticas…».
+- **Hallazgo del léxico.** Cuando no halla verbo en las tres primeras palabras, `bloom.js` marca `fuera_lexico` con la primera palabra, aunque sea un artículo («las»). Así, la nota decía «"las" no dice qué harás».
+  - Se corrigió en la interfaz con `pareceVerbo` (lema conocido o forma de infinitivo). `bloom.js` no se tocó porque lo comparte con el Worker; conviene corregirlo allá con su prueba.
+  - Tampoco se sugiere ya un verbo vago: «Estudio de…» ya no propone «Estudiar».
+- **«¿Qué es la escalera de Bloom?»** Se abre desde el «?» gris en círculo junto a la escalera y desde el pie de la lista de verbos. Abre una lámina sobre fondo difuminado (el patrón de Ajustes del mapa) con:
+  - qué es la escalera;
+  - el diagrama de los seis peldaños con dos verbos de ejemplo;
+  - cómo se lee un objetivo;
+  - hasta dónde se espera llegar según el grado (`ESPERADO_POR_GRADO`).
+
+  Se cierra con ×, Esc o un clic en la capa, y el foco vuelve a su origen.
+
+**Verificación headless** (1600 × 900):
+- **Palabras clave:** partir por comas, Enter, la nota de frase larga, pegar tres renglones y borrar.
+- **Bloom:**
+  - sin nota mientras se escribe;
+  - con nota y lista tras la pausa;
+  - la nota se retira al reescribir;
+  - los cuatro casos de sustitución del verbo;
+  - el modal, que abre, cierra con Esc y devuelve el foco;
+  - capturas de la lista abierta y del modal de día y de noche.
+- **Consola:** limpia.
+- **Nota:** en headless `blur()` no dispara `focusout`, así que se probó con el evento explícito.
+
+### Laboratorio: Bloom en azules y programa y grado en la banda (boceto, 27-sep-2026)
+
+**Pedido del usuario:**
+- escalera en gradiente de azul claro a oscuro;
+- verbos detectados y lista de verbos en negritas del color de su nivel;
+- a la explicación de Bloom le faltaban negritas, animación y color;
+- programa y grado dentro de la banda de la tesis.
+
+**Tokens nuevos.**
+- `--bloom-1…6` son los trazos y bloques. De día van de claro (Recordar) a oscuro (Crear); de noche se invierten, porque «más alto» debe seguir siendo «más intenso».
+- `--bloom-1t…6t` son la misma rampa para texto, con contraste AA medido. De día va de 4.6:1 (nivel 1, que se oscureció desde 4.48) a 12.2:1. De noche, de 5.7:1 a 14.1:1.
+
+**Escalera en vivo y del análisis (`escalera()`).**
+- Los seis peldaños llevan siempre su azul: 5 px si tienen un objetivo y 1.5 px si no.
+- Los nombres de nivel con objetivo y los verbos van en negritas de su color.
+- Los tramos continuos entre niveles también toman el color.
+
+**Verbo dentro del objetivo.**
+- Detrás de cada `textarea` hay una capa espejo con el mismo texto. El `textarea` va encima con el texto transparente y el cursor visible.
+- El verbo rector se pinta en el color de su nivel; el ambiguo, en tinta.
+- La negrita es de trazo (`-webkit-text-stroke`) y no de peso, porque el peso 700 ensancha las letras y desalinearía el cursor.
+- Si el léxico no cargó, el espejo muestra el texto sin resaltar.
+
+**Lista de verbos.** El nombre del nivel y sus verbos van en el color del nivel, en negritas.
+
+**Explicación de Bloom.**
+- Los niveles del texto van en negritas de su color, y las ideas clave, en negritas.
+- La escalera es de bloques llenos en la rampa y se anima al abrir. Los bloques suben uno tras otro (150 ms de desfase), después aparecen sus verbos y al final se dibujan la silueta y la flecha de subida. Sin animación con movimiento reducido.
+- El ejemplo lleva «Comparar» en el color de Analizar, y la tabla de grados está coloreada con la rampa.
+
+**Programa y grado en la banda.**
+- `#meta` pasó del cuerpo de la ficha a la banda, debajo del título.
+- Al escribir, `pintarMetaForm` la llena en vivo con el programa elegido y el grado; en el análisis la sigue llenando `pintarMeta`.
+- En la banda, los glifos van en tinta clara, porque el fondo ya dice el área. La fila deja libre el hueco del grabado.
+
+**Verificación headless** (1600 × 900, `?ejemplo`, día y noche):
+- el color calculado de los verbos resaltados (Reconocer en `--bloom-1t` y Sugerir en `--bloom-6t`);
+- la caja del espejo alineada con la del `textarea`;
+- la clase `vis` y la transformación final de los bloques del modal;
+- capturas de la banda, de los objetivos, de la lista de verbos y del modal.
+- **Consola:** limpia.
+
+**Ajuste posterior (pedido del usuario): referencias académicas y el término correcto.**
+- En la interfaz se dice «taxonomía de Bloom», no «escalera»: el botón «?», el título de la explicación, las etiquetas accesibles de las gráficas y la lista de verbos. En la explicación, «peldaño» pasó a «nivel». «Escalera» queda solo en comentarios del código, donde describe el dibujo.
+- **Enlaces a las obras, en el texto.** Al principio iban como sección de referencias en APA; a pedido del usuario, se quitó esa sección y ahora «Benjamin Bloom» y «Lorin Anderson y David Krathwohl» están subrayados y enlazan a sus obras dentro de la explicación. El artículo de Krathwohl (2002) quedó fuera. Los enlaces se verificaron uno por uno:
+  - Bloom et al. (1956), *Handbook I: Cognitive domain*: registro de Open Library `OL8402087W`, primera publicación en 1956. Se descartó un escaneo de archive.org sin edición ni fecha.
+  - Anderson y Krathwohl (2001): escaneo de biblioteca en archive.org, `taxonomyforlearn00unse` (New York: Longman, 2001). Se descartó una copia subida por un particular.
+  - Krathwohl (2002), *Theory Into Practice* 41(4): DOI `10.1207/s15430421tip4104_2`, que resuelve a Taylor & Francis.
+
+**Ajuste posterior (pedido del usuario): la cabeza del grabado de Ciencias Sociales era angosta.** Se redibujó con una imagen de referencia del usuario: cráneo ancho y redondeado, perfil hacia la red (nariz, labios y mentón) y cuello con la base plana, como figura cerrada y sin oreja. Se trazó en las coordenadas de la referencia y se escaló a 0.25 en el hueco del grabado, de x 98 a 178. Se revisó con una lámina a tamaño grande y a tamaño real.
+
+**Ajuste posterior (pedido del usuario): el compás era muy largo y su trazo parecía parte del instrumento.** El compás bajó de unos 100 a 68 unidades de alto: bisagra en (40, 26), aguja en (24, 84) y lápiz en (57, 84). El trazo es ahora un arco punteado en cuatro tramos, con centro en la aguja y 33 de radio, que empieza un poco después de la punta del lápiz. Los tramos son trayectos separados y no un `stroke-dasharray`, porque el guion lo usa la animación de dibujo. Se revisó en una lámina a tamaño grande y a tamaño real.

@@ -30,6 +30,7 @@ prototypes/**/data/
 
 # --- Repos anidados con historia propia (no se absorben aquí) ---
 app/MI-TESIS-UNAM_github/
+app/MI-TESIS-UNAM_v1/
 app/nodo-unam/
 app/semantic_full/
 
