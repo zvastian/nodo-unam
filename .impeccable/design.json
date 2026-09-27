@@ -1,0 +1,708 @@
+{
+ "schemaVersion": 2,
+ "generatedAt": "2026-09-27T06:27:14+00:00",
+ "title": "Design System: NodOS",
+ "extensions": {
+  "colorMeta": {
+   "papel": {
+    "role": "neutral",
+    "displayName": "Papel",
+    "canonical": "oklch(100.0% 0.000 89.9)",
+    "tonalRamp": [
+     "#0b0b0b",
+     "#252525",
+     "#424242",
+     "#616161",
+     "#828282",
+     "#a5a5a5",
+     "#c9c9c9",
+     "#eeeeee"
+    ]
+   },
+   "tinta": {
+    "role": "neutral",
+    "displayName": "Tinta",
+    "canonical": "oklch(21.8% 0.000 89.9)",
+    "tonalRamp": [
+     "#0b0b0b",
+     "#252525",
+     "#424242",
+     "#616161",
+     "#828282",
+     "#a5a5a5",
+     "#c9c9c9",
+     "#eeeeee"
+    ]
+   },
+   "tinta-2": {
+    "role": "neutral",
+    "displayName": "Tinta segunda",
+    "canonical": "oklch(42.0% 0.000 89.9)",
+    "tonalRamp": [
+     "#0b0b0b",
+     "#252525",
+     "#424242",
+     "#616161",
+     "#828282",
+     "#a5a5a5",
+     "#c9c9c9",
+     "#eeeeee"
+    ]
+   },
+   "tinta-3": {
+    "role": "neutral",
+    "displayName": "Tinta tercera",
+    "canonical": "oklch(53.8% 0.000 89.9)",
+    "tonalRamp": [
+     "#0b0b0b",
+     "#252525",
+     "#424242",
+     "#616161",
+     "#828282",
+     "#a5a5a5",
+     "#c9c9c9",
+     "#eeeeee"
+    ]
+   },
+   "filete": {
+    "role": "neutral",
+    "displayName": "Filete",
+    "canonical": "oklch(90.7% 0.000 89.9)",
+    "tonalRamp": [
+     "#0b0b0b",
+     "#252525",
+     "#424242",
+     "#616161",
+     "#828282",
+     "#a5a5a5",
+     "#c9c9c9",
+     "#eeeeee"
+    ]
+   },
+   "filete-fuerte": {
+    "role": "neutral",
+    "displayName": "Filete fuerte",
+    "canonical": "oklch(81.4% 0.000 89.9)",
+    "tonalRamp": [
+     "#0b0b0b",
+     "#252525",
+     "#424242",
+     "#616161",
+     "#828282",
+     "#a5a5a5",
+     "#c9c9c9",
+     "#eeeeee"
+    ]
+   },
+   "reticula": {
+    "role": "neutral",
+    "displayName": "Retícula",
+    "canonical": "oklch(95.5% 0.000 89.9)",
+    "tonalRamp": [
+     "#0b0b0b",
+     "#252525",
+     "#424242",
+     "#616161",
+     "#828282",
+     "#a5a5a5",
+     "#c9c9c9",
+     "#eeeeee"
+    ]
+   },
+   "enlace": {
+    "role": "primary",
+    "displayName": "Azul de hemeroteca",
+    "canonical": "oklch(43.1% 0.121 256.8)",
+    "tonalRamp": [
+     "#000924",
+     "#07244a",
+     "#1d4273",
+     "#3461a0",
+     "#5484c5",
+     "#7ea7e0",
+     "#a9ccfc",
+     "#d5f1ff"
+    ]
+   },
+   "marino-pie": {
+    "role": "secondary",
+    "displayName": "Marino de colofón",
+    "canonical": "oklch(28.4% 0.072 259.1)",
+    "tonalRamp": [
+     "#030b1a",
+     "#17253c",
+     "#2f4260",
+     "#4a6288",
+     "#6a83ab",
+     "#90a6c9",
+     "#b7cae8",
+     "#e0f0ff"
+    ]
+   },
+   "ocre-marca": {
+    "role": "secondary",
+    "displayName": "Ocre de marca",
+    "canonical": "oklch(74.4% 0.123 75.0)",
+    "tonalRamp": [
+     "#190500",
+     "#3a1d00",
+     "#5f3800",
+     "#865600",
+     "#aa7725",
+     "#c99c5d",
+     "#e8c290",
+     "#ffe9c1"
+    ]
+   },
+   "area-sin": {
+    "role": "tertiary",
+    "displayName": "Gris sin área",
+    "canonical": "oklch(68.6% 0.000 89.9)",
+    "tonalRamp": [
+     "#0b0b0b",
+     "#252525",
+     "#424242",
+     "#616161",
+     "#828282",
+     "#a5a5a5",
+     "#c9c9c9",
+     "#eeeeee"
+    ]
+   },
+   "area-fisico-matematicas": {
+    "role": "tertiary",
+    "displayName": "Azul físico-matemático",
+    "canonical": "oklch(50.9% 0.118 256.5)",
+    "tonalRamp": [
+     "#000a23",
+     "#082449",
+     "#1e4272",
+     "#35629e",
+     "#5584c3",
+     "#7fa7df",
+     "#aaccfb",
+     "#d6f1ff"
+    ]
+   },
+   "area-biologicas-salud": {
+    "role": "tertiary",
+    "displayName": "Verde biológico",
+    "canonical": "oklch(52.5% 0.105 165.9)",
+    "tonalRamp": [
+     "#001106",
+     "#002f1d",
+     "#004f38",
+     "#107254",
+     "#3e9575",
+     "#70b699",
+     "#9fd8bf",
+     "#cefae6"
+    ]
+   },
+   "area-sociales": {
+    "role": "tertiary",
+    "displayName": "Ocre social",
+    "canonical": "oklch(68.1% 0.129 72.0)",
+    "tonalRamp": [
+     "#1a0400",
+     "#3d1c00",
+     "#623600",
+     "#8a5300",
+     "#ae751e",
+     "#cc9a5a",
+     "#ebc18d",
+     "#ffe8c0"
+    ]
+   },
+   "area-humanidades": {
+    "role": "tertiary",
+    "displayName": "Almagre humanístico",
+    "canonical": "oklch(53.9% 0.157 31.2)",
+    "tonalRamp": [
+     "#230000",
+     "#4b0500",
+     "#761e12",
+     "#a43727",
+     "#cb5b49",
+     "#e88674",
+     "#ffb1a1",
+     "#ffdcce"
+    ]
+   },
+   "nivel-licenciatura": {
+    "role": "tertiary",
+    "displayName": "Nivel licenciatura",
+    "canonical": "oklch(80.1% 0.065 245.8)",
+    "tonalRamp": [
+     "#010c18",
+     "#132738",
+     "#2a455c",
+     "#446582",
+     "#6486a5",
+     "#8ba9c4",
+     "#b4cde3",
+     "#ddf1ff"
+    ]
+   },
+   "nivel-especialidad": {
+    "role": "tertiary",
+    "displayName": "Nivel especialidad",
+    "canonical": "oklch(65.5% 0.106 249.7)",
+    "tonalRamp": [
+     "#000b20",
+     "#042645",
+     "#19446c",
+     "#306497",
+     "#5286bb",
+     "#7ca9d8",
+     "#a8cdf5",
+     "#d4f2ff"
+    ]
+   },
+   "nivel-maestria": {
+    "role": "tertiary",
+    "displayName": "Nivel maestría",
+    "canonical": "oklch(50.4% 0.122 254.6)",
+    "tonalRamp": [
+     "#000a24",
+     "#04254a",
+     "#194273",
+     "#2f62a0",
+     "#5184c5",
+     "#7ba8e0",
+     "#a7ccfc",
+     "#d3f1ff"
+    ]
+   },
+   "nivel-doctorado": {
+    "role": "tertiary",
+    "displayName": "Nivel doctorado",
+    "canonical": "oklch(35.0% 0.095 256.3)",
+    "tonalRamp": [
+     "#010b1f",
+     "#0f2542",
+     "#264369",
+     "#3e6293",
+     "#5f84b7",
+     "#87a7d4",
+     "#b0cbf1",
+     "#daf1ff"
+    ]
+   },
+   "noche-fondo": {
+    "role": "neutral",
+    "displayName": "fondo (noche)",
+    "canonical": "oklch(19.4% 0.030 268.6)",
+    "tonalRamp": [
+     "#090b11",
+     "#21252f",
+     "#3d424f",
+     "#5b6171",
+     "#7b8293",
+     "#9fa5b4",
+     "#c4c9d6",
+     "#eaeef9"
+    ]
+   },
+   "noche-papel": {
+    "role": "neutral",
+    "displayName": "Papel (noche)",
+    "canonical": "oklch(22.7% 0.029 266.3)",
+    "tonalRamp": [
+     "#080b11",
+     "#21252e",
+     "#3c424e",
+     "#5a6171",
+     "#7b8293",
+     "#9ea5b4",
+     "#c3c9d6",
+     "#eaeef9"
+    ]
+   },
+   "noche-tinta": {
+    "role": "neutral",
+    "displayName": "Tinta (noche)",
+    "canonical": "oklch(93.7% 0.008 91.5)",
+    "tonalRamp": [
+     "#0c0b09",
+     "#262522",
+     "#43423e",
+     "#63615c",
+     "#84827d",
+     "#a6a5a0",
+     "#cac9c5",
+     "#efeeeb"
+    ]
+   },
+   "noche-tinta-2": {
+    "role": "neutral",
+    "displayName": "Tinta segunda (noche)",
+    "canonical": "oklch(81.3% 0.019 266.0)",
+    "tonalRamp": [
+     "#090b0f",
+     "#22252b",
+     "#3e424a",
+     "#5c616c",
+     "#7d828e",
+     "#a0a5af",
+     "#c5c9d2",
+     "#ebeef5"
+    ]
+   },
+   "noche-tinta-3": {
+    "role": "neutral",
+    "displayName": "Tinta tercera (noche)",
+    "canonical": "oklch(67.9% 0.030 265.4)",
+    "tonalRamp": [
+     "#080b12",
+     "#21252f",
+     "#3c424f",
+     "#5a6172",
+     "#7a8294",
+     "#9ea5b4",
+     "#c3c9d6",
+     "#eaeff9"
+    ]
+   },
+   "noche-filete": {
+    "role": "neutral",
+    "displayName": "Filete (noche)",
+    "canonical": "oklch(31.1% 0.038 267.4)",
+    "tonalRamp": [
+     "#080b13",
+     "#202531",
+     "#3b4252",
+     "#586176",
+     "#798298",
+     "#9da5b8",
+     "#c2c9da",
+     "#e9eefc"
+    ]
+   },
+   "noche-filete-fuerte": {
+    "role": "neutral",
+    "displayName": "Filete fuerte (noche)",
+    "canonical": "oklch(39.0% 0.037 264.0)",
+    "tonalRamp": [
+     "#070b13",
+     "#1f2531",
+     "#3a4252",
+     "#576175",
+     "#788397",
+     "#9ca5b8",
+     "#c1c9d9",
+     "#e8effb"
+    ]
+   },
+   "noche-enlace": {
+    "role": "neutral",
+    "displayName": "Azul de hemeroteca (noche)",
+    "canonical": "oklch(77.5% 0.095 257.1)",
+    "tonalRamp": [
+     "#010a1f",
+     "#102542",
+     "#274269",
+     "#406293",
+     "#6084b7",
+     "#87a7d4",
+     "#b0cbf1",
+     "#dbf0ff"
+    ]
+   },
+   "noche-area-sin": {
+    "role": "tertiary",
+    "displayName": "Gris sin área (noche)",
+    "canonical": "oklch(66.3% 0.025 266.8)",
+    "tonalRamp": [
+     "#090b11",
+     "#21252d",
+     "#3d424d",
+     "#5b616f",
+     "#7c8291",
+     "#9fa5b2",
+     "#c4c9d4",
+     "#ebeef7"
+    ]
+   },
+   "noche-area-fisico-matematicas": {
+    "role": "tertiary",
+    "displayName": "Azul físico-matemático (noche)",
+    "canonical": "oklch(66.2% 0.138 258.1)",
+    "tonalRamp": [
+     "#000827",
+     "#04234f",
+     "#18407a",
+     "#2f60a8",
+     "#4f82ce",
+     "#7aa7e9",
+     "#a6cbff",
+     "#d2f1ff"
+    ]
+   },
+   "noche-area-biologicas-salud": {
+    "role": "tertiary",
+    "displayName": "Verde biológico (noche)",
+    "canonical": "oklch(65.6% 0.129 164.4)",
+    "tonalRamp": [
+     "#001205",
+     "#00311a",
+     "#005233",
+     "#00764f",
+     "#21986f",
+     "#62b994",
+     "#96dbbb",
+     "#c7fde3"
+    ]
+   },
+   "noche-area-sociales": {
+    "role": "tertiary",
+    "displayName": "Ocre social (noche)",
+    "canonical": "oklch(63.2% 0.122 80.0)",
+    "tonalRamp": [
+     "#180600",
+     "#381f00",
+     "#5c3a00",
+     "#825800",
+     "#a67a22",
+     "#c59e5c",
+     "#e4c48e",
+     "#ffebc1"
+    ]
+   },
+   "noche-area-humanidades": {
+    "role": "tertiary",
+    "displayName": "Almagre humanístico (noche)",
+    "canonical": "oklch(64.3% 0.174 7.4)",
+    "tonalRamp": [
+     "#240005",
+     "#4d001b",
+     "#781235",
+     "#a72b51",
+     "#ce5071",
+     "#ec7e96",
+     "#ffaabc",
+     "#ffd7e4"
+    ]
+   }
+  },
+  "typographyMeta": {
+   "portada": {
+    "displayName": "Portada",
+    "purpose": "El título de la tesis en su ficha; lo más grande de la página."
+   },
+   "titulo-seccion": {
+    "displayName": "Título de sección",
+    "purpose": "Títulos de sección de la lámina, subrayados."
+   },
+   "destacado": {
+    "displayName": "Destacado",
+    "purpose": "La frase principal de una sección (riesgo, nombre de asesor)."
+   },
+   "entrada": {
+    "displayName": "Entrada",
+    "purpose": "Lo que escribió el usuario (Problematiza) dentro de la portada."
+   },
+   "pregunta": {
+    "displayName": "Pregunta",
+    "purpose": "Cada pregunta de investigación sugerida."
+   },
+   "cuerpo": {
+    "displayName": "Cuerpo",
+    "purpose": "Texto corrido."
+   },
+   "subtitulo": {
+    "displayName": "Subtítulo",
+    "purpose": "Títulos dentro de una sección y texto del botón de acción."
+   },
+   "meta": {
+    "displayName": "Meta",
+    "purpose": "Navegación, barra de estado, fila de metadatos, listas de tesis."
+   },
+   "nota": {
+    "displayName": "Nota",
+    "purpose": "Nota flotante, estados pendientes, cabecera de lámina."
+   },
+   "rotulo-mapa": {
+    "displayName": "Rótulo de mapa",
+    "purpose": "Solo los rótulos del mapa, en mayúsculas cartográficas."
+   }
+  },
+  "shadows": [],
+  "motion": [
+   {
+    "name": "aparicion",
+    "value": "opacity 500ms ease, transform 500ms ease (desde 6 px abajo)",
+    "purpose": "Cada sección y elemento aparece al llegar su dato."
+   },
+   {
+    "name": "crecimiento",
+    "value": "cubic-bezier(.2,.7,.2,1) 450-700ms",
+    "purpose": "Barras de gráficas y trazos que crecen."
+   },
+   {
+    "name": "cambio-de-color",
+    "value": "700ms ease",
+    "purpose": "Portada y mascota al conocerse el área o el campo."
+   }
+  ],
+  "breakpoints": [
+   {
+    "name": "pares-a-columna",
+    "value": "1100px"
+   },
+   {
+    "name": "columnas-apiladas",
+    "value": "860px"
+   },
+   {
+    "name": "movil",
+    "value": "640px"
+   }
+  ]
+ },
+ "components": [
+  {
+   "name": "Botón de acción",
+   "kind": "button",
+   "refersTo": "boton-accion",
+   "description": "Bloque de tinta para la acción que concluye (Guardar las 15, Analizar mi tesis); se tiñe del color del contexto al pasar el cursor.",
+   "html": "<button class=\"ds-btn-accion\">Analizar mi tesis</button>",
+   "css": ".ds-btn-accion { --c: #c98a2e; background: #1a1a1a; color: #fff; border: none; padding: 11px 18px; font: 600 15px/1.2 'Libre Franklin', 'Helvetica Neue', Arial, sans-serif; border-radius: 2px; cursor: pointer; transition: background 150ms ease; } .ds-btn-accion:hover { background: var(--c); } .ds-btn-accion:focus-visible { outline: 2px solid #1d4f91; outline-offset: 2px; } .ds-btn-accion:disabled { opacity: .4; cursor: default; }"
+  },
+  {
+   "name": "Acción de texto con flecha",
+   "kind": "button",
+   "refersTo": "boton-texto",
+   "description": "Acción principal en fichas del atlas: texto en tinta, seminegritas, flecha dibujada; se subraya con el color del contexto.",
+   "html": "<button class=\"ds-btn-texto\">Ver en el mapa<svg viewBox=\"0 0 16 16\" width=\"14\" height=\"14\" aria-hidden=\"true\"><path d=\"M3.5 8h9M9 4.5L12.5 8 9 11.5\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg></button>",
+   "css": ".ds-btn-texto { --c: #3566a8; display: inline-flex; align-items: center; gap: 6px; background: none; border: none; border-bottom: 2px solid transparent; padding: 0; color: #1a1a1a; font: 600 14px/1.4 'Libre Franklin', 'Helvetica Neue', Arial, sans-serif; cursor: pointer; transition: border-color 120ms ease; } .ds-btn-texto:hover { border-bottom-color: var(--c); } .ds-btn-texto:focus-visible { outline: 2px solid #1d4f91; outline-offset: 3px; }"
+  },
+  {
+   "name": "Barra de navegación",
+   "kind": "nav",
+   "refersTo": "barra-navegacion",
+   "description": "Marca a la izquierda, secciones en texto; la activa en tinta con subrayado de 2 px. Filete inferior, sin sombra.",
+   "html": "<nav class=\"ds-nav\"><b class=\"ds-nav-marca\">NodOS</b><a href=\"#\">Mapa</a><a href=\"#\" class=\"on\">Laboratorio</a><a href=\"#\">Método</a></nav>",
+   "css": ".ds-nav { display: flex; align-items: center; gap: 22px; height: 56px; padding: 0 24px; background: #fff; border-bottom: 1px solid #e0e0e0; font: 400 14px/1.4 'Libre Franklin', 'Helvetica Neue', Arial, sans-serif; } .ds-nav-marca { font-weight: 800; font-size: 18px; color: #12294d; margin-right: 6px; } .ds-nav a { color: #4d4d4d; text-decoration: none; padding: 2px 0; border-bottom: 2px solid transparent; } .ds-nav a:hover { color: #1a1a1a; } .ds-nav a.on { color: #1a1a1a; font-weight: 600; border-bottom-color: #1a1a1a; }"
+  },
+  {
+   "name": "Ficha-portada",
+   "kind": "card",
+   "refersTo": "ficha-portada",
+   "description": "La tesis como portada: fondo pleno del área oscurecido, tinta blanca, título de cubierta y fila meta con glifos.",
+   "html": "<header class=\"ds-ficha\"><h1>Análisis del sistema bancario de México y China 1850-2009</h1><p class=\"ds-prob\">¿Qué diferencias institucionales de su banca explican esa divergencia?</p><p class=\"ds-meta\"><i class=\"ds-ar\"></i><i class=\"ds-pr\"></i><b>Economía</b><span class=\"ds-nv\"><i class=\"on\"></i><i></i><i></i><i></i></span><b>Licenciatura</b></p></header>",
+   "css": ".ds-ficha { --area: #c98a2e; background: color-mix(in oklch, var(--area) 72%, black); color: #fff; padding: 32px; font-family: 'Libre Franklin', 'Helvetica Neue', Arial, sans-serif; font-feature-settings: 'tnum' 1; } .ds-ficha h1 { font-size: 40px; line-height: 1.06; font-weight: 800; letter-spacing: -0.025em; margin: 0 0 18px; max-width: 22ch; text-wrap: balance; } .ds-prob { font-size: 19px; line-height: 1.5; max-width: 56ch; margin: 0 0 20px; } .ds-meta { display: flex; align-items: center; gap: 6px; font-size: 14px; color: rgba(255,255,255,.7); margin: 0; } .ds-meta b { color: #fff; font-weight: 500; margin-right: 16px; } .ds-ar { width: 2px; height: 13px; background: #fff; } .ds-pr { width: 7px; height: 7px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px #fff; } .ds-nv { display: inline-flex; gap: 2px; } .ds-nv i { width: 7px; height: 7px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(255,255,255,.18); } .ds-nv i.on { background: #9cc3e6; }"
+  },
+  {
+   "name": "Sección de lámina",
+   "kind": "custom",
+   "refersTo": "titulo-seccion",
+   "description": "Título subrayado (2 px, filete fuerte, 8 px de separación) y cierre con filete fino.",
+   "html": "<section class=\"ds-sec\"><h2>Preguntas de investigación sugeridas</h2><p>Cada sección arranca con su título subrayado y cierra con un filete de pelo.</p></section>",
+   "css": ".ds-sec { padding: 44px 0 36px; border-bottom: 1px solid #e0e0e0; font: 400 15px/1.55 'Libre Franklin', 'Helvetica Neue', Arial, sans-serif; color: #1a1a1a; } .ds-sec h2 { font-size: 24px; line-height: 1.25; font-weight: 700; margin: 0 0 22px; text-decoration: underline; text-decoration-color: #c2c2c2; text-decoration-thickness: 2px; text-underline-offset: 8px; }"
+  },
+  {
+   "name": "Barra de estado con guiones",
+   "kind": "custom",
+   "refersTo": "barra-estado",
+   "description": "Paso actual en tinta segunda con lo importante en negritas; un guion por sección que se llena de tinta al estar lista.",
+   "html": "<div class=\"ds-estado\"><span><b>Tu tesis es de Ciencias Sociales.</b> Reuniendo las tesis parecidas</span><span class=\"ds-pasos\"><i class=\"ok\"></i><i class=\"ok\"></i><i></i><i></i></span></div>",
+   "css": ".ds-estado { display: flex; align-items: center; gap: 14px; min-height: 54px; padding: 6px 24px; background: #fff; border-bottom: 1px solid #e0e0e0; font: 400 14px/1.4 'Libre Franklin', 'Helvetica Neue', Arial, sans-serif; color: #4d4d4d; } .ds-estado b { color: #1a1a1a; font-weight: 600; } .ds-pasos { margin-left: auto; display: flex; gap: 4px; } .ds-pasos i { width: 30px; height: 3px; background: #e0e0e0; transition: background 400ms ease; } .ds-pasos i.ok { background: #1a1a1a; }"
+  },
+  {
+   "name": "Barra de gráfica-filtro",
+   "kind": "custom",
+   "refersTo": "grafica-filtro",
+   "description": "La barra tenue (20 %) es el total; la llena, lo que queda tras filtrar. El valor elegido va en negritas.",
+   "html": "<button class=\"ds-fb\"><span class=\"ds-t\"><span>Ciencias Sociales</span><b>41 de 58</b></span><span class=\"ds-trk\"><span class=\"ds-b\" style=\"width:70%\"></span></span></button>",
+   "css": ".ds-fb { --c: #c98a2e; display: block; width: 280px; background: none; border: none; padding: 3px 0; text-align: left; cursor: pointer; font: 400 14px/1.4 'Libre Franklin', 'Helvetica Neue', Arial, sans-serif; font-feature-settings: 'tnum' 1; } .ds-t { display: flex; justify-content: space-between; color: #1a1a1a; } .ds-t b { font-weight: 400; color: #4d4d4d; } .ds-trk { display: block; position: relative; height: 6px; margin-top: 3px; } .ds-trk::before { content: ''; position: absolute; inset: 0; background: var(--c); opacity: .2; border-radius: 0 3px 3px 0; } .ds-b { display: block; position: relative; height: 100%; background: var(--c); border-radius: 0 3px 3px 0; } .ds-fb:hover .ds-t > span { text-decoration: underline; text-underline-offset: 2px; }"
+  },
+  {
+   "name": "Pie azul marino",
+   "kind": "custom",
+   "refersTo": "pie",
+   "description": "Colofón: banda marino, logo y enlaces en blanco, texto al 70 %, ocre solo en «Apoya este proyecto».",
+   "html": "<footer class=\"ds-pie\"><b>NodOS</b><a href=\"#\">Mapa</a><a href=\"#\">Método</a><a href=\"#\" class=\"ds-apoya\">Apoya este proyecto</a></footer>",
+   "css": ".ds-pie { display: flex; align-items: center; gap: 20px; background: #12294d; color: rgba(255,255,255,.7); padding: 32px 24px; font: 400 14px/1.45 'Libre Franklin', 'Helvetica Neue', Arial, sans-serif; } .ds-pie b { color: #fff; font-weight: 800; font-size: 20px; margin-right: 20px; } .ds-pie a { color: #fff; text-decoration: none; } .ds-pie a:hover { text-decoration: underline; } .ds-apoya { font-weight: 600; border-bottom: 2px solid #d9a04a; }"
+  }
+ ],
+ "narrative": {
+  "northStar": "La lámina de atlas",
+  "overview": "**Creative North Star: «La lámina de atlas»**\n\nNodOS se diseña como una lámina impresa de un atlas de referencia, no como un tablero de software. El papel es blanco y tiene grano. La tinta es casi negra y ordena todo con tamaño, peso y filetes finos. El color se reserva para los datos: el área administrativa de cada tesis, su nivel de estudios y el campo temático donde cae. Cada página abre como una lámina de prensa, con un filete superior de 3 px, y cada sección tiene un título subrayado y cierra con un filete de pelo. En el Laboratorio, la tesis del usuario se trata como un volumen empastado. Su portada es un bloque de color pleno con el título a tamaño de cubierta. Al bajar, un lomo vertical la sigue por el margen izquierdo con el título escrito de abajo arriba.\n\nEl tono es serio, casi gubernamental, con precisión de instrumento científico; la referencia declarada es Gapminder. La densidad es de lectura larga en laptop: columnas amplias, renglones de 52 a 70 caracteres y espacio vertical generoso entre secciones. Hay dos excepciones al papel. El mapa ocupa todo el lienzo en el atlas. Y hay bloques de fondo pleno cuando la página se quedaría vacía: la portada de la tesis y el pie. Esos bloques siempre llevan un dato o la marca.\n\nRechazos confirmados por el usuario:\n- la estética de asistente de IA (crema cálido, serif editorial);\n- el patrón «lienzo con widgets flotantes»;\n- los chips y las píldoras;\n- las etiquetas en mayúsculas sobre los títulos;\n- las tarjetas con sombra;\n- los grises de relleno;\n- el énfasis falso de caja teñida con franja;\n- los halos y resplandores;\n- las páginas casi todas en blanco.\n\nEl modo noche es opcional y está en Ajustes. Es un homenaje a las ventanas de ónix de la Biblioteca Central, que se iluminan al anochecer.",
+  "keyCharacteristics": [
+   "Papel blanco con grano, tinta casi negra, un solo azul de interfaz para enlaces y foco.",
+   "El color codifica datos (área, nivel y campo), nunca decora.",
+   "Una sola familia, Libre Franklin, con cifras tabulares en todo número.",
+   "Láminas: filete de prensa, títulos subrayados, secciones cerradas con filete fino.",
+   "Bloques de fondo pleno con tinta blanca, solo si llevan un dato o la marca.",
+   "Sin sombras, sin radios salvo 2 px en botones, sin chips."
+  ],
+  "rules": [
+   {
+    "name": "La regla del color con dato",
+    "body": "Un color que no codifica área, nivel, campo o marca no entra en la página. La interfaz es tinta sobre papel, y el único color de interfaz es el azul de enlace.",
+    "section": "colors"
+   },
+   {
+    "name": "La regla de la lista negra del gris",
+    "body": "No hay grises claros de relleno en ninguna parte: ni en bandas, pies, tarjetas o paneles, ni en estados *hover* o activos, ni como relleno de gráficas. Sin excepciones. La separación la dan la tinta, el subrayado, los filetes y el peso.",
+    "section": "colors"
+   },
+   {
+    "name": "La regla del bloque anclado",
+    "body": "Una página casi toda en blanco se ve vacía y se corrige con un bloque de fondo pleno que lleve un dato: el color del área o del campo, oscurecido (`color-mix` en OKLCH con 72 % del color y el resto negro; 55 % de noche) para que la tinta blanca lea bien. Si no hay dato, va el marino del pie. Nunca un teñido pálido con franja ni un gris.",
+    "section": "colors"
+   },
+   {
+    "name": "La regla de una sola voz",
+    "body": "Todo el producto usa Libre Franklin, y todo número lleva cifras tabulares (`\"tnum\" 1`), también dentro de botones, campos y gráficas.",
+    "section": "typography"
+   },
+   {
+    "name": "La regla de las mayúsculas cartográficas",
+    "body": "Las MAYÚSCULAS solo aparecen en los rótulos del mapa, por convención cartográfica. Todo lo demás va en caja normal: no hay etiquetas en mayúsculas sobre los títulos.",
+    "section": "typography"
+   },
+   {
+    "name": "La regla de la portada",
+    "body": "En una ficha, el título es lo más grande y más pesado de la página. Nada compite con él.",
+    "section": "typography"
+   },
+   {
+    "name": "La regla de la lámina",
+    "body": "Toda sección empieza con su título subrayado y termina con un filete fino. La página se lee de arriba abajo como una lámina, no como una rejilla de tarjetas.",
+    "section": "layout"
+   },
+   {
+    "name": "La regla de la tesis como volumen",
+    "body": "En el Laboratorio, la tesis es un libro: portada de color pleno arriba, lomo en el margen y colofón en el pie azul marino.",
+    "section": "layout"
+   },
+   {
+    "name": "La regla sin sombras",
+    "body": "Si algo necesita separarse, lleva un filete. Si necesita pesar, lleva un fondo pleno con dato. Nunca una sombra ni un resplandor.",
+    "section": "elevation"
+   }
+  ],
+  "dos": [
+   "**Do** poner el color solo donde lleva un dato: área, nivel, campo o marca. El azul de enlace es el único color de interfaz.",
+   "**Do** anclar las páginas casi en blanco con un bloque de fondo pleno que lleve un dato, oscurecido con `color-mix` al 72 % (55 % de noche), con tinta blanca.",
+   "**Do** abrir las páginas con la cabecera de lámina (filete de 3 px) y subrayar los títulos de sección (2 px en filete fuerte, 8 px de separación).",
+   "**Do** decir las cifras con la gráfica: ejes con números, un conteo alineado o una fila más del sistema (por ejemplo, «Sin campo»).",
+   "**Do** usar cifras tabulares en todo número y Libre Franklin en todo texto.",
+   "**Do** dar el énfasis en el mapa con contraste de tinta y gris, tamaño, anotación o contornos.",
+   "**Do** mantener el modo noche con los mismos componentes; solo cambian los tokens."
+  ],
+  "donts": [
+   "**Don't** usar grises claros de relleno (como `#f5f5f5`), ni en estados *hover*, ni en gráficas.",
+   "**Don't** usar cajas teñidas con franja de color en el borde (énfasis falso), ni degradados, brillos, halos o anillos de resplandor para destacar.",
+   "**Don't** usar chips, píldoras, controles segmentados redondeados ni radios mayores de 2 px en la interfaz.",
+   "**Don't** poner etiquetas en mayúsculas espaciadas sobre los títulos. Las mayúsculas son solo para los rótulos del mapa.",
+   "**Don't** usar tarjetas con sombra, rejillas de tarjetas iguales ni cuadritos de cifra grande con etiqueta chica.",
+   "**Don't** usar fuentes monoespaciadas, serif editorial ni fondos crema.",
+   "**Don't** poner subtítulos que repiten la gráfica, notas de instrucción ni conteos en prosa.",
+   "**Don't** separar elementos con « · » ni mostrar identificadores internos (como `TH_…`) al usuario.",
+   "**Don't** usar el escudo, los logotipos ni los colores institucionales de la UNAM (azul Pantone 294, oro 130), ni escribir un color fijo fuera de los tokens."
+  ]
+ }
+}

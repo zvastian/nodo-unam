@@ -3103,3 +3103,30 @@ Esa escala exige tarjeta en Groq y en el servicio de datos: el mismo obstáculo 
 4. **La nota en `gpt-oss-20b`:** Groq cuenta el cupo por modelo, así que el modelo pequeño tiene el suyo. Contradice el «mismo modelo en todo» de ADR-0015 y habría que evaluar su calidad.
 
 Con las propuestas 1 a 3 se calculan unos 50 análisis al día solo en Groq, y de 75 a 80 en total.
+
+## DESIGN.md y brief del formulario de entrada del Laboratorio (2026-09-27)
+
+**DESIGN.md.** Pedido del usuario: documentar las pautas del análisis del Laboratorio.
+- **Qué es.** `DESIGN.md`, en la raíz del proyecto, documenta el sistema visual que ya existe en el código, compartido por el mapa y el Laboratorio.
+  - Sigue el formato estándar: tokens en el encabezado YAML y ocho secciones canónicas. Los encabezados van en inglés porque las herramientas los leen tal cual; el contenido va en español.
+  - `.impeccable/design.json` lo complementa con las rampas tonales en OKLCH, 8 componentes de referencia en HTML y CSS, el movimiento y los cortes de pantalla.
+- **Metáfora rectora: «La lámina de atlas»**, elegida por el usuario entre tres opciones.
+  - Papel con grano y tinta casi negra.
+  - Filete de prensa y títulos subrayados.
+  - El color reservado para los datos.
+  - La tesis como volumen empastado: portada de color pleno, lomo y colofón azul marino.
+- **Reglas con nombre:** el color con dato, la lista negra del gris, el bloque anclado, una sola voz, las mayúsculas cartográficas, la portada, la lámina, la tesis como volumen y sin sombras.
+- **Relación con PRODUCT.md.** Recoge los anti-patrones visuales de PRODUCT.md y las preferencias guardadas del usuario (sin halos, sin « · », sin subtítulos redundantes). PRODUCT.md sigue siendo la fuente del producto y la lista completa de anti-patrones.
+
+**Brief del formulario de entrada.** Confirmado por el usuario; queda por construir.
+- **La ficha se escribe.** El estudiante escribe dentro del mismo bloque de color que después encabeza su análisis:
+  - título con la tipografía de portada;
+  - Problematiza a 19 px;
+  - fila meta con programa (autocompletado sobre los 1,126 programas del corpus), grado con los puntos de nivel y periodo como la línea de tiempo de dos puntos, con opción «no aplica».
+- **Color del bloque.** Es azul marino hasta elegir programa. Después toma el color del área más común de ese programa: el color lleva un dato.
+- **Objetivos:** renglones numerados, con la escalera de Bloom dibujándose en vivo a la derecha y notas breves solo en los casos límite del léxico.
+- **Palabras clave:** texto separado por comas, sin chips.
+- **Botón y beta:** «Analizar mi tesis» como botón de acción, con una línea de beta y apoyo a su lado.
+- **Barra de estado:** «Escribe tu tesis», con cuatro guiones que se llenan: título, Problematiza, objetivos, y programa con grado.
+- **Sesión:** se escribe sin cuenta; la cuenta se pide al enviar, en el lugar del botón. El borrador se guarda en el navegador.
+- **Estados de esta ronda:** vacío, escribiendo, errores, invitación a iniciar sesión, enviando, noche y móvil. Quedan para otra ronda la cuota, los análisis guardados y «mis análisis».
