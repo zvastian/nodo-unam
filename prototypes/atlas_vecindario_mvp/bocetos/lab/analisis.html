@@ -66,6 +66,9 @@
   .pasos button { width: 30px; height: 23px; padding: 0; border: none; background: none; cursor: pointer; position: relative; }
   .pasos button::after { content: ""; position: absolute; left: 0; right: 0; top: 10px; height: 3px; background: var(--line); transition: background 400ms ease; }
   .pasos button.ok::after { background: var(--ink); }
+  /* «estás aquí»: el guion de la sección actual es más grueso (en el formulario y en el análisis) */
+  .pasos button::after { transition: background 400ms ease, height 200ms ease, top 200ms ease; }
+  .pasos button[aria-current="true"]::after { top: 8px; height: 7px; background: var(--ink); }
   .pasos button:disabled { cursor: default; }
   .pasos button:not(:disabled):hover::after { background: var(--ink-2); }
   .pasos button:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
@@ -143,7 +146,21 @@
   /* el título nunca pasa por debajo del grabado: le deja su ancho a la derecha */
   .ficha .banda h1, .banda .f-titulo { max-width: min(22ch, calc(100% - 150px)); }
   .banda .meta { max-width: calc(100% - 150px); }
+  /* campos en la banda: grado arriba del título, programa abajo; tinta clara del pie */
+  .b-grado { margin: 0 0 14px; }
+  .banda .f-op span { color: var(--ink-2); }
+  .banda .f-op:hover span, .banda .f-op input:checked + span { color: var(--ink); }
+  .banda .f-op input:checked + span { border-bottom-color: var(--ink); }
+  .banda .f-op input:focus-visible + span { outline-color: var(--ink); }
+  .banda .f-programa { margin-top: 20px; max-width: min(56ch, calc(100% - 150px)); }
+  .banda .f-rot { color: var(--ink-2); }
+  .banda .f-err { color: var(--ink); }
   body:not(.escribiendo) .emblema { width: 132px; height: 88px; }
+  /* el nombre del área, en posición fija sobre el grabado; cambia con él */
+  .banda > .emblema-area { position: absolute; right: 22px; bottom: 144px; z-index: 1; width: 180px; margin: 0; text-align: right; text-wrap: balance; font-size: 13px; font-weight: 600; line-height: 1.3;
+    color: var(--ink-2); opacity: 0; transition: opacity 320ms ease; }
+  .banda > .emblema-area.vis { opacity: 1; }
+  body:not(.escribiendo) .banda > .emblema-area { bottom: 112px; width: 132px; }
   .emblema.vis * { stroke-dashoffset: 0; transition-duration: 1100ms; transition-timing-function: cubic-bezier(.35,.1,.25,1); transition-delay: calc(var(--i) * 70ms); }
   /* el título de la tesis es lo primero que se lee: tamaño de portada, peso 800, interletrado cerrado, renglones equilibrados */
   .ficha h1 { font-size: clamp(34px, 3.3vw, 46px); line-height: 1.06; font-weight: 800; margin: 6px 0 0; letter-spacing: -0.025em; max-width: 22ch; text-wrap: balance; }
@@ -336,7 +353,6 @@
   .f-prog .g-ar, .f-prog .g-pr { transition: opacity 300ms ease; }
   .f-prog.sin .g-ar, .f-prog.sin .g-pr { opacity: .35; }
   .f-prog .campo { font-size: 16px; font-weight: 500; }
-  .f-area { font-size: 13px; color: var(--ink-2); margin: 6px 0 0; min-height: 18px; }
   /* grado: radios nativos con aspecto de pestañas de texto; los puntos de nivel dicen el grado elegido */
   .f-grado { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 16px; }
   .f-grado .g-nv { margin-right: 4px; }
@@ -451,8 +467,8 @@
   /* envío: remate de 2 px en tinta, como el pie de la lista de parecidas */
   .f-envio { display: flex; align-items: center; flex-wrap: wrap; gap: 18px 32px; padding: 22px 0 0; border-top: 2px solid var(--ink); }
   .f-envio .btn-cta { padding: 13px 22px; font-size: 16px; }
-  .beta { font-size: 13.5px; line-height: 1.45; color: var(--ink-2); max-width: 64ch; margin: 0; }
-  .beta a { font-weight: 600; }
+  .dlg-chico { width: min(480px, calc(100vw - 32px)); }
+  .dlg-acc { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 28px; margin-top: 20px; }
   .f-sesion { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px 48px; padding: 22px 0 0; border-top: 2px solid var(--ink); }
   .f-sesion h3 { font-size: 19px; font-weight: 600; line-height: 1.35; margin: 0 0 8px; }
   .f-sesion p { color: var(--ink-2); margin: 0 0 10px; max-width: 52ch; }
@@ -473,7 +489,7 @@
   .crece-x { transform-box: fill-box; transform-origin: left; transform: scaleX(0); transition: transform 700ms cubic-bezier(.2,.7,.2,1); }
   .crece-x.vis { transform: scaleX(1); }
   @media (prefers-reduced-motion: reduce) {
-    .aparece, .crece-x, .fb .b, .hist .lleno, .objetos li, .objetos li i, .lomo-txt, .pasos button::after, .emblema * { transition: none !important; }
+    .aparece, .crece-x, .fb .b, .hist .lleno, .objetos li, .objetos li i, .lomo-txt, .pasos button::after, .emblema *, .emblema-area { transition: none !important; }
     .pendiente .barra::after { animation: none; }
   }
 
@@ -532,7 +548,8 @@
     .f-envio .btn-cta { width: 100%; justify-content: center; }
     .banda { margin: 0 -16px; padding: 24px 16px; }
     .emblema, body:not(.escribiendo) .emblema { right: 8px; bottom: 10px; width: 72px; height: 48px; }
-    .ficha .banda h1, .banda .f-titulo, .banda .meta { max-width: calc(100% - 84px); }
+    .banda > .emblema-area, body:not(.escribiendo) .banda > .emblema-area { right: 8px; bottom: 64px; width: 110px; font-size: 12px; }
+    .ficha .banda h1, .banda .f-titulo, .banda .meta, .banda .f-programa { max-width: calc(100% - 84px); }
     .filas { grid-template-columns: minmax(0, 1fr); gap: 2px 0; }
     .filas > dd { margin-bottom: 14px; }
     .preguntas li { grid-template-columns: 88px minmax(0, 1fr); gap: 16px; }
@@ -573,37 +590,37 @@
     <header class="ficha" id="ficha">
       <div class="banda">
         <p class="lamina"><span><b>Laboratorio</b> <span id="lamina-txt">Tu tesis</span></span><span class="lamina-der"><span>Versión beta</span><span id="lamina-fecha"></span></span></p>
+        <!-- grado, título y programa se escriben en la portada misma: son datos de la tesis -->
+        <div class="f-campo b-grado solo-escritura">
+          <fieldset class="f-fs">
+            <legend class="oculto">Grado</legend>
+            <div class="f-grado" id="f-grado"><span class="g-nv" id="f-grado-nv" aria-hidden="true"><i></i><i></i><i></i><i></i></span></div>
+          </fieldset>
+          <p class="f-err" id="e-grado" hidden></p>
+        </div>
         <label class="oculto solo-escritura" for="f-titulo">Título de tu tesis</label>
         <textarea id="f-titulo" form="f-ficha" class="campo f-titulo solo-escritura" rows="1" maxlength="400" placeholder="El título de tu tesis" autocomplete="off" spellcheck="true"></textarea>
         <p class="f-err solo-escritura" id="e-titulo" hidden></p>
         <h1 id="titulo" class="solo-analisis"></h1>
-        <!-- programa y grado son datos de la tesis: van en su banda (al escribir, en vivo) -->
-        <p class="meta" id="meta"></p>
+        <div class="f-campo f-programa solo-escritura">
+          <label class="f-rot" for="f-prog-in">Programa</label>
+          <div class="f-prog sin" id="f-prog"><i class="g-ar"></i><i class="g-pr"></i>
+            <input id="f-prog-in" class="campo" type="text" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="f-lista" placeholder="Escribe y elige de la lista">
+          </div>
+        </div>
+        <!-- en el análisis, programa y grado se leen en la banda -->
+        <p class="meta solo-analisis" id="meta"></p>
+        <p class="emblema-area" id="f-area" aria-live="polite"></p>
         <svg class="emblema" id="emblema" viewBox="0 0 180 120" aria-hidden="true"></svg>
       </div>
       <div class="ficha-cuerpo">
         <form class="solo-escritura" id="f-ficha" novalidate onsubmit="return false">
-          <!-- el programa va primero: al elegirlo, la banda de arriba cambia de color y de grabado a la vista -->
-          <div class="f-campo f-programa">
-            <label class="f-rot" for="f-prog-in">Programa</label>
-            <div class="f-prog sin" id="f-prog"><i class="g-ar"></i><i class="g-pr"></i>
-              <input id="f-prog-in" class="campo" type="text" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="f-lista" placeholder="Escribe y elige de la lista">
-            </div>
-            <p class="f-area" id="f-area" aria-live="polite"></p>
-          </div>
           <div class="f-bloque">
             <label class="f-rot" for="f-prob">Problematiza</label>
             <textarea id="f-prob" class="campo f-prob" rows="2" maxlength="2000" placeholder="En pocas palabras, ¿qué problema o pregunta quieres resolver?"></textarea>
             <p class="f-err" id="e-prob" hidden></p>
           </div>
           <div class="f-meta">
-            <div class="f-campo">
-              <fieldset class="f-fs">
-                <legend class="f-rot">Grado</legend>
-                <div class="f-grado" id="f-grado"><span class="g-nv" id="f-grado-nv" aria-hidden="true"><i></i><i></i><i></i><i></i></span></div>
-              </fieldset>
-              <p class="f-err" id="e-grado" hidden></p>
-            </div>
             <div class="f-campo f-periodo" id="f-periodo">
               <span class="f-rot">Periodo que estudia la tesis</span>
               <button type="button" class="linkbtn" id="f-periodo-si">Agregar periodo</button>
@@ -654,7 +671,6 @@
     </section>
     <div class="f-envio solo-escritura" id="f-envio">
       <button type="button" class="btn-cta" id="f-enviar">Analizar mi tesis</button>
-      <p class="beta">NodOS es un proyecto independiente y está en beta. La lectura con IA alcanza para unos 55 análisis al día en todo el sitio; con apoyo, alcanza para más. <a href="#" data-pendiente="cafe">Apoya este proyecto</a></p>
       <p class="f-err" id="e-envio" hidden></p>
     </div>
     <div class="f-sesion solo-escritura" id="f-sesion" hidden>
@@ -711,6 +727,14 @@
 </footer>
 <div class="tip" id="tip" hidden></div>
 <ul class="f-lista" id="f-lista" role="listbox" aria-label="Programas" hidden></ul>
+<!-- cuando un análisis no puede hacerse (servicio caído, cupo agotado): el aviso de beta y la invitación a apoyar -->
+<div class="dlg-capa" id="beta-capa" hidden></div>
+<div class="dlg dlg-chico" id="beta-dlg" role="alertdialog" aria-modal="true" aria-labelledby="beta-titulo" aria-describedby="beta-motivo" hidden>
+  <div class="dlg-head"><h3 id="beta-titulo">No se pudo hacer tu análisis</h3><button type="button" id="beta-cerrar" aria-label="Cerrar"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 4.5l7 7M11.5 4.5l-7 7"/></svg></button></div>
+  <p id="beta-motivo"></p>
+  <p>NodOS es un proyecto independiente y está en beta. La lectura con IA alcanza para unos 55 análisis al día en todo el sitio; con apoyo, alcanza para más.</p>
+  <div class="dlg-acc"><a href="#" class="btn-cta" data-pendiente="cafe">Apoya este proyecto</a><button type="button" class="btn-txt" id="beta-volver">Volver a mi borrador</button></div>
+</div>
 <!-- explicación de la taxonomía de Bloom: capa difuminada como la de Ajustes del mapa -->
 <div class="dlg-capa" id="bloom-capa" hidden></div>
 <div class="dlg" id="bloom-dlg" role="dialog" aria-modal="true" aria-labelledby="bloom-titulo" hidden>
@@ -845,7 +869,8 @@
     return i;
   }
   function cabecera() {
-    if (!terminado || document.body.classList.contains('escribiendo')) return;
+    if (document.body.classList.contains('escribiendo')) { if (PASOS_F && $('pasos').children.length === PASOS_F.length) marcarPasoForm(); return; }
+    if (!terminado) return;
     var i = seccionActual(); if (i === actual) return;
     actual = i; estado('<b>' + SECCIONES[i].nombre + '</b>');
     Array.prototype.forEach.call($('pasos').children, function (b, k) { b.classList.toggle('ok', k <= i); b.setAttribute('aria-current', k === i ? 'true' : 'false'); });
@@ -1498,12 +1523,12 @@
     $('f-prog').classList.toggle('sin', !p);
     if (p) {
       colorArea(areaHex(p.area));
-      $('f-area').textContent = p.area ? AREA_NOMBRE[p.area] : 'Sin área registrada';
+      etiquetaArea(p.area ? AREA_NOMBRE[p.area] : 'Sin área registrada');
       colorMascota(areaHex(p.area));
     } else {
-      colorArea(null); $('f-area').textContent = ''; colorMascota(tok('--link'));
+      colorArea(null); etiquetaArea(''); colorMascota(tok('--link'));
     }
-    pintarEmblema(p ? p.area : 0); pintarMetaForm();
+    pintarEmblema(p ? p.area : 0);
   }
   function colorArea(c) {
     if (c) document.documentElement.style.setProperty('--area-tesis', c);
@@ -1521,6 +1546,14 @@
     // Humanidades y Artes: capitel jónico con sus volutas y un libro abierto
     4: '<path d="M14 26H106V34H14Z"/><path d="M22 34Q60 56 98 34"/><circle cx="24" cy="46" r="11"/><circle cx="24" cy="46" r="5.5"/><circle cx="96" cy="46" r="11"/><circle cx="96" cy="46" r="5.5"/><path d="M36 56V112M84 56V112M48 58V112M60 58V112M72 58V112"/><path d="M118 62Q136 54 152 62Q168 54 178 60V104Q168 98 152 106Q136 98 118 104Z"/><path d="M152 62V106"/><path d="M126 72Q136 68 146 72M126 82Q136 78 146 82M126 92Q136 88 146 92M158 72Q166 68 172 70M158 82Q166 78 172 80"/>'
   };
+  // el nombre del área se desvanece y cambia al mismo ritmo que el grabado
+  var etiquetaT = null;
+  function etiquetaArea(txt) {
+    var el = $('f-area');
+    if (el.textContent === txt && (el.classList.contains('vis') || !txt)) return;
+    clearTimeout(etiquetaT); el.classList.remove('vis');
+    etiquetaT = setTimeout(function () { el.textContent = txt; if (txt) el.classList.add('vis'); }, REDUCIDO || !el.textContent ? 0 : 340);
+  }
   var emblemaArea = null, emblemaT = null;
   function pintarEmblema(area) {
     var svg = $('emblema');
@@ -1549,16 +1582,7 @@
   function gradoElegido() { var r = document.querySelector('input[name="grado"]:checked'); return r ? r.value : ''; }
   function pintarPuntosGrado() {
     var nv = GRADOS.indexOf(gradoElegido()) + 1, col = noche() ? NIVEL_NOCHE : NIVEL_DIA;
-    Array.prototype.forEach.call($('f-grado-nv').children, function (i, k) { i.style.background = k < nv ? col[k] : ''; i.style.boxShadow = k < nv ? 'none' : ''; });
-    pintarMetaForm();
-  }
-  // al escribir, la banda repite programa y grado en cuanto se eligen, con la gramática de la meta del análisis
-  function pintarMetaForm() {
-    if (!document.body.classList.contains('escribiendo')) return;
-    var g = gradoElegido(), nv = GRADOS.indexOf(g) + 1, dots = '';
-    for (var k = 0; k < 4; k++) dots += '<i' + (k < nv ? ' class="si"' : '') + '></i>';
-    $('meta').innerHTML = (F.prog ? '<span title="' + esc(AREA_NOMBRE[F.prog.area] || '') + '"><i class="g-ar"></i><i class="g-pr"></i><b>' + esc(F.prog.nombre) + '</b></span>' : '') +
-      (g ? '<span title="' + esc(g) + ', nivel ' + nv + ' de 4"><span class="g-nv">' + dots + '</span>' + esc(g) + '</span>' : '');
+    Array.prototype.forEach.call($('f-grado-nv').children, function (i, k) { i.classList.toggle('si', k < nv); });
   }
 
   // --- periodo: dos años y la línea de tiempo de dos puntos ---
@@ -1753,30 +1777,60 @@
     var esc_ = $('bloom-cuerpo').querySelector('.esc-ayuda');
     esc_.getBoundingClientRect(); setTimeout(function () { esc_.classList.add('vis'); }, 30);
   }
-  var ayudaDesde = null;
-  function abrirAyudaBloom(desde) {
-    ayudaDesde = desde || document.activeElement; pintarAyudaBloom();
-    $('bloom-capa').hidden = false; $('bloom-dlg').hidden = false; $('bloom-cerrar').focus();
+  // diálogos (Bloom, aviso de beta): capa difuminada; al cerrar, el foco vuelve a su origen
+  var dlgAbierto = null, dlgDesde = null;
+  function abrirDialogo(n, desde) {
+    if (dlgAbierto) cerrarDialogo();
+    dlgAbierto = n; dlgDesde = desde || document.activeElement;
+    $(n + '-capa').hidden = false; $(n + '-dlg').hidden = false; $(n + '-cerrar').focus();
   }
-  function cerrarAyudaBloom() {
-    $('bloom-capa').hidden = true; $('bloom-dlg').hidden = true;
-    if (ayudaDesde && ayudaDesde.focus) ayudaDesde.focus();
+  function cerrarDialogo() {
+    if (!dlgAbierto) return;
+    $(dlgAbierto + '-capa').hidden = true; $(dlgAbierto + '-dlg').hidden = true; dlgAbierto = null;
+    if (dlgDesde && dlgDesde.focus) dlgDesde.focus();
   }
+  function abrirAyudaBloom(desde) { pintarAyudaBloom(); abrirDialogo('bloom', desde); }
+  // el análisis no pudo hacerse: el motivo y el aviso de beta con la invitación a apoyar
+  function avisoBeta(motivo) { $('beta-motivo').textContent = motivo; abrirDialogo('beta', $('f-enviar')); }
 
   // --- pasos del formulario: título, Problematiza, objetivos, programa y grado ---
+  // en el orden de la página; sec: el bloque que cuenta como «estás aquí» (por foco o por scroll)
   var PASOS_F = [
-    { nombre: 'Título', ok: function () { return $('f-titulo').value.trim().length >= 3; }, foco: 'f-titulo' },
-    { nombre: 'Problematiza', ok: function () { return $('f-prob').value.trim().length >= 20; }, foco: 'f-prob' },
-    { nombre: 'Objetivos', ok: function () { return textosObjetivos().some(Boolean); }, foco: null },
-    { nombre: 'Programa y grado', ok: function () { return !!gradoElegido() && $('f-prog-in').value.trim().length > 1; }, foco: 'f-prog-in' }
+    { nombre: 'Grado, título y programa', sec: function () { return document.querySelector('.banda'); },
+      ok: function () { return $('f-titulo').value.trim().length >= 3 && !!gradoElegido() && $('f-prog-in').value.trim().length > 1; }, foco: function () { return $('f-titulo'); } },
+    { nombre: 'Problematiza', sec: function () { return document.querySelector('#f-ficha'); },
+      ok: function () { return $('f-prob').value.trim().length >= 20; }, foco: function () { return $('f-prob'); } },
+    { nombre: 'Objetivos', sec: function () { return $('f-obj'); },
+      ok: function () { return textosObjetivos().some(Boolean); }, foco: function () { return $('f-objs').querySelector('textarea') || $('f-mas'); } },
+    { nombre: 'Palabras clave', sec: function () { return $('f-claves-s'); },
+      ok: function () { return textosClaves().length > 0; }, foco: function () { return $('f-claves').querySelector('input') || $('f-claves-mas'); } }
   ];
+  // sección actual del formulario: la que tiene el foco; si no, la última cuyo inicio cruzó el 35 % de la pantalla
+  function pasoActualForm() {
+    var a = document.activeElement, i = -1;
+    PASOS_F.forEach(function (p, k) { if (a && a !== document.body && p.sec().contains(a)) i = k; });
+    if (i >= 0) return i;
+    if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) return PASOS_F.length - 1;
+    i = 0; PASOS_F.forEach(function (p, k) { if (p.sec().getBoundingClientRect().top <= window.innerHeight * 0.35) i = k; });
+    return i;
+  }
   function pasosForm() {
     $('pasos').innerHTML = PASOS_F.map(function (p) { return '<button type="button" title="' + p.nombre + '" aria-label="' + p.nombre + '"></button>'; }).join('');
   }
+  // solo la marca de «estás aquí», sin recalcular lo completo (se llama con cada scroll)
+  function marcarPasoForm() {
+    var cur = pasoActualForm();
+    Array.prototype.forEach.call($('pasos').children, function (b, i) { b.setAttribute('aria-current', i === cur ? 'true' : 'false'); });
+  }
+  document.addEventListener('focusin', function () { if (document.body.classList.contains('escribiendo') && $('pasos').children.length === PASOS_F.length) marcarPasoForm(); });
   function estadoForm() {
     if (!document.body.classList.contains('escribiendo')) return; // el análisis ya tiene su propia barra
     var ok = PASOS_F.map(function (p) { return p.ok(); });
-    Array.prototype.forEach.call($('pasos').children, function (b, i) { b.classList.toggle('ok', ok[i]); b.setAttribute('aria-label', PASOS_F[i].nombre + (ok[i] ? ', listo' : ', por completar')); });
+    var cur = pasoActualForm();
+    Array.prototype.forEach.call($('pasos').children, function (b, i) {
+      b.classList.toggle('ok', ok[i]); b.setAttribute('aria-current', i === cur ? 'true' : 'false');
+      b.setAttribute('aria-label', PASOS_F[i].nombre + (ok[i] ? ', listo' : ', por completar') + (i === cur ? ', estás aquí' : ''));
+    });
     var faltan = ok.filter(function (x) { return !x; }).length;
     estado(faltan ? '<b>Escribe tu tesis.</b> Se compara con 609,154 tesis del catálogo.' : '<b>Lista para analizar.</b>', 'senala');
   }
@@ -1877,9 +1931,10 @@
   function errorDatos() {
     document.body.classList.add('escribiendo');
     $('lamina-txt').textContent = 'Tu tesis';
-    pasosForm(); estadoForm(); pintarMetaForm();
-    estado('<b>No pudimos ubicar tu tesis.</b> El servicio de datos no respondió; tu borrador sigue aquí. Inténtalo en unos minutos.', 'senala');
+    pasosForm(); estadoForm();
+    estado('<b>No pudimos ubicar tu tesis.</b> Tu borrador sigue aquí.', 'senala');
     $('f-envio').hidden = false; $('f-sesion').hidden = true;
+    avisoBeta('El servicio de datos no respondió. Tu borrador sigue aquí; inténtalo en unos minutos.');
   }
 
   // --- eventos ---
@@ -1950,9 +2005,8 @@
       if (ev.target.closest('.f-bloom-q')) abrirAyudaBloom(ev.target.closest('.f-bloom-q'));
     });
     $('f-esc-ayuda').addEventListener('click', function () { abrirAyudaBloom(this); });
-    $('bloom-cerrar').addEventListener('click', cerrarAyudaBloom);
-    $('bloom-capa').addEventListener('click', cerrarAyudaBloom);
-    document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape' && !$('bloom-dlg').hidden) cerrarAyudaBloom(); });
+    ['bloom-cerrar', 'bloom-capa', 'beta-cerrar', 'beta-capa', 'beta-volver'].forEach(function (id) { $(id).addEventListener('click', cerrarDialogo); });
+    document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape') cerrarDialogo(); });
     $('f-objs').addEventListener('keydown', function (ev) {
       var t = ev.target; if (t.tagName !== 'TEXTAREA') return;
       var li = t.closest('li');
@@ -1972,8 +2026,7 @@
     $('pasos').addEventListener('click', function (ev) {
       if (!document.body.classList.contains('escribiendo')) return;
       var b = ev.target.closest('button'); if (!b) return;
-      var i = Array.prototype.indexOf.call(this.children, b), id = PASOS_F[i].foco;
-      var el = id ? $(id) : ($('f-objs').querySelector('textarea') || $('f-mas'));
+      var i = Array.prototype.indexOf.call(this.children, b), el = PASOS_F[i].foco();
       el.focus(); el.scrollIntoView({ behavior: REDUCIDO ? 'auto' : 'smooth', block: 'center' });
     });
     $('f-enviar').addEventListener('click', enviar);
@@ -2007,7 +2060,7 @@
     for (var k = 0; k < 4; k++) dots += k < nv ? '<i class="si" style="background:' + col[k] + ';box-shadow:none"></i>' : '<i></i>';
     var mismos = S.vec.filter(function (t) { return sinAcento(t.programa) === sinAcento(e.program); });
     var ar = mismos.length ? contar(mismos, function (t) { return t.area; })[0][0] : (F.prog ? F.prog.area : 0);
-    colorArea(areaHex(ar)); pintarEmblema(ar);
+    colorArea(areaHex(ar)); pintarEmblema(ar); etiquetaArea(AREA_NOMBRE[ar] || '');
     $('meta').innerHTML = (e.program ? '<span style="--c:' + areaHex(ar) + '" title="' + AREA_NOMBRE[ar] + '"><i class="g-ar"></i><i class="g-pr"></i><b>' + esc(e.program) + '</b></span>' : '') +
       '<span title="' + esc(e.degree) + ', nivel ' + nv + ' de 4"><span class="g-nv">' + dots + '</span>' + esc(e.degree) + '</span>' +
       (e.study_period.applies ? '<span>' + esc(e.study_period.label) + '</span>' : '');

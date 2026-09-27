@@ -3388,3 +3388,35 @@ A los JSON del sitio y del código se les quitaron 46,491 campos de autor. Ning�
 **Ajuste posterior (pedido del usuario): la cabeza del grabado de Ciencias Sociales era angosta.** Se redibujó con una imagen de referencia del usuario: cráneo ancho y redondeado, perfil hacia la red (nariz, labios y mentón) y cuello con la base plana, como figura cerrada y sin oreja. Se trazó en las coordenadas de la referencia y se escaló a 0.25 en el hueco del grabado, de x 98 a 178. Se revisó con una lámina a tamaño grande y a tamaño real.
 
 **Ajuste posterior (pedido del usuario): el compás era muy largo y su trazo parecía parte del instrumento.** El compás bajó de unos 100 a 68 unidades de alto: bisagra en (40, 26), aguja en (24, 84) y lápiz en (57, 84). El trazo es ahora un arco punteado en cuatro tramos, con centro en la aguja y 33 de radio, que empieza un poco después de la punta del lápiz. Los tramos son trayectos separados y no un `stroke-dasharray`, porque el guion lo usa la animación de dibujo. Se revisó en una lámina a tamaño grande y a tamaño real.
+
+### Laboratorio: grado y programa se eligen en la banda del título (boceto, 27-sep-2026)
+
+**Pedido del usuario:** «programa y nivel deben ser escogidos desde el título de tesis, no solo visualizados. Nivel arriba del título, programa abajo».
+
+**Qué cambió:**
+- **El grado** (pestañas con los puntos de nivel) pasó del cuerpo de la ficha a la banda, arriba del título. Su leyenda queda solo para lectores de pantalla.
+- **El programa** (autocompletado, con el área debajo) pasó a la banda, abajo del título. Deja libre el hueco del grabado.
+- Los dos usan la tinta clara del pie. Los puntos de nivel llenos se marcan con la clase `si`, que en la banda los pinta en tinta clara.
+- La fila de datos en vivo de la banda (`pintarMetaForm`, de la versión anterior) se quitó porque ya no hace falta: los campos están ahí. `#meta` vuelve a ser solo del análisis, donde muestra programa, grado y periodo.
+- En el cuerpo quedan Problematiza y el periodo.
+
+**Verificación headless** (1600 × 900):
+- en `?ejemplo`, los campos están dentro de la banda y el grado Maestría llena 3 puntos;
+- Enter en el título lleva al programa;
+- capturas de la banda de día y de noche;
+- en `?demo`, la portada del análisis muestra la fila de datos.
+- **Consola:** limpia, salvo el aviso previsto sin el servicio de datos.
+
+**Ajustes posteriores (pedidos del usuario):**
+- **El nombre del área va en posición fija sobre el grabado.** `#f-area` salió de debajo del campo de programa y es ahora una etiqueta absoluta de la banda, alineada a la derecha, 8 px arriba del grabado, en sus tres tamaños (formulario, análisis y móvil). Cambia con el mismo desvanecido que el dibujo (`etiquetaArea`), usa `text-wrap: balance` para los nombres largos y aparece también en el análisis.
+- **La línea de beta sale de junto al botón y pasa a una ventana emergente** (`#beta-dlg`), que aparece solo cuando un análisis no puede hacerse.
+  - Trae el motivo, el texto de beta del usuario, «Apoya este proyecto» y «Volver a mi borrador».
+  - Hoy la abre `errorDatos()`, cuando el servicio de datos no responde. Queda lista, con `avisoBeta(motivo)`, para el cupo agotado cuando se conecte la cuota del Worker.
+  - Los diálogos de Bloom y de beta comparten `abrirDialogo`/`cerrarDialogo`: capa difuminada, Esc y devolución del foco.
+- **Verificación headless:** con `?ejemplo&sesion=local` y el servicio apagado se forzó un análisis. El aviso se abre con su motivo, el foco va a cerrar y, al volver, regresa a «Analizar mi tesis». La etiqueta del área mide 8 px sobre el grabado en el formulario y en el análisis. La consola solo registra el error de red previsto.
+
+**Ajuste posterior (reporte del usuario): la barra de avance del formulario no era dinámica.** Al escribir, los guiones solo marcaban qué campos estaban completos. Con el formulario lleno se veían los cuatro negros y fijos, y su orden (título, Problematiza, objetivos, programa y grado) ya no seguía la página.
+- **Orden de la página:** grado, título y programa (la banda); Problematiza; Objetivos; Palabras clave.
+- **«Estás aquí»:** el guion de la sección actual es más grueso (7 px). La sección actual es la que tiene el foco o, sin foco, la última cuyo inicio cruzó el 35 % de la pantalla (`pasoActualForm`). Se actualiza con el scroll (`cabecera` delega a `marcarPasoForm` en modo escritura) y con `focusin`.
+- **Completos y pendientes:** los completos siguen en tinta y los pendientes en `--line`. En el análisis, el guion actual también se engrosa.
+- **Verificación headless:** con el formulario lleno y con borrador, el guion actual avanza al bajar la página y salta al campo con foco. Una captura muestra completo, pendiente, actual y completo.
