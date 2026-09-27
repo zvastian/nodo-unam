@@ -308,6 +308,7 @@
   .guardar.on .ico { fill: currentColor; }
   .btn-cta { background: var(--ink); color: var(--paper); border: none; padding: 11px 18px; font-weight: 600; cursor: pointer; display: inline-flex; gap: 8px; align-items: center; border-radius: 2px; }
   .btn-cta:hover { background: var(--c); }
+  a.btn-cta, a.btn-cta:hover { text-decoration: none; } /* el cambio de color basta; sin el subrayado global de a:hover */
   .btn-cta.hecho { background: none; color: var(--ink-2); padding: 11px 0; }
 
   /* ======================= formulario: la ficha se escribe (27-sep-2026) =======================
@@ -467,7 +468,26 @@
   /* envío: remate de 2 px en tinta, como el pie de la lista de parecidas */
   .f-envio { display: flex; align-items: center; flex-wrap: wrap; gap: 18px 32px; padding: 22px 0 0; border-top: 2px solid var(--ink); }
   .f-envio .btn-cta { padding: 13px 22px; font-size: 16px; }
-  .dlg-chico { width: min(480px, calc(100vw - 32px)); }
+  .dlg-aviso { width: min(600px, calc(100vw - 32px)); }
+  .dlg-aviso .dlg-head { margin-bottom: 0; }
+  .aviso-cuerpo { display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 24px; align-items: start; }
+  .aviso-mascota { width: 170px; height: auto; }
+  .aviso-cuerpo h3 { margin: 4px 0 10px; font-size: 24px; font-weight: 800; line-height: 1.15; letter-spacing: -0.01em; }
+  .aviso-cuerpo p { margin: 0 0 12px; }
+  .aviso-indep { color: var(--ink-2); font-size: 14.5px; }
+  .mascota .pila rect { fill: var(--paper); stroke: var(--ink-2); stroke-width: 2; }
+  /* sombrero de cubeta de la pose «gracias»: ocre de la marca con cinta clara */
+  .mascota .sombrero path { stroke: color-mix(in oklch, var(--marca-ocre) 55%, black); stroke-width: 2.5; stroke-linejoin: round; }
+  .mascota .sombrero .copa, .mascota .sombrero .ala { fill: var(--marca-ocre); }
+  .mascota .sombrero .cinta { fill: color-mix(in oklch, var(--marca-ocre) 22%, white); }
+  .mascota .pila rect.tuya { fill: var(--m); stroke: var(--ink); }
+  /* festejo al pasar por «Apoya este proyecto»: brinco con brazos arriba y las hojas que caen */
+  .aviso-mascota .salta { animation: brinco 820ms cubic-bezier(.3,.7,.3,1) infinite; }
+  .aviso-mascota .caidas rect { animation: cae 520ms cubic-bezier(.55,0,.8,.4) both; animation-delay: calc(var(--i) * 55ms); }
+  @keyframes brinco { 0%, 100% { transform: translateY(0); } 35%, 55% { transform: translateY(-24px); } }
+  @keyframes cae { from { transform: translate(-8px, -120px); opacity: .6; } 85% { opacity: 1; } to { transform: translate(0, 0); } }
+  @media (prefers-reduced-motion: reduce) { .aviso-mascota .salta, .aviso-mascota .caidas rect { animation: none; } }
+  @media (max-width: 640px) { .aviso-cuerpo { grid-template-columns: minmax(0, 1fr); gap: 8px; } .aviso-mascota { width: 110px; } }
   .dlg-acc { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 28px; margin-top: 20px; }
   .f-sesion { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px 48px; padding: 22px 0 0; border-top: 2px solid var(--ink); }
   .f-sesion h3 { font-size: 19px; font-weight: 600; line-height: 1.35; margin: 0 0 8px; }
@@ -729,11 +749,17 @@
 <ul class="f-lista" id="f-lista" role="listbox" aria-label="Programas" hidden></ul>
 <!-- cuando un análisis no puede hacerse (servicio caído, cupo agotado): el aviso de beta y la invitación a apoyar -->
 <div class="dlg-capa" id="beta-capa" hidden></div>
-<div class="dlg dlg-chico" id="beta-dlg" role="alertdialog" aria-modal="true" aria-labelledby="beta-titulo" aria-describedby="beta-motivo" hidden>
-  <div class="dlg-head"><h3 id="beta-titulo">No se pudo hacer tu análisis</h3><button type="button" id="beta-cerrar" aria-label="Cerrar"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 4.5l7 7M11.5 4.5l-7 7"/></svg></button></div>
-  <p id="beta-motivo"></p>
-  <p>NodOS es un proyecto independiente y está en beta. La lectura con IA alcanza para unos 55 análisis al día en todo el sitio; con apoyo, alcanza para más.</p>
-  <div class="dlg-acc"><a href="#" class="btn-cta" data-pendiente="cafe">Apoya este proyecto</a><button type="button" class="btn-txt" id="beta-volver">Volver a mi borrador</button></div>
+<div class="dlg dlg-aviso" id="beta-dlg" role="dialog" aria-modal="true" aria-labelledby="beta-titulo" aria-describedby="beta-motivo" hidden>
+  <div class="dlg-head"><span></span><button type="button" id="beta-cerrar" aria-label="Cerrar"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 4.5l7 7M11.5 4.5l-7 7"/></svg></button></div>
+  <div class="aviso-cuerpo">
+    <svg class="mascota aviso-mascota" id="m-aviso" viewBox="0 -20 262 260" aria-hidden="true"></svg>
+    <div>
+      <h3 id="beta-titulo"></h3>
+      <p id="beta-motivo"></p>
+      <p class="aviso-indep">NodOS es un proyecto independiente y no oficial, sin respaldo institucional. Las capacidades actuales son limitadas para procesar todas las solicitudes que llegan cada día; con tu apoyo, más estudiantes podrán seguir mejorando sus investigaciones.</p>
+      <div class="dlg-acc"><a href="#" class="btn-cta" data-pendiente="cafe">Apoya este proyecto</a><button type="button" class="btn-txt" id="beta-volver">Volver a mi borrador</button></div>
+    </div>
+  </div>
 </div>
 <!-- explicación de la taxonomía de Bloom: capa difuminada como la de Ajustes del mapa -->
 <div class="dlg-capa" id="bloom-capa" hidden></div>
@@ -746,6 +772,12 @@
 (function () {
   'use strict';
   var REDUCIDO = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // «Apoya este proyecto»: Payment Link de Stripe (MXN, monto libre; Apple Pay, Google Pay, tarjeta y OXXO).
+  // Mientras esté vacío, los enlaces siguen en «#».
+  var APOYO_URL = 'https://buy.stripe.com/test_7sYfZb1hpc3ifE8aQMafS00'; // PRUEBA (sandbox): cambiar por el enlace real al activar Stripe
+  if (APOYO_URL) document.querySelectorAll('a[data-pendiente="cafe"]').forEach(function (a) {
+    a.href = APOYO_URL; a.target = '_blank'; a.rel = 'noopener'; a.removeAttribute('data-pendiente');
+  });
   var NIVELES = ['Recordar', 'Comprender', 'Aplicar', 'Analizar', 'Evaluar', 'Crear'];
   var AREA_DIA = { 0: '#9a9a9a', 1: '#3566a8', 2: '#0f7d5c', 3: '#c98a2e', 4: '#b8412f' };
   var AREA_NOCHE = { 0: '#8c93a3', 1: '#5b93e6', 2: '#27a97c', 3: '#b0801c', 4: '#e0567a' };
@@ -833,9 +865,35 @@
       '<path class="trazo" d="M120 80 q7 -9 14 0 M141 80 q7 -9 14 0"/><path d="M126 98 q12 16 26 0 z" fill="#1a1a1a"/>' +
       '<path class="trazo aire" d="M20 60 l-8 -4 M24 44 l-9 0 M190 40 l8 -3 M192 58 l9 1" stroke-width="2.5"/>',
     senala: piernas() + cuerpo() + limb('M152 122 Q176 118 196 112', 7) + mano(198, 111) + ojo(140, 90, 3, 0) + ojo(160, 90, 3, 0) +
-      '<path class="trazo" d="M130 70 q9 -6 20 1"/><path class="trazo" d="M145 116 q8 6 16 0"/>'
+      '<path class="trazo" d="M130 70 q9 -6 20 1"/><path class="trazo" d="M145 116 q8 6 16 0"/>',
+    // gracias: reverencia. El cuerpo se inclina al frente (rotado sobre la cadera), los ojos cerrados, el
+    // sombrero de cubeta bajado frente al pecho con la mano de adelante; la otra mano va atrás y un pie atrás
+    gracias: limb('M84 160 L64 214', 8) + limb('M110 162 L116 218', 8) + '<ellipse cx="58" cy="219" rx="14" ry="6.5" class="pie" transform="rotate(-10 58 219)"/><ellipse cx="126" cy="223" rx="14" ry="6.5" class="pie"/>' +
+      '<g transform="rotate(20 95 160)">' + limb('M38 128 Q22 160 22 188', 7, true) + mano(22, 190, true) + cuerpo() +
+      '<path class="trazo" d="M106 86 q8 7 16 0 M132 86 q8 7 16 0"/><path class="trazo" d="M114 110 q13 10 26 0"/>' +
+      limb('M150 124 Q180 138 198 142', 7) +
+      '<g class="sombrero" transform="translate(25 154) rotate(28 173 -12)"><path class="ala" d="M136 -6 L151 -17 L195 -17 L210 -6 Z"/>' +
+      '<path class="copa" d="M153 -17 L159 -46 Q173 -51 187 -46 L193 -17 Z"/><path class="cinta" d="M155.6 -29 L190.4 -29 L191.8 -22 L154.2 -22 Z"/></g>' +
+      '</g>', // sin mano: el brazo termina detrás del sombrero, que se dibuja encima
+    // «tu análisis se agregó a la fila»: carga una pila de hojas con los dos brazos, la tuya arriba
+    fila: piernas() + cuerpo() +
+      '<g class="pila"><rect x="166" y="128" width="74" height="13" transform="rotate(-2 203 134)"/><rect x="162" y="114" width="74" height="13" transform="rotate(2 199 120)"/>' +
+      '<rect x="168" y="100" width="74" height="13" transform="rotate(-3 205 106)"/><rect x="163" y="86" width="74" height="13" transform="rotate(2 200 92)"/>' +
+      '<rect x="167" y="72" width="74" height="13" transform="rotate(-1 204 78)"/><rect class="tuya" x="164" y="55" width="74" height="15" transform="rotate(-4 201 62)"/></g>' +
+      limb('M140 146 Q156 150 166 140', 7) + mano(168, 139) + limb('M128 34 Q160 18 190 48', 6, true) + mano(192, 52, true) +
+      ojo(116, 88, 4, -1) + ojo(140, 88, 4, -1) + '<path class="trazo" d="M118 114 q12 9 24 0"/>' +
+      '<path class="trazo aire" d="M236 34 l7 -8 M248 50 l9 -3 M220 26 l1 -9" stroke-width="2.5"/>'
   };
   function pose(svg, p) { svg.innerHTML = POSE[p]; }
+  window.__debugLab = { pose: pose }; // para las pruebas y para exportar poses (como __debugAtlas en el mapa)
+  // festejo del aviso: brinca con los brazos arriba; con hojas, las suelta y caen al piso (cada una gira
+  // en su <g> y cae con CSS sobre el <rect>, para no pisar el transform del atributo)
+  var HOJAS_PISO = [[118, 214, -8], [144, 220, 5], [166, 211, 12], [180, 219, -4], [152, 226, -2], [126, 228, 8]]; // dentro del viewBox (x ≤ 254)
+  function festejo(svg, conHojas) {
+    svg.innerHTML = '<g class="salta">' + POSE.celebra + '</g>' + (conHojas ? '<g class="pila caidas">' + HOJAS_PISO.map(function (h, i) {
+      return '<g transform="rotate(' + h[2] + ' ' + (h[0] + 37) + ' ' + h[1] + ')"><rect' + (i === HOJAS_PISO.length - 1 ? ' class="tuya"' : '') + ' style="--i:' + i + '" x="' + h[0] + '" y="' + (h[1] - 6) + '" width="74" height="12"/></g>';
+    }).join('') + '</g>' : '');
+  }
   function colorMascota(c) { document.documentElement.style.setProperty('--m', c); }
 
   // ---------- estado ----------
@@ -1791,7 +1849,18 @@
   }
   function abrirAyudaBloom(desde) { pintarAyudaBloom(); abrirDialogo('bloom', desde); }
   // el análisis no pudo hacerse: el motivo y el aviso de beta con la invitación a apoyar
-  function avisoBeta(motivo) { $('beta-motivo').textContent = motivo; abrirDialogo('beta', $('f-enviar')); }
+  // «fila»: el cupo del día se agotó y la solicitud queda en fila (requiere la fila real en el Worker).
+  // «error»: el servicio no respondió; no se promete nada que no pasa.
+  var AVISOS = {
+    fila: { titulo: '¡Tu análisis se agregó a la fila!', motivo: 'Hoy llegaron muchas tesis. En cuanto se libere un lugar lo procesamos y aparecerá en «Mis análisis»; tu borrador queda guardado.', pose: 'fila' },
+    error: { titulo: 'Tu borrador está a salvo', motivo: 'No pudimos conectar con el servicio que ubica tu tesis. Nada se perdió: inténtalo de nuevo en unos minutos.', pose: 'senala' }
+  };
+  var avisoPose = 'fila';
+  function avisoBeta(tipo) {
+    var a = AVISOS[tipo]; avisoPose = a.pose;
+    $('beta-titulo').textContent = a.titulo; $('beta-motivo').textContent = a.motivo; pose($('m-aviso'), a.pose);
+    abrirDialogo('beta', $('f-enviar'));
+  }
 
   // --- pasos del formulario: título, Problematiza, objetivos, programa y grado ---
   // en el orden de la página; sec: el bloque que cuenta como «estás aquí» (por foco o por scroll)
@@ -1934,7 +2003,7 @@
     pasosForm(); estadoForm();
     estado('<b>No pudimos ubicar tu tesis.</b> Tu borrador sigue aquí.', 'senala');
     $('f-envio').hidden = false; $('f-sesion').hidden = true;
-    avisoBeta('El servicio de datos no respondió. Tu borrador sigue aquí; inténtalo en unos minutos.');
+    avisoBeta('error');
   }
 
   // --- eventos ---
@@ -2006,6 +2075,10 @@
     });
     $('f-esc-ayuda').addEventListener('click', function () { abrirAyudaBloom(this); });
     ['bloom-cerrar', 'bloom-capa', 'beta-cerrar', 'beta-capa', 'beta-volver'].forEach(function (id) { $(id).addEventListener('click', cerrarDialogo); });
+    // «Apoya este proyecto» (cursor o teclado): la mascota festeja; al salir, vuelve a su pose
+    var apoya = document.querySelector('#beta-dlg .btn-cta');
+    ['mouseenter', 'focus'].forEach(function (ev) { apoya.addEventListener(ev, function () { festejo($('m-aviso'), avisoPose === 'fila'); }); });
+    ['mouseleave', 'blur'].forEach(function (ev) { apoya.addEventListener(ev, function () { if (apoya.matches(':hover') || document.activeElement === apoya) return; pose($('m-aviso'), avisoPose); }); });
     document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape') cerrarDialogo(); });
     $('f-objs').addEventListener('keydown', function (ev) {
       var t = ev.target; if (t.tagName !== 'TEXTAREA') return;
@@ -2078,6 +2151,7 @@
   cargarBase().then(function () {
     iniciarFormulario();
     if (PARAM.has('demo') && EJEMPLO) analizar(EJEMPLO);
+    if (PARAM.has('fila')) avisoBeta('fila'); // para revisar el aviso de cupo agotado
   }).catch(function (err) { estado('<b>No se pudieron cargar los datos del mapa.</b> ' + esc(err.message)); console.error(err); });
 })();
 </script>

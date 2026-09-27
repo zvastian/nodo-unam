@@ -3420,3 +3420,61 @@ A los JSON del sitio y del código se les quitaron 46,491 campos de autor. Ning�
 - **«Estás aquí»:** el guion de la sección actual es más grueso (7 px). La sección actual es la que tiene el foco o, sin foco, la última cuyo inicio cruzó el 35 % de la pantalla (`pasoActualForm`). Se actualiza con el scroll (`cabecera` delega a `marcarPasoForm` en modo escritura) y con `focusin`.
 - **Completos y pendientes:** los completos siguen en tinta y los pendientes en `--line`. En el análisis, el guion actual también se engrosa.
 - **Verificación headless:** con el formulario lleno y con borrador, el guion actual avanza al bajar la página y salta al campo con foco. Una captura muestra completo, pendiente, actual y completo.
+
+### Laboratorio: aviso «¡Tu análisis se agregó a la fila!» con la mascota (boceto, 27-sep-2026)
+
+**Pedido del usuario:** que el aviso empiece con algo positivo («tu análisis se agregó a la fila»), lleve una ilustración de la mascota con la explicación de que NodOS es un proyecto independiente que no alcanza para todas las solicitudes diarias y cierre con el llamado a apoyar. Sin cifras explícitas: se quitó «55 análisis al día».
+
+**Dos variantes de la misma ventana** (`avisoBeta(tipo)`):
+- **`fila`, para el cupo del día agotado:** «¡Tu análisis se agregó a la fila!». Dice que se procesará en cuanto haya lugar y que aparecerá en «Mis análisis». La mascota tiene una pose nueva, `fila`: carga una pila de hojas con los dos brazos, con la hoja del estudiante arriba en su color.
+- **`error`, para cuando el servicio no responde:** «Tu borrador está a salvo». Mantiene el tono y la invitación a apoyar, pero no promete la fila.
+- **Por qué dos:** hoy no existe una fila. Mostrar «se agregó a la fila» cuando el servicio está caído prometería algo que no pasa.
+
+**Requisito antes del lanzamiento: la fila real en el Worker.** La variante `fila` necesita que la solicitud quede guardada (D1), se procese cuando se libere cupo y aparezca en «Mis análisis», idealmente con aviso por correo. Sin eso, no se usa.
+
+**Para revisarla:** `?fila` abre la variante `fila`. La variante `error` se ve al analizar con `?sesion=local` y el servicio apagado.
+
+**Verificación headless:** capturas de las dos variantes. Se amplió la mascota para revisar la pose: en la primera versión, la pila tapaba un ojo y se veía chica, y se corrigió.
+
+**Ajustes posteriores al aviso (pedidos del usuario):**
+- **Texto.** «Todavía no alcanza para…» pasó a «Las capacidades actuales son limitadas para procesar todas las solicitudes que llegan cada día». El cierre pasó a uno más general: «con tu apoyo, más estudiantes podrán seguir mejorando sus investigaciones».
+- **Sin subrayado en «Apoya este proyecto».** Como es un `<a>`, heredaba el subrayado global de `a:hover`. En `a.btn-cta` se quitó, y basta con el cambio de color.
+- **Festejo al pasar por «Apoya este proyecto»** (cursor o foco del teclado). La mascota cambia a la pose de celebrar, dentro de un grupo `.salta` que brinca en bucle mientras dura el paso. Si cargaba la pila (variante `fila`), las seis hojas caen al piso una tras otra, la del estudiante incluida.
+  - Cada hoja gira en su `<g>` y cae con CSS sobre el `<rect>`, para no pisar el `transform` del atributo.
+  - Al salir, vuelve a su pose. Sin animación con movimiento reducido.
+- **Verificación headless:** el festejo arma el grupo que brinca y las seis hojas, y al salir vuelve la pila. En la captura del estado final, las hojas quedan junto a los pies y dentro del dibujo; en la primera versión invadían el texto.
+
+### Apoyos: Stripe Payment Link (en prueba) y la mascota que agradece (27-sep-2026)
+
+**Decisión del usuario:** recibir apoyos con un **Payment Link de Stripe**.
+- **Comparación investigada:** Stripe, Mercado Pago, Ko-fi, Buy Me a Coffee y Patreon.
+- **Por qué Stripe:**
+  - Apple Pay y Google Pay pagan en un toque, sin registro;
+  - cobra en pesos (MXN) y con monto libre;
+  - su comisión es la menor de las cinco, 3.6% + $3 + IVA por tarjeta nacional.
+- **Descartes:**
+  - Patreon obliga a quien apoya a crear cuenta y cobra 10% más el procesamiento;
+  - Buy Me a Coffee y Ko-fi suman un paso y una página en inglés;
+  - Mercado Pago queda como alternativa, porque acepta SPEI y deja el dinero al instante.
+
+**Configuración (sandbox):**
+- «Customers choose what to pay», en MXN, con $50 sugeridos y $20 de mínimo;
+- sin pedir nombre, dirección ni teléfono;
+- métodos: tarjeta, Apple Pay, Google Pay y OXXO. Link está apagado porque casi nadie lo usa en México y agregaba la casilla de «guardar mi información»;
+- `buy.stripe.com` aparece como dominio habilitado para las billeteras;
+- Google Pay solo se muestra en Chrome o Android con una tarjeta guardada. Apple Pay aparece también fuera de Safari, con un código QR.
+
+**Textos:** el título y la descripción van en tono de agradecimiento, sin enumerar funciones. Se sugirió «apoyo» o «aportación» en vez de «donación»: el proyecto no es donataria autorizada y Stripe lo revisa al activar la cuenta.
+
+**En el sitio:** la constante `APOYO_URL` alimenta los dos «Apoya este proyecto» del Lab, el del aviso y el del pie. Hoy apunta al enlace **de prueba** `https://buy.stripe.com/test_7sYfZb1hpc3ifE8aQMafS00`; al activar Stripe se cambia en esa línea. Se verificó que los dos enlaces abren en otra pestaña y se capturó la página de pago.
+
+**Activación real: el último paso, con el sitio publicado.** Stripe revisa el sitio web al activar la cuenta. Hacen falta:
+- la página de Método, que explique el proyecto;
+- un correo de contacto;
+- el aviso de privacidad;
+- una frase de que el apoyo es voluntario;
+- el nombre público «NodOS», sin mencionar a la UNAM.
+
+Lo que llegue será ingreso del titular como persona física: el tratamiento fiscal se ve con un contador.
+
+**Mascota:** se agregó la pose `gracias`, una reverencia con los ojos cerrados y el sombrero de cubeta ocre bajado frente al pecho, sin mano visible. Es la imagen del Payment Link: `marca/stripe/apoyo_reverencia_sin_mano.png`, de 700 × 700. `window.__debugLab.pose` permite exportar poses desde las pruebas.
