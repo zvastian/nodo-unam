@@ -2515,15 +2515,22 @@ Diagnóstico de todo el proyecto al cierre del 25-sep-2026. **Reemplaza a «Pend
 
 ### Dónde estamos
 
-| Frente | Avance | Estado |
-|---|---|---|
-| Datos (pipeline offline) | ~90 % | Corpus de 609,154 tesis limpio y sin autores en el título; e5-large, HDBSCAN + Ward + PaCMAP; jerarquía corregida a mano; dataset público `data_unam.parquet` (sin publicar). |
-| Frontend del atlas | ~85 % | v4.18.2: mapa WebGL, búsqueda, fichas de tesis, cluster y asesor, taller, modo noche, Ajustes, introducción y Método. Faltan matices y los puntos de abajo. |
-| Frontend del Laboratorio | ~40 % | Solo existe la plantilla del **análisis terminado**, como boceto con un caso real (`bocetos/lab/`). No hay formulario de entrada, estados de error ni guardados, y no está integrado a la app. |
-| Backend del Laboratorio | ~5 % | `pipeline/lab_contexto.py` calcula el contexto real, pero offline. El backend viejo (`app/MI-TESIS-UNAM_github/scripts/`, FastAPI con Groq y Cerebras) tiene 9 errores documentados y usa el modelo viejo: se reescribe, no se porta. |
-| Producción | 0 % del producto nuevo | Todo corre en local. El sitio viejo (`MI-TESIS-UNAM`, Cloudflare Pages) sigue con datos anteriores. |
-| Pruebas | ~10 % | Verificación visual manual con `tools/cdp.mjs`. Sin pruebas automáticas y sin CI. |
-| Ciberseguridad | ~15 % | Privacidad de autores resuelta en los datos nuevos. Sin CSP ni cabeceras de seguridad; librerías de CDN sin versión fija; pendientes del repo viejo. |
+Actualizado el 27-sep-2026. La columna del 25-sep queda como punto de partida.
+
+| Frente | 25-sep | 27-sep | Estado al 27-sep |
+|---|---|---|---|
+| Datos (pipeline offline) | ~90 % | ~90 % | Corpus de 609,154 tesis limpio y sin autores en el título; e5-large, HDBSCAN + Ward + PaCMAP; jerarquía corregida a mano; dataset público `data_unam.parquet` (sin publicar). Falta votar campo y tema con las 609,154 tesis. |
+| Frontend del atlas | ~85 % | ~87 % | v4.22.2: a lo de v4.18 se suman los enlaces a TESIUNAM, «Codirigió con», el botón de guardar, el logo y el favicon. Falta leer `?tesis=` en la URL, MI TESIS y la página Método. |
+| Frontend del Laboratorio | ~40 % | ~60 % | Formulario construido en el boceto: la ficha se escribe, Bloom en vivo, errores, borrador e invitación a entrar. `DESIGN.md` documenta el sistema. Falta el inicio de sesión real, conectar el formulario al Worker por SSE, cuota y «mis análisis». El usuario anunció cambios. |
+| Backend del Laboratorio | ~5 % | ~65 % | Servicio de datos (local, Docker y Modal), Worker puerta (JWT, D1, cuotas y guardados) e IA por SSE con Groq y Workers AI, más la evaluación de 11 casos. Falta probar con un token real de Supabase, reducir tokens, el límite por IP y el despliegue. |
+| Producción | 0 % | ~10 % | Proyecto de Supabase, cuenta de Cloudflare y el servicio de datos en Modal (1 USD sin tarjeta, solo para desarrollo). Nada público todavía; el sitio viejo sigue en línea. |
+| Pruebas | ~10 % | ~25 % | 8 pruebas de integración del Worker, 13 del léxico, evaluación de IA con chequeos automáticos y verificación visual con `tools/cdp.mjs`. Falta CI, pruebas de extremo a extremo y la revisión humana de la IA. |
+| Ciberseguridad | ~15 % | ~30 % | **API:** verificación de JWT, CORS explícito, Turnstile, cuotas atómicas, clave compartida con el servicio, pruebas de acceso cruzado (IDOR), sin textos en los logs y Groq sin retención de datos. **Falta:** limpieza de entradas antes de cada llamada a la IA y en el formulario (ver el frente 6), CSP y cabeceras, librerías con versión fija, aviso de privacidad y rotar las claves viejas. |
+
+**Lo que más frena el lanzamiento:**
+1. un medio de pago para Groq y para el servicio de datos;
+2. el inicio de sesión en la interfaz;
+3. el despliegue (paso 4 de ADR-0015).
 
 ### Hecho (resumen; el detalle está en las secciones de arriba)
 
@@ -2642,7 +2649,26 @@ Diagnóstico de todo el proyecto al cierre del 25-sep-2026. **Reemplaza a «Pend
   - sin tracebacks al cliente;
   - protección contra bots (desafío tipo Turnstile);
   - tope de gasto en el proveedor de IA.
-- [ ] **Inyección de prompt:** el texto del usuario viaja como dato delimitado; la salida se valida contra un esquema y nunca se ejecuta.
+- [ ] **Inyección de prompt** (pedido del usuario, 27-sep-2026: limpiar la entrada cada vez que se pide algo a la IA, y también en el formulario).
+  - **Hecho:**
+    - el texto del usuario viaja como dato dentro de `<entrada_usuario>`, y el prompt ordena no seguir instrucciones que vengan ahí;
+    - la salida se valida contra un esquema y nunca se ejecuta;
+    - el caso adverso de la evaluación (`inyeccion`) no tuvo fugas.
+  - **Falta en el Worker:** una capa de limpieza que corra antes de **cada** llamada a la IA (nota, Bloom, preguntas y sus reintentos). Debe:
+    - normalizar Unicode (NFKC);
+    - quitar caracteres de control, de ancho cero y de dirección (bidi);
+    - neutralizar cualquier `<entrada_usuario>` o `</entrada_usuario>` y otros delimitadores del prompt que vengan en el texto, para que no se pueda cerrar el bloque de datos;
+    - recortar repeticiones y topes por campo;
+    - detectar patrones típicos de inyección («ignora las instrucciones», «system prompt», roles falsos) y registrar solo cuántos hubo, sin el texto.
+  - **Falta en el formulario:** aplicar la misma limpieza al escribir y al pegar.
+    - Quitar caracteres invisibles y de control, colapsar espacios y respetar los topes por campo.
+    - Avisar si el texto parece una instrucción y no una tesis.
+    - La limpieza del navegador es comodidad; la que protege es la del Worker.
+  - **Pruebas:** la tabla de casos de inyección como pruebas automáticas del Worker. Entre ellas:
+    - delimitadores falsos;
+    - texto invisible;
+    - instrucciones en otro idioma;
+    - instrucciones repartidas entre campos.
 - [ ] **Secretos:**
   - en variables de entorno o en el gestor de secretos del hosting, nunca en el repo;
   - las 4 claves de `app/AI Pipeline/Scripts/` siguen en disco. El usuario decidió no rotarlas; conviene hacerlo antes de producción, y el backend nuevo tendrá claves propias.
