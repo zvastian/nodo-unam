@@ -1,0 +1,31 @@
+// Worker «puerta» de NodOS (ADR-0015, paso 2). Única API pública del Laboratorio.
+// Secretos (en local, en .dev.vars; en producción, con `wrangler secret put`):
+//   TURNSTILE_SECRET       clave secreta de Turnstile
+//   LAB_CLAVE              clave compartida con el servicio de datos (cabecera X-Lab-Clave)
+//   SUPABASE_SERVICE_KEY   opcional: permite que «borrar mi cuenta» borre también en Supabase
+//   JWKS_LOCAL             solo desarrollo: JWKS en JSON en lugar de pedirlo a Supabase
+//   GROQ_API_KEY           clave de Groq (con Zero Data Retention activado en su consola)
+{
+  "name": "nodos-puerta",
+  "main": "src/index.js",
+  "compatibility_date": "2026-09-01",
+  "d1_databases": [
+    { "binding": "DB", "database_name": "nodos", "database_id": "local-nodos", "migrations_dir": "migrations" }
+  ],
+  "ai": { "binding": "AI" },
+  "triggers": { "crons": ["17 9 * * *"] },
+  "observability": { "enabled": true },
+  "vars": {
+    "ORIGENES": "http://127.0.0.1:8765,http://localhost:8765",
+    "LAB_URL": "http://127.0.0.1:8770",
+    "SUPABASE_URL": "https://vujmkcpxsdrmrwsijnlz.supabase.co",
+    "JWT_EMISOR": "",
+    "CUOTA_USUARIO_DIA": "2",
+    "TOPE_SITIO_DIA": "500",
+    "MAX_ANALISIS_GUARDADOS": "2",
+    "MAX_TESIS_GUARDADAS": "500",
+    "TOPE_IA_DIA": "55",
+    "GROQ_TOKENS_DIA": "180000",
+    "WORKERS_AI_NEURONAS_DIA": "9000"
+  }
+}

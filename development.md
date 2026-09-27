@@ -2828,3 +2828,263 @@ Proton Mail y Outlook.com no sirven gratis: el dominio propio es de pago.
 **Verificación.** Script de comparación contra el servicio local en el puerto 8771; `docker stats` para la memoria; logs del contenedor sin textos de tesis.
 
 **Pendiente:** la descarga de artefactos al arrancar sigue en el paso 4.
+
+## Backend del Laboratorio, paso 2: Worker puerta, sesión y D1 en local (2026-09-26)
+
+**Qué es.** `services/puerta/` es el Cloudflare Worker que ADR-0015 pone como única API pública. Corre en local con `wrangler dev` (4.141) y D1 local. Detalle en `services/puerta/README.md`.
+
+**Qué hace, en orden:**
+- CORS con orígenes explícitos;
+- JWT de Supabase verificado con WebCrypto contra el JWKS (ES256 o RS256; emisor, audiencia y rol `authenticated`);
+- tope de tamaño;
+- Turnstile solo en el análisis, que es lo costoso;
+- cuota con UPSERT atómicos en D1: 2 por usuario al día y 500 del sitio. Se devuelve si el servicio falla o responde 422;
+- llamada al servicio de datos con la clave compartida `X-Lab-Clave`.
+
+**Rutas:** `yo`, `lab/contexto`, análisis guardados (máximo 2), tesis guardadas (idempotente, hasta 500) y borrar la cuenta. Un cron diario borra cuotas viejas y toca Supabase para que no se pause.
+
+**Decisiones:**
+- **Sesión en `Authorization: Bearer`, no en cookies.** Así no hay CSRF y el Worker no guarda sesiones: Supabase las renueva en el navegador.
+- **El análisis no se guarda solo.** El Worker no conserva el texto de un análisis que el usuario no guardó; guardar es un `POST` aparte con `{entrada, resultado}`. Así se retiene lo mínimo.
+- **Conteo e inserción en una sola sentencia** para los límites de guardados: dos peticiones simultáneas no pasan del límite.
+- **El 422 del servicio se reduce a los nombres de campo**, porque el detalle de FastAPI repite el texto enviado.
+- **El servicio de datos exige `LAB_CLAVE`** con un middleware que responde 401 antes de validar el cuerpo. Sin la clave (en local) acepta cualquier llamada, para que el boceto lo siga llamando directo.
+- **Sin Supabase todavía.** `npm run claves` genera un par ES256 que hace de Supabase (`JWKS_LOCAL`), y Turnstile usa sus claves públicas de prueba.
+
+**Verificación:**
+- `npm run prueba`: 8 pruebas de integración contra el Worker y el servicio real, todas pasan:
+  - 8 tipos de token inválido (caducado, firma ajena, emisor, rol `anon`, `alg: none`…);
+  - CORS;
+  - 413, 400 y 422 sin gastar cuota;
+  - dos análisis y el tercero 429;
+  - límite de 2 guardados;
+  - acceso cruzado (IDOR) en análisis y tesis;
+  - borrar la cuenta solo borra lo propio.
+- Con la clave de Turnstile que siempre rechaza, en una segunda instancia: 403 `turnstile_invalido`.
+- Middleware del servicio con `TestClient`: 401 sin clave o con clave mala (aun con cuerpo inválido); 422 con clave buena; `/salud` abierto.
+- Logs del Worker y del servicio sin textos de tesis ni correos.
+
+**Pendiente del paso 2:**
+- El usuario crea el proyecto de Supabase:
+  - Google y enlace mágico;
+  - claves de firma asimétricas;
+  - SMTP de Resend.
+  Después se prueba con un token real.
+- Confirmar qué actividad evita la pausa de Supabase.
+- Límite de tasa por IP.
+- La interfaz de sesión en el Lab y en el atlas, con la estrategia visual por acordar antes.
+
+**Siguiente:** paso 3, la parte de IA: prompts nuevos, reparto Groq + Workers AI con el contador por proveedor en `cuota_sitio`, y SSE.
+
+## Servicio de datos del Lab en Modal: prueba (2026-09-26)
+
+**Por qué.** Google rechazó la cuenta de facturación (`OR_BACR2_59`). Después ofreció activarla con un prepago reembolsable de 500 MXN. El usuario prefirió probar Modal.
+
+**Condiciones reales de Modal**, vistas al registrarse:
+- sin tarjeta, **1 USD** de uso;
+- con tarjeta, se desbloquean los 29 USD restantes (30 USD al mes).
+
+Las fuentes de terceros que decían «30 USD sin tarjeta» estaban mal. El almacenamiento en volúmenes incluye 1 TiB al mes gratis.
+
+**Qué se hizo.**
+- `services/lab/modal_app.py` sirve la misma app FastAPI, sin cambios, con 2 núcleos, 4 GiB, un solo contenedor y 2 minutos despierto tras la última petición.
+- Los artefactos (2.9 GB, sin `model_int8`) subieron al volumen `nodos-lab-artefactos` en 2 min 22 s. La clave compartida va en el secreto `nodos-lab`.
+- `services/lab/medir_remoto.py` mide cualquier despliegue.
+
+**Resultados:**
+- **Arranque en frío:** 12 a 16 s. Es mejor que lo estimado para Cloud Run, que tenía que bajar 3 GB en cada arranque.
+- **Análisis despierto:** 0.72 s de ida y vuelta. De eso, 0.34 s son cómputo (igual que en local) y el resto es red.
+- **Mismo resultado:** en el caso de ejemplo salen las mismas 100 vecinas y la misma ubicación que en el script offline. Solo cambian similitudes en la cuarta cifra decimal, por el SQ8.
+- **Worker contra Modal:** `npm run prueba` da 8 de 8. Sin la clave, Modal responde 401.
+- **Gasto de toda la prueba:** 0.01 USD (`modal billing summary`).
+
+**Costo estimado:**
+- un análisis aislado cuesta unos 0.5 centavos de dólar;
+- el dólar sin tarjeta alcanza para unos 200 análisis;
+- con tarjeta, unos 6,000 al mes.
+
+Bajar el tiempo despierto a 1 minuto casi duplica la capacidad, a cambio de más arranques en frío.
+
+**Tropiezos:**
+- Git Bash convierte `/archivo` en `C:/Program Files/Git/archivo`: hay que usar `MSYS_NO_PATHCONV=1` con `modal volume put`.
+- `timeout` sobre `wrangler dev` mata a `npx`, pero deja vivos sus `node` y `workerd`, que siguen ocupando el puerto 8787. Uno de ellos apuntaba al servicio local apagado y producía 503. Para cerrar `wrangler dev` hay que cerrar esos procesos.
+- El Worker ahora registra el motivo cuando no alcanza el servicio (`lab_inalcanzable`), sin datos del usuario.
+
+**Decisión pendiente del usuario:** producción en Modal con tarjeta, o en Cloud Run con el prepago de 500 MXN. Cuando se decida, se registra como enmienda a ADR-0015.
+
+## Backend del Laboratorio, paso 3: léxico de Bloom compartido (2026-09-26)
+
+**Decisión del usuario:** la espera del arranque en frío (12 a 16 s, unos 40 s en total desde que se envía) se acepta: «le da algo más de legitimidad». Modal queda con 1 minuto despierto en vez de 2, lo que casi duplica lo que rinden los créditos.
+
+**Plan del paso 3:**
+1. léxico de Bloom compartido;
+2. prompts y esquemas de nota, Bloom y preguntas, con validación y reintento;
+3. enrutador Groq → Workers AI con contadores en `cuota_sitio`;
+4. endpoint SSE;
+5. conjunto de evaluación con revisión humana.
+
+**Hecho: el léxico.** Vive en `prototypes/atlas_vecindario_mvp/compartido/bloom.js`, un módulo ES sin dependencias. Lo usan el formulario, con `<script type="module">`, y el Worker, que lo empaqueta.
+- **Lematización:** futuro, condicional, gerundio, participio y enclíticos. El presente solo se reconoce con raíces de 5 letras o más.
+- **Verbo rector:** el primero tras un preámbulo como «se», «el objetivo es» o la numeración.
+- **Un nivel por verbo.**
+- **Banderas por objetivo:** `fuera_lexico`, `ambiguo` (con rango), `vago`, `varios_verbos`, `sin_verbo` (con el verbo sugerido), `metodo`, `tramite`, `otro_idioma` y `retroceso`.
+- **Banderas de la lista:** `un_objetivo`, `demasiados`, `mismo_nivel`, `salto` (con los niveles faltantes), `crear_sin_evaluar` y `bajo_para_grado`.
+
+**Criterios que conviene que revise el usuario:**
+- «describir» pasa a **Comprender**; el boceto lo tenía en Recordar.
+- «identificar», «determinar», «medir», «demostrar», «diagnosticar», «explorar» y «establecer» son **ambiguos**: el léxico da una banda y el modelo elige por contexto. El boceto tenía «identificar» en Recordar y «medir» en Evaluar.
+- «comparar» queda en **Analizar**, como en el boceto, aunque la taxonomía revisada lo pone en Comprender.
+- Nivel máximo esperado por grado: Licenciatura y Especialidad, Analizar; Maestría, Evaluar; Doctorado, Crear. Es **provisional**.
+
+**Verificación:** `npm run prueba:bloom` convierte la tabla de casos límite en 12 pruebas y todas pasan. Incluye el caso México-China: `crear_sin_evaluar`, un salto de 1, 2 y 4, y «Reconocer» marcado como retroceso.
+
+**Pendiente:** conectar la plantilla del Lab a este módulo, que hoy trae su propio extracto de `LEXICO`.
+
+### Paso 3: la parte de IA funciona de principio a fin (2026-09-26)
+
+**Accesos.**
+- Groq: clave nueva solo para NodOS, en `.dev.vars`, con **Zero Data Retention global** activado; el usuario lo confirmó en su consola.
+- Cloudflare: `wrangler login` con la cuenta del proyecto, para Workers AI.
+
+**Qué se construyó** (`services/puerta/src/`):
+- `ia/esquemas.js`: esquemas de nota, Bloom y preguntas en el formato de la plantilla v3, y un validador propio.
+  - Nota: objetos, enfoque, periodo y espacio.
+  - Bloom: riesgo, diagnóstico y mejora por objetivo, objetivos revisados y nota final.
+  - Preguntas: tipos de la plantilla (Comparativa, Histórica, Causal, Evaluativa, Prospectiva y Exploratoria).
+  - El validador existe porque Workers AI no garantiza el esquema.
+- `ia/prompts.js`:
+  - el texto del usuario va como dato;
+  - el modelo recibe señales reales del corpus;
+  - Bloom recibe el resultado del léxico y no lo contradice.
+- `ia/proveedores.js`: Groq primero y Workers AI después, con contadores diarios en D1 (tokens, neuronas y análisis) y un reintento con los errores como retroalimentación.
+- `analisis.js`: `POST /api/lab/analisis` por SSE. Envía el léxico, los datos y las 3 llamadas en paralelo según terminan.
+- `comun.js`: las piezas compartidas con `/api/lab/contexto`.
+
+**Iteración de los prompts** con el caso México-China. En la primera versión:
+- los objetivos revisados empezaban en «Recordar», porque se le pasaba al modelo la lista de niveles faltantes y quiso llenarlos;
+- los diagnósticos repetían el nivel;
+- la nota repetía las fechas.
+
+Cambios:
+- los objetivos revisados empiezan en Comprender o más arriba (y el Worker lo exige);
+- los diagnósticos hablan del contenido;
+- el riesgo describe la consecuencia sin jerga;
+- la nota avisa si el periodo pasa de 50 años.
+
+Resultado: *«Proponer mejoras sin haberlas evaluado previamente puede generar recomendaciones poco fundamentadas…»*, diagnósticos sobre criterios y casos, y sugerencia de subperiodos.
+
+**Mediciones:**
+- **Groq:** las 3 llamadas en unos 1.7 s y unos 5,200 tokens por análisis, así que 180,000 tokens dan unos 35 análisis al día (ADR-0015 estimaba 60).
+- **Workers AI:** de 15 a 28 s y unas 326 neuronas por análisis, así que 9,000 neuronas dan unos 27 análisis al día. Responde en el mismo formato de chat que Groq y reporta las neuronas de cada llamada.
+- **Capacidad gratuita total:** unos 60 análisis con IA al día.
+- **Análisis completo con Modal despierto:** 2.9 s. Con arranque en frío, unos 14 s.
+
+**Verificación:**
+- análisis completo por Groq, por Workers AI (forzado con `GROQ_TOKENS_DIA=0`) y con los dos agotados (`ia_agotada`, con los datos entregados);
+- `npm run prueba`: 8 de 8 después de mover el código a `comun.js`;
+- `npm run prueba:bloom`: 12 de 12.
+
+**Tropiezo:** cerrar el Worker viejo y arrancar el nuevo en llamadas paralelas mató al nuevo. Van en secuencia.
+
+**Pendiente del paso 3:**
+- conjunto de evaluación de 6 a 8 casos, con revisión humana de las salidas;
+- conectar la plantilla del Lab a `/api/lab/analisis`, que es trabajo de interfaz;
+- decidir si `TOPE_IA_DIA` baja de 80 a 60, la capacidad real.
+
+### Paso 3: evaluación rigurosa de la IA (2026-09-26)
+
+**Pedido del usuario:** que Claude hiciera la evaluación «rigurosamente» y guardara las salidas en JSON. Todo está en `services/puerta/evaluacion/`: casos, script y `resultados_ia.json`, con todas las corridas y la revisión.
+
+**Método.**
+- **Casos:** 11 en total.
+  - 8 de campos distintos: economía, medicina, ingeniería civil, biología, derecho, pedagogía, computación e historia del arte.
+  - Sus objetivos cubren los casos límite del léxico, con grados y periodos variados.
+  - 3 adversos: inyección de prompt, entrada mínima y objetivos que no son objetivos.
+- **Chequeos automáticos:**
+  - secciones completas y reintentos;
+  - periodo coherente;
+  - años fuera del periodo;
+  - fuga de inyección;
+  - citas inventadas;
+  - idioma.
+- **Revisión cualitativa:** de 0 a 2 por sección.
+  - nota;
+  - diagnósticos de Bloom;
+  - objetivos revisados;
+  - pertinencia de las preguntas;
+  - exactitud de las preguntas.
+  La hizo Claude por encargo del usuario, así que **no es revisión humana**.
+- **Corridas:**
+  - v1 con Groq;
+  - v1 forzada a Workers AI, para medir la paridad entre proveedores;
+  - diagnósticos de Workers AI;
+  - v2 con Groq;
+  - v2.1 en 2 casos.
+
+**Bugs encontrados y corregidos:**
+1. **Los 429 de Groq.** El plan gratuito de `gpt-oss-120b` tiene **8,000 tokens por minuto**, y un análisis gasta unos 6,000. El Worker trataba un 429 por minuto como agotamiento del día y mandaba todo lo que quedaba del día a Workers AI.
+   - Ahora espera 2, 5 y 10 s ante un límite por minuto.
+   - Solo un límite diario marca a Groq como agotado.
+   - Si Groq falla por otra causa, esa llamada va al respaldo en vez de fallar.
+2. **Contadores de proveedores por día de México.** Cloudflare reinicia las neuronas a las 00:00 UTC; ahora esos contadores van por día UTC.
+3. **El `4006` de Cloudflare** (neuronas agotadas) se reportaba como fallo; ahora es `ia_agotada`.
+4. **Reintentos innecesarios.** Con `applies = false`, el modelo omitía `start`, `end` y `units`, y eso causaba casi todos los reintentos de la nota. Ahora se rellenan antes de validar, y las revisiones extra corren solo si el esquema ya pasó.
+5. **Bucle de espacios en Workers AI.** Con `response_format`, 3 de 15 llamadas se llenaron de espacios hasta `max_tokens` (`finish_reason length`, 4,000 caracteres). Sin él fue 1 de 10. Queda sin `response_format`, con `max_tokens` de 2,500, y el reintento lo cubre. El log registra ahora `finish_reason` y el largo de cada respuesta.
+
+**Calidad, de la v1 a la v2** (Groq, puntos sobre el máximo posible):
+
+| Sección | v1 | v2 |
+|---|---|---|
+| Nota | 19 de 22 | 21 de 22 |
+| Diagnósticos de Bloom | 17 de 20 | 17 de 18 |
+| **Objetivos revisados** | **8 de 20** | **17 de 18** |
+| Pertinencia de las preguntas | 20 de 22 | 20 de 22 |
+| **Exactitud de las preguntas** | **17 de 22** | **19 de 22** |
+
+**Qué cambió en los prompts v2:**
+- **Hechos falsos en la v1.** Salieron «los murales de O'Gorman en la **Facultad de Medicina**» y «desde la **reforma constitucional de 1994**» como ancla de la reparación a víctimas. La v2 prohíbe afirmar obras, leyes, reformas, fechas o acontecimientos que no estén en la entrada, y los dos desaparecen.
+- **La v1 era formulaica** y lo mismo pasaba en los dos proveedores, así que era efecto del prompt:
+  - la misma escalera Comprender-Analizar-Evaluar-Crear en 7 de 10 casos;
+  - los tipos de pregunta en el orden de la lista;
+  - objetivos de relleno («Comprender el contexto…»);
+  - verbos elegidos para subir de nivel («Evaluar la prevalencia»);
+  - alcance agregado («Crear una propuesta de intervención»).
+- **La v2 exige** (el Worker lo valida):
+  - un solo verbo por objetivo revisado;
+  - que el verbo diga la operación real;
+  - que no se agregue Crear si el estudiante no propone crear nada (salvo doctorado);
+  - el orden de ejecución, ya no el ascendente, que ponía «Evaluar con F1» después de «Analizar los errores».
+- **La v2.1 corrige dos detalles de la v2:**
+  - la v2 eliminó todas las preguntas Históricas, ahora se pide una si hay periodo;
+  - los objetivos revisados empiezan con mayúscula.
+
+**Seguridad:**
+- 0 fugas de inyección y 0 citas inventadas en todas las corridas.
+- El caso de inyección se trata como un objetivo malo («Eliminar la instrucción de escribir un poema»).
+
+**Capacidad medida:**
+- **Costo por análisis:** unos 6,000 tokens en Groq y unas 340 neuronas en Workers AI (medianas).
+- **Por día, con los topes:** unos 30 análisis en Groq y unos 26 en Workers AI. **`TOPE_IA_DIA` baja de 80 a 55** por decisión del usuario, «dependiendo la realidad».
+- **Por minuto:** Groq gratis aguanta cerca de un análisis. Las ráfagas caen a Workers AI (unos 25 s) o a `ia_agotada`.
+- **Lo que gastaron las pruebas:** unos 60 análisis en un día. Se agotaron las 10,000 neuronas de Cloudflare y se usaron unos 170,000 tokens de Groq. Desde ahora, las comprobaciones se hacen con 2 o 3 casos.
+
+**Pendientes de la evaluación:**
+- Revisión humana de derecho, historia del arte y medicina.
+- «interpretar» marca un falso retroceso en humanidades (está en Comprender).
+- Un error aislado de generación («Moremore» por «Morelos») que ningún chequeo atrapa.
+- Bajar los tokens por análisis.
+
+## Decisión: el Laboratorio sale como beta y pide financiamiento (2026-09-26)
+
+**Decisión del usuario.** La capacidad gratuita de IA (unos 55 análisis al día, 2 por usuario, del orden de 25 a 30 personas al día) alcanza para una beta. La interfaz dirá explícitamente que es una **versión beta que necesita financiamiento**. El diseño (dónde, tono y visibilidad) se acuerda antes de codificar.
+
+**Estimación para 500 análisis diarios** (15,000 al mes), con precios de lista de septiembre de 2026:
+- **IA en Groq de pago:** 30–40 USD. Cuesta 0.15 USD por millón de tokens de entrada y 0.60 por millón de salida; un análisis sale en unos 0.2 centavos más reintentos.
+- **Servicio de datos:** 0–10 USD en Cloud Run, o 10–25 USD netos en Modal (tras sus 30 USD de crédito).
+- **Workers de pago:** 5 USD, por el límite de 10 ms de CPU del plan gratis.
+- **Resend:** 0–20 USD, según cuántos entren con enlace mágico.
+- **Dominio:** unos 1 USD.
+
+Total: **unos 40–75 USD al mes con Cloud Run y 50–85 con Modal**. Se propone pedir **unos 100 USD al mes**, del orden de 1,800 a 2,000 MXN.
+
+Esa escala exige tarjeta en Groq y en el servicio de datos: el mismo obstáculo que con Google, que se resuelve con la cuenta a la que llegue el financiamiento.
