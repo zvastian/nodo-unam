@@ -73,6 +73,12 @@ typography:
     fontWeight: 400
     lineHeight: 1.55
     fontFeature: "\"tnum\" 1"
+  campo:
+    fontFamily: "Libre Franklin, Helvetica Neue, Arial, sans-serif"
+    fontSize: "16px"
+    fontWeight: 400
+    lineHeight: 1.5
+    fontFeature: "\"tnum\" 1"
   subtitulo:
     fontFamily: "Libre Franklin, Helvetica Neue, Arial, sans-serif"
     fontSize: "15px"
@@ -91,6 +97,12 @@ typography:
     fontWeight: 400
     lineHeight: 1.45
     fontFeature: "\"tnum\" 1"
+  grafica:
+    fontFamily: "Libre Franklin, Helvetica Neue, Arial, sans-serif"
+    fontSize: "12px"
+    fontWeight: 400
+    lineHeight: 1.3
+    fontFeature: "\"tnum\" 1"
   rotulo-mapa:
     fontFamily: "Libre Franklin, Helvetica Neue, Arial, sans-serif"
     fontSize: "11px"
@@ -100,6 +112,7 @@ typography:
 rounded:
   recto: "0px"
   boton: "2px"
+  barra: "3px"
   punto: "50%"
 spacing:
   movil: "16px"
@@ -241,9 +254,11 @@ Escala de **niveles de estudio**. Es una rampa de azul, del más claro al más o
 - **Entrada** (400, 19 px, 1.5): el texto que escribió el usuario (su Problematiza), dentro de la portada. Máximo unos 56 caracteres por renglón.
 - **Pregunta** (600, 18 px, 1.4): cada pregunta de investigación sugerida.
 - **Cuerpo** (400, 15 px, 1.55): el texto corrido.
+- **Campo** (400, 16 px, 1.5): lo que el usuario escribe sobre papel (objetivos, palabras clave, programa).
 - **Subtítulo** (600, 15 px): los títulos dentro de una sección y el texto del botón de acción.
 - **Meta** (400, 14 px): la navegación, la barra de estado, la fila de metadatos y las listas de tesis.
 - **Nota** (400, 13 px, a veces 12.5 px): la nota flotante, los estados pendientes y la cabecera de lámina.
+- **Gráfica** (400, 12 px): números y nombres en ejes y leyendas de las gráficas.
 - **Rótulo de mapa** (700, 11 px, 0.06em, en MAYÚSCULAS): solo los rótulos del mapa.
 
 ### Named Rules
@@ -267,7 +282,7 @@ La página es una **lámina** centrada de hasta 1280 px, con 24 px de margen (16
 **Adaptación:**
 - a 1100 px, lo que va en pares pasa a una columna;
 - a 860 px, las columnas de la lámina se apilan y el mapa sube arriba;
-- a 640 px, desaparece el lomo, la portada va a sangre (sin margen lateral) y los títulos bajan de tamaño.
+- a 640 px, desaparece el lomo, la portada va a sangre (sin margen lateral) y los títulos bajan de tamaño: la portada a 30 px y la entrada a 17 px.
 
 ### Named Rules
 **La regla de la lámina.** Toda sección empieza con su título subrayado y termina con un filete fino. La página se lee de arriba abajo como una lámina, no como una rejilla de tarjetas.
@@ -291,7 +306,7 @@ Las barras fijas se separan del contenido con un filete inferior. La nota flotan
 Todo es rectangular y de ángulo recto.
 - **Botones:** radio de 2 px. Es la única curva de la interfaz.
 - **Puntos de dato:** círculos (50 %) para los puntos del mapa, los de nivel, los de leyenda y el anillo de programa.
-- **Barras de gráfica:** terminan con un radio de 3 px en el extremo del valor.
+- **Barras de gráfica** (`barra`): terminan con un radio de 3 px en el extremo del valor.
 - **Iconos:** dibujados con un solo trazo de 1.6 px, extremos redondeados y sin relleno. Nada de glifos unicode como «✕» o «→».
 
 ## Components
@@ -307,13 +322,29 @@ No hay tarjetas.
 - **Lo demás:** filas separadas por filetes finos.
 
 ### Inputs / Fields
-Acordado el 27-sep-2026, por construir; este apartado se ajustará con el código.
-- **La ficha se escribe.** El formulario del Laboratorio escribe dentro de la misma ficha-portada que después encabeza el análisis:
+**La ficha se escribe** (construido el 27-sep-2026 en el boceto del Laboratorio). El formulario escribe dentro de la misma ficha-portada que después encabeza el análisis.
+- **Portada:**
   - el título, con la tipografía de portada;
   - la Problematiza, con la de entrada;
-  - la fila meta: programa, grado con los puntos de nivel y periodo con la línea de tiempo de dos puntos.
-- **Sin caja:** un campo no tiene caja ni fondo, solo un filete inferior. El foco lleva el anillo azul de enlace, o blanco sobre la portada.
-- **Errores:** debajo del campo, en español llano, sin rojo decorativo.
+  - la fila meta: programa, grado y periodo.
+- **Sin caja:** un campo no tiene caja ni fondo, solo un filete inferior (filete fuerte).
+  - Al pasar el cursor, el filete pasa a tinta segunda.
+  - Con foco, el filete sube a 2 px en tinta. Sobre la portada, la tinta es blanca.
+- **Sobre papel:** los campos usan la tipografía de campo, 16 px.
+- **Programa:** autocompletado sobre los programas del corpus.
+  - La lista va fuera de la portada, con los tokens de papel.
+  - Cada opción lleva la barra de su área y su número de tesis en tinta tercera, con la coincidencia en negritas.
+  - La opción activa se subraya; no tiene fondo.
+- **Grado:** radios nativos con aspecto de pestañas de texto subrayadas, precedidos por los cuatro puntos de nivel.
+- **Periodo:** dos años y la línea de tiempo de dos puntos del análisis, más «no aplica».
+- **El color lleva un dato:**
+  - antes de elegir programa, la portada es azul marino;
+  - al elegirlo, toma el color del área más común del programa, con la transición de 700 ms.
+- **Objetivos:** renglones numerados, separados por filete. El renglón con foco subraya su filete en tinta.
+  - A la derecha, la escalera de Bloom se dibuja en vivo.
+  - Los verbos ambiguos van bajo los nombres de nivel, con un corchete sobre los peldaños posibles, en cursiva y tinta tercera.
+  - Bajo un objetivo, una nota de 13.5 px en tinta segunda solo cuando hay un caso límite del léxico.
+- **Errores:** debajo del campo, en español llano, en tinta con un ícono de trazo. El campo se marca con filete de 2 px. Sin rojo.
 - **Palabras clave:** texto separado por comas, nunca chips.
 
 ### Navigation

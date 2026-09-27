@@ -1,6 +1,6 @@
 {
  "schemaVersion": 2,
- "generatedAt": "2026-09-27T06:27:14+00:00",
+ "generatedAt": "2026-09-27T06:42:32+00:00",
  "title": "Design System: NodOS",
  "extensions": {
   "colorMeta": {
@@ -509,6 +509,14 @@
    "cuerpo": {
     "displayName": "Cuerpo",
     "purpose": "Texto corrido."
+   },
+   "campo": {
+    "displayName": "Campo",
+    "purpose": "Lo que el usuario escribe sobre papel (objetivos, palabras clave, programa)."
+   },
+   "grafica": {
+    "displayName": "Gráfica",
+    "purpose": "Números y nombres en ejes y leyendas."
    },
    "subtitulo": {
     "displayName": "Subtítulo",

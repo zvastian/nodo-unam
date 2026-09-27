@@ -87,6 +87,7 @@
   /* cabecera de lámina: filete doble como en prensa, rótulo y fecha */
   .lamina { display: flex; justify-content: space-between; gap: 16px; align-items: baseline; border-top: 3px solid var(--ink); padding-top: 9px; font-size: 12.5px; color: var(--ink-2); letter-spacing: .02em; margin: 0 0 18px; }
   .lamina b { font-weight: 700; color: var(--ink); }
+  .lamina-der { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px 20px; }
   /* lomo: como en una tesis empastada, el título corre en vertical por el borde izquierdo y se lee de abajo arriba.
      Aparece cuando el título de la ficha sale de la vista. Tinta, no color. */
   .page { position: relative; padding-left: 92px; }
@@ -257,6 +258,107 @@
   .btn-cta:hover { background: var(--c); }
   .btn-cta.hecho { background: none; color: var(--ink-2); padding: 11px 0; }
 
+  /* ======================= formulario: la ficha se escribe (27-sep-2026) =======================
+     El estudiante escribe dentro de la misma portada que después encabeza su análisis. Campos sin
+     caja: filete inferior; en la portada, tinta blanca. Ver DESIGN.md, «Inputs / Fields». */
+  body.escribiendo .solo-analisis, body:not(.escribiendo) .solo-escritura { display: none !important; }
+  body.escribiendo .inicio { grid-template-columns: minmax(0, 1fr); }
+  .oculto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  ::selection { background: color-mix(in oklch, var(--link) 28%, transparent); }
+  input, textarea { caret-color: var(--ink); }
+  .campo { font: inherit; color: var(--ink); background: transparent; border: none; border-bottom: 1px solid var(--line-strong); border-radius: 0;
+    padding: 4px 0 8px; width: 100%; resize: none; outline: none; font-feature-settings: "tnum" 1; transition: border-color 150ms ease; }
+  .campo::placeholder { color: var(--ink-3); opacity: 1; }
+  .campo:hover { border-bottom-color: var(--ink-2); }
+  .campo:focus-visible { border-bottom: 2px solid var(--ink); padding-bottom: 7px; }
+  .campo.mal { border-bottom: 2px solid var(--ink); padding-bottom: 7px; }
+  textarea.campo { overflow: hidden; display: block; }
+  .f-fs { border: 0; margin: 0; padding: 0; min-width: 0; }
+  .f-fs legend { padding: 0; }
+  .f-crece { flex: 1; min-width: 0; }
+  .f-claves { font-size: 16px; max-width: 70ch; }
+  .f-rot { display: block; font-size: 13px; color: var(--ink-3); margin: 0 0 4px; }
+  .f-err { display: flex; gap: 6px; align-items: flex-start; font-size: 13.5px; line-height: 1.4; color: var(--ink); margin: 7px 0 0; }
+  .f-err .ico { width: 15px; height: 15px; margin-top: 1px; }
+  /* en la portada */
+  .ficha .campo::placeholder { color: var(--ink-2); }
+  .f-titulo { font-size: clamp(34px, 3.3vw, 46px); line-height: 1.08; font-weight: 800; letter-spacing: -0.025em; max-width: 22ch; margin: 6px 0 0; }
+  .f-prob { font-size: 19px; line-height: 1.5; max-width: 56ch; }
+  .f-bloque { margin-top: 26px; }
+  .f-meta { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 24px 48px; margin-top: 30px; padding-top: 22px; border-top: 1px solid var(--line-strong); align-items: start; }
+  .f-campo { min-width: 0; position: relative; }
+  .f-prog { display: flex; align-items: center; }
+  .f-prog .g-ar, .f-prog .g-pr { transition: opacity 300ms ease; }
+  .f-prog.sin .g-ar, .f-prog.sin .g-pr { opacity: .35; }
+  .f-prog .campo { font-size: 16px; font-weight: 500; }
+  .f-area { font-size: 13px; color: var(--ink-2); margin: 6px 0 0; min-height: 18px; }
+  /* grado: radios nativos con aspecto de pestañas de texto; los puntos de nivel dicen el grado elegido */
+  .f-grado { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 16px; }
+  .f-grado .g-nv { margin-right: 4px; }
+  .f-op { position: relative; cursor: pointer; }
+  .f-op input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+  .f-op span { display: inline-block; padding: 4px 0 3px; color: var(--ink-2); border-bottom: 2px solid transparent; font-size: 15px; }
+  .f-op:hover span { color: var(--ink); }
+  .f-op input:checked + span { color: var(--ink); font-weight: 600; border-bottom-color: var(--ink); }
+  .f-op input:focus-visible + span { outline: 2px solid var(--ink); outline-offset: 3px; }
+  /* periodo: dos años y la línea de tiempo de dos puntos del análisis */
+  .f-periodo-in { display: flex; align-items: baseline; gap: 10px; font-size: 15px; color: var(--ink-2); }
+  .f-anio { width: 4.6ch; text-align: center; font-weight: 700; font-size: 16px; }
+  .f-periodo svg.periodo { margin-top: 8px; max-width: 520px; }
+  .f-periodo .linkbtn { color: var(--ink-2); font-size: 14px; }
+  .f-periodo .linkbtn:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+  .ficha .f-periodo { --c: var(--ink); }
+  .ficha .linkbtn { color: var(--ink-2); }
+  .ficha .linkbtn:focus-visible, .ficha .campo:focus-visible { outline: none; }
+  .ficha .linkbtn:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+  /* lista de programas: va fuera de la portada, con los tokens de papel */
+  .f-lista { position: fixed; z-index: 45; margin: 0; padding: 4px 0; list-style: none; background: var(--paper); border: 1px solid var(--line-strong); max-height: 336px; overflow-y: auto; color: var(--ink); }
+  .f-lista li { display: grid; grid-template-columns: 2px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 7px 12px; font-size: 14px; cursor: pointer; }
+  .f-lista li .g-ar { margin: 0; height: 15px; }
+  .f-lista li .de { color: var(--ink-3); font-size: 12.5px; }
+  .f-lista li:hover .n, .f-lista li[aria-selected="true"] .n { text-decoration: underline; text-underline-offset: 3px; }
+  .f-lista mark { background: none; color: inherit; font-weight: 700; }
+  /* objetivos: renglones numerados y la escalera de Bloom dibujándose a la derecha */
+  .obj-grid { display: grid; grid-template-columns: minmax(0, 1fr) 420px; gap: 56px; align-items: start; }
+  .f-objs { list-style: none; margin: 0; padding: 0; }
+  .f-objs li { display: grid; grid-template-columns: 30px minmax(0, 1fr) 24px; column-gap: 6px; padding: 8px 0 10px; border-bottom: 1px solid var(--line); transition: border-color 150ms ease; }
+  .f-objs li:first-child { border-top: 1px solid var(--line); }
+  .f-objs li:focus-within { border-bottom-color: var(--ink); }
+  .f-objs .num { font-size: 15px; font-weight: 600; color: var(--ink-3); padding-top: 6px; }
+  .f-objs .campo { border-bottom: none; font-size: 16px; line-height: 1.5; padding: 4px 0; }
+  .f-objs .campo:focus-visible { border-bottom: none; padding-bottom: 4px; }
+  .f-quitar { align-self: start; margin-top: 6px; background: none; border: none; padding: 2px; cursor: pointer; color: var(--ink-3); opacity: 0; transition: opacity 150ms ease; }
+  .f-objs li:hover .f-quitar, .f-objs li:focus-within .f-quitar, .f-quitar:focus-visible { opacity: 1; }
+  .f-quitar:hover { color: var(--ink); }
+  .f-quitar:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+  .f-nota { grid-column: 2 / 4; font-size: 13.5px; line-height: 1.45; color: var(--ink-2); margin: 2px 0 2px; }
+  .f-nota b { color: var(--ink); font-weight: 600; }
+  .f-mas { margin-top: 14px; display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: var(--ink); font-weight: 600; }
+  .f-mas:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .f-mas:disabled { color: var(--ink-3); font-weight: 400; text-decoration: none; cursor: default; }
+  .f-est { list-style: none; margin: 10px 0 0; padding: 0; font-size: 14px; color: var(--ink-2); }
+  .f-est li { padding: 7px 0; border-top: 1px solid var(--line); }
+  .f-est b { color: var(--ink); font-weight: 600; }
+  .esc-rango { font-style: italic; }
+  /* envío: remate de 2 px en tinta, como el pie de la lista de parecidas */
+  .f-envio { display: flex; align-items: center; flex-wrap: wrap; gap: 18px 32px; padding: 22px 0 0; border-top: 2px solid var(--ink); }
+  .f-envio .btn-cta { padding: 13px 22px; font-size: 16px; }
+  .beta { font-size: 13.5px; line-height: 1.45; color: var(--ink-2); max-width: 64ch; margin: 0; }
+  .beta a { font-weight: 600; }
+  .f-sesion { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px 48px; padding: 22px 0 0; border-top: 2px solid var(--ink); }
+  .f-sesion h3 { font-size: 19px; font-weight: 600; line-height: 1.35; margin: 0 0 8px; }
+  .f-sesion p { color: var(--ink-2); margin: 0 0 10px; max-width: 52ch; }
+  .f-sesion-acc { display: grid; gap: 14px; align-content: start; }
+  .f-correo { display: flex; gap: 14px; align-items: flex-end; }
+  .f-correo .campo { font-size: 15px; }
+  .btn-txt { display: inline-flex; align-items: center; gap: 6px; background: none; border: none; border-bottom: 2px solid transparent; padding: 0 0 2px; cursor: pointer; color: var(--ink); font-weight: 600; font-size: 15px; white-space: nowrap; transition: border-color 120ms ease; }
+  .btn-txt:hover { border-bottom-color: var(--c, var(--ink)); }
+  .btn-txt .ico { width: 14px; height: 14px; }
+  .f-aviso { font-size: 13.5px; color: var(--ink-2); margin: 0; min-height: 20px; }
+  .f-volver { font-size: 14px; }
+  .error-datos { padding: 36px 0 12px; }
+  .error-datos p { max-width: 60ch; }
+
   /* aparición */
   .aparece { opacity: 0; transform: translateY(6px); transition: opacity 500ms ease, transform 500ms ease; }
   .aparece.vis { opacity: 1; transform: none; }
@@ -296,10 +398,12 @@
   .pie-legal p { margin: 0; }
 
   @media (max-width: 1100px) {
+    .obj-grid { grid-template-columns: minmax(0, 1fr) 360px; gap: 40px; }
     .dos-esc, .as-top { grid-template-columns: minmax(0, 1fr); gap: 20px; }
     .inicio { grid-template-columns: minmax(0, 1fr) 360px; gap: 40px; }
   }
   @media (max-width: 860px) {
+    .obj-grid, .f-meta, .f-sesion { grid-template-columns: minmax(0, 1fr); gap: 24px; }
     .inicio, .par { grid-template-columns: minmax(0, 1fr); gap: 0; }
     .par-lista { position: static; max-height: 70vh; margin-top: 8px; scroll-margin-top: calc(var(--nav-h) + 64px); }
     .lado { order: -1; padding-top: 24px; }
@@ -314,7 +418,10 @@
     .pie-logo { width: 84px; }
     .pie-enlaces { flex-direction: column; }
     canvas#mapa { height: 320px; }
-    .ficha h1 { font-size: 30px; }
+    .ficha h1, .f-titulo { font-size: 30px; }
+    .f-prob { font-size: 17px; }
+    .f-quitar { opacity: 1; }
+    .f-envio .btn-cta { width: 100%; justify-content: center; }
     .ficha { margin: 0 -16px; padding: 24px 16px; }
     .filas { grid-template-columns: minmax(0, 1fr); gap: 2px 0; }
     .filas > dd { margin-bottom: 14px; }
@@ -327,7 +434,7 @@
   }
 </style>
 </head>
-<body>
+<body class="escribiendo">
 <header class="nav">
   <a class="brand" href="../../index.html" title="NodOS: ir al mapa"><svg class="brand-logo" viewBox="226 142 873 864" fill-rule="evenodd" role="img" aria-label="NodOS"><path class="lg-nodo-1" fill="var(--nodos-azul-1, #143a6b)" d="M591.3 766.3C600.2 762.1 606.1 757.1 611 749.8C618.5 738.6 620.8 725.1 617.5 711.3C616.7 707.9 612.5 697.9 608.1 689C598.3 669.1 594.7 659.4 591.3 643.2C588.9 631.9 588.6 628.4 588.6 610.5C588.6 589 589.8 579.9 594.6 563.3C604.5 529 629.6 510.7 661 515C690.4 518.9 737 544.2 742.1 559C742.7 560.6 743.5 562 743.8 562C744.2 562 745.5 557.8 746.7 552.7C749.8 540 754.1 532 762.6 523L769.8 515.5L761.6 515.4C739.4 515.1 707.6 503.3 686.8 487.6C670.2 475.1 661.7 461.7 657.4 441.3C652.3 416.5 646.7 407.2 629 393.4C606.2 375.7 596.4 360.5 591 333.9C589.1 324.9 588.9 321.2 589.3 306.5C589.7 291.7 590.2 288 592.8 277.7C596.4 264 603.2 249.2 611.3 237.2C618.8 226.3 620.7 222.3 623.1 213.3C627.6 195.4 623.2 178.4 610.5 165.4C596.5 151.2 574.4 146.3 555.7 153.4C543.3 158.1 534.1 166.1 528.5 177.2C524.1 186 522.6 193.5 523.3 203.5C524 214.5 527 223 533.6 233.6C550.9 261 557.3 279.4 558.7 304.6C560 330.8 553.3 356.6 540.4 374.1C534.6 382.1 523.7 391.6 516.3 395.1C500.4 402.7 479 398.8 457.4 384.5C447.7 378 438.1 368 428.5 354.4C416.2 336.9 406.6 328.9 393.5 325.5C373.2 320.3 352.1 329.9 342.9 348.6C340.2 354 339.6 356.7 339.2 363.4C338.3 381.4 346.6 395.8 362.5 403.6L368.5 406.5L394.5 406.6C423.9 406.7 432.5 407.8 449.5 413.7C473 421.8 487.7 434.6 494.2 452.5C497.1 460.5 497.8 475.3 495.7 483.3C491.2 500.5 472.5 517.1 451.5 522.5C448.2 523.4 437.4 524.5 427.5 525C417.6 525.5 407.2 526.6 404.3 527.4C391.8 530.8 383.1 536.7 375.4 547.2C371.4 552.7 370.1 556 364.1 575.5C360.4 588 352.2 599.6 341.8 607.6C332.1 614.8 321.1 619.7 305 623.6C297.2 625.5 288.9 628 286.6 629.2C271.9 636.5 265.5 655.6 272.7 670.8C277.4 680.8 289.3 687.6 300.5 686.7C313.1 685.7 321 679.4 329.1 663.6C336.2 649.7 339.9 644.4 347.2 637.4C354.9 630 364.9 624 375.5 620.4C382.8 617.9 385.3 617.6 405 617C428.6 616.2 433.5 615.2 442.4 609.1C452.7 602 458.4 592.8 465.7 571.6C472.1 552.7 477 544 486 534.9C496.1 524.7 504.3 520.6 514.4 520.6C520.2 520.6 522.5 521 526.8 523.3C540.8 530.6 551 547.7 556.2 572.6C558.2 582.2 558.5 586.3 558.5 607C558.4 627.3 558.1 631.8 556.3 640.3C552.7 656.7 549 666.7 539.8 684.9C527.4 709.5 524.7 719.2 527 732C530 749 541.2 762.2 557.5 767.9C562.4 769.7 565.4 770 574 769.7C583.4 769.5 585.2 769.1 591.3 766.3Z"/><path class="lg-nodo-2" fill="var(--nodos-azul-2, #2d65a8)" d="M891.3 726.4C897.7 724.2 905.2 717.3 908.1 710.8C909.9 706.8 910.4 703.7 910.5 698C910.5 691.5 910.1 689.8 907.5 685.2C904.1 678.9 900.3 676.1 887 669.8C866.4 660 855.9 648.2 847.7 625.5C837.9 598.1 845.8 565.4 867.5 543.4C885.1 525.6 906.3 516.3 934.5 513.9C948.7 512.7 954.8 510.3 960.9 503.4C965.8 497.8 968 491.6 968 483C968 470.9 962.4 463.3 948.7 456.4C937.5 450.7 931.1 446.3 923.1 438.6C911.7 427.6 904.9 416.1 899.9 399.5C899.3 397.2 898.5 384.7 898.1 370C897.4 346.8 897.2 344 895.1 338.8C889.6 324.8 878.9 315.3 863.1 310.5C845.1 305 839.5 302.9 834.2 299.8C817.6 289.7 804.9 273.6 796 251.3C791.3 239.3 789.2 229.4 788.4 215.2C787.6 200.4 786 195.8 779.1 188.9C772.5 182.3 766.7 180 757 180C748 180 742 182.3 735.6 188.1C728.3 194.7 725.5 201.1 725.6 211C725.7 224.4 731.2 231.9 746.9 240C765.9 249.7 779.8 263.8 789.1 282.5C798 300.6 799.8 314.6 796.3 338.8C795 348.4 794.9 351.6 795.9 357.8C798.9 377.7 811.6 390.6 836 398.5C847.1 402.1 859.9 408.6 867.9 414.6C880 423.7 891 440.5 894.4 455C900 478.5 889.1 499.5 867 508.2C857.7 511.8 842.7 511.9 825.5 508.4C795.3 502.4 778.6 506.3 762.7 522.9C754.2 531.9 749.9 539.8 746.7 552.8C745.4 557.8 744 562.3 743.7 562.7C743.3 563 743 564.1 743 565.1C743 568.2 738.2 578 734.3 582.9C719.6 601.2 694.1 614.1 664.3 618.5C651.1 620.4 647.6 621.5 642.7 625.1C631.5 633.1 627.2 647.4 632 660.2C636.2 671.5 645.1 678 657.6 678.8C670 679.6 678.3 674.4 685.5 661.3C696.8 640.9 712 626.5 732.4 616.9C756 605.9 777.7 605.7 800.6 616.5C811.6 621.6 818.6 626.6 826 634.7C840.9 650.7 849.2 670.8 850.6 694.4C851.7 711.3 856.1 719.4 867.2 724.9C872.2 727.4 874.5 728 880 728C883.6 728 888.7 727.3 891.3 726.4Z"/><path class="lg-punto-izq" fill="var(--nodos-punto-izq, #9cc3e6)" d="M495.4 337.9C502.3 335.4 510.3 328.2 513.7 321.6C515.8 317.6 516.4 314.6 516.8 307.8C517.2 299.7 517 298.7 514.1 292.4C508.9 281.3 500.5 274.9 488.5 273C466.1 269.4 446.2 290.6 450.9 313.2C455.1 333.2 476.4 345.1 495.4 337.9Z"/><path class="lg-punto-der" fill="var(--nodos-punto-der, #5b95cf)" d="M871 221.1C878 217.8 882.3 213.7 886.1 206.8C889.3 200.9 889.5 199.9 889.5 191C889.5 183.1 889.1 180.7 887.2 176.8C883.7 169.8 877.6 163.4 871.2 160.3C866.3 157.9 864.3 157.5 856.5 157.5C848.1 157.5 847.1 157.7 841.2 160.9C826.6 168.8 820 184.8 824.8 200.6C830.7 220 852.7 229.7 871 221.1Z"/><path class="lg-punto-centro" fill="var(--nodos-punto-centro, #5b95cf)" d="M778.5 466.6C785.2 463.6 791.5 457.1 794.9 450C797 445.4 797.5 443.1 797.5 436C797.5 428.9 797.1 426.6 794.9 421.9C791.4 414.6 786.4 409.1 779.8 405.4C774.9 402.7 773.7 402.5 764.5 402.5C753 402.5 748.7 404.1 741.2 411.4C721.7 430 730.4 462.3 756.7 469C762.6 470.4 772.5 469.4 778.5 466.6Z"/><path class="lg-palabra-nod" fill="var(--nodos-azul-1, #143a6b)" d="M662.6 993.5C671.2 990.6 678.9 986 684 980.6L687.5 976.9L688 985.2L688.5 993.5L705.8 993.8L723 994L722.8 902.8L722.5 811.5L705.5 811.5L688.5 811.5L688.2 844.4L688 877.3L682.6 872.2C672.1 862.3 659.1 857.5 642.5 857.6C629.7 857.7 619.8 860.4 609.1 866.7C574.8 887 568.1 945.5 596.4 977.7C611.1 994.5 639.5 1001.3 662.6 993.5ZM509.9 994.5C537.5 988.7 558.3 968.8 564.3 942.5C566.7 931.7 567.1 926.2 565.9 917C562 885.4 542.3 863.8 511 856.5C501.3 854.3 482.2 854.5 472.4 857C451.5 862.3 435.6 874.6 426.1 893C420.1 904.4 418.6 911.3 418.7 926.5C418.7 937.8 419.1 940.6 421.3 947.5C429.2 971.5 448.5 989 473.2 994.4C481.8 996.3 501.2 996.4 509.9 994.5ZM270 933C270 899.5 270.3 872 270.8 872.1C271.5 872.1 287 891.9 326.9 943.4C354.4 979 365.1 992.4 366.6 993.3C367.3 993.7 375 993.9 383.7 993.8L399.5 993.5L399.5 903.5L399.5 813.5L381.8 813.2L364 813L364 873C364 906 363.6 933 363.2 933C362.7 933 357.9 927.3 352.5 920.2C328.7 889.5 281.6 831 270.8 818.5L267.3 814.6L250.9 814.6L234.5 814.7L234.2 903.1C234.1 951.7 234.2 992.1 234.5 992.8C234.8 993.7 239.4 994 252.5 994L270 994L270 933ZM485.7 966C454 960.5 441.4 920.5 463.9 896.7C482.9 876.6 516.5 882 528.4 907C531.3 913.1 531.5 914.2 531.5 925C531.5 935.4 531.2 937.1 528.8 942.2C525.3 949.6 521.7 954.4 516.2 958.6C508.1 964.8 495.9 967.7 485.7 966ZM638 964.5C631.4 962.6 623.1 957.4 619.6 952.8C618.2 950.9 615.8 946.7 614.3 943.5C611.8 938.2 611.5 936.3 611.5 927.4C611.5 917.8 611.7 917.1 615.3 909.8C625 890.1 646.4 882.8 666 892.7C677.1 898.2 684 907.9 686.1 921.2C689.7 943.8 673.5 964.2 650.9 965.6C646.1 965.8 641.6 965.5 638 964.5Z"/><path class="lg-palabra-os" fill="var(--nodos-azul-2, #2d65a8)" d="M848.1 998C862.4 996.6 872.6 993.8 884.5 988C897.2 981.8 906.5 974.7 914.7 965.1C930.2 946.9 938 926.1 938 902.8C938 884.9 935.2 873.3 927.4 858C911.5 826.9 882.1 808.9 844.5 807.3C823.1 806.4 803.1 811.3 785.6 821.7C774.7 828.3 759.8 843 753.2 853.9C731.1 890.3 735.7 937.8 764.4 968.7C781.9 987.5 804.8 997.3 835 998.9C836.4 998.9 842.3 998.5 848.1 998ZM1044.5 995.1C1071.5 987.9 1088 971.2 1091.1 948C1093.9 926.1 1082.5 906.9 1060 895.6C1054.9 893.1 1040.8 887.8 1028.7 883.9C1005.6 876.5 1000.1 874.2 996.2 870.6C985.2 860.6 992.3 845.2 1010.1 840.5C1017.2 838.6 1030 838.6 1037.5 840.5C1045.5 842.5 1056.5 848 1061.9 852.6L1066.3 856.4L1069.6 852.5C1071.5 850.3 1076.2 844.3 1080.2 839.1L1087.4 829.8L1084.9 827.9C1063.2 810.7 1034.8 803.9 1006 809.1C973.8 815 954 835.2 954 862.4C954 877.2 958.3 887.3 968.6 897C977.2 905 987.1 909.7 1013.4 918.1C1043.5 927.8 1048.1 930.3 1051.5 938.3C1053.4 943 1053.4 947.3 1051.4 951.3C1046.4 961.1 1035.5 966 1018.5 966C1002 966 987.7 960.4 976.2 949.4C972.5 945.9 969.3 943 969 943C967.8 943 943.5 965.3 943.8 966.2C944.5 968.7 951.1 975.7 957.3 980.6C968 989 981.4 994.4 997.6 997C1008.1 998.6 1035.4 997.5 1044.5 995.1ZM822.2 964C811.1 961.1 803.5 956.6 794.5 947.5C781.6 934.5 776.6 921.9 776.7 902.5C776.7 888.8 779.7 878.8 786.9 867.9C805.1 840.3 837.9 831.4 867.6 846C881.4 852.7 892 865.2 897.8 881.2C900.1 887.6 900.4 890.1 900.4 901C900.5 911.2 900.1 914.8 898.3 920.5C889.8 947.2 864.5 966.1 837.5 965.9C833 965.9 826.3 965.1 822.2 964Z"/></svg></a>
   <nav class="navlinks" aria-label="Secciones">
@@ -336,7 +443,7 @@
     <a href="../../index.html">Método</a>
   </nav>
   <div class="nav-right">
-    <button type="button" class="linkbtn" id="repetir">Repetir</button>
+    <button type="button" class="linkbtn solo-analisis" id="repetir">Repetir</button>
     <button type="button" class="linkbtn" id="modo">Noche</button>
   </div>
 </header>
@@ -344,8 +451,8 @@
 <div class="estado" aria-live="polite">
   <div class="estado-in">
     <svg class="mascota" id="m-estado" viewBox="0 -20 220 260" aria-hidden="true"></svg>
-    <div class="estado-txt" id="estado-txt">Preparando tu análisis</div>
-    <nav class="pasos" id="pasos" aria-label="Secciones del análisis"></nav>
+    <div class="estado-txt" id="estado-txt"><b>Escribe tu tesis.</b></div>
+    <nav class="pasos" id="pasos" aria-label="Avance"></nav>
   </div>
 </div>
 
@@ -355,17 +462,52 @@
     <div class="inicio-izq">
     <header class="ficha" id="ficha">
       <div>
-        <p class="lamina"><span><b>Laboratorio</b> Análisis de tesis</span><span>25 de septiembre de 2026</span></p>
-        <h1 id="titulo"></h1>
-        <p class="meta" id="meta"></p>
+        <p class="lamina"><span><b>Laboratorio</b> <span id="lamina-txt">Tu tesis</span></span><span class="lamina-der"><span>Versión beta</span><span id="lamina-fecha"></span></span></p>
+        <form class="solo-escritura" id="f-ficha" novalidate onsubmit="return false">
+          <label class="oculto" for="f-titulo">Título de tu tesis</label>
+          <textarea id="f-titulo" class="campo f-titulo" rows="1" maxlength="400" placeholder="El título de tu tesis" autocomplete="off" spellcheck="true"></textarea>
+          <p class="f-err" id="e-titulo" hidden></p>
+          <div class="f-bloque">
+            <label class="f-rot" for="f-prob">Problematiza</label>
+            <textarea id="f-prob" class="campo f-prob" rows="2" maxlength="2000" placeholder="En pocas palabras, ¿qué problema o pregunta quieres resolver?"></textarea>
+            <p class="f-err" id="e-prob" hidden></p>
+          </div>
+          <div class="f-meta">
+            <div class="f-campo">
+              <label class="f-rot" for="f-prog-in">Programa</label>
+              <div class="f-prog sin" id="f-prog"><i class="g-ar"></i><i class="g-pr"></i>
+                <input id="f-prog-in" class="campo" type="text" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="f-lista" placeholder="Escribe y elige de la lista">
+              </div>
+              <p class="f-area" id="f-area" aria-live="polite"></p>
+            </div>
+            <div class="f-campo">
+              <fieldset class="f-fs">
+                <legend class="f-rot">Grado</legend>
+                <div class="f-grado" id="f-grado"><span class="g-nv" id="f-grado-nv" aria-hidden="true"><i></i><i></i><i></i><i></i></span></div>
+              </fieldset>
+              <p class="f-err" id="e-grado" hidden></p>
+            </div>
+            <div class="f-campo f-periodo" id="f-periodo">
+              <span class="f-rot">Periodo que estudia la tesis</span>
+              <button type="button" class="linkbtn" id="f-periodo-si">Agregar periodo</button>
+              <div id="f-periodo-campos" hidden>
+                <div class="f-periodo-in"><label for="f-desde">De</label><input id="f-desde" class="campo f-anio" inputmode="numeric" maxlength="4" autocomplete="off"><label for="f-hasta">a</label><input id="f-hasta" class="campo f-anio" inputmode="numeric" maxlength="4" autocomplete="off"><button type="button" class="linkbtn" id="f-periodo-no">Quitar</button></div>
+                <div id="f-linea"></div>
+              </div>
+              <p class="f-err" id="e-periodo" hidden></p>
+            </div>
+          </div>
+        </form>
+        <h1 id="titulo" class="solo-analisis"></h1>
+        <p class="meta solo-analisis" id="meta"></p>
         <p class="objetos-h" id="objetos-h" hidden>Objetos de estudio</p>
-        <ul class="objetos" id="objetos" aria-label="Objetos de estudio"></ul>
-        <p class="guardado"><svg class="ico" viewBox="0 0 16 16"><path d="M4 2.5h8v11l-4-3-4 3z"/></svg><span id="guardado">Guardado en tu espacio el 25 de septiembre de 2026. En el mapa aparece como MI TESIS.</span></p>
+        <ul class="objetos solo-analisis" id="objetos" aria-label="Objetos de estudio"></ul>
+        <p class="guardado solo-analisis" id="guardado-p" hidden><svg class="ico" viewBox="0 0 16 16"><path d="M4 2.5h8v11l-4-3-4 3z"/></svg><span id="guardado">Guardado en tu espacio el 25 de septiembre de 2026. En el mapa aparece como MI TESIS.</span></p>
       </div>
     </header>
-    <section class="sec" id="s1"><h2>Planteamiento</h2><div class="pendiente"><span>Leyendo el planteamiento</span><div class="barra"></div></div><div class="cuerpo" hidden></div></section>
+    <section class="sec solo-analisis" id="s1"><h2>Planteamiento</h2><div class="pendiente"><span>Leyendo el planteamiento</span><div class="barra"></div></div><div class="cuerpo" hidden></div></section>
     </div>
-  <aside class="lado" id="s0" aria-label="Tu tesis en el mapa">
+  <aside class="lado solo-analisis" id="s0" aria-label="Tu tesis en el mapa">
     <h2>Ubicación en el mapa</h2>
     <div class="mapa-wrap"><canvas id="mapa" aria-label="Mapa de tesis con la tuya marcada"></canvas><svg id="mapa-capa" aria-hidden="true"></svg></div>
     <div class="leyenda-areas" id="leyenda-areas"></div>
@@ -374,11 +516,49 @@
   </div>
 
   <main>
+    <section class="sec solo-escritura" id="f-obj" aria-labelledby="f-obj-h">
+      <h2 id="f-obj-h">Objetivos</h2>
+      <div class="obj-grid">
+        <div>
+          <ol class="f-objs" id="f-objs"></ol>
+          <button type="button" class="linkbtn f-mas" id="f-mas"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg>Agregar objetivo</button>
+          <p class="f-err" id="e-obj" hidden></p>
+        </div>
+        <div class="obj-esc">
+          <div id="f-esc"></div>
+          <ul class="f-est" id="f-est"></ul>
+        </div>
+      </div>
+    </section>
+    <section class="sec solo-escritura" id="f-claves-s">
+      <h2><label for="f-claves">Palabras clave</label></h2>
+      <input id="f-claves" class="campo f-claves" type="text" autocomplete="off" placeholder="Por ejemplo: banca, sistema financiero, desarrollo económico">
+    </section>
+    <div class="f-envio solo-escritura" id="f-envio">
+      <button type="button" class="btn-cta" id="f-enviar">Analizar mi tesis</button>
+      <p class="beta">NodOS es un proyecto independiente y está en beta. La lectura con IA alcanza para unos 55 análisis al día en todo el sitio; con apoyo, alcanza para más. <a href="#" data-pendiente="cafe">Apoya este proyecto</a></p>
+      <p class="f-err" id="e-envio" hidden></p>
+    </div>
+    <div class="f-sesion solo-escritura" id="f-sesion" hidden>
+      <div>
+        <h3>Entra para analizar tu tesis</h3>
+        <p>El análisis se guarda en tu cuenta para que vuelvas a él. Tu borrador se queda en este navegador mientras tanto.</p>
+        <button type="button" class="linkbtn f-volver" id="f-volver">Volver a editar</button>
+      </div>
+      <div class="f-sesion-acc">
+        <button type="button" class="btn-cta" id="f-google">Continuar con Google</button>
+        <form class="f-correo" id="f-correo" novalidate onsubmit="return false">
+          <div class="f-crece"><label class="f-rot" for="f-email">O recibe un enlace en tu correo</label><input id="f-email" class="campo" type="email" autocomplete="email" placeholder="tu@correo.com"></div>
+          <button type="submit" class="btn-txt">Enviar enlace<svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8h9M9 4.5L12.5 8 9 11.5"/></svg></button>
+        </form>
+        <p class="f-aviso" id="f-aviso" aria-live="polite"></p>
+      </div>
+    </div>
 
-    <section class="sec" id="s2"><h2>Preguntas de investigación sugeridas</h2><div class="pendiente"><span>Formulando preguntas</span><div class="barra"></div></div><div class="cuerpo" hidden></div></section>
-    <section class="sec" id="s3"><h2>Objetivos</h2><div class="pendiente"><span>Revisando los objetivos</span><div class="barra"></div></div><div class="cuerpo" hidden></div></section>
-    <section class="sec" id="s5"><h2>Asesores de tesis parecidas</h2><div class="pendiente"><span>Buscando asesores</span><div class="barra"></div></div><div class="cuerpo" hidden></div></section>
-    <section class="sec" id="s4"><h2>Las 100 tesis más parecidas</h2><div class="pendiente"><span>Reuniendo las tesis parecidas</span><div class="barra"></div></div><div class="cuerpo" hidden></div></section>
+    <section class="sec solo-analisis" id="s2"><h2>Preguntas de investigación sugeridas</h2><div class="pendiente"><span>Formulando preguntas</span><div class="barra"></div></div><div class="cuerpo" hidden></div></section>
+    <section class="sec solo-analisis" id="s3"><h2>Objetivos</h2><div class="pendiente"><span>Revisando los objetivos</span><div class="barra"></div></div><div class="cuerpo" hidden></div></section>
+    <section class="sec solo-analisis" id="s5"><h2>Asesores de tesis parecidas</h2><div class="pendiente"><span>Buscando asesores</span><div class="barra"></div></div><div class="cuerpo" hidden></div></section>
+    <section class="sec solo-analisis" id="s4"><h2>Las 100 tesis más parecidas</h2><div class="pendiente"><span>Reuniendo las tesis parecidas</span><div class="barra"></div></div><div class="cuerpo" hidden></div></section>
   </main>
 </div>
 <footer class="pie-pag">
@@ -412,6 +592,7 @@
   </div>
 </footer>
 <div class="tip" id="tip" hidden></div>
+<ul class="f-lista" id="f-lista" role="listbox" aria-label="Programas" hidden></ul>
 
 <script>
 (function () {
@@ -513,13 +694,15 @@
   // Un guion por sección, en el orden de la página. Mientras se prepara el análisis, cada guion se
   // llena cuando su sección está lista (en el orden en que llegan). Al terminar, la barra hace de
   // cabecera de página: dice en qué sección vas y llena los guiones hasta ella.
-  var SECCIONES = [
+  var TODAS = [
     { id: 'inicio', nombre: 'Planteamiento y ubicación' },
     { id: 's2', nombre: 'Preguntas de investigación sugeridas' },
     { id: 's3', nombre: 'Objetivos' },
     { id: 's5', nombre: 'Asesores de tesis parecidas' },
     { id: 's4', nombre: 'Las 100 tesis más parecidas' }
   ];
+  // sin lectura de IA no hay preguntas ni objetivos revisados: sus guiones tampoco
+  var SECCIONES = TODAS;
   var terminado = false, actual = -1, corrida = 0;
   function estado(txt, p) { $('estado-txt').innerHTML = txt; if (p) pose($('m-estado'), p); }
   function elSeccion(i) { return i === 0 ? document.querySelector('.inicio') : $(SECCIONES[i].id); }
@@ -546,6 +729,7 @@
   var cabeceraPendiente = false;
   window.addEventListener('scroll', function () { if (cabeceraPendiente) return; cabeceraPendiente = true; requestAnimationFrame(function () { cabeceraPendiente = false; cabecera(); }); }, { passive: true });
   $('pasos').addEventListener('click', function (e) {
+    if (document.body.classList.contains('escribiendo')) return; // en el formulario, cada guion lleva a su campo
     var b = e.target.closest('button'); if (!b || b.disabled) return;
     var i = Array.prototype.indexOf.call(this.children, b), comp = REDUCIDO ? 'auto' : 'smooth';
     if (i === 0) window.scrollTo({ top: 0, behavior: comp }); else elSeccion(i).scrollIntoView({ behavior: comp, block: 'start' });
@@ -553,11 +737,22 @@
   function abrir(id) { var sec = $(id); sec.querySelector('.pendiente').hidden = true; var c = sec.querySelector('.cuerpo'); c.hidden = false; return c; }
 
   // ---------- lomo: el título aparece en el borde cuando el de la ficha sale de la vista ----------
-  function pintarLomo() {
-    var e = S.datos.entrada;
-    $('lomo-txt').innerHTML = '<b>' + esc(e.title) + '</b><span>' + esc(e.degree) + ' en ' + esc(e.program) + '</span><span>' + new Date().getFullYear() + '</span>';
-    if (!('IntersectionObserver' in window)) { $('lomo-txt').classList.add('vis'); return; }
-    new IntersectionObserver(function (en) { $('lomo-txt').classList.toggle('vis', !en[0].isIntersecting); }, { rootMargin: '-110px 0px 0px 0px' }).observe($('titulo'));
+  // Un solo observador para los dos títulos: el que se escribe (formulario) y el de la ficha
+  // (análisis). Cuenta el del modo en curso; mientras escribes, el lomo muestra lo que llevas.
+  var lomoVisto = {};
+  function textoLomo(t, grado, prog) {
+    var sub = [grado, prog].filter(Boolean).join(' en ');
+    $('lomo-txt').innerHTML = t ? '<b>' + esc(t) + '</b>' + (sub ? '<span>' + esc(sub) + '</span>' : '') + '<span>' + new Date().getFullYear() + '</span>' : '';
+    revisarLomo();
+  }
+  function revisarLomo() {
+    var id = document.body.classList.contains('escribiendo') ? 'f-titulo' : 'titulo';
+    $('lomo-txt').classList.toggle('vis', lomoVisto[id] === false && $('lomo-txt').textContent !== '');
+  }
+  function pintarLomo() { var e = S.datos.entrada; textoLomo(e.title, e.degree, e.program); }
+  if ('IntersectionObserver' in window) {
+    var observaLomo = new IntersectionObserver(function (en) { en.forEach(function (x) { lomoVisto[x.target.id] = x.isIntersecting; }); revisarLomo(); }, { rootMargin: '-110px 0px 0px 0px' });
+    observaLomo.observe($('titulo')); observaLomo.observe($('f-titulo'));
   }
 
   // ======================= mapa (arriba) =======================
@@ -749,7 +944,8 @@
   function escalera(items, color, titulo) {
     // items: [{verbo, nivel, texto, extra}]. Los tramos entre niveles con objetivo son continuos si los
     // niveles son contiguos y punteados si se salta alguno. Todo determinista: no usa IA.
-    var W = 420, H = 250, pw = (W - 12) / 6, base = 208, alto = 26, y = function (i) { return base - (i + 1) * alto; };
+    var amb = items.filter(function (it) { return it.nivel < 0 && it.rango; });
+    var W = 420, H = 250 + (amb.length ? 12 + amb.length * 30 : 0), pw = (W - 12) / 6, base = 208, alto = 26, y = function (i) { return base - (i + 1) * alto; };
     var porNivel = {}; items.forEach(function (it) { if (it.nivel >= 0) (porNivel[it.nivel] = porNivel[it.nivel] || []).push(it); });
     var niveles = Object.keys(porNivel).map(Number).sort(function (a, b) { return a - b; });
     var s = '<svg class="graf" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + esc(titulo) + '">';
@@ -771,6 +967,15 @@
         s += '<g class="esc-verbo" data-tip="' + esc(JSON.stringify({ t: it.texto, e: it.extra || '' })) + '"><rect x="' + (x - pw / 2) + '" y="' + (yy - 14) + '" width="' + pw + '" height="18" fill="transparent"/>' +
           '<text class="t-ink v halo-txt" x="' + x + '" y="' + yy + '" text-anchor="middle" font-size="13" font-weight="700">' + esc(it.verbo) + '</text></g>';
       });
+    });
+    // verbos ambiguos (léxico compartido): debajo de los nombres de nivel, un corchete sobre los peldaños
+    // posibles; el nivel lo decide la IA por contexto, así que el verbo va en cursiva y tinta tercera
+    amb.forEach(function (it, j) {
+      var a = it.rango[0], b = it.rango[1], x1 = 6 + a * pw + 6, x2 = 6 + (b + 1) * pw - 6, yy = base + 38 + j * 30;
+      s += '<g class="esc-verbo" data-tip="' + esc(JSON.stringify({ t: it.texto, e: it.extra || '' })) + '">' +
+        '<path d="M' + x1 + ' ' + (yy - 5) + ' V' + yy + ' H' + x2 + ' V' + (yy - 5) + '" fill="none" stroke="var(--ink-3)" stroke-width="1.2"/>' +
+        '<rect x="' + x1 + '" y="' + (yy - 6) + '" width="' + (x2 - x1) + '" height="26" fill="transparent"/>' +
+        '<text class="t-3 v esc-rango" x="' + ((x1 + x2) / 2) + '" y="' + (yy + 16) + '" text-anchor="middle" font-size="13" font-weight="600">' + esc(it.verbo) + '</text></g>';
     });
     return s + '</svg>';
   }
@@ -1016,18 +1221,24 @@
     colorMascota(colorCampo(campo.id)); estado('<b>Cae en ' + esc(campo.nombre) + '.</b> Buscando asesores', 'investiga');
     renderAsesores(abrir('s5')); listo('s5');
     await espera(1500);
-    estado('<b>Leyendo el planteamiento</b>', 'investiga');
-    await espera(1400);
-    renderNota(abrir('s1')); listo('inicio');
-    estado('<b>Formulando preguntas</b>', 'investiga');
-    await espera(1800);
-    renderPreguntas(abrir('s2')); listo('s2');
-    estado('<b>Revisando los objetivos</b>', 'investiga');
-    await espera(1600);
-    renderBloom(abrir('s3')); listo('s3');
+    if (S.ia) {
+      estado('<b>Leyendo el planteamiento</b>', 'investiga');
+      await espera(1400);
+      renderNota(abrir('s1')); listo('inicio');
+      estado('<b>Formulando preguntas</b>', 'investiga');
+      await espera(1800);
+      renderPreguntas(abrir('s2')); listo('s2');
+      estado('<b>Revisando los objetivos</b>', 'investiga');
+      await espera(1600);
+      renderBloom(abrir('s3')); listo('s3');
+    } else {
+      // sin lectura de IA (el boceto solo la tiene para el caso de ejemplo): el planteamiento queda con
+      // la Problematiza del estudiante, y preguntas y objetivos no se muestran; nada se inventa
+      abrir('s1').innerHTML = '<p class="problematiza aparece vis">' + esc(S.datos.entrada.problematiza) + '</p>'; listo('inicio');
+    }
     pose($('m-estado'), 'celebra');
     // la mascota celebra con «Análisis listo» y la barra pasa a ser la cabecera de la sección que lees
-    estado('<b>Análisis listo.</b>');
+    estado(S.ia ? '<b>Análisis listo.</b>' : '<b>Análisis de datos listo.</b> La lectura con IA llega con la cuenta.');
     await espera(1800);
     if (mia !== corrida) return; // «Repetir» empezó otra corrida
     terminado = true; cabecera();
@@ -1038,44 +1249,400 @@
   }
 
   // ======================= carga =======================
-  // parte de datos del análisis: la calcula el servicio del Lab (services/lab, ADR-0015) con lo
-  // que escribió el usuario. Mientras no hay formulario, se manda la entrada de ejemplo. En
-  // local el servicio corre en :8770 (o ?api=URL); si no responde, se usa el resultado guardado.
-  var API_LAB = new URLSearchParams(location.search).get('api') ||
-    (/^(127\.0\.0\.1|localhost)$/.test(location.hostname) ? 'http://127.0.0.1:8770' : '');
-  function contextoDatos() {
+  // Parte de datos del análisis: la calcula el servicio del Lab (services/lab, ADR-0015) con lo que
+  // escribió el estudiante. En local corre en :8770 (o ?api=URL). En producción la llamada va por el
+  // Worker puerta, con sesión; el boceto aún no tiene cuenta, así que:
+  //   ?sesion=local   simula una sesión y corre el análisis (datos reales del servicio);
+  //   ?ejemplo        llena el formulario con el caso de ejemplo;
+  //   ?demo           ejemplo + sesión simulada + análisis automático (el recorrido de antes).
+  // La lectura de IA del boceto (ia_ejemplo.json) solo se muestra para el caso de ejemplo.
+  var PARAM = new URLSearchParams(location.search);
+  var API_LAB = PARAM.get('api') || (/^(127\.0\.0\.1|localhost)$/.test(location.hostname) ? 'http://127.0.0.1:8770' : '');
+  var SESION = PARAM.get('sesion') === 'local' || PARAM.has('demo');
+  var EJEMPLO = null;
+  function esEjemplo(e) { return !!EJEMPLO && sinAcento(e.title) === sinAcento(EJEMPLO.title); }
+  function contextoDatos(entrada) {
     var guardado = function () { S.fuente = 'ejemplo'; return fetch('datos_ejemplo.json').then(function (x) { return x.json(); }); };
-    if (!API_LAB) return guardado();
-    return fetch('entrada_ejemplo.json').then(function (x) { return x.json(); }).then(function (entrada) {
-      return fetch(API_LAB + '/v1/contexto', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(entrada) });
-    }).then(function (x) {
-      if (!x.ok) throw new Error('HTTP ' + x.status);
-      S.fuente = 'servicio'; return x.json();
-    }).catch(function (err) { console.warn('Servicio del Lab no disponible (' + err.message + '): se usa el ejemplo guardado'); return guardado(); });
+    var sinServicio = function (err) {
+      // solo el caso de ejemplo tiene un resultado guardado; para otra tesis no hay datos que mostrar
+      if (esEjemplo(entrada)) { console.warn('Servicio del Lab no disponible (' + err.message + '): se usa el ejemplo guardado'); return guardado(); }
+      throw err;
+    };
+    if (!API_LAB) return sinServicio(new Error('sin servicio configurado'));
+    return fetch(API_LAB + '/v1/contexto', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(entrada) })
+      .then(function (x) { if (!x.ok) throw new Error('HTTP ' + x.status); S.fuente = 'servicio'; return x.json(); })
+      .catch(sinServicio);
   }
-  async function cargar() {
+  // lo que usan el formulario y el mapa: nombres, escritura con acentos, puntos del mapa y los
+  // programas del corpus (tesis_meta, alineado con el orden del mapa)
+  async function cargarBase() {
     var base = '../../data/';
     var r = await Promise.all([
-      contextoDatos(),
-      fetch('ia_ejemplo.json').then(function (x) { return x.json(); }),
       fetch(base + 'atlas_macro_graph.v1.json').then(function (x) { return x.json(); }),
       fetch(base + 'escritura.v1.json').then(function (x) { return x.json(); }).catch(function () { return { v: {} }; }),
       fetch(base + 'atlas_chaos_mode.v1.json').then(function (x) { return x.json(); }),
       fetch(base + 'atlas_chaos_mode.v1.bin').then(function (x) { return x.arrayBuffer(); }),
-      fetch(base + 'tesis_catalogo.v1.bin').then(function (x) { return x.arrayBuffer(); }).catch(function () { return null; })
+      fetch(base + 'tesis_catalogo.v1.bin').then(function (x) { return x.arrayBuffer(); }).catch(function () { return null; }),
+      fetch(base + 'tesis_meta.v1.json').then(function (x) { return x.json(); }),
+      fetch(base + 'tesis_meta.v1.bin').then(function (x) { return x.arrayBuffer(); }),
+      fetch('entrada_ejemplo.json').then(function (x) { return x.json(); }).catch(function () { return null; })
     ]);
-    S.datos = r[0]; S.ia = r[1]; S.macros = r[2].nodes.slice().sort(function (a, b) { return a.macroId - b.macroId; }); S.escritura = r[3].v || {};
-    var f = r[4].fields, buf = r[5];
-    S.puntos = { n: r[4].n, x: new Float32Array(buf, f.x.byteOffset, f.x.count), y: new Float32Array(buf, f.y.byteOffset, f.y.count), macro: new Int32Array(buf, f.macroCode.byteOffset, f.macroCode.count), area: new Int32Array(buf, f.areaCode.byteOffset, f.areaCode.count) };
+    S.macros = r[0].nodes.slice().sort(function (a, b) { return a.macroId - b.macroId; }); S.escritura = r[1].v || {};
+    var f = r[2].fields, buf = r[3];
+    S.puntos = { n: r[2].n, x: new Float32Array(buf, f.x.byteOffset, f.x.count), y: new Float32Array(buf, f.y.byteOffset, f.y.count), macro: new Int32Array(buf, f.macroCode.byteOffset, f.macroCode.count), area: new Int32Array(buf, f.areaCode.byteOffset, f.areaCode.count) };
     S.idx = new Map(new TextDecoder('utf-8').decode(new Uint8Array(buf, f.thesisIdsBlob.byteOffset, f.thesisIdsBlob.byteLength)).split('\n').map(function (id, i) { return [id, i]; }));
-    S.catalogo = r[6] ? new Uint32Array(r[6]) : null;
-    // las 100 vecinas como objetos (ver vecinas_campos en lab_contexto.py)
-    S.vec = S.datos.vecinas.map(function (a) { return { id: a[0], titulo: a[1], anio: a[2], area: a[3], nivel: a[4], programa: a[5], plantel: a[6], campo: a[7], tema: a[8], subtema: a[9], sim: a[10] }; });
-    paleta(); aplicarColor(); vistas(); leyendaAreas();
-    var e = S.datos.entrada;
+    S.catalogo = r[4] ? new Uint32Array(r[4]) : null;
+    var mf = r[5].fields;
+    indexarProgramas(r[5].programas, new Uint16Array(r[6], mf.programa.byteOffset, mf.programa.count), S.puntos.area);
+    EJEMPLO = r[7];
+    paleta();
+  }
+
+  // ======================= formulario: la ficha se escribe =======================
+  var F = { bloom: null, programas: [], prog: null, lexico: null, errores: {}, lista: [], activo: -1 };
+  var BORRADOR = 'nodos_lab_borrador_v1';
+  var ICO_ERR = '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.2"/><path d="M8 4.8v3.6M8 11.1v.1"/></svg>';
+  var ICO_X = '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 4.5l7 7M11.5 4.5l-7 7"/></svg>';
+
+  // el área de cada programa es la más común entre sus tesis (con área registrada, si las hay)
+  function indexarProgramas(nombres, pr, areas) {
+    var n = nombres.length, cnt = new Uint32Array(n), porArea = new Uint32Array(n * 5);
+    // tesis_meta: 0 = sin dato; k = programas[k-1] (pipeline/generar_atlas_tesis_meta.py)
+    for (var i = 0; i < pr.length; i++) { var p = pr[i] - 1; if (p >= 0 && p < n) { cnt[p]++; porArea[p * 5 + (areas[i] || 0)]++; } }
+    F.programas = [];
+    for (var p = 0; p < n; p++) {
+      if (!cnt[p]) continue;
+      var mejor = 0, max = -1;
+      for (var a = 1; a <= 4; a++) if (porArea[p * 5 + a] > max) { max = porArea[p * 5 + a]; mejor = a; }
+      if (max <= 0) mejor = 0;
+      var nombre = capital(escribir(String(nombres[p]).replace(/^\[|\]$/g, '').trim()));
+      F.programas.push({ nombre: nombre, clave: sinAcento(nombre), n: cnt[p], area: mejor });
+    }
+  }
+  function buscarProgramas(q) {
+    var t = sinAcento(q).split(/[^a-z0-9ñ]+/).filter(Boolean);
+    if (!t.length) return [];
+    return F.programas.map(function (p) {
+      if (!t.every(function (w) { return p.clave.indexOf(w) >= 0; })) return null;
+      var pts = p.clave.indexOf(t[0]) === 0 ? 2 : (p.clave.indexOf(' ' + t[0]) >= 0 ? 1 : 0);
+      return { p: p, pts: pts };
+    }).filter(Boolean).sort(function (a, b) { return b.pts - a.pts || b.p.n - a.p.n; }).slice(0, 8).map(function (x) { return x.p; });
+  }
+  function resaltar(nombre, q) {
+    var t = sinAcento(q).split(/[^a-z0-9ñ]+/).filter(Boolean), clave = sinAcento(nombre), marcas = [];
+    t.forEach(function (w) { var i = clave.indexOf(w); if (i >= 0) marcas.push([i, i + w.length]); });
+    marcas.sort(function (a, b) { return a[0] - b[0]; });
+    var out = '', k = 0;
+    marcas.forEach(function (m) { if (m[0] < k) return; out += esc(nombre.slice(k, m[0])) + '<mark>' + esc(nombre.slice(m[0], m[1])) + '</mark>'; k = m[1]; });
+    return out + esc(nombre.slice(k));
+  }
+
+  // --- programa: combobox con la lista fuera de la portada ---
+  function colocarLista() {
+    var r = $('f-prog-in').getBoundingClientRect(), l = $('f-lista');
+    l.style.left = r.left + 'px'; l.style.top = (r.bottom + 6) + 'px'; l.style.width = Math.max(r.width, 320) + 'px';
+  }
+  function abrirLista() {
+    var q = $('f-prog-in').value, l = $('f-lista');
+    F.lista = buscarProgramas(q); F.activo = -1;
+    if (!F.lista.length) { cerrarLista(); return; }
+    l.innerHTML = F.lista.map(function (p, i) {
+      return '<li role="option" id="op-' + i + '" aria-selected="false" data-i="' + i + '"><i class="g-ar" style="--c:' + areaHex(p.area) + '"></i><span class="n">' + resaltar(p.nombre, q) + '</span><span class="de">' + fmt(p.n) + ' tesis</span></li>';
+    }).join('');
+    l.hidden = false; colocarLista(); $('f-prog-in').setAttribute('aria-expanded', 'true');
+  }
+  function cerrarLista() { $('f-lista').hidden = true; $('f-prog-in').setAttribute('aria-expanded', 'false'); $('f-prog-in').removeAttribute('aria-activedescendant'); }
+  function marcarOpcion(i) {
+    var ops = $('f-lista').children; if (!ops.length) return;
+    F.activo = (i + ops.length) % ops.length;
+    Array.prototype.forEach.call(ops, function (o, k) { o.setAttribute('aria-selected', k === F.activo ? 'true' : 'false'); });
+    ops[F.activo].scrollIntoView({ block: 'nearest' });
+    $('f-prog-in').setAttribute('aria-activedescendant', 'op-' + F.activo);
+  }
+  function elegirPrograma(p) {
+    F.prog = p; $('f-prog-in').value = p ? p.nombre : $('f-prog-in').value; cerrarLista(); pintarPrograma(); cambio();
+  }
+  // el color de la portada lleva un dato: el área del programa elegido (marino mientras no hay)
+  function pintarPrograma() {
+    var p = F.prog, ficha = $('ficha');
+    $('f-prog').classList.toggle('sin', !p);
+    if (p) {
+      ficha.style.setProperty('--area', areaHex(p.area));
+      $('f-area').textContent = p.area ? AREA_NOMBRE[p.area] : 'Sin área registrada';
+      colorMascota(areaHex(p.area));
+    } else {
+      ficha.style.removeProperty('--area'); $('f-area').textContent = ''; colorMascota(tok('--link'));
+    }
+  }
+  function programaExacto(texto) {
+    var c = sinAcento(texto).trim();
+    return F.programas.filter(function (p) { return p.clave === c; }).sort(function (a, b) { return b.n - a.n; })[0] || null;
+  }
+
+  // --- grado: radios nativos; los puntos de nivel dicen cuál ---
+  function pintarGrados() {
+    $('f-grado').insertAdjacentHTML('beforeend', GRADOS.map(function (g) {
+      return '<label class="f-op"><input type="radio" name="grado" value="' + g + '"><span>' + g + '</span></label>';
+    }).join(''));
+  }
+  function gradoElegido() { var r = document.querySelector('input[name="grado"]:checked'); return r ? r.value : ''; }
+  function pintarPuntosGrado() {
+    var nv = GRADOS.indexOf(gradoElegido()) + 1, col = noche() ? NIVEL_NOCHE : NIVEL_DIA;
+    Array.prototype.forEach.call($('f-grado-nv').children, function (i, k) { i.style.background = k < nv ? col[k] : ''; i.style.boxShadow = k < nv ? 'none' : ''; });
+  }
+
+  // --- periodo: dos años y la línea de tiempo de dos puntos ---
+  function periodoForm() {
+    var on = !$('f-periodo-campos').hidden, a = parseInt($('f-desde').value, 10), b = parseInt($('f-hasta').value, 10);
+    return { on: on, a: a, b: b, ok: on && a >= 1500 && b >= a && b <= new Date().getFullYear() + 30 };
+  }
+  function pintarPeriodo() {
+    var p = periodoForm();
+    $('f-linea').innerHTML = p.ok && p.a >= 1840 && p.b <= 2026 ? periodo({ start: p.a, end: p.b }) : '';
+    mostrar($('f-linea'), '.crece-x', 0);
+  }
+
+  // --- objetivos: renglones numerados; el léxico los clasifica en vivo ---
+  function filaObjetivo(texto) {
+    var li = document.createElement('li');
+    li.innerHTML = '<span class="num" aria-hidden="true"></span><textarea class="campo" rows="1" maxlength="600" aria-label="Objetivo" placeholder="Analizar…"></textarea>' +
+      '<button type="button" class="f-quitar" title="Quitar este objetivo" aria-label="Quitar este objetivo">' + ICO_X + '</button><p class="f-nota" hidden></p>';
+    li.querySelector('textarea').value = texto || '';
+    $('f-objs').appendChild(li); numerar();
+    return li.querySelector('textarea');
+  }
+  function numerar() {
+    var lis = $('f-objs').children;
+    Array.prototype.forEach.call(lis, function (li, i) { li.querySelector('.num').textContent = i + 1; li.querySelector('textarea').setAttribute('aria-label', 'Objetivo ' + (i + 1)); });
+    $('f-mas').disabled = lis.length >= 8;
+  }
+  function textosObjetivos() { return Array.prototype.map.call($('f-objs').querySelectorAll('textarea'), function (t) { return t.value.trim(); }); }
+
+  // lo que el léxico dice de cada objetivo, en una línea y solo en los casos límite
+  function notaObjetivo(o) {
+    var v = '<b>«' + esc(o.verbo) + '»</b>', b = o.banderas;
+    if (b.indexOf('otro_idioma') >= 0) return 'Redáctalo en español.';
+    if (b.indexOf('tramite') >= 0) return 'Es una tarea escolar, no un objetivo de investigación. ¿Qué quieres averiguar o producir?';
+    if (b.indexOf('metodo') >= 0) return 'Describe un método, no un objetivo. Di para qué lo harás: por ejemplo, «Analizar las respuestas de…».';
+    if (b.indexOf('sin_verbo') >= 0) return 'Empieza con un sustantivo. Prueba con el verbo: <b>«' + esc(capital(o.sugerencias[0] || '').replace('Disenar', 'Diseñar')) + '…»</b>.';
+    if (b.indexOf('vago') >= 0) return v + ' no se puede comprobar. ¿Qué harás exactamente? Por ejemplo: describir, analizar, comparar o evaluar.';
+    if (b.indexOf('fuera_lexico') >= 0) return v + ' no dice qué harás. Prueba con un verbo observable: describir, analizar, comparar, evaluar o proponer.';
+    if (b.indexOf('varios_verbos') >= 0) return 'Mezcla dos objetivos. Conviene partirlo en dos, uno por verbo.';
+    if (b.indexOf('ambiguo') >= 0) return v + ' admite varios niveles; la lectura con IA lo decidirá por el contexto.';
+    return '';
+  }
+  var ESTRUCTURA = {
+    crear_sin_evaluar: function () { return 'Propones crear algo sin <b>evaluar</b> antes. Un objetivo de evaluación sostiene la propuesta.'; },
+    bajo_para_grado: function (lx) { return 'En ' + esc(gradoElegido().toLowerCase()) + ' se espera que tus objetivos lleguen al menos a <b>' + NIVELES[lx.esperado].toLowerCase() + '</b>.'; },
+    demasiados: function () { return 'Son más de seis objetivos. Agrupa los que persiguen lo mismo.'; }
+  };
+  function actualizarBloom() {
+    var tas = $('f-objs').querySelectorAll('textarea');
+    if (!F.bloom) { $('f-esc').innerHTML = escalera([], 'var(--ink)', 'Escalera de Bloom'); return; }
+    var textos = Array.prototype.map.call(tas, function (t) { return t.value; });
+    var lx = F.bloom.clasificarObjetivos(textos, gradoElegido());
+    F.lexico = lx;
+    // nota por renglón: cada uno se clasifica solo (los vacíos no llevan nota)
+    Array.prototype.forEach.call(tas, function (t) {
+      var nota = t.parentNode.querySelector('.f-nota'), o = F.bloom.clasificarObjetivo(t.value);
+      var html = o.banderas.indexOf('vacio') >= 0 ? '' : notaObjetivo(o);
+      nota.innerHTML = html; nota.hidden = !html;
+    });
+    var items = lx.objetivos.map(function (o) {
+      return { verbo: o.verbo || '…', nivel: o.nivel === null ? -1 : o.nivel, rango: o.rango, texto: o.texto, extra: notaObjetivo(o).replace(/<[^>]+>/g, '') };
+    });
+    $('f-esc').innerHTML = escalera(items, 'var(--ink)', 'Tus objetivos en la escalera de Bloom');
+    $('f-est').innerHTML = lx.estructura.filter(function (e) { return ESTRUCTURA[e]; }).map(function (e) { return '<li>' + ESTRUCTURA[e](lx) + '</li>'; }).join('');
+  }
+
+  // --- pasos del formulario: título, Problematiza, objetivos, programa y grado ---
+  var PASOS_F = [
+    { nombre: 'Título', ok: function () { return $('f-titulo').value.trim().length >= 3; }, foco: 'f-titulo' },
+    { nombre: 'Problematiza', ok: function () { return $('f-prob').value.trim().length >= 20; }, foco: 'f-prob' },
+    { nombre: 'Objetivos', ok: function () { return textosObjetivos().some(Boolean); }, foco: null },
+    { nombre: 'Programa y grado', ok: function () { return !!gradoElegido() && $('f-prog-in').value.trim().length > 1; }, foco: 'f-prog-in' }
+  ];
+  function pasosForm() {
+    $('pasos').innerHTML = PASOS_F.map(function (p) { return '<button type="button" title="' + p.nombre + '" aria-label="' + p.nombre + '"></button>'; }).join('');
+  }
+  function estadoForm() {
+    if (!document.body.classList.contains('escribiendo')) return; // el análisis ya tiene su propia barra
+    var ok = PASOS_F.map(function (p) { return p.ok(); });
+    Array.prototype.forEach.call($('pasos').children, function (b, i) { b.classList.toggle('ok', ok[i]); b.setAttribute('aria-label', PASOS_F[i].nombre + (ok[i] ? ', listo' : ', por completar')); });
+    var faltan = ok.filter(function (x) { return !x; }).length;
+    estado(faltan ? '<b>Escribe tu tesis.</b> Se compara con 609,154 tesis del catálogo.' : '<b>Lista para analizar.</b>', 'senala');
+  }
+
+  // --- borrador en el navegador (conveniencia; nunca la única copia de nada importante) ---
+  function leerForm() {
+    var p = periodoForm(), claves = $('f-claves').value.split(',').map(function (k) { return k.trim().slice(0, 80); }).filter(Boolean).slice(0, 12);
+    return {
+      title: $('f-titulo').value.trim(), problematiza: $('f-prob').value.trim(), keywords: claves,
+      objectives: textosObjetivos().filter(Boolean).slice(0, 8), program: $('f-prog-in').value.trim(), degree: gradoElegido(),
+      study_period: p.on ? { applies: true, start_year: isNaN(p.a) ? null : p.a, end_year: isNaN(p.b) ? null : p.b, label: (isNaN(p.a) ? '' : p.a) + '-' + (isNaN(p.b) ? '' : p.b) } : { applies: false, start_year: null, end_year: null, label: '' }
+    };
+  }
+  var guardarT = 0;
+  function guardarBorrador() {
+    clearTimeout(guardarT);
+    guardarT = setTimeout(function () { try { localStorage.setItem(BORRADOR, JSON.stringify(leerForm())); } catch (e) { /* sin almacenamiento: el borrador vive solo en esta pestaña */ } }, 400);
+  }
+  function llenarForm(e) {
+    $('f-titulo').value = e.title || ''; $('f-prob').value = e.problematiza || '';
+    $('f-claves').value = (e.keywords || []).join(', ');
+    $('f-objs').innerHTML = '';
+    (e.objectives && e.objectives.length ? e.objectives : ['']).forEach(function (o) { filaObjetivo(o); });
+    $('f-prog-in').value = e.program || ''; F.prog = programaExacto(e.program || '');
+    document.querySelectorAll('input[name="grado"]').forEach(function (r) { r.checked = sinAcento(r.value) === sinAcento(e.degree || ''); });
+    var sp = e.study_period || {};
+    $('f-periodo-campos').hidden = !sp.applies; $('f-periodo-si').hidden = !!sp.applies;
+    $('f-desde').value = sp.applies && sp.start_year ? sp.start_year : ''; $('f-hasta').value = sp.applies && sp.end_year ? sp.end_year : '';
+    document.querySelectorAll('#f-ficha textarea, #f-objs textarea').forEach(crecer);
+    pintarPrograma(); pintarPuntosGrado(); pintarPeriodo();
+  }
+  function crecer(t) { t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; }
+
+  // cualquier cambio: escalera, pasos, lomo y borrador; los errores se limpian al corregir
+  function cambio() {
+    actualizarBloom(); estadoForm(); guardarBorrador();
+    textoLomo($('f-titulo').value.trim(), gradoElegido(), $('f-prog-in').value.trim());
+    if (Object.keys(F.errores).length) validar(false);
+  }
+
+  // --- validación: debajo de cada campo, en español llano ---
+  function error(id, campo, txt) {
+    var p = $(id); p.hidden = !txt; p.innerHTML = txt ? ICO_ERR + '<span>' + txt + '</span>' : '';
+    if (campo) campo.classList.toggle('mal', !!txt);
+    if (txt) F.errores[id] = true; else delete F.errores[id];
+  }
+  function validar(enfocar) {
+    var e = leerForm(), p = periodoForm(), primero = null;
+    var marca = function (id, campo, txt) { error(id, campo, txt); if (txt && !primero) primero = campo; };
+    marca('e-titulo', $('f-titulo'), e.title.length < 3 ? 'Escribe el título de tu tesis, aunque sea provisional.' : '');
+    marca('e-prob', $('f-prob'), e.problematiza.length < 20 ? 'Cuenta en pocas palabras qué problema quieres resolver. Es lo que más ayuda a ubicar tu tesis.' : '');
+    marca('e-grado', document.querySelector('input[name="grado"]'), e.degree ? '' : 'Elige tu grado: de él depende qué se espera de tus objetivos.');
+    marca('e-periodo', $('f-desde'), p.on && !p.ok ? 'Escribe dos años, el primero antes del segundo, o quita el periodo.' : '');
+    marca('e-obj', $('f-objs').querySelector('textarea'), e.objectives.length ? '' : 'Escribe al menos un objetivo: qué harás para responder tu pregunta.');
+    if (enfocar && primero) primero.focus();
+    return !primero;
+  }
+
+  // --- enviar: sin cuenta, la invitación ocupa el lugar del botón ---
+  function enviar() {
+    if (!validar(true)) { estado('<b>Falta completar algo.</b> Está marcado debajo de cada campo.', 'senala'); return; }
+    var e = leerForm();
+    if (!SESION) { mostrarSesion(true); return; }
+    analizar(e);
+  }
+  function mostrarSesion(si) {
+    $('f-envio').hidden = si; $('f-sesion').hidden = !si;
+    if (si) { $('f-sesion').scrollIntoView({ behavior: REDUCIDO ? 'auto' : 'smooth', block: 'center' }); $('f-google').focus({ preventScroll: true }); estado('<b>Entra para analizar tu tesis.</b> Tu borrador está guardado.', 'senala'); }
+    else { estadoForm(); $('f-enviar').focus(); }
+  }
+
+  // --- de escribir a analizar: la portada se queda y el análisis se despliega debajo ---
+  async function analizar(e) {
+    cerrarLista();
+    document.body.classList.remove('escribiendo');
+    $('lamina-txt').textContent = 'Análisis de tesis';
     $('titulo').textContent = e.title;
+    SECCIONES = TODAS; S.ia = null;
+    ['s1', 's2', 's3', 's4', 's5'].forEach(function (id) { var sec = $(id); sec.hidden = false; sec.querySelector('.pendiente').hidden = false; var c = sec.querySelector('.cuerpo'); c.hidden = true; c.innerHTML = ''; });
+    $('objetos').innerHTML = ''; $('objetos-h').hidden = true;
+    window.scrollTo({ top: 0, behavior: REDUCIDO ? 'auto' : 'smooth' });
+    pintarPasos(); estado('<b>Ubicando tu tesis</b> entre 609,154 del catálogo', 'investiga'); colorMascota('#8c96a8');
+    var datos;
+    try { datos = await contextoDatos(e); }
+    catch (err) { console.error(err); errorDatos(); return; }
+    if (esEjemplo(e)) S.ia = await fetch('ia_ejemplo.json').then(function (x) { return x.json(); }).catch(function () { return null; });
+    if (!S.ia) { SECCIONES = TODAS.filter(function (s) { return s.id !== 's2' && s.id !== 's3'; }); $('s2').hidden = true; $('s3').hidden = true; }
+    S.datos = datos; S.datos.entrada = e;
+    S.vec = S.datos.vecinas.map(function (a) { return { id: a[0], titulo: a[1], anio: a[2], area: a[3], nivel: a[4], programa: a[5], plantel: a[6], campo: a[7], tema: a[8], subtema: a[9], sim: a[10] }; });
+    aplicarColor(); vistas(); leyendaAreas();
     pintarMeta(); pintarLomo();
     secuencia();
+  }
+  // el servicio no respondió: se dice qué pasó y se vuelve al formulario con el borrador intacto
+  function errorDatos() {
+    document.body.classList.add('escribiendo');
+    $('lamina-txt').textContent = 'Tu tesis';
+    pasosForm(); estadoForm();
+    estado('<b>No pudimos ubicar tu tesis.</b> El servicio de datos no respondió; tu borrador sigue aquí. Inténtalo en unos minutos.', 'senala');
+    $('f-envio').hidden = false; $('f-sesion').hidden = true;
+  }
+
+  // --- eventos ---
+  function conectarFormulario() {
+    ['f-titulo', 'f-prob'].forEach(function (id) {
+      $(id).addEventListener('input', function () { crecer(this); cambio(); });
+      $(id).addEventListener('keydown', function (ev) { if (ev.key === 'Enter' && this.id === 'f-titulo') { ev.preventDefault(); $('f-prob').focus(); } });
+    });
+    $('f-claves').addEventListener('input', guardarBorrador);
+    $('f-prog-in').addEventListener('input', function () { F.prog = programaExacto(this.value); pintarPrograma(); abrirLista(); cambio(); });
+    $('f-prog-in').addEventListener('focus', function () { if (this.value.trim() && !F.prog) abrirLista(); });
+    $('f-prog-in').addEventListener('blur', function () { setTimeout(cerrarLista, 150); });
+    $('f-prog-in').addEventListener('keydown', function (ev) {
+      var abierta = !$('f-lista').hidden;
+      if (ev.key === 'ArrowDown') { ev.preventDefault(); if (!abierta) abrirLista(); marcarOpcion(F.activo + 1); }
+      else if (ev.key === 'ArrowUp') { ev.preventDefault(); if (abierta) marcarOpcion(F.activo - 1); }
+      else if (ev.key === 'Enter') { if (abierta && F.activo >= 0) { ev.preventDefault(); elegirPrograma(F.lista[F.activo]); } }
+      else if (ev.key === 'Escape') { if (abierta) { ev.preventDefault(); cerrarLista(); } }
+    });
+    $('f-lista').addEventListener('mousedown', function (ev) { var li = ev.target.closest('li'); if (!li) return; ev.preventDefault(); elegirPrograma(F.lista[+li.dataset.i]); });
+    window.addEventListener('scroll', function () { if (!$('f-lista').hidden) colocarLista(); }, { passive: true });
+    window.addEventListener('resize', function () { if (!$('f-lista').hidden) colocarLista(); });
+    $('f-grado').addEventListener('change', function () { pintarPuntosGrado(); cambio(); });
+    $('f-periodo-si').addEventListener('click', function () { $('f-periodo-campos').hidden = false; this.hidden = true; $('f-desde').focus(); cambio(); });
+    $('f-periodo-no').addEventListener('click', function () { $('f-periodo-campos').hidden = true; $('f-periodo-si').hidden = false; $('f-desde').value = $('f-hasta').value = ''; pintarPeriodo(); $('f-periodo-si').focus(); cambio(); });
+    ['f-desde', 'f-hasta'].forEach(function (id) { $(id).addEventListener('input', function () { this.value = this.value.replace(/\D/g, ''); pintarPeriodo(); cambio(); }); });
+    // objetivos: Enter abre el siguiente; retroceso en uno vacío lo quita y vuelve al anterior
+    $('f-objs').addEventListener('input', function (ev) { if (ev.target.tagName === 'TEXTAREA') { crecer(ev.target); cambio(); } });
+    $('f-objs').addEventListener('keydown', function (ev) {
+      var t = ev.target; if (t.tagName !== 'TEXTAREA') return;
+      var li = t.closest('li');
+      if (ev.key === 'Enter') { ev.preventDefault(); if ($('f-objs').children.length < 8) { var n = filaObjetivo(''); li.after(n.closest('li')); numerar(); n.focus(); cambio(); } }
+      else if (ev.key === 'Backspace' && !t.value && $('f-objs').children.length > 1) {
+        ev.preventDefault(); var prev = li.previousElementSibling || li.nextElementSibling; li.remove(); numerar(); var pt = prev.querySelector('textarea'); pt.focus(); pt.setSelectionRange(pt.value.length, pt.value.length); cambio();
+      }
+    });
+    $('f-objs').addEventListener('click', function (ev) {
+      var b = ev.target.closest('.f-quitar'); if (!b) return;
+      var li = b.closest('li');
+      if ($('f-objs').children.length > 1) { var sig = li.nextElementSibling || li.previousElementSibling; li.remove(); numerar(); sig.querySelector('textarea').focus(); }
+      else { li.querySelector('textarea').value = ''; li.querySelector('textarea').focus(); }
+      cambio();
+    });
+    $('f-mas').addEventListener('click', function () { filaObjetivo('').focus(); cambio(); });
+    $('pasos').addEventListener('click', function (ev) {
+      if (!document.body.classList.contains('escribiendo')) return;
+      var b = ev.target.closest('button'); if (!b) return;
+      var i = Array.prototype.indexOf.call(this.children, b), id = PASOS_F[i].foco;
+      var el = id ? $(id) : ($('f-objs').querySelector('textarea') || $('f-mas'));
+      el.focus(); el.scrollIntoView({ behavior: REDUCIDO ? 'auto' : 'smooth', block: 'center' });
+    });
+    $('f-enviar').addEventListener('click', enviar);
+    $('f-volver').addEventListener('click', function () { mostrarSesion(false); });
+    // PENDIENTE (paso 2 de ADR-0015 en la interfaz): Supabase Auth con Google y enlace mágico
+    $('f-google').addEventListener('click', function () { $('f-aviso').textContent = 'El inicio de sesión todavía no está conectado en este boceto.'; });
+    $('f-correo').addEventListener('submit', function () {
+      var ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test($('f-email').value.trim());
+      $('f-aviso').textContent = ok ? 'El envío del enlace todavía no está conectado en este boceto.' : 'Escribe un correo válido, como nombre@correo.com.';
+      if (!ok) $('f-email').focus();
+    });
+  }
+
+  function iniciarFormulario() {
+    pintarGrados(); pasosForm();
+    var e = null;
+    if (PARAM.has('ejemplo') || PARAM.has('demo')) e = EJEMPLO;
+    else { try { e = JSON.parse(localStorage.getItem(BORRADOR) || 'null'); } catch (err) { e = null; } }
+    llenarForm(e || {});
+    conectarFormulario();
+    $('lamina-fecha').textContent = new Date().toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' });
+    pose($('m-estado'), 'senala'); estadoForm(); actualizarBloom();
+    // el léxico de Bloom es el mismo módulo que usa el Worker (compartido/bloom.js)
+    import('../../compartido/bloom.js').then(function (m) { F.bloom = m; actualizarBloom(); estadoForm(); })
+      .catch(function (err) { console.error('No se pudo cargar el léxico de Bloom', err); });
   }
   // la meta de la ficha con la gramática de las fichas del atlas: puntos de nivel; barra del
   // área y anillo del programa en el color del área (la del programa entre las 100 parecidas)
@@ -1083,21 +1650,26 @@
     var e = S.datos.entrada, nv = GRADOS.indexOf(e.degree) + 1, col = noche() ? NIVEL_NOCHE : NIVEL_DIA, dots = '';
     for (var k = 0; k < 4; k++) dots += k < nv ? '<i style="background:' + col[k] + ';box-shadow:none"></i>' : '<i></i>';
     var mismos = S.vec.filter(function (t) { return sinAcento(t.programa) === sinAcento(e.program); });
-    var ar = (mismos.length ? contar(mismos, function (t) { return t.area; }) : [[0]])[0][0];
+    var ar = mismos.length ? contar(mismos, function (t) { return t.area; })[0][0] : (F.prog ? F.prog.area : 0);
     $('ficha').style.setProperty('--area', areaHex(ar));
-    $('meta').innerHTML = '<span style="--c:' + areaHex(ar) + '" title="' + AREA_NOMBRE[ar] + '"><i class="g-ar"></i><i class="g-pr"></i><b>' + esc(e.program) + '</b></span>' +
+    $('meta').innerHTML = (e.program ? '<span style="--c:' + areaHex(ar) + '" title="' + AREA_NOMBRE[ar] + '"><i class="g-ar"></i><i class="g-pr"></i><b>' + esc(e.program) + '</b></span>' : '') +
       '<span title="' + esc(e.degree) + ', nivel ' + nv + ' de 4"><span class="g-nv">' + dots + '</span>' + esc(e.degree) + '</span>' +
-      '<span>' + esc(e.study_period.label) + '</span>';
+      (e.study_period.applies ? '<span>' + esc(e.study_period.label) + '</span>' : '');
   }
-  function aplicarColor() { document.documentElement.style.setProperty('--c', colorCampo(S.datos.ubicacion.campo[0].id)); }
+  function aplicarColor() { if (S.datos) document.documentElement.style.setProperty('--c', colorCampo(S.datos.ubicacion.campo[0].id)); }
   $('modo').onclick = function () {
     document.body.classList.toggle('noche'); this.textContent = noche() ? 'Día' : 'Noche';
+    if (document.body.classList.contains('escribiendo')) { pintarPrograma(); pintarPuntosGrado(); pintarPeriodo(); actualizarBloom(); return; }
     aplicarColor(); leyendaAreas(); pintarMeta();
-    if (S.puntos) capaMapa(dibujarMapa(vistaFinal));
+    if (S.puntos && S.datos) capaMapa(dibujarMapa(vistaFinal));
   };
   $('repetir').onclick = reiniciar;
-  window.addEventListener('resize', function () { if (S.puntos) { vistas(); capaMapa(dibujarMapa(vistaFinal)); } });
-  cargar().catch(function (err) { estado('No se pudo cargar el ejemplo: ' + esc(err.message)); console.error(err); });
+  window.addEventListener('resize', function () { if (S.puntos && S.datos && !document.body.classList.contains('escribiendo')) { vistas(); capaMapa(dibujarMapa(vistaFinal)); } });
+  colorMascota(tok('--link')); pose($('m-estado'), 'senala');
+  cargarBase().then(function () {
+    iniciarFormulario();
+    if (PARAM.has('demo') && EJEMPLO) analizar(EJEMPLO);
+  }).catch(function (err) { estado('<b>No se pudieron cargar los datos del mapa.</b> ' + esc(err.message)); console.error(err); });
 })();
 </script>
 </body>

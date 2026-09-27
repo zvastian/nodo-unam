@@ -3130,3 +3130,57 @@ Con las propuestas 1 a 3 se calculan unos 50 análisis al día solo en Groq, y d
 - **Barra de estado:** «Escribe tu tesis», con cuatro guiones que se llenan: título, Problematiza, objetivos, y programa con grado.
 - **Sesión:** se escribe sin cuenta; la cuenta se pide al enviar, en el lugar del botón. El borrador se guarda en el navegador.
 - **Estados de esta ronda:** vacío, escribiendo, errores, invitación a iniciar sesión, enviando, noche y móvil. Quedan para otra ronda la cuota, los análisis guardados y «mis análisis».
+
+### Laboratorio: formulario de entrada construido, «la ficha se escribe» (boceto, 27-sep-2026)
+
+**Qué es.** El formulario vive en `bocetos/lab/analisis.html`, la misma página del análisis. Al enviar, la portada se queda y el análisis se despliega debajo. Sigue el brief confirmado y `DESIGN.md`.
+
+**Portada.** Título a tamaño de cubierta, Problematiza y fila meta.
+- **Programa:** autocompletado sobre los 1,126 programas del corpus, con su número de tesis. Al elegir uno, la portada toma el color del área más común del programa y la mascota también cambia de color.
+- **Grado:** radios nativos con aspecto de pestañas y los puntos de nivel.
+- **Periodo:** dos años y la línea de tiempo del análisis.
+
+**Objetivos.**
+- Renglones numerados: Enter abre el siguiente; retroceso en uno vacío lo quita.
+- La escalera de Bloom se dibuja en vivo con `compartido/bloom.js`, el mismo módulo del Worker, importado de forma dinámica. Los verbos ambiguos van bajo los nombres de nivel, con un corchete sobre los peldaños posibles.
+- Una nota bajo el objetivo solo en los casos límite: vago, fuera del léxico, método, trámite, sin verbo, dos verbos, ambiguo y otro idioma.
+- Bajo la escalera, las observaciones de estructura: crear sin evaluar, por debajo de lo esperado para el grado y demasiados objetivos.
+
+**Barra de estado.** «Escribe tu tesis», con cuatro guiones: título, Problematiza, objetivos, y programa con grado. Cada guion lleva a su campo, y el lomo muestra el título mientras se escribe.
+
+**Envío y beta.**
+- «Analizar mi tesis», con la línea de beta y apoyo.
+- Sin sesión, la invitación ocupa el lugar del botón: Google o enlace al correo. El inicio de sesión todavía no está conectado (Supabase en la interfaz, pendiente).
+- **Borrador:** se guarda en el navegador con `try`/`catch` y sobrevive a recargas.
+- **Errores:** debajo de cada campo, en español llano.
+
+**Modos del boceto:**
+- `?ejemplo` llena el formulario con el caso de ejemplo;
+- `?sesion=local` simula una sesión y corre el análisis con los datos reales del servicio de datos para la entrada escrita;
+- `?demo` hace las dos cosas y analiza sola, que es el recorrido de antes.
+
+La lectura de IA de ejemplo (`ia_ejemplo.json`) solo se muestra para el caso de ejemplo. Con otra entrada, el análisis entrega los datos y dice que la lectura con IA llega con la cuenta: no se inventa.
+
+**Hallazgo de datos.** En `tesis_meta`, el índice de programa empieza en 1 (0 = sin dato; k es `programas[k-1]`). Un primer intento lo leía desde 0, y Economía (14,705 tesis) aparecía como «Economía ambiental y ecológica». Se corrigió.
+
+**Verificación headless** (`tools/cdp.mjs`, escritorio de 1600 × 900 y móvil de 390 × 844):
+- ejemplo lleno;
+- casos límite: 3 notas;
+- lista de programas: 8 opciones;
+- invitación a entrar;
+- modo noche;
+- formulario vacío con los 4 errores;
+- demo de escribir a analizar;
+- móvil.
+
+La consola queda limpia, salvo el aviso previsto cuando el servicio de datos no está levantado.
+
+**Hallazgos de la verificación y correcciones:**
+- El léxico, cargado de forma asíncrona, pisaba la barra del análisis en `?demo`; ahora el estado del formulario solo se pinta en modo escritura.
+- La banda de los verbos ambiguos se cruzaba con los arcos de la escalera; pasó debajo de los nombres de nivel.
+- La cabecera de lámina se leía «Laboratorio en beta Tu tesis»; quedó «**Laboratorio** Tu tesis» a la izquierda y «Versión beta» junto a la fecha.
+
+**Detector de la guía de diseño** (en modo reducido, sin sus módulos de HTML):
+- la animación de ancho de las barras-filtro es previa;
+- el radio de 3 px de las barras ya se documentó como `barra` en `DESIGN.md`;
+- los tamaños de 16 y 12 px se documentaron como `campo` y `grafica`, y los de 30 y 17 px en móvil, en Layout.
