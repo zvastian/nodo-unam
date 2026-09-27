@@ -10,14 +10,17 @@
 export const NIVELES = ['Recordar', 'Comprender', 'Aplicar', 'Analizar', 'Evaluar', 'Crear'];
 
 // Verbo en infinitivo, sin acentos -> nivel (0 a 5).
+// «interpretar» va en Analizar, no en Comprender (decisión del usuario, 27-sep-2026): en humanidades
+// interpretar un discurso o una obra es el acto analítico central, y en Comprender marcaba un falso
+// retroceso tras «analizar» (caso historia_arte de la evaluación).
 const NIVEL = {};
 const porNivel = [
   'recordar reconocer enumerar listar nombrar definir memorizar localizar recuperar citar',
-  'comprender explicar interpretar resumir clasificar categorizar contextualizar caracterizar describir ' +
+  'comprender explicar resumir clasificar categorizar contextualizar caracterizar describir ' +
     'ejemplificar inferir parafrasear ilustrar exponer',
   'aplicar utilizar usar implementar emplear calcular resolver modelar ejecutar simular operacionalizar ' +
     'estimar cuantificar',
-  'analizar comparar contrastar examinar diferenciar distinguir relacionar correlacionar desglosar ' +
+  'analizar interpretar comparar contrastar examinar diferenciar distinguir relacionar correlacionar desglosar ' +
     'descomponer atribuir deconstruir',
   'evaluar valorar juzgar justificar argumentar criticar verificar validar comprobar ponderar calificar ' +
     'dictaminar defender priorizar recomendar',

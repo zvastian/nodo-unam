@@ -3088,3 +3088,18 @@ Resultado: *«Proponer mejoras sin haberlas evaluado previamente puede generar r
 Total: **unos 40–75 USD al mes con Cloud Run y 50–85 con Modal**. Se propone pedir **unos 100 USD al mes**, del orden de 1,800 a 2,000 MXN.
 
 Esa escala exige tarjeta en Groq y en el servicio de datos: el mismo obstáculo que con Google, que se resuelve con la cuenta a la que llegue el financiamiento.
+
+## Léxico: «interpretar» pasa a Analizar; reducción de tokens en pendiente (2026-09-27)
+
+**Decisión del usuario:** «interpretar» sube de Comprender a Analizar.
+- **Por qué:** en humanidades, interpretar un discurso o una obra es el acto analítico central. En Comprender marcaba un falso retroceso tras «analizar» (caso `historia_arte` de la evaluación).
+- **Dónde cambió:** en `compartido/bloom.js` y en el extracto de la plantilla.
+- **Verificación:** una prueba nueva confirma que el caso ya no marca retroceso; `npm run prueba:bloom` da 13 de 13.
+
+**Pendiente para después: bajar los tokens por análisis.** Hoy son unos 6,000 en Groq; la meta es de 3,500 a 4,000, sin bajar la calidad. Cada propuesta se comprueba con 2 o 3 casos de `evaluacion/casos_ia.json`, no con la corrida completa.
+1. **Menos contexto:** pasar las tesis más parecidas que recibe el modelo de 8 a 5.
+2. **Una llamada para nota y preguntas:** así el texto del estudiante y las señales del corpus no se mandan dos veces.
+3. **Instrucciones más cortas.** La lista de verbos por nivel, sobre todo, pesa mucho en el prompt de Bloom.
+4. **La nota en `gpt-oss-20b`:** Groq cuenta el cupo por modelo, así que el modelo pequeño tiene el suyo. Contradice el «mismo modelo en todo» de ADR-0015 y habría que evaluar su calidad.
+
+Con las propuestas 1 a 3 se calculan unos 50 análisis al día solo en Groq, y de 75 a 80 en total.

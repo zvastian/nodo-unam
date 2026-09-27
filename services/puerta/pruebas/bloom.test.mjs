@@ -16,6 +16,12 @@ test('verbos del léxico, un nivel cada uno', () => {
   assert.equal(nivel('Diseñar un prototipo de riego'), 'Crear');
 });
 
+test('interpretar es Analizar: sin falso retroceso en humanidades', () => {
+  assert.equal(nivel('Interpretar el discurso histórico sobre el pasado prehispánico'), 'Analizar');
+  const r = clasificarObjetivos(['Se analizará la iconografía del mural', 'Interpretar el discurso histórico del mural']);
+  assert.ok(!r.objetivos[1].banderas.includes('retroceso'));
+});
+
 test('verbo fuera del léxico: sin nivel', () => {
   for (const o of ['Visibilizar la violencia de género en el aula', 'Coadyuvar al desarrollo regional', 'Abonar a la discusión sobre el agua', 'Problematizar la noción de ciudadanía']) {
     assert.ok(tiene(o, 'fuera_lexico'), o);
