@@ -10,16 +10,20 @@ Configuración por variables de entorno:
   LAB_HILOS        hilos de ONNX Runtime (0 = los que decida)
   LAB_MODELO       archivo del modelo dentro de modelo/ (por defecto model_fp32.onnx; ver evaluar.py)
   LAB_NPROBE       listas del índice IVF que se recorren por búsqueda (por defecto 768)
+  LAB_CLAVE        clave compartida con el Worker puerta; si está puesta, /v1/* exige la cabecera
+                   X-Lab-Clave (en local puede ir vacía para que el boceto llame directo)
 
 Privacidad: ningún texto de la tesis va a los logs; solo tiempos y tamaños.
 """
+import hmac
 import logging
 import os
 import time
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
@@ -45,6 +49,18 @@ async def ciclo(app):
 
 app = FastAPI(title="NodOS: servicio de datos del Laboratorio", lifespan=ciclo, docs_url=None, redoc_url=None)
 origenes = [o.strip() for o in os.getenv("LAB_ORIGENES", "").split(",") if o.strip()]
+CLAVE = os.getenv("LAB_CLAVE", "")
+
+
+@app.middleware("http")
+async def exigir_clave(request: Request, siguiente):
+    # Antes de validar el cuerpo: sin la clave no se responde ni siquiera un 422.
+    if CLAVE and request.url.path.startswith("/v1/") and request.method != "OPTIONS":
+        if not hmac.compare_digest(request.headers.get("x-lab-clave", "").encode(), CLAVE.encode()):
+            return JSONResponse({"detail": "sin clave"}, status_code=401)
+    return await siguiente(request)
+
+
 if origenes:
     app.add_middleware(CORSMiddleware, allow_origins=origenes, allow_methods=["POST"], allow_headers=["Content-Type"])
 

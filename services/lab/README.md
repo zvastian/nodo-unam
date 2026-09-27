@@ -6,7 +6,8 @@ ubicación en el mapa (campo, tema, subtema), saturación, tesis cercanas, aseso
 más parecidas. La salida tiene el mismo formato que `pipeline/lab_contexto.py`, así que la plantilla
 del Laboratorio la lee tal cual.
 
-En producción solo lo llama el Worker puerta, que verifica sesión, Turnstile y cuota. Este servicio
+En producción solo lo llama el [Worker puerta](../puerta/README.md), con la clave compartida `LAB_CLAVE`;
+el Worker verifica sesión, Turnstile y cuota. Este servicio
 no ve cuentas ni guarda nada, y no escribe textos de tesis en los logs.
 
 ## Cómo funciona
@@ -65,6 +66,33 @@ Da la misma salida que el servicio en Windows, a unos 300 ms por petición y con
 Con los artefactos montados desde Windows arranca en unos 36 s, porque la lectura a través de WSL
 es lenta.
 
+### En Modal (prueba del 26-sep-2026)
+
+Alternativa a Cloud Run: Google rechazó la tarjeta (`OR_BACR2_59`). `modal_app.py` sirve la misma
+app sin cambios; los artefactos viven en el volumen `nodos-lab-artefactos` y la clave compartida en
+el secreto `nodos-lab`.
+
+```sh
+# En Git Bash: MSYS_NO_PATHCONV=1, o las rutas del volumen se convierten en C:/Program Files/Git/...
+modal volume put nodos-lab-artefactos meta.parquet /meta.parquet     # uno por archivo, sin model_int8
+modal deploy services/lab/modal_app.py
+python services/lab/medir_remoto.py https://<workspace>--nodos-lab-servicio.modal.run --frio
+```
+
+Medido con `medir_remoto.py` (2 núcleos, 4 GiB, un solo contenedor):
+
+| | Resultado |
+|---|---|
+| Arranque en frío | 12 a 16 s hasta la primera respuesta (11.4 s cargando modelo e índice del volumen) |
+| Análisis despierto | Mediana de 721 ms de ida y vuelta: 299 ms de embedding, 37 ms de contexto y unos 385 ms de red |
+| Resultado | Las mismas 100 vecinas y la misma ubicación que el script offline en el caso de ejemplo; solo cambian similitudes en la cuarta cifra decimal, por el SQ8 |
+| Sin la clave | 401 |
+| Gasto | 0.01 USD por 4 arranques y unos 20 análisis |
+
+Costo estimado: cada minuto despierto cuesta unos 0.2 centavos de dólar. Con 2 minutos despierto tras la última
+petición, un análisis aislado cuesta unos 0.5 centavos: el dólar gratis sin tarjeta da unos 200 y
+los 30 USD con tarjeta unos 6,000 al mes.
+
 ## API
 
 - `GET /salud`: `{"ok": true, "arranque_s": 5.0}`.
@@ -81,6 +109,7 @@ es lenta.
 | `LAB_NPROBE` | `768` | Listas del índice IVF que se recorren por búsqueda |
 | `LAB_HILOS` | `0` (automático) | Hilos de ONNX Runtime |
 | `LAB_ORIGENES` | vacío | Orígenes CORS; solo en local, porque en producción llama el Worker |
+| `LAB_CLAVE` | vacío | Clave compartida con el [Worker puerta](../puerta/README.md). Si está puesta, `/v1/*` exige la cabecera `X-Lab-Clave` y responde 401 antes de validar el cuerpo. En producción es obligatoria |
 
 ## Recursos (medidos en local, Windows)
 
