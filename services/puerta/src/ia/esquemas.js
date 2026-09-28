@@ -1,5 +1,5 @@
 // Esquemas de salida de las 3 llamadas de IA (nota, Bloom, preguntas), en el formato que pinta la
-// plantilla del Laboratorio (bocetos/lab/analisis.html, v3). Toda salida se valida aquí antes de
+// plantilla del Laboratorio (laboratorio.html, v3). Toda salida se valida aquí antes de
 // llegar al navegador: Workers AI no garantiza el esquema y Groq solo lo aplica si el modelo lo admite.
 
 const texto = (max) => ({ type: 'string', maxLength: max });

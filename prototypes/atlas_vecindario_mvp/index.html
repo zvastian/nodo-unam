@@ -31,6 +31,7 @@
     --border: var(--line);
     --panel-bg: var(--paper);
     --nav-h: 56px;
+    --pie-fondo: #12294d; --pie-tinta: #ffffff; /* marino de la marca: la inicial de la cuenta */
     color-scheme: light;
   }
   body.noche {
@@ -95,8 +96,14 @@
   .navlinks { display: flex; align-items: stretch; gap: 22px; height: 100%; }
   .navlinks button { border: none; background: none; cursor: pointer; font-size: 14px; color: var(--ink-2); padding: 0; border-bottom: 2px solid transparent; border-top: 2px solid transparent; }
   .navlinks button:hover { color: var(--ink); }
+  /* el Laboratorio es otra página: enlace con el mismo aspecto que las pestañas */
+  .navlinks a { display: inline-flex; align-items: center; font-size: 14px; color: var(--ink-2); text-decoration: none; border-bottom: 2px solid transparent; border-top: 2px solid transparent; }
+  .navlinks a:hover { color: var(--ink); text-decoration: none; }
+  /* «beta» sobre Laboratorio: una anotación en tinta tenue, no una insignia */
+  .navlinks a { position: relative; }
+  .nav-beta { position: absolute; right: 0; top: 7px; font-size: 10.5px; font-weight: 500; line-height: 1; color: var(--ink-3); pointer-events: none; }
   .navlinks button.active { color: var(--ink); font-weight: 600; border-bottom-color: var(--ink); }
-  .navsearch { margin-left: auto; display: flex; align-items: center; gap: 8px; width: min(320px, 34vw); height: 34px; padding: 0 10px; border: 1px solid var(--line-strong); border-radius: 2px; background: var(--paper); color: var(--ink-3); font-size: 14px; cursor: text; text-align: left; }
+  .navsearch { display: flex; align-items: center; gap: 8px; width: min(320px, 34vw); height: 34px; padding: 0 10px; border: 1px solid var(--line-strong); border-radius: 2px; background: var(--paper); color: var(--ink-3); font-size: 14px; cursor: text; text-align: left; }
   .navsearch:hover { border-color: var(--ink-3); }
   /* v4.16: Ajustes. Panel anclado bajo la barra (no una tarjeta flotante con sombra) */
   .navajustes { display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 2px; border: 0; background: none; font: inherit; font-size: 14px; color: var(--ink-2); cursor: pointer; }
@@ -120,7 +127,8 @@
   .filterbar { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; min-height: 44px; padding: 6px 24px; background: var(--paper); border-bottom: 1px solid var(--line); position: relative; z-index: 11; flex-shrink: 0; }
   .fb-title { display: none; }
   .fb-group { display: flex; align-items: center; gap: 14px; margin-left: auto; }
-  .filterbar .fb-count { margin-left: auto; }
+  .filterbar .fb-count { margin-left: 0; }
+  .filterbar .navsearch { margin-left: auto; height: 32px; }
   .fb-label { font-size: 14px; color: var(--ink-3); }
   .fb-count { font-size: 13px; color: var(--ink-3); }
   /* [3] la ruta deja de flotar sobre el mapa: vive en la barra */
@@ -503,9 +511,30 @@
   .tt-fila .guardar { padding-top: 12px; }
   #panel .tt-fila .guardar { padding-top: 10px; }
   .guardar { align-self: start; background: none; border: 0; padding: 2px; cursor: pointer; color: var(--ink-3); line-height: 0; }
-  .guardar:hover, .guardar-txt:hover .ico { color: var(--ink); }
   .guardar .ico, .guardar-txt .ico { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linejoin: round; }
   .guardar-txt { gap: 6px; }
+  /* color al pasar y guardado, y la animación: compartido/cuenta.css */
+  #panel .panel-acc { margin-top: 8px; }
+  /* lo guardado, junto al buscador: el marcador abre la lista */
+  .navguardados { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; margin-left: -14px; border: 1px solid var(--line-strong); border-radius: 2px; background: var(--paper); color: var(--ink-2); cursor: pointer; }
+  .navguardados:hover, .navguardados[aria-expanded="true"] { border-color: var(--ink-3); }
+  .navguardados.hay { color: var(--guardado); }
+  .navguardados.hay svg { fill: currentColor; }
+  .navguardados:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+  #guardados-menu { position: absolute; top: 100%; right: 24px; z-index: 30; width: 380px; max-width: calc(100vw - 28px); max-height: min(62vh, 560px); overflow-y: auto; background: var(--paper); border: 1px solid var(--line-strong); border-top: 0; padding: 4px 0 10px; }
+  #guardados-menu .gd-cab { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 10px 18px 2px; }
+  #guardados-menu .gd-cab h4 { margin: 0; font-size: 14px; font-weight: 700; color: var(--ink); }
+  #guardados-menu .gd-cab a { font-size: 13px; color: var(--link); }
+  #guardados-menu .s-sec span { font-weight: 400; color: var(--ink-3); }
+  .gd-fila { display: grid; grid-template-columns: 4px minmax(0, 1fr) auto; gap: 12px; align-items: stretch; padding: 6px 12px 6px 18px; }
+  .gd-fila .sr-bar { display: block; width: 4px; }
+  .gd-ir { border: 0; background: none; padding: 0; text-align: left; font: inherit; font-size: 14px; line-height: 1.35; color: var(--ink); cursor: pointer; min-width: 0; overflow-wrap: anywhere; }
+  .gd-ir small { display: block; font-size: 12.5px; color: var(--ink-3); margin-top: 1px; }
+  .gd-ir:hover > span, .gd-ir:focus-visible > span { text-decoration: underline; text-underline-offset: 2px; }
+  .gd-x { align-self: start; display: inline-flex; border: 0; background: none; padding: 3px; color: var(--ink-3); cursor: pointer; }
+  .gd-x:hover { color: var(--ink); }
+  .gd-x svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 1.6; stroke-linecap: round; }
+  .gd-nada { margin: 0; padding: 10px 18px 4px; font-size: 14px; color: var(--ink-2); line-height: 1.5; }
   .tt:hover .tt-t { color: var(--link); }
   .tt-a { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--ink-3); }
   .tt-a .tc-nv { display: inline-flex; gap: 2px; margin: 0; }
@@ -598,6 +627,8 @@
     .navajustes span { display: none; }
     .filterbar { padding: 6px 14px; gap: 12px; }
     .fb-count { display: none; }
+    .navguardados { margin-left: -4px; }
+    #guardados-menu { right: 14px; }
     #minimap, #mm-show { display: none !important; }
     aside#panel, #map-selection { width: 100vw; max-width: 100vw; }
     main.panel-open #iso-chip { right: 0; }
@@ -642,6 +673,7 @@
   #modo-mapa button { gap: 10px; font-size: 14px; }
   #modo-mapa img { width: 96px; height: 96px; }
 </style>
+<link rel="stylesheet" href="compartido/cuenta.css">
 </head>
 <body>
 <div class="app">
@@ -649,8 +681,8 @@
     <a class="brand" href="./" title="NodOS: mapa de 609,154 tesis de la UNAM ordenadas por lo que dicen sus títulos"><svg class="brand-logo" viewBox="226 142 873 864" fill-rule="evenodd" role="img" aria-label="NodOS"><path class="lg-nodo-1" fill="var(--nodos-azul-1, #143a6b)" d="M591.3 766.3C600.2 762.1 606.1 757.1 611 749.8C618.5 738.6 620.8 725.1 617.5 711.3C616.7 707.9 612.5 697.9 608.1 689C598.3 669.1 594.7 659.4 591.3 643.2C588.9 631.9 588.6 628.4 588.6 610.5C588.6 589 589.8 579.9 594.6 563.3C604.5 529 629.6 510.7 661 515C690.4 518.9 737 544.2 742.1 559C742.7 560.6 743.5 562 743.8 562C744.2 562 745.5 557.8 746.7 552.7C749.8 540 754.1 532 762.6 523L769.8 515.5L761.6 515.4C739.4 515.1 707.6 503.3 686.8 487.6C670.2 475.1 661.7 461.7 657.4 441.3C652.3 416.5 646.7 407.2 629 393.4C606.2 375.7 596.4 360.5 591 333.9C589.1 324.9 588.9 321.2 589.3 306.5C589.7 291.7 590.2 288 592.8 277.7C596.4 264 603.2 249.2 611.3 237.2C618.8 226.3 620.7 222.3 623.1 213.3C627.6 195.4 623.2 178.4 610.5 165.4C596.5 151.2 574.4 146.3 555.7 153.4C543.3 158.1 534.1 166.1 528.5 177.2C524.1 186 522.6 193.5 523.3 203.5C524 214.5 527 223 533.6 233.6C550.9 261 557.3 279.4 558.7 304.6C560 330.8 553.3 356.6 540.4 374.1C534.6 382.1 523.7 391.6 516.3 395.1C500.4 402.7 479 398.8 457.4 384.5C447.7 378 438.1 368 428.5 354.4C416.2 336.9 406.6 328.9 393.5 325.5C373.2 320.3 352.1 329.9 342.9 348.6C340.2 354 339.6 356.7 339.2 363.4C338.3 381.4 346.6 395.8 362.5 403.6L368.5 406.5L394.5 406.6C423.9 406.7 432.5 407.8 449.5 413.7C473 421.8 487.7 434.6 494.2 452.5C497.1 460.5 497.8 475.3 495.7 483.3C491.2 500.5 472.5 517.1 451.5 522.5C448.2 523.4 437.4 524.5 427.5 525C417.6 525.5 407.2 526.6 404.3 527.4C391.8 530.8 383.1 536.7 375.4 547.2C371.4 552.7 370.1 556 364.1 575.5C360.4 588 352.2 599.6 341.8 607.6C332.1 614.8 321.1 619.7 305 623.6C297.2 625.5 288.9 628 286.6 629.2C271.9 636.5 265.5 655.6 272.7 670.8C277.4 680.8 289.3 687.6 300.5 686.7C313.1 685.7 321 679.4 329.1 663.6C336.2 649.7 339.9 644.4 347.2 637.4C354.9 630 364.9 624 375.5 620.4C382.8 617.9 385.3 617.6 405 617C428.6 616.2 433.5 615.2 442.4 609.1C452.7 602 458.4 592.8 465.7 571.6C472.1 552.7 477 544 486 534.9C496.1 524.7 504.3 520.6 514.4 520.6C520.2 520.6 522.5 521 526.8 523.3C540.8 530.6 551 547.7 556.2 572.6C558.2 582.2 558.5 586.3 558.5 607C558.4 627.3 558.1 631.8 556.3 640.3C552.7 656.7 549 666.7 539.8 684.9C527.4 709.5 524.7 719.2 527 732C530 749 541.2 762.2 557.5 767.9C562.4 769.7 565.4 770 574 769.7C583.4 769.5 585.2 769.1 591.3 766.3Z"/><path class="lg-nodo-2" fill="var(--nodos-azul-2, #2d65a8)" d="M891.3 726.4C897.7 724.2 905.2 717.3 908.1 710.8C909.9 706.8 910.4 703.7 910.5 698C910.5 691.5 910.1 689.8 907.5 685.2C904.1 678.9 900.3 676.1 887 669.8C866.4 660 855.9 648.2 847.7 625.5C837.9 598.1 845.8 565.4 867.5 543.4C885.1 525.6 906.3 516.3 934.5 513.9C948.7 512.7 954.8 510.3 960.9 503.4C965.8 497.8 968 491.6 968 483C968 470.9 962.4 463.3 948.7 456.4C937.5 450.7 931.1 446.3 923.1 438.6C911.7 427.6 904.9 416.1 899.9 399.5C899.3 397.2 898.5 384.7 898.1 370C897.4 346.8 897.2 344 895.1 338.8C889.6 324.8 878.9 315.3 863.1 310.5C845.1 305 839.5 302.9 834.2 299.8C817.6 289.7 804.9 273.6 796 251.3C791.3 239.3 789.2 229.4 788.4 215.2C787.6 200.4 786 195.8 779.1 188.9C772.5 182.3 766.7 180 757 180C748 180 742 182.3 735.6 188.1C728.3 194.7 725.5 201.1 725.6 211C725.7 224.4 731.2 231.9 746.9 240C765.9 249.7 779.8 263.8 789.1 282.5C798 300.6 799.8 314.6 796.3 338.8C795 348.4 794.9 351.6 795.9 357.8C798.9 377.7 811.6 390.6 836 398.5C847.1 402.1 859.9 408.6 867.9 414.6C880 423.7 891 440.5 894.4 455C900 478.5 889.1 499.5 867 508.2C857.7 511.8 842.7 511.9 825.5 508.4C795.3 502.4 778.6 506.3 762.7 522.9C754.2 531.9 749.9 539.8 746.7 552.8C745.4 557.8 744 562.3 743.7 562.7C743.3 563 743 564.1 743 565.1C743 568.2 738.2 578 734.3 582.9C719.6 601.2 694.1 614.1 664.3 618.5C651.1 620.4 647.6 621.5 642.7 625.1C631.5 633.1 627.2 647.4 632 660.2C636.2 671.5 645.1 678 657.6 678.8C670 679.6 678.3 674.4 685.5 661.3C696.8 640.9 712 626.5 732.4 616.9C756 605.9 777.7 605.7 800.6 616.5C811.6 621.6 818.6 626.6 826 634.7C840.9 650.7 849.2 670.8 850.6 694.4C851.7 711.3 856.1 719.4 867.2 724.9C872.2 727.4 874.5 728 880 728C883.6 728 888.7 727.3 891.3 726.4Z"/><path class="lg-punto-izq" fill="var(--nodos-punto-izq, #9cc3e6)" d="M495.4 337.9C502.3 335.4 510.3 328.2 513.7 321.6C515.8 317.6 516.4 314.6 516.8 307.8C517.2 299.7 517 298.7 514.1 292.4C508.9 281.3 500.5 274.9 488.5 273C466.1 269.4 446.2 290.6 450.9 313.2C455.1 333.2 476.4 345.1 495.4 337.9Z"/><path class="lg-punto-der" fill="var(--nodos-punto-der, #5b95cf)" d="M871 221.1C878 217.8 882.3 213.7 886.1 206.8C889.3 200.9 889.5 199.9 889.5 191C889.5 183.1 889.1 180.7 887.2 176.8C883.7 169.8 877.6 163.4 871.2 160.3C866.3 157.9 864.3 157.5 856.5 157.5C848.1 157.5 847.1 157.7 841.2 160.9C826.6 168.8 820 184.8 824.8 200.6C830.7 220 852.7 229.7 871 221.1Z"/><path class="lg-punto-centro" fill="var(--nodos-punto-centro, #5b95cf)" d="M778.5 466.6C785.2 463.6 791.5 457.1 794.9 450C797 445.4 797.5 443.1 797.5 436C797.5 428.9 797.1 426.6 794.9 421.9C791.4 414.6 786.4 409.1 779.8 405.4C774.9 402.7 773.7 402.5 764.5 402.5C753 402.5 748.7 404.1 741.2 411.4C721.7 430 730.4 462.3 756.7 469C762.6 470.4 772.5 469.4 778.5 466.6Z"/><path class="lg-palabra-nod" fill="var(--nodos-azul-1, #143a6b)" d="M662.6 993.5C671.2 990.6 678.9 986 684 980.6L687.5 976.9L688 985.2L688.5 993.5L705.8 993.8L723 994L722.8 902.8L722.5 811.5L705.5 811.5L688.5 811.5L688.2 844.4L688 877.3L682.6 872.2C672.1 862.3 659.1 857.5 642.5 857.6C629.7 857.7 619.8 860.4 609.1 866.7C574.8 887 568.1 945.5 596.4 977.7C611.1 994.5 639.5 1001.3 662.6 993.5ZM509.9 994.5C537.5 988.7 558.3 968.8 564.3 942.5C566.7 931.7 567.1 926.2 565.9 917C562 885.4 542.3 863.8 511 856.5C501.3 854.3 482.2 854.5 472.4 857C451.5 862.3 435.6 874.6 426.1 893C420.1 904.4 418.6 911.3 418.7 926.5C418.7 937.8 419.1 940.6 421.3 947.5C429.2 971.5 448.5 989 473.2 994.4C481.8 996.3 501.2 996.4 509.9 994.5ZM270 933C270 899.5 270.3 872 270.8 872.1C271.5 872.1 287 891.9 326.9 943.4C354.4 979 365.1 992.4 366.6 993.3C367.3 993.7 375 993.9 383.7 993.8L399.5 993.5L399.5 903.5L399.5 813.5L381.8 813.2L364 813L364 873C364 906 363.6 933 363.2 933C362.7 933 357.9 927.3 352.5 920.2C328.7 889.5 281.6 831 270.8 818.5L267.3 814.6L250.9 814.6L234.5 814.7L234.2 903.1C234.1 951.7 234.2 992.1 234.5 992.8C234.8 993.7 239.4 994 252.5 994L270 994L270 933ZM485.7 966C454 960.5 441.4 920.5 463.9 896.7C482.9 876.6 516.5 882 528.4 907C531.3 913.1 531.5 914.2 531.5 925C531.5 935.4 531.2 937.1 528.8 942.2C525.3 949.6 521.7 954.4 516.2 958.6C508.1 964.8 495.9 967.7 485.7 966ZM638 964.5C631.4 962.6 623.1 957.4 619.6 952.8C618.2 950.9 615.8 946.7 614.3 943.5C611.8 938.2 611.5 936.3 611.5 927.4C611.5 917.8 611.7 917.1 615.3 909.8C625 890.1 646.4 882.8 666 892.7C677.1 898.2 684 907.9 686.1 921.2C689.7 943.8 673.5 964.2 650.9 965.6C646.1 965.8 641.6 965.5 638 964.5Z"/><path class="lg-palabra-os" fill="var(--nodos-azul-2, #2d65a8)" d="M848.1 998C862.4 996.6 872.6 993.8 884.5 988C897.2 981.8 906.5 974.7 914.7 965.1C930.2 946.9 938 926.1 938 902.8C938 884.9 935.2 873.3 927.4 858C911.5 826.9 882.1 808.9 844.5 807.3C823.1 806.4 803.1 811.3 785.6 821.7C774.7 828.3 759.8 843 753.2 853.9C731.1 890.3 735.7 937.8 764.4 968.7C781.9 987.5 804.8 997.3 835 998.9C836.4 998.9 842.3 998.5 848.1 998ZM1044.5 995.1C1071.5 987.9 1088 971.2 1091.1 948C1093.9 926.1 1082.5 906.9 1060 895.6C1054.9 893.1 1040.8 887.8 1028.7 883.9C1005.6 876.5 1000.1 874.2 996.2 870.6C985.2 860.6 992.3 845.2 1010.1 840.5C1017.2 838.6 1030 838.6 1037.5 840.5C1045.5 842.5 1056.5 848 1061.9 852.6L1066.3 856.4L1069.6 852.5C1071.5 850.3 1076.2 844.3 1080.2 839.1L1087.4 829.8L1084.9 827.9C1063.2 810.7 1034.8 803.9 1006 809.1C973.8 815 954 835.2 954 862.4C954 877.2 958.3 887.3 968.6 897C977.2 905 987.1 909.7 1013.4 918.1C1043.5 927.8 1048.1 930.3 1051.5 938.3C1053.4 943 1053.4 947.3 1051.4 951.3C1046.4 961.1 1035.5 966 1018.5 966C1002 966 987.7 960.4 976.2 949.4C972.5 945.9 969.3 943 969 943C967.8 943 943.5 965.3 943.8 966.2C944.5 968.7 951.1 975.7 957.3 980.6C968 989 981.4 994.4 997.6 997C1008.1 998.6 1035.4 997.5 1044.5 995.1ZM822.2 964C811.1 961.1 803.5 956.6 794.5 947.5C781.6 934.5 776.6 921.9 776.7 902.5C776.7 888.8 779.7 878.8 786.9 867.9C805.1 840.3 837.9 831.4 867.6 846C881.4 852.7 892 865.2 897.8 881.2C900.1 887.6 900.4 890.1 900.4 901C900.5 911.2 900.1 914.8 898.3 920.5C889.8 947.2 864.5 966.1 837.5 965.9C833 965.9 826.3 965.1 822.2 964Z"/></svg></a>
     <nav class="navlinks" aria-label="Secciones">
       <button type="button" id="nav-map" class="active">Mapa</button>
-      <button type="button" id="btn-intro">Introducción</button>
-      <button type="button" id="nav-metodo">Método</button>
+      <a id="nav-lab" href="laboratorio.html">Laboratorio<span class="nav-beta">beta</span></a>
+      <button type="button" id="nav-metodo">Acerca de</button>
     </nav>
       <div id="debug-bar">
         <span class="kbd" id="zoom-readout"></span>
@@ -659,14 +691,17 @@
         </div>
         <button type="button" class="btn" id="debug-log-toggle">Log</button>
       </div>
-    <button type="button" class="navsearch" id="btn-search" aria-label="Buscar (Ctrl+K)"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5"/><path d="M10.4 10.4L14 14"/></svg><span>Buscar tema, título o asesor</span></button>
-    <button type="button" class="navajustes" id="btn-ajustes" aria-haspopup="dialog" aria-expanded="false" title="Ajustes"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h11"/><circle cx="10" cy="4.5" r="1.6" fill="#fff"/><circle cx="5.5" cy="8" r="1.6" fill="#fff"/><circle cx="11" cy="11.5" r="1.6" fill="#fff"/></svg><span>Ajustes</span></button>
+    <button type="button" class="navajustes" id="btn-ajustes" style="margin-left:auto" aria-haspopup="dialog" aria-expanded="false" title="Ajustes"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h11"/><circle cx="10" cy="4.5" r="1.6" fill="#fff"/><circle cx="5.5" cy="8" r="1.6" fill="#fff"/><circle cx="11" cy="11.5" r="1.6" fill="#fff"/></svg><span>Ajustes</span></button>
+    <div data-nds-cuenta></div>
   </header>
   <!-- Barra general de filtros (v3.2). Hoy: color. Siguientes: programa, plantel,
        año, nivel -- cada filtro nuevo es otro .fb-group aqui. -->
   <div class="filterbar" id="filterbar" role="toolbar" aria-label="Filtros del mapa">
     <nav id="crumbs" aria-label="Ubicación en el mapa" hidden></nav>
     <span class="fb-count" id="fb-count"></span>
+    <button type="button" class="navsearch" id="btn-search" aria-label="Buscar (Ctrl+K)"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5"/><path d="M10.4 10.4L14 14"/></svg><span>Buscar tema, título o asesor</span></button>
+    <button type="button" class="navguardados" id="btn-guardados" aria-haspopup="true" aria-expanded="false" aria-controls="guardados-menu" title="Lo que guardaste"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5h8v11l-4-3-4 3z"/></svg></button>
+    <div id="guardados-menu" hidden role="region" aria-label="Lo que guardaste"></div>
   </div>
   <div id="debug-log" hidden></div>
 
@@ -720,6 +755,7 @@
         <div class="panel-sub" id="panel-sub"></div>
         <h2 id="panel-title">—</h2>
         <div class="panel-kw" id="panel-kw"></div>
+        <div class="panel-acc"><button type="button" class="guardar-lugar" id="panel-guardar" aria-pressed="false"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5h8v11l-4-3-4 3z"/></svg><span>Guardar</span></button></div>
       </div>
       <div class="panel-body" id="panel-body"></div>
     </aside>
@@ -743,7 +779,7 @@
 
   <footer>
     <span>Proyecto independiente, no oficial. Datos del catálogo público TESIUNAM.</span>
-    <span><button type="button" id="foot-metodo">Cómo se hizo el mapa</button><span class="foot-sep"></span>versión <span id="app-version">4.22.2</span></span>
+    <span><button type="button" id="foot-metodo">Cómo se hizo el mapa</button><span class="foot-sep"></span>versión <span id="app-version">4.23.0</span></span>
   </footer>
 </div>
 
@@ -823,6 +859,9 @@
   <div class="tl-body" id="tl-body"></div>
 </section>
 
+<!-- supabase-js 2.117.2 (UMD), versión exacta con SRI, y la sesión compartida (compartido/sesion.js) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js" integrity="sha384-Rj26LVGvoeRVR6+mwQmFfcR3QOBEwT+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok" crossorigin="anonymous"></script>
+<script src="compartido/sesion.js"></script>
 <script>
 (function () {
   'use strict';
@@ -1032,7 +1071,13 @@
 
     var seen = false;
     try { seen = localStorage.getItem('nodo_atlas_intro_v3') === '1'; } catch (e) { /* almacenamiento bloqueado: se muestra la intro */ }
-    if (seen || DEBUG) finishSemantic(false); else startIntro();
+    // index.html#metodo (desde el Laboratorio): abre Método sin la intro
+    var aMetodo = location.hash === '#metodo';
+    var ir = new URLSearchParams(location.search), irLugar = ir.get('lugar'), irTesis = ir.get('tesis'), irAsesor = ir.get('asesor');
+    var aGuardado = !!(irLugar || irTesis || irAsesor);
+    if (seen || DEBUG || aMetodo || aGuardado) finishSemantic(false); else startIntro();
+    if (aMetodo) showMetodo(true);
+    if (irLugar) irALugar(irLugar); else if (irTesis) irATesis(irTesis); else if (irAsesor) irAAsesor(irAsesor);
   }
 
   // Indices de puntos por macro (CSR): memberIdx[memberStart[m] .. memberStart[m+1]).
@@ -2124,6 +2169,7 @@
   function renderNodeView(n) {
     var lvl = n.level || 'macro';
     $('panel-title').textContent = n.name;
+    pintarLugar();
     // encabezado: color del territorio y todas sus palabras clave (el nombre solo lleva dos o tres)
     panel.classList.add('clu'); panel.style.setProperty('--c', colorNodo(n));
     pintaLocator($('panel-loc'), 60, null, null); // la silueta de inmediato; sus puntos al cargar sus tesis
@@ -2588,13 +2634,188 @@
   // PENDIENTE: sin cuenta, el boton es la invitacion a crearla: abrira una pagina propia
   // (como Ajustes, con el fondo desenfocado) y, ya con cuenta, guardara la tesis.
   var ICO_GUARDAR = '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5h8v11l-4-3-4 3z"/></svg>';
+  function tesisGuardada(idx) { return !!(window.NodOS && NodOS.guardados.tesis.has(state.thesisIds[idx])); }
   function btnGuardar(idx) {
-    return idx == null ? '' : '<button type="button" class="guardar" data-guardar="' + idx + '" title="Guardar tesis" aria-label="Guardar tesis">' + ICO_GUARDAR + '</button>';
+    if (idx == null) return '';
+    var on = tesisGuardada(idx);
+    return '<button type="button" class="guardar' + (on ? ' on' : '') + '" data-guardar="' + idx + '" aria-pressed="' + on + '" title="' + (on ? 'Guardada en Mi espacio' : 'Guardar en Mi espacio') + '" aria-label="Guardar tesis">' + ICO_GUARDAR + '</button>';
   }
-  function guardarTesis(idx) { dlog('guardar tesis ' + state.thesisIds[idx] + ' (pendiente: cuenta)'); }
+  function pintarGuardada(idx, on) {
+    document.querySelectorAll('[data-guardar="' + idx + '"]').forEach(function (g) {
+      g.classList.toggle('on', on); g.setAttribute('aria-pressed', on); g.title = on ? 'Guardada en Mi espacio' : 'Guardar en Mi espacio';
+      if (g.classList.contains('guardar-txt')) g.innerHTML = ICO_GUARDAR + (on ? 'Guardada' : 'Guardar tesis');
+    });
+    pintarBtnGuardados();
+  }
+  // lo que se muestra de la tesis en Mi espacio: título, año, programa, nivel y plantel del catálogo público
+  function datosTesisMapa(idx) {
+    var info = pointInfo(idx) || {}, d = { titulo: info.t, anio: info.y, area: state.areaCode ? state.areaCode[idx] : null };
+    if (tmeta) {
+      var pr = tmeta.pr[idx], nv = tmeta.nv[idx], pl = tmeta.pl[idx];
+      if (pr) d.programa = tmeta.m.programas[pr - 1];
+      if (nv) d.nivel = tmeta.m.niveles[nv - 1];
+      if (pl && tmeta.m.planteles) d.plantel = tmeta.m.planteles[pl - 1];
+    }
+    return d;
+  }
+  function guardarTesis(idx, boton) {
+    if (!window.NodOS) return;
+    if (!NodOS.usuario()) { NodOS.abrirEntrar(boton); return; }
+    var id = state.thesisIds[idx], on = !tesisGuardada(idx);
+    pintarGuardada(idx, on); NodOS.animarGuardado(boton, on);
+    (tmeta ? Promise.resolve() : loadTesisMeta()).then(function () { return NodOS.guardarTesis(id, on ? datosTesisMapa(idx) : null, on); })
+      .catch(function (err) { pintarGuardada(idx, !on); dlog('guardar tesis: ' + (err.codigo || err.message)); });
+  }
+  // asesor: el mismo marcador en su ficha del mapa
+  function btnGuardarAsesor(nombre) {
+    var k = window.NodOS ? NodOS.claveAsesor(nombre) : '', on = !!(window.NodOS && NodOS.guardados.asesores.has(k));
+    return '<button type="button" class="guardar-as' + (on ? ' on' : '') + '" data-as="' + escapeHtml(k) + '" data-nombre="' + escapeHtml(nombre) + '" aria-pressed="' + on + '"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5h8v11l-4-3-4 3z"/></svg><span>' + (on ? 'Guardado' : 'Guardar') + '</span></button>';
+  }
+  document.addEventListener('click', function (ev) {
+    var b = ev.target.closest && ev.target.closest('.guardar-as'); if (!b || !window.NodOS) return;
+    ev.stopPropagation();
+    if (!NodOS.usuario()) { NodOS.abrirEntrar(b); return; }
+    var nombre = b.getAttribute('data-nombre'), si = !b.classList.contains('on'), aid = ases.nombres ? ases.nombres.indexOf(nombre) : -1, datos = {};
+    if (aid >= 0) { datos.total = ases.n[aid]; var ult = 0; tesisDeAsesor(aid).forEach(function (i) { if (ases.anio[i] > ult) ult = ases.anio[i]; }); if (ult) datos.ultimo = ult; }
+    var pinta = function (on) { b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); b.querySelector('span').textContent = on ? 'Guardado' : 'Guardar'; pintarBtnGuardados(); };
+    pinta(si); NodOS.animarGuardado(b, si);
+    NodOS.guardarAsesor(nombre, datos, si).catch(function (err) { pinta(!si); dlog('guardar asesor: ' + (err.codigo || err.message)); });
+  }, true);
+  // al entrar o salir, los botones visibles se actualizan
+  if (window.NodOS) NodOS.alCambiar(function () {
+    document.querySelectorAll('[data-guardar]').forEach(function (g) { pintarGuardada(+g.getAttribute('data-guardar'), tesisGuardada(+g.getAttribute('data-guardar'))); });
+    document.querySelectorAll('.guardar-as[data-as]').forEach(function (g) { var on = NodOS.guardados.asesores.has(g.getAttribute('data-as')); g.classList.toggle('on', on); g.setAttribute('aria-pressed', on); g.querySelector('span').textContent = on ? 'Guardado' : 'Guardar'; });
+    pintarLugar(); pintarBtnGuardados();
+    if (!$('guardados-menu').hidden) listaGuardados();
+  });
+
+  // ---------- lugares del mapa: campos, temas y subtemas ----------
+  // clave: «macro:31», «meso:31.C4», «micro:31.U281» (el campo va en la clave para cargar sus hijos)
+  function claveLugar(n) { var l = n.level || 'macro'; return l === 'macro' ? 'macro:' + n.macroId : l + ':' + n.macroId + '.' + n.id; }
+  function lugarActual() { var t = state.panelStack.length && state.panelStack[state.panelStack.length - 1]; return t && t.type === 'node' ? t.node : null; }
+  function pintarLugar() {
+    var b = $('panel-guardar'), n = lugarActual(); if (!n) return;
+    var on = !!(window.NodOS && NodOS.guardados.lugares.has(claveLugar(n)));
+    b.classList.toggle('on', on); b.setAttribute('aria-pressed', on);
+    b.querySelector('span').textContent = on ? 'Guardado' : 'Guardar';
+    b.title = on ? 'Guardado en Mi espacio' : 'Guardar ' + LEVEL_LABEL[n.level || 'macro'].toLowerCase() + ' en Mi espacio';
+  }
+  $('panel-guardar').addEventListener('click', function () {
+    var b = this, n = lugarActual(); if (!n || !window.NodOS) return;
+    if (!NodOS.usuario()) { NodOS.abrirEntrar(b); return; }
+    var k = claveLugar(n), si = !NodOS.guardados.lugares.has(k), l = n.level || 'macro';
+    var datos = { nombre: n.name, nivel: l, tesis: n.size, color: colorNodo(n) };
+    if (l !== 'macro' && n.parentMacro) datos.campo = n.parentMacro.name;
+    if (si) NodOS.guardados.lugares.add(k); else NodOS.guardados.lugares.delete(k);
+    pintarLugar(); pintarBtnGuardados(); NodOS.animarGuardado(b, si);
+    NodOS.guardarLugar(k, datos, si).catch(function (err) {
+      if (si) NodOS.guardados.lugares.delete(k); else NodOS.guardados.lugares.add(k);
+      pintarLugar(); pintarBtnGuardados(); dlog('guardar lugar: ' + (err.codigo || err.message));
+    });
+  });
+
+  // ---------- ir a lo guardado: desde la lista del mapa y desde Mi espacio (?lugar=, ?tesis=, ?asesor=) ----------
+  function irALugar(clave) {
+    var m = /^(macro|meso|micro):(\d+)(?:\.(.+))?$/.exec(clave || ''); if (!m) return;
+    var macroId = +m[2];
+    if (m[1] === 'macro') { if (state.macroById[macroId]) selectNode(state.macroById[macroId], true); return; }
+    (m[1] === 'meso' ? loadMeso : loadMicro)(macroId).then(function (d) {
+      var n = d.nodes.filter(function (x) { return x.id === m[3]; })[0];
+      if (n) selectNode(n, true);
+    });
+  }
+  function irATesis(id) {
+    var idx = state.thesisIdToIndex.get(id);
+    if (idx != null) onPointClick(idx, 1 / (K_MICRO * 1.2));
+  }
+  function irAAsesor(nombre) {
+    loadAsesores().then(function () {
+      var aid = ases.nombres.indexOf(nombre);
+      if (aid < 0 && window.NodOS) { var k = NodOS.claveAsesor(nombre); aid = ases.nombres.findIndex(function (x) { return NodOS.claveAsesor(x) === k; }); }
+      if (aid >= 0) verAsesor(aid);
+    }).catch(function (e) { dlog('asesor guardado: ' + e.message); });
+  }
+
+  // ---------- la lista de lo guardado, junto al buscador ----------
+  var ICO_X = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 4.5l7 7M11.5 4.5l-7 7"/></svg>';
+  var gd = { filas: [] };
+  function pintarBtnGuardados() {
+    var g = window.NodOS && NodOS.guardados, n = g ? g.tesis.size + g.asesores.size + g.lugares.size : 0;
+    $('btn-guardados').classList.toggle('hay', n > 0);
+    $('btn-guardados').setAttribute('aria-label', n ? 'Lo que guardaste (' + n + ')' : 'Lo que guardaste');
+  }
+  function abrirGuardados(abrir) {
+    $('guardados-menu').hidden = !abrir; $('btn-guardados').setAttribute('aria-expanded', String(abrir));
+    if (abrir) listaGuardados();
+  }
+  function listaGuardados() {
+    var box = $('guardados-menu');
+    if (!box.firstChild) box.innerHTML = '<p class="gd-nada">Cargando…</p>';
+    NodOS.listaGuardados().then(function (o) {
+      pintarBtnGuardados();
+      var sec = { macro: [], meso: [], micro: [] };
+      o.lugares.forEach(function (l) { var x = l.datos || {}, nv = l.lugar.split(':')[0]; if (sec[nv]) sec[nv].push({ tipo: 'lugar', clave: l.lugar, nombre: x.nombre || 'Sin nombre', sub: nv === 'macro' ? (x.tesis ? fmtNum(x.tesis) + ' tesis' : '') : (x.campo ? 'en ' + x.campo : ''), color: x.color }); });
+      var filas = [], html = '<div class="gd-cab"><h4>Lo que guardaste</h4><a href="espacio.html">Mi espacio</a></div>';
+      function grupo(titulo, lista) {
+        if (!lista.length) return;
+        html += '<div class="s-sec">' + titulo + ' <span>' + lista.length + '</span></div>';
+        lista.forEach(function (f) {
+          var i = filas.push(f) - 1;
+          html += '<div class="gd-fila"><i class="sr-bar" style="background:' + escapeHtml(f.color || 'var(--line-strong)') + '"></i>' +
+            '<button type="button" class="gd-ir" data-gd="' + i + '"><span>' + escapeHtml(f.nombre) + '</span>' + (f.sub ? '<small>' + escapeHtml(f.sub) + '</small>' : '') + '</button>' +
+            '<button type="button" class="gd-x" data-gdx="' + i + '" aria-label="Quitar ' + escapeHtml(f.nombre) + '" title="Quitar">' + ICO_X + '</button></div>';
+        });
+      }
+      grupo('Campos', sec.macro); grupo('Temas', sec.meso); grupo('Subtemas', sec.micro);
+      grupo('Tesis', o.tesis.map(function (t) {
+        var x = t.datos || {}, idx = state.thesisIdToIndex.get(t.tesis), mc = idx != null ? state.macroCode[idx] : -1;
+        return { tipo: 'tesis', clave: t.tesis, nombre: x.titulo ? capitalizar(x.titulo) : 'Tesis guardada', sub: [x.anio, mc >= 0 ? state.macroById[mc].name : ''].filter(Boolean).join(', '), color: AREA_HEX[x.area || (idx != null ? state.areaCode[idx] : 0) || 0] };
+      }));
+      grupo('Asesores', o.asesores.map(function (a) {
+        var x = a.datos || {};
+        return { tipo: 'asesor', clave: x.nombre || a.asesor, nombre: x.nombre || a.asesor, sub: x.total ? fmtNum(x.total) + ' tesis dirigidas' : '', color: x.area ? AREA_HEX[x.area] : null };
+      }));
+      if (!filas.length) html += '<p class="gd-nada">Todavía no guardas nada. Usa el marcador de un campo, un tema, una tesis o un asesor y aparecerá aquí.</p>';
+      gd.filas = filas; box.innerHTML = html;
+    }).catch(function (err) { box.innerHTML = '<p class="gd-nada">No se pudo leer lo guardado. Revisa tu conexión e inténtalo de nuevo.</p>'; dlog('guardados: ' + (err.codigo || err.message)); });
+  }
+  function capitalizar(t) { t = String(t || ''); return t.charAt(0).toUpperCase() + t.slice(1); }
+  function quitarGuardado(f) {
+    var p = f.tipo === 'lugar' ? NodOS.guardarLugar(f.clave, null, false) : f.tipo === 'tesis' ? NodOS.guardarTesis(f.clave, null, false) : NodOS.guardarAsesor(f.clave, null, false);
+    return p.then(function () {
+      if (f.tipo === 'tesis') { var idx = state.thesisIdToIndex.get(f.clave); if (idx != null) pintarGuardada(idx, false); }
+      document.querySelectorAll('.guardar-as[data-as]').forEach(function (g) { var on = NodOS.guardados.asesores.has(g.getAttribute('data-as')); g.classList.toggle('on', on); g.setAttribute('aria-pressed', on); g.querySelector('span').textContent = on ? 'Guardado' : 'Guardar'; });
+      pintarLugar(); pintarBtnGuardados();
+    });
+  }
+  $('btn-guardados').addEventListener('click', function (ev) {
+    ev.stopPropagation();
+    if (!window.NodOS) return;
+    if (!NodOS.usuario()) { NodOS.abrirEntrar(this); return; }
+    abrirGuardados($('guardados-menu').hidden);
+  });
+  $('guardados-menu').addEventListener('click', function (ev) {
+    ev.stopPropagation();
+    var ir = ev.target.closest('[data-gd]'), x = ev.target.closest('[data-gdx]');
+    if (ir) {
+      var f = gd.filas[+ir.getAttribute('data-gd')]; abrirGuardados(false);
+      if (f.tipo === 'lugar') irALugar(f.clave); else if (f.tipo === 'tesis') irATesis(f.clave); else irAAsesor(f.clave);
+      return;
+    }
+    if (x) {
+      var g = gd.filas[+x.getAttribute('data-gdx')];
+      NodOS.confirmar({ titulo: g.nombre, recordar: true }).then(function (si) {
+        if (!si) return;
+        x.disabled = true;
+        quitarGuardado(g).then(listaGuardados).catch(function (err) { x.disabled = false; dlog('quitar: ' + (err.codigo || err.message)); });
+      });
+    }
+  });
+  document.addEventListener('click', function (ev) { if (!$('guardados-menu').hidden && !ev.target.closest('#guardados-menu, #btn-guardados, .nds-conf, #nds-capa')) abrirGuardados(false); });
+  document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape' && !$('guardados-menu').hidden && !document.querySelector('.nds-conf')) { abrirGuardados(false); $('btn-guardados').focus(); } });
   document.addEventListener('click', function (ev) {
     var g = ev.target.closest && ev.target.closest('[data-guardar]');
-    if (g) { ev.stopPropagation(); guardarTesis(+g.getAttribute('data-guardar')); }
+    if (g) { ev.stopPropagation(); guardarTesis(+g.getAttribute('data-guardar'), g); }
   }, true);
   // row (opcional): fila de tesis_por_micro, por si el archivo aun no llega
   function nivelDe(idx, row) {
@@ -2670,7 +2891,7 @@
     var box = $('ms-tags'), card = $('map-selection');
     box.setAttribute('data-idx', idx == null ? '' : idx);
     var gb = $('ms-guardar'); gb.hidden = idx == null;
-    if (idx != null) { gb.setAttribute('data-guardar', idx); gb.innerHTML = ICO_GUARDAR + 'Guardar tesis'; }
+    if (idx != null) { gb.setAttribute('data-guardar', idx); pintarGuardada(idx, tesisGuardada(idx)); }
     card.classList.toggle('tesis', idx != null); card.classList.remove('grupo'); card.removeAttribute('data-grupo');
     if (idx == null) { box.innerHTML = ''; $('ms-nivel').innerHTML = ''; return; }
     card.style.setProperty('--c', AREA_HEX[state.areaCode[idx] || 0]);
@@ -2952,7 +3173,7 @@
     var c = tops.length ? state.macroById[tops[0]].color : '#8c8c8c';
     ms.style.setProperty('--c', c);
     pintaLocator($('ms-loc'), 60, idxs, tops.length ? c : tok('--ink')); // sin campo: en tinta, no gris sobre gris
-    $('ms-nivel').innerHTML = opts.aid != null ? '<span class="ms-ring"></span>Asesoría' : 'Búsqueda en títulos';
+    $('ms-nivel').innerHTML = opts.aid != null ? '<span class="ms-ring"></span>Asesoría ' + btnGuardarAsesor(titulo) : 'Búsqueda en títulos';
     $('ms-title').textContent = titulo;
     $('ms-note').innerHTML = '';
     var pinta = function () {
@@ -3135,7 +3356,7 @@
     applyMinimapPref();
     syncOverlay(); updateCrumbs(); drawMinimapView();
   }
-  $('btn-intro').addEventListener('click', startIntro);
+  if ($('btn-intro')) $('btn-intro').addEventListener('click', startIntro); // la intro ya no tiene pestaña: se abre sola la primera vez
 
   // ==================== tarjeta narrativa + rutas guiadas ====================
   var story = null;

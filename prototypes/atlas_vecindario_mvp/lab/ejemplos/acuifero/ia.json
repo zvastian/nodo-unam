@@ -1,0 +1,96 @@
+{
+ "_nota": "Salida real de la IA (Worker local, 2026-09-27).",
+ "nota": {
+  "main_objects": [
+   "acuífero",
+   "recarga",
+   "datos satelitales",
+   "pozos",
+   "modelo"
+  ],
+  "interpretive_angle": "Comparativo de estimaciones satelitales",
+  "scope": {
+   "temporal": {
+    "applies": true,
+    "start": 2000,
+    "end": 2024,
+    "text": "Se analizan 25 años de variación en la recarga del acuífero, lo que permite observar tendencias recientes y validar modelos con datos de campo."
+   },
+   "geographic": {
+    "applies": true,
+    "units": [
+     "Valle de México"
+    ],
+    "text": "El estudio se centra en la cuenca urbana, facilitando el acceso a series de datos satelitales y de pozos disponibles en la zona."
+   }
+  }
+ },
+ "preguntas": {
+  "items": [
+   {
+    "type": "Histórica",
+    "question": "¿Cómo ha variado la distribución espacial de la recarga del acuífero del Valle de México entre 2000 y 2024 según datos satelitales de gravedad y uso de suelo?",
+    "methodological_angle": "Análisis de series temporales de mapas de recarga satelital comparados con registros de pozos para identificar tendencias espaciales."
+   },
+   {
+    "type": "Comparativa",
+    "question": "¿En qué medida difieren tres modelos satelitales de estimación de recarga al aplicarse a distintas zonas de uso de suelo del Valle de México?",
+    "methodological_angle": "Aplicación simultánea de los tres modelos a los mismos productos satelitales y comparación estadística de sus resultados por categoría de uso de suelo."
+   },
+   {
+    "type": "Causal",
+    "question": "¿Qué factores hidrometeorológicos explican mayormente las discrepancias entre las estimaciones de recarga satelital y las mediciones de pozos?",
+    "methodological_angle": "Regresión múltiple que relaciona errores de estimación con variables de precipitación, cobertura vegetal, extracción de agua y características del suelo."
+   },
+   {
+    "type": "Evaluativa",
+    "question": "¿Qué tan eficaz resulta un esquema de monitoreo basado en datos satelitales para la gestión del acuífero comparado con el monitoreo tradicional de pozos?",
+    "methodological_angle": "Evaluación de cobertura, costo y oportunidad del esquema satelital mediante estudio de caso y criterios de desempeño definidos."
+   }
+  ]
+ },
+ "bloom": {
+  "main_risk": "Sin una validación rigurosa, los resultados podrían no ser confiables y la gestión del acuífero se basaría en estimaciones imprecisas.",
+  "objectives": [
+   {
+    "original": "Describir la variación de la recarga del acuífero entre 2000 y 2024",
+    "level": null,
+    "diagnosis": "Falta especificar indicadores cuantitativos y rangos de variación para comprobar la descripción.",
+    "improvement": "Incluir métricas de recarga (mm/año) y definir intervalos de análisis temporal."
+   },
+   {
+    "original": "Comparar tres modelos de estimación de recarga con datos satelitales",
+    "level": null,
+    "diagnosis": "Se necesita establecer criterios de comparación y conjuntos de datos de referencia.",
+    "improvement": "Definir métricas de desempeño (RMSE, bias) y usar los mismos periodos de observación para los tres modelos."
+   },
+   {
+    "original": "Evaluar la precisión de cada modelo frente a mediciones de pozos",
+    "level": null,
+    "diagnosis": "Requiere describir los umbrales de aceptación y el número de pozos utilizados.",
+    "improvement": "Especificar criterios de precisión (error máximo permitido) y la muestra de pozos representativa."
+   },
+   {
+    "original": "Proponer un esquema de monitoreo del acuífero basado en datos satelitales",
+    "level": null,
+    "diagnosis": "Debe indicar los componentes del esquema y cómo se validará su operatividad.",
+    "improvement": "Detallar protocolos de recolección, procesamiento y validación de datos satelitales en el esquema."
+   }
+  ],
+  "revised": [
+   {
+    "text": "Describir la variación anual de la recarga del acuífero en mm/año entre 2000 y 2024."
+   },
+   {
+    "text": "Comparar tres modelos de estimación usando RMSE, bias y coeficiente de determinación."
+   },
+   {
+    "text": "Evaluar la precisión de cada modelo contra mediciones de pozos con umbrales de error definidos."
+   },
+   {
+    "text": "Proponer un esquema de monitoreo que incluya protocolos de adquisición, procesamiento y validación de datos satelitales."
+   }
+  ],
+  "final_note": "Verifica cada objetivo con métricas, criterios y protocolos claros que permitan medir si se alcanzaron los resultados esperados."
+ }
+}

@@ -52,7 +52,7 @@ LAB_ORIGENES="http://127.0.0.1:8765" .venv/Scripts/python -m uvicorn app.main:ap
 python services/lab/evaluar.py
 ```
 
-El Laboratorio (`prototypes/atlas_vecindario_mvp/bocetos/lab/analisis.html`) lo llama en
+El Laboratorio (`prototypes/atlas_vecindario_mvp/laboratorio.html`) lo llama en
 `http://127.0.0.1:8770`, o en `?api=URL`. Si no responde, usa `datos_ejemplo.json`.
 
 ### Con Docker

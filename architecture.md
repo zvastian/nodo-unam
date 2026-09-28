@@ -271,7 +271,7 @@ introducción vista). La aplicación funciona igual si ese almacenamiento no est
 
 ### 6.5 Laboratorio: interfaz
 
-La interfaz del Laboratorio (`bocetos/lab/analisis.html`) es hoy la plantilla del análisis ya
+La interfaz del Laboratorio (`laboratorio.html`) es hoy la plantilla del análisis ya
 terminado. Pide la parte de datos al servicio del Laboratorio: `127.0.0.1:8770` en local, o
 la URL que indique el parámetro `?api=`. Si el servicio no responde, pinta un resultado de
 ejemplo y lo avisa en la consola. Todo texto que viene del usuario o del modelo se escapa antes
@@ -452,7 +452,7 @@ respuesta por streaming (SSE); (4) despliegue con integración continua.
 
 | Ruta | Contenido |
 |---|---|
-| `prototypes/atlas_vecindario_mvp/` | Atlas (`index.html`), sus datos (`data/`) y la interfaz del Laboratorio (`bocetos/lab/`) |
+| `prototypes/atlas_vecindario_mvp/` | Atlas (`index.html`), sus datos (`data/`) y la interfaz del Laboratorio (`laboratorio.html`, con sus ejemplos en `lab/`) |
 | `services/lab/` | Servicio de datos del Laboratorio, su `Dockerfile`, la construcción de artefactos y la prueba de aceptación |
 | `pipeline/` | Adquisición, limpieza, pipeline semántico y generación de artefactos |
 | `tools/` | Herramienta de verificación visual (`cdp.mjs`) |

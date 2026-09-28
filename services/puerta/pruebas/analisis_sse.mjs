@@ -6,7 +6,7 @@ import { readFileSync } from 'node:fs';
 
 const URL_PUERTA = process.env.PUERTA_URL || 'http://127.0.0.1:8787';
 const args = process.argv.slice(2);
-const archivo = args.find((a) => !a.startsWith('--')) || new URL('../../../prototypes/atlas_vecindario_mvp/bocetos/lab/entrada_ejemplo.json', import.meta.url);
+const archivo = args.find((a) => !a.startsWith('--')) || new URL('../../../prototypes/atlas_vecindario_mvp/lab/entrada_ejemplo.json', import.meta.url);
 const entrada = JSON.parse(readFileSync(archivo, 'utf8'));
 const { emisor, privada } = JSON.parse(readFileSync(new URL('claves.local.json', import.meta.url)));
 

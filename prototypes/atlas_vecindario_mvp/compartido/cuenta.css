@@ -1,0 +1,100 @@
+/* NodOS: sesión compartida (mapa, Laboratorio y Mi espacio). Todo color sale de los tokens de cada
+   página (--paper, --ink…, --pie-fondo); los de Google siguen sus pautas de marca. */
+body { --google-fondo: #ffffff; --google-borde: #747775; --google-tinta: #1f1f1f; }
+body.noche { --google-fondo: #131314; --google-borde: #8e918f; --google-tinta: #e3e3e3; }
+/* lo guardado: el azul oscuro del logo (de noche, su azul claro) */
+body { --guardado: #143a6b; }
+body.noche { --guardado: #86b3ec; }
+.oculto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* barra, a la derecha: Entrar (o la inicial con su menú) y Mi espacio */
+[data-nds-cuenta] { display: flex; align-items: center; gap: 20px; }
+.nds-entrar, .nds-espacio { background: none; border: 0; border-bottom: 2px solid transparent; padding: 2px 0; cursor: pointer; font: inherit; font-size: 14px; color: var(--ink-2); text-decoration: none; }
+.nds-entrar:hover, .nds-espacio:hover { color: var(--ink); text-decoration: none; }
+.nds-espacio.activo { color: var(--ink); font-weight: 600; border-bottom-color: var(--ink); }
+.nds-entrar:focus-visible, .nds-espacio:focus-visible { outline: 2px solid var(--link); outline-offset: 3px; }
+.nds-cuenta { position: relative; }
+.nds-ini { width: 28px; height: 28px; border-radius: 50%; border: 0; padding: 0; cursor: pointer; background: var(--pie-fondo); color: var(--pie-tinta); font: inherit; font-size: 13px; font-weight: 700; }
+.nds-ini:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+.nds-menu { position: absolute; right: 0; top: calc(100% + 12px); z-index: 60; min-width: 220px; background: var(--paper); border: 1px solid var(--line-strong); border-top: 3px solid var(--ink); padding: 10px 14px; }
+.nds-correo { margin: 0 0 8px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 13px; color: var(--ink-2); overflow-wrap: anywhere; }
+.nds-menu button { display: block; width: 100%; text-align: left; background: none; border: 0; padding: 4px 0; font: inherit; font-size: 14px; color: var(--ink); cursor: pointer; }
+.nds-menu button:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+/* la ventana «Entra a NodOS»: capa difuminada y lámina centrada */
+.nds-capa { position: fixed; inset: 0; z-index: 70; background: color-mix(in srgb, var(--bg) 35%, transparent); -webkit-backdrop-filter: blur(7px); backdrop-filter: blur(7px); }
+.nds-dlg { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 71; width: min(420px, calc(100vw - 32px)); max-height: calc(100vh - 32px); overflow-y: auto;
+  background: var(--paper); color: var(--ink); border: 1px solid var(--line-strong); border-top: 3px solid var(--ink); padding: 30px 28px 22px; }
+.nds-capa[hidden], .nds-dlg[hidden] { display: none; }
+.nds-cerrar { position: absolute; top: 12px; right: 14px; border: 0; background: none; padding: 4px; color: var(--ink-2); cursor: pointer; display: inline-flex; }
+.nds-cerrar:hover { color: var(--ink); }
+.nds-cerrar svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.6; stroke-linecap: round; }
+.acceso-cab { text-align: center; margin: 0 0 20px; }
+.acceso-logo svg { width: 52px; height: auto; display: block; margin: 0 auto 10px; }
+.acceso-cab h3 { margin: 0 0 4px; font-size: 22px; font-weight: 700; }
+.acceso-cab p { margin: 0; color: var(--ink-2); font-size: 14.5px; }
+
+/* el componente de acceso: el patrón de las apps */
+.acceso { display: grid; gap: 12px; }
+.btn-google { display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; height: 44px; padding: 0 16px; background: var(--google-fondo); color: var(--google-tinta);
+  border: 1px solid var(--google-borde); border-radius: 4px; font: inherit; font-size: 15px; font-weight: 600; cursor: pointer; transition: background 150ms ease; }
+.btn-google:hover { background: color-mix(in oklch, var(--google-fondo) 94%, var(--google-tinta)); }
+.btn-google:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+.btn-google svg { width: 18px; height: 18px; flex-shrink: 0; }
+.btn-github svg { color: var(--google-tinta); }
+.o-sep { display: flex; align-items: center; gap: 12px; color: var(--ink-3); font-size: 13px; margin: 2px 0; }
+.o-sep::before, .o-sep::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+.acceso-correo { display: grid; gap: 10px; margin: 0; }
+.campo-caja { width: 100%; height: 44px; padding: 0 12px; border: 1px solid var(--line-strong); border-radius: 4px; background: var(--paper); color: var(--ink); font: inherit; font-size: 15px; }
+.campo-caja::placeholder { color: var(--ink-3); }
+.campo-caja:focus-visible { outline: 2px solid var(--link); outline-offset: 0; border-color: transparent; }
+.acceso .btn-cta { display: inline-flex; align-items: center; width: 100%; height: 44px; justify-content: center; padding: 0 16px; font: inherit; font-size: 15px; font-weight: 600; border: 0; border-radius: 4px;
+  background: var(--ink); color: var(--paper); cursor: pointer; }
+.acceso .btn-cta:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+.acceso-aviso { margin: 0; font-size: 13.5px; color: var(--ink); }
+.acceso-aviso:empty { display: none; }
+.acceso-legal { margin: 4px 0 0; font-size: 12.5px; line-height: 1.45; color: var(--ink-3); }
+.acceso-legal a { color: var(--ink-2); text-decoration: underline; text-underline-offset: 2px; }
+.acceso-enviado { display: none; text-align: center; padding: 6px 0 2px; }
+.acceso.enviado > :not(.acceso-enviado):not(.acceso-legal) { display: none; }
+.acceso.enviado .acceso-enviado { display: block; }
+.acceso-enviado svg { width: 40px; height: 40px; stroke: var(--ink); fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; margin-bottom: 6px; }
+.acceso-enviado h4 { margin: 0 0 4px; padding: 0; border: 0; font-size: 17px; font-weight: 700; }
+.acceso-enviado p { margin: 0 0 12px; font-size: 14px; color: var(--ink-2); }
+.acceso-otro { background: none; border: 0; border-bottom: 2px solid transparent; padding: 0 0 2px; cursor: pointer; font: inherit; font-size: 15px; font-weight: 600; color: var(--ink); }
+.acceso-otro:hover { border-bottom-color: var(--ink); }
+
+/* guardar (tesis, asesores y lugares del mapa, en todas las páginas): gris en reposo; azul oscuro al
+   pasar y mientras está guardado. Al guardar, el marcador salta y se llena; al quitar, se vacía. */
+.guardar-as, .guardar-lugar { display: inline-flex; align-items: center; gap: 6px; background: none; border: 0; padding: 2px 0; cursor: pointer; font: inherit; font-size: 13px; color: var(--ink-2); }
+.guardar-as svg, .guardar-lugar svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linejoin: round; }
+body .guardar, body .guardar-as, body .guardar-lugar, body .guardar-txt .ico { transition: color 150ms ease; }
+body .guardar svg, body .guardar-as svg, body .guardar-lugar svg, body .guardar-txt svg { transition: fill 180ms ease; transform-origin: 50% 60%; }
+body .guardar:hover, body .guardar-as:hover, body .guardar-lugar:hover, body .guardar-txt:hover, body .guardar-txt:hover .ico,
+body .guardar.on, body .guardar-as.on, body .guardar-lugar.on, body .guardar-txt.on, body .guardar-txt.on .ico { color: var(--guardado); }
+body .guardar.on svg, body .guardar-as.on svg, body .guardar-lugar.on svg, body .guardar-txt.on svg { fill: currentColor; }
+.nds-pop svg { animation: nds-pop 420ms cubic-bezier(0.3, 1.6, 0.5, 1); }
+.nds-suelta svg { animation: nds-suelta 320ms ease-out; }
+@keyframes nds-pop { 0% { transform: scale(1); } 35% { transform: translateY(-3px) scale(1.35); } 70% { transform: scale(0.92); } 100% { transform: scale(1); } }
+@keyframes nds-suelta { 0% { transform: scale(1); } 45% { transform: scale(0.78); } 100% { transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) { .nds-pop svg, .nds-suelta svg { animation: none; } }
+
+/* confirmar antes de borrar: la misma lámina, más chica */
+.nds-dlg.nds-conf { width: min(380px, calc(100vw - 32px)); padding: 24px 24px 18px; }
+.conf-q { margin: 0 0 6px; font-size: 17px; line-height: 1.35; font-weight: 500; color: var(--ink); overflow-wrap: anywhere; }
+.conf-q b { font-weight: 700; }
+.conf-nota { margin: 0 0 4px; font-size: 14px; color: var(--ink-2); }
+.conf-botones { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 18px 0 0; }
+.conf-botones button { height: 40px; border-radius: 4px; font: inherit; font-size: 15px; font-weight: 600; cursor: pointer; }
+.conf-si { background: var(--ink); color: var(--paper); border: 1px solid var(--ink); }
+.conf-no { background: var(--paper); color: var(--ink); border: 1px solid var(--line-strong); }
+.conf-no:hover { border-color: var(--ink); }
+.conf-botones button:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+.conf-recordar { display: flex; align-items: center; gap: 10px; margin: 16px 0 0; padding-top: 12px; border-top: 1px solid var(--line); font-size: 13.5px; color: var(--ink-2); cursor: pointer; user-select: none; }
+.conf-recordar input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.conf-switch { position: relative; flex-shrink: 0; width: 30px; height: 18px; border-radius: 9px; border: 1.5px solid var(--ink-3); transition: background 150ms ease, border-color 150ms ease; }
+.conf-switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 11px; height: 11px; border-radius: 50%; background: var(--ink-3); transition: transform 150ms ease, background 150ms ease; }
+.conf-recordar input:checked + .conf-switch { background: var(--ink); border-color: var(--ink); }
+.conf-recordar input:checked + .conf-switch::after { transform: translateX(12px); background: var(--paper); }
+.conf-recordar input:focus-visible + .conf-switch { outline: 2px solid var(--link); outline-offset: 2px; }
+.conf-recordar:hover { color: var(--ink); }

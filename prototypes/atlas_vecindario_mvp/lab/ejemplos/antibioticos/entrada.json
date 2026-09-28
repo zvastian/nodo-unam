@@ -1,0 +1,21 @@
+{
+ "title": "Resistencia a antibióticos en bacterias de ríos urbanos de la Ciudad de México",
+ "problematiza": "Los ríos urbanos de la Ciudad de México reciben descargas de hospitales, viviendas e industrias, y podrían funcionar como reservorios de bacterias resistentes a antibióticos. Hay pocos estudios que midan esa resistencia en el agua de la ciudad. ¿Qué tan frecuente es la resistencia en las bacterias de estos ríos y qué genes la explican?",
+ "keywords": [
+  "resistencia antimicrobiana",
+  "ríos urbanos",
+  "Escherichia coli",
+  "genes de resistencia"
+ ],
+ "objectives": [
+  "Identificar las bacterias presentes en muestras de agua de tres ríos urbanos",
+  "Determinar la resistencia de los aislados a seis antibióticos de uso clínico",
+  "Analizar la presencia de genes de resistencia en los aislados",
+  "Comparar la frecuencia de resistencia entre los tres ríos"
+ ],
+ "program": "Biología",
+ "degree": "Licenciatura",
+ "study_period": {
+  "applies": false
+ }
+}

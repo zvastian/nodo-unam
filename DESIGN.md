@@ -42,6 +42,12 @@ typography:
     lineHeight: 1.06
     letterSpacing: "-0.025em"
     fontFeature: "\"tnum\" 1"
+  titular:
+    fontFamily: "Libre Franklin, Helvetica Neue, Arial, sans-serif"
+    fontSize: "clamp(28px, 2.7vw, 38px)"
+    fontWeight: 400
+    lineHeight: 1.15
+    letterSpacing: "-0.005em"
   titulo-seccion:
     fontFamily: "Libre Franklin, Helvetica Neue, Arial, sans-serif"
     fontSize: "24px"
@@ -249,6 +255,7 @@ Escala de **niveles de estudio**. Es una rampa de azul, del más claro al más o
 
 ### Hierarchy
 - **Portada** (800, clamp de 34 a 46 px, 1.06, −0.025em): el título de la tesis en su ficha. Máximo 22 caracteres por renglón y renglones equilibrados (`text-wrap: balance`). Es lo primero que se lee en la página.
+- **Titular** (400, clamp de 28 a 38 px, 1.15, −0.005em; la frase clave en 700): el encabezado de una página o de su banda (la portada del Laboratorio, «Mi espacio»). Nunca en 800.
 - **Título de sección** (700, 24 px, 1.25): los títulos de cada sección de la lámina, subrayados.
 - **Destacado** (600, 19 px, 1.4): la frase principal de una sección, como el riesgo de los objetivos o el nombre de un asesor. Máximo unos 46 caracteres por renglón.
 - **Entrada** (400, 19 px, 1.5): el texto que escribió el usuario (su Problematiza), dentro de la portada. Máximo unos 56 caracteres por renglón.
@@ -265,6 +272,8 @@ Escala de **niveles de estudio**. Es una rampa de azul, del más claro al más o
 **La regla de una sola voz.** Todo el producto usa Libre Franklin, y todo número lleva cifras tabulares (`"tnum" 1`), también dentro de botones, campos y gráficas.
 
 **La regla de las mayúsculas cartográficas.** Las MAYÚSCULAS solo aparecen en los rótulos del mapa, por convención cartográfica. Todo lo demás va en caja normal: no hay etiquetas en mayúsculas sobre los títulos.
+
+**La regla estricta del 800 (27-sep-2026).** El peso 800 con interletrado cerrado (la Portada) es exclusivo de los títulos de tesis: la ficha, el análisis y los ejemplos. Ningún otro texto lo usa: ni encabezados de página (van en Titular), ni ventanas, ni avisos, ni el logo en texto. Si algo que no es una tesis necesita más jerarquía, se resuelve con tamaño o con 700, nunca con 800.
 
 **La regla de la portada.** En una ficha, el título es lo más grande y más pesado de la página. Nada compite con él.
 

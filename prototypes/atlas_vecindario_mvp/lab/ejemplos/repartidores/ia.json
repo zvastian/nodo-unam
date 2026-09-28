@@ -1,0 +1,96 @@
+{
+ "_nota": "Salida real de la IA (Worker local, 2026-09-27).",
+ "nota": {
+  "main_objects": [
+   "repartidores",
+   "plataformas digitales",
+   "derecho laboral",
+   "seguridad social",
+   "responsabilidad laboral"
+  ],
+  "interpretive_angle": "Comparativo jurídico",
+  "scope": {
+   "temporal": {
+    "applies": false,
+    "text": "No se delimita un periodo histórico; la investigación se centra en la normativa vigente y su aplicación actual.",
+    "start": null,
+    "end": null
+   },
+   "geographic": {
+    "applies": true,
+    "units": [
+     "México"
+    ],
+    "text": "El estudio se circunscribe al ámbito nacional, lo que permite acceder a fuentes legislativas y jurisprudenciales mexicanas."
+   }
+  }
+ },
+ "preguntas": {
+  "items": [
+   {
+    "type": "Comparativa",
+    "question": "¿En qué aspectos difiere la protección laboral de los repartidores de plataformas digitales en México respecto a la de otros países latinoamericanos?",
+    "methodological_angle": "Análisis comparado de marcos normativos y entrevistas a expertos en derecho laboral de la región."
+   },
+   {
+    "type": "Causal",
+    "question": "¿Por qué la clasificación actual de los repartidores como independientes genera carencias en su acceso a la seguridad social?",
+    "methodological_angle": "Estudio de caso con revisión documental de legislación y encuestas a repartidores para identificar factores determinantes."
+   },
+   {
+    "type": "Evaluativa",
+    "question": "¿Qué tan adecuada es la normativa mexicana para garantizar la seguridad social de los repartidores de plataformas digitales?",
+    "methodological_angle": "Evaluación de criterios de cobertura mediante análisis de políticas públicas y datos estadísticos de afiliación al IMSS."
+   },
+   {
+    "type": "Exploratoria",
+    "question": "¿Qué percepciones tienen los repartidores sobre la responsabilidad de las plataformas en caso de accidentes laborales?",
+    "methodological_angle": "Entrevistas semiestructuradas a repartidores y análisis de contenido de sus testimonios."
+   }
+  ]
+ },
+ "bloom": {
+  "main_risk": "Si los objetivos no son verificables, la tesis no generará evidencia concreta ni aportará soluciones al problema de protección laboral de los repartidores.",
+  "objectives": [
+   {
+    "original": "Describir el régimen jurídico aplicable al trabajo en plataformas digitales en México",
+    "level": null,
+    "diagnosis": "Falta especificar fuentes, criterios y alcance del régimen que se describirá para poder comprobar la descripción.",
+    "improvement": "Delimitar fuentes y establecer indicadores claros para describir el régimen jurídico aplicable."
+   },
+   {
+    "original": "Comparar la regulación mexicana con la de otros países de América Latina",
+    "level": null,
+    "diagnosis": "Se necesitan definir los aspectos regulatorios a comparar y los países que formarán la muestra.",
+    "improvement": "Seleccionar al menos tres países latinoamericanos y especificar variables de comparación regulatoria."
+   },
+   {
+    "original": "Evaluar la protección de seguridad social que reciben los repartidores",
+    "level": null,
+    "diagnosis": "Requiere criterios y métricas que permitan medir la cobertura y calidad de la seguridad social.",
+    "improvement": "Establecer indicadores de cobertura y calidad y aplicarlos a los datos de los repartidores."
+   },
+   {
+    "original": "Proponer criterios para regular la responsabilidad laboral de las plataformas",
+    "level": null,
+    "diagnosis": "No se indica el formato ni el producto concreto de los criterios propuestos.",
+    "improvement": "Diseñar un documento de propuestas con criterios claros y su justificación normativa."
+   }
+  ],
+  "revised": [
+   {
+    "text": "Describir el régimen jurídico aplicable al trabajo en plataformas digitales en México, indicando fuentes y alcance."
+   },
+   {
+    "text": "Comparar la regulación mexicana con la de al menos tres países latinoamericanos, especificando variables regulatorias."
+   },
+   {
+    "text": "Evaluar la protección de seguridad social de los repartidores mediante indicadores de cobertura y calidad."
+   },
+   {
+    "text": "Proponer criterios reguladores para la responsabilidad laboral de las plataformas, presentándolos en un documento de propuestas."
+   }
+  ],
+  "final_note": "Definir indicadores, fuentes y productos entregables para cada objetivo y validar su cumplimiento mediante revisión documental y análisis de datos."
+ }
+}

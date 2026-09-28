@@ -1,0 +1,95 @@
+{
+ "_nota": "Salida real de la IA (Worker local, 2026-09-27).",
+ "preguntas": {
+  "items": [
+   {
+    "type": "Comparativa",
+    "question": "¿Cómo varía la frecuencia de resistencia a antibióticos entre los tres ríos urbanos de la Ciudad de México?",
+    "methodological_angle": "Análisis estadístico de los resultados de pruebas de sensibilidad y detección de genes en aislados de cada río."
+   },
+   {
+    "type": "Causal",
+    "question": "¿Qué factores ambientales o de origen de la descarga influyen en la presencia de genes de resistencia en las bacterias de los ríos urbanos?",
+    "methodological_angle": "Correlación entre datos de calidad del agua, fuentes de descarga y presencia de genes mediante análisis multivariante."
+   },
+   {
+    "type": "Evaluativa",
+    "question": "¿En qué medida los niveles de resistencia detectados representan un riesgo para la salud pública en la zona metropolitana?",
+    "methodological_angle": "Comparación de los perfiles de resistencia con criterios de riesgo establecidos y revisión de literatura sobre impactos sanitarios."
+   },
+   {
+    "type": "Exploratoria",
+    "question": "¿Qué tipos de bacterias no tradicionales aparecen en los ríos urbanos y cuál es su potencial de resistencia a antibióticos?",
+    "methodological_angle": "Identificación taxonómica mediante secuenciación de 16S y detección de genes de resistencia en aislados poco estudiados."
+   }
+  ]
+ },
+ "nota": {
+  "main_objects": [
+   "bacterias",
+   "antibióticos",
+   "genes de resistencia",
+   "ríos urbanos"
+  ],
+  "interpretive_angle": "Microbiológico ambiental",
+  "scope": {
+   "temporal": {
+    "applies": false,
+    "text": "El estudio no delimita un periodo, pues se plantea como un análisis puntual de la resistencia presente en el agua.",
+    "start": null,
+    "end": null
+   },
+   "geographic": {
+    "applies": true,
+    "units": [
+     "Ciudad de México"
+    ],
+    "text": "Se focaliza en la cuenca urbana, lo que permite comparar tres ríos y acceder a fuentes locales de muestreo."
+   }
+  }
+ },
+ "bloom": {
+  "main_risk": "Si los objetivos no especifican criterios claros, la tesis no podrá demostrar la magnitud ni la relevancia de la resistencia encontrada.",
+  "objectives": [
+   {
+    "original": "Identificar las bacterias presentes en muestras de agua de tres ríos urbanos",
+    "level": 1,
+    "diagnosis": "Falta definir qué tipo de identificación (molecular, morfológica) y los criterios de confirmación para cada bacteria.",
+    "improvement": "Especificar la técnica de identificación y los umbrales de certeza para los aislados de cada río."
+   },
+   {
+    "original": "Determinar la resistencia de los aislados a seis antibióticos de uso clínico",
+    "level": 1,
+    "diagnosis": "No se indica el método de prueba de resistencia ni los criterios de interpretación (MIC, zona de inhibición).",
+    "improvement": "Indicar el método de prueba (p. ej., difusión en disco) y los puntos de corte para clasificar resistencia."
+   },
+   {
+    "original": "Analizar la presencia de genes de resistencia en los aislados",
+    "level": null,
+    "diagnosis": "Se necesita precisar qué genes se buscarán y el método de detección (PCR, secuenciación).",
+    "improvement": "Delimitar los genes objetivo y la técnica molecular que se empleará para detectarlos."
+   },
+   {
+    "original": "Comparar la frecuencia de resistencia entre los tres ríos",
+    "level": null,
+    "diagnosis": "Falta definir la métrica de frecuencia y el análisis estadístico para la comparación.",
+    "improvement": "Establecer la medida de frecuencia (porcentaje) y la prueba estadística que se usará para comparar los ríos."
+   }
+  ],
+  "revised": [
+   {
+    "text": "Describir la composición bacteriana en muestras de agua de tres ríos urbanos mediante técnicas moleculares."
+   },
+   {
+    "text": "Evaluar la resistencia de los aislados a seis antibióticos clínicos usando pruebas de difusión en disco."
+   },
+   {
+    "text": "Analizar la presencia de genes de resistencia en los aislados mediante PCR dirigida."
+   },
+   {
+    "text": "Comparar la frecuencia de resistencia entre los tres ríos aplicando pruebas estadísticas apropiadas."
+   }
+  ],
+  "final_note": "Verifica cada objetivo con protocolos, criterios y análisis estadísticos documentados que permitan reproducir y validar los resultados."
+ }
+}

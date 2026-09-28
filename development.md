@@ -3478,3 +3478,306 @@ A los JSON del sitio y del código se les quitaron 46,491 campos de autor. Ning�
 Lo que llegue será ingreso del titular como persona física: el tratamiento fiscal se ve con un contador.
 
 **Mascota:** se agregó la pose `gracias`, una reverencia con los ojos cerrados y el sombrero de cubeta ocre bajado frente al pecho, sin mano visible. Es la imagen del Payment Link: `marca/stripe/apoyo_reverencia_sin_mano.png`, de 700 × 700. `window.__debugLab.pose` permite exportar poses desde las pruebas.
+
+### Laboratorio integrado a NodOS y presentación antes del formulario (27-sep-2026)
+
+**Pedido del usuario:**
+- acabar primero el Lab e integrarlo con el mapa en una sola plataforma;
+- que arranque con el formulario vacío;
+- sumar un onboarding que diga explícitamente que el Lab usa 609,154 tesis más IA, porque «un usuario no va a llenar el formulario sin antes saber para qué».
+
+**Decisiones del usuario** (tomadas antes de codificar):
+- dos páginas con una sola navegación;
+- presentación antes del formulario;
+- el Lab arranca con el formulario vacío.
+
+**Integración:**
+- **El Lab se mudó.** `bocetos/lab/analisis.html` pasó a `laboratorio.html`, junto a `index.html`. Sus ejemplos (`datos_`, `entrada_` e `ia_ejemplo.json`) están ahora en `lab/`.
+- **Ruta vieja.** Queda una página que redirige a la nueva y conserva los parámetros (`?ejemplo`, `?demo`, `?fila`…).
+- **Rutas actualizadas:** `data/`, `compartido/bloom.js`, el favicon, las pruebas del Worker (`puerta.test.mjs`, `analisis_sse.mjs`), `esquemas.js`, `services/lab/README.md`, `architecture.md` y `CLAUDE.md`.
+- **Navegación.** El mapa suma «Laboratorio» (un enlace con aspecto de pestaña). El Lab lleva «Método» a `index.html#metodo`, que abre Método sin la intro.
+- **Modo noche compartido.** El Lab lee y guarda la misma clave que el mapa (`nodo_noche`).
+
+**Presentación** (`#presenta`, con `body.presentando`):
+- **Banda marina:**
+  - titular «Antes de escribir tu tesis, mira las 609,154 que ya existen.»;
+  - qué hace el Lab con los datos y con la IA;
+  - «Empezar mi tesis» y «Ver un análisis de ejemplo» (`?demo`);
+  - la mascota con la lupa, en ocre, porque en azul no se leía sobre la banda.
+- **Tres columnas con una muestra real del caso de ejemplo:**
+  - el campo donde cae («Política monetaria», 26 de sus 50 tesis más cercanas);
+  - dos tesis parecidas y un asesor con sus cifras;
+  - el riesgo principal de la lectura de Bloom, que es una salida real del modelo.
+  - Las preguntas de ejemplo se escribieron a mano, así que no se presentan como salida de la IA.
+- **Nota de confianza:** las tesis vienen de TESIUNAM y sin autores; la IA orienta pero no califica; lo que escribes no se publica.
+- **Cuándo aparece:** hasta que la persona pulsa «Empezar mi tesis» una vez (queda guardado en `nodo_lab_presentado`), aunque ya tenga borrador. `?presenta` la fuerza y los modos de revisión (`?ejemplo`, `?demo`, `?fila`, `?sesion`) la saltan. «Laboratorio» en la barra la vuelve a abrir, y «Empezar mi tesis» lleva al formulario con el foco en el grado.
+  - **Corrección:** la primera regla la saltaba cuando había borrador, y el usuario no la vio porque su navegador guardaba uno de las pruebas.
+
+**Verificación headless** (1600 × 900):
+- presentación con la muestra cargada;
+- «Empezar» abre el formulario vacío con el foco en el grado;
+- la ruta vieja redirige a `laboratorio.html` con sus parámetros;
+- el enlace del mapa lleva al Lab, e `index.html#metodo` abre Método sin la intro;
+- **Consola:** limpia.
+- **Pruebas:** el léxico pasa 13 de 13. Las 8 de integración del Worker necesitan `wrangler dev` levantado y fallaron por conexión, no por la ruta del JSON (no hubo `ENOENT`).
+
+**Rediseño de la presentación (pedido del usuario: «no me gusta»).** El usuario quiso mostrar en un recuadro el momento más sofisticado del análisis: el mapa acercándose a la tesis y su ficha.
+- **Titular:** «Usa el conocimiento de 609,154 tesis para desarrollar tu investigación.» Dice que se usa el corpus entero en función del trabajo de cada quien.
+- **Demostración en bucle** (`#demo`), recreada en vivo en lugar de un video: los datos ya están cargados, es nítida, respeta el modo noche y no pide volver a grabar.
+  - **Las tesis:** cuatro tesis inventadas, una por área, en campos reales. Área 1: acuífero del Valle de México, en Agua potable e hidráulica. Área 2: resistencia a antibióticos, en Biología molecular. Área 3: repartidores de plataformas, en Derecho laboral. Área 4: cofradías de Puebla, en Historia de la Nueva España. Se quitó la de China.
+  - **La ficha:** se escribe letra por letra con el color de su área, su grado, su programa, su grabado y el nombre del área.
+  - **El mapa:** va de la vista completa (percentiles 0.5 a 99.5) a su campo, que se enciende. Después aparecen unas 14 tesis de su campo, el nombre del campo y «MI TESIS».
+  - **Recorrido:** los guiones de color por área permiten saltar a un ejemplo. El bucle se pausa fuera de la vista y se detiene al dejar la presentación.
+  - **Motor:** `dibujarMapa` se generalizó en `pintarPuntos(lienzo, vista, campos)`.
+- **Bloque de IA:** qué devuelve la IA (el planteamiento en limpio, preguntas y objetivos en Bloom), con la escalera de Bloom de la tesis inventada de Ingeniería Civil.
+- **Nota:** aclara que las tesis de la demostración son inventadas.
+- **Verificación headless** (con `requestAnimationFrame` sustituido por un temporizador): el título, el estado y las vecinas cambian por ejemplo y por área, y el recuadro empieza en la primera pantalla.
+- **Pendiente:** acordar con el usuario qué más muestra la presentación.
+
+**Ajustes a la presentación (pedidos del usuario):**
+- **Orden:** la demostración (el mapa con la ficha) va primero. El recuadro del título pasa debajo.
+- **Texto del recuadro,** reescrito en tono profesional y sin la cifra exacta:
+  - «Desarrolla tu investigación con el respaldo de más de 600 mil tesis de la UNAM.»;
+  - el Laboratorio contrasta tu propuesta con el catálogo completo (campo, trabajos cercanos y asesores con experiencia en el tema) y la IA examina el planteamiento y la estructura de los objetivos;
+  - el botón pasa a «Comenzar el análisis».
+  - La barra de estado y la demostración también dejan de decir 609,154.
+- **Se quitó «Ver un análisis completo»,** que llevaba al ejemplo de China.
+- **Sección final nueva:** «Preguntas de investigación sugeridas», con un subtítulo que explica que la IA propone preguntas a partir del planteamiento y de lo ya escrito sobre el tema, cada una con su enfoque metodológico. Trae tres preguntas de ejemplo (comparativa, explicativa y exploratoria) para la tesis inventada de Derecho.
+- **Verificación headless:** capturas de la parte de arriba y de la de abajo; consola limpia.
+
+**Presentación con datos reales y visualizaciones (pedidos del usuario):**
+- **Orden y tamaño:** el título vuelve arriba de todo, más compacto (36 px, con el botón a la derecha), para que el mapa de la demostración se vea sin bajar. A 1600 × 900 (749 px visibles), la banda ocupa de 139 a 384 y el mapa de 449 a 719.
+- **Datos reales:** la tesis inventada de Derecho (repartidores de plataformas) se mandó al **servicio de datos real**, levantado en local con `uvicorn`. Su salida resumida está en `lab/presentacion_ejemplo.json` y no usa IA.
+  - Las 100 tesis más cercanas en el mapa 2D eran todas de Derecho, y el Lab no busca así: busca por embeddings.
+  - El servicio la ubicó en Derecho laboral, y en segundo lugar en Seguridad e higiene industrial.
+  - Entre las 100 parecidas hay 95 de Sociales, 3 de Biológicas y 2 de Físico-Matemáticas, de Derecho, Economía, Actuaría, Psicología y Ciencias Políticas.
+  - Recomendó cinco asesores reales.
+- **Secciones nuevas,** todas con visualización y animación al entrar en pantalla:
+  - «Encuentra las tesis más parecidas a la tuya»: las tres más cercanas (títulos reales), dónde cae, una barra apilada por área, barras por programa y columnas por década.
+  - «Recomendación de asesores»: cómo se ordenan (tesis parecidas dirigidas, pesadas por similitud) y, por asesor, puntos de tesis parecidas, una barra de experiencia total y la línea de tiempo con su última tesis.
+  - El bloque de IA, con la taxonomía de Bloom de los objetivos de la misma tesis.
+  - «Preguntas de investigación sugeridas», con los glifos de `TIPO_Q` del análisis animados: las líneas se dibujan con `pathLength`, las formas crecen y los punteados aparecen, escalonados por pregunta.
+- **Nota final:** distingue lo inventado (las tesis de la demostración; las preguntas y la revisión de objetivos, que son ilustrativas) de lo real (tesis, programas y asesores).
+- **Verificación headless:** medidas de la maqueta; estado final de barras, columnas, puntos y líneas de tiempo (en headless los cuadros llegan retrasados); capturas de cada sección; consola limpia.
+
+### Presentación: fuera la explicación; cuatro análisis de ejemplo completos (27-sep-2026)
+
+**Decisión del usuario:** las secciones explicativas bajo el mapa «parecen AI slop». Se quitan todas, y el Lab lo demuestra con análisis reales en vez de explicarlo:
+- cada tesis de la demostración lleva «Ver análisis completo» (el botón general «Ver un análisis de ejemplo» se quitó después, a pedido del usuario);
+- bajo el recuadro va «Ver un análisis de ejemplo».
+
+Los dos abren el análisis precargado de la tesis que se está mostrando.
+
+**Cuatro análisis completos y reales** en `lab/ejemplos/<id>/` (`acuifero`, `antibioticos`, `repartidores`, `cofradias`):
+- **`entrada.json`:** la tesis inventada, completa: título, Problematiza, palabras clave, objetivos, programa, grado y periodo.
+- **`datos.json` e `ia.json`:** la salida del sistema real para esa entrada. Se generaron con `services/puerta/pruebas/generar_ejemplos.mjs` contra el Worker local (`wrangler dev`, con Groq) y el servicio de datos local.
+  - El script combina con la corrida anterior cuando el proveedor se agota a medias: con antibióticos, el límite por minuto de Groq cortó la IA dos veces y hubo que esperar.
+- **Ubicación que dio el servicio:**
+  - acuífero: Ciclones y lluvias;
+  - antibióticos: Medicina interna;
+  - repartidores: Derecho laboral, y en segundo lugar Seguridad e higiene industrial;
+  - cofradías: Historia de la Nueva España.
+
+**En el Lab:**
+- **`?demo=<id>`** abre ese análisis ya hecho. Carga entrada, datos e IA guardados y no llama al servicio. `?demo` sin id abre el de repartidores.
+- **La demostración** ubica cada tesis donde la puso el servicio, con sus dos campos y sus tesis cercanas reales, en lugar de los campos que se habían elegido a mano.
+- **Periodo y espacio:** `renderNota` ahora acepta notas sin periodo ni espacio delimitados (`applies: false`), que antes rompían el periodo.
+- **Se quitaron:**
+  - las secciones de parecidas, asesores, IA y preguntas de la presentación, con su CSS y su JS;
+  - `lab/presentacion_ejemplo.json`.
+
+**Verificación headless:**
+- los cuatro `?demo=<id>` completan la secuencia, con las cinco secciones llenas, 4 preguntas y sin `undefined` ni `NaN`;
+- en la presentación, «Ver análisis completo» y «Ver un análisis de ejemplo» siguen la tesis en pantalla, y los guiones de área saltan de una a otra;
+- **Consola:** limpia.
+
+**«beta» sobre Laboratorio en la navegación** (pedido del usuario: «que no se vea como diseño de IA»). Es una anotación de texto en minúsculas, de 10.5 px y en `--ink-3`, alineada a la derecha de la palabra y encima de ella (primero iba al inicio; el usuario la pidió a la derecha). No es píldora ni chip (anti-patrón 5) ni rótulo en mayúsculas espaciadas (anti-patrón 8). Va en la barra del mapa y en la del Lab, en la misma posición. Se verificó con capturas de las dos barras.
+
+**Presentación sin la barra de estado** (pedido del usuario: quitar «Laboratorio. Tu proyecto frente al catálogo…»). Durante la presentación, la barra de estado (mascota y texto) se oculta, y así el mapa de la demostración sube unos 58 px. Al comenzar el análisis, la barra vuelve.
+
+Se apagaron el servicio de datos (8770) y el Worker local (8787). Detener `npx wrangler dev` no bastaba: hubo que cerrar también el `node` de wrangler, que relanzaba `workerd`.
+
+### Inicio de sesión en la interfaz: decisiones (27-sep-2026)
+
+**Decisiones del usuario,** tomadas antes de codificar:
+- **Métodos:** Google y enlace por correo, como en ADR-0015. En producción, el correo necesitará Resend, porque el SMTP gratuito de Supabase manda pocos mensajes por hora.
+- **Dónde vive la sesión:** en la barra y en el formulario. A la derecha de la barra: «Entrar» sin sesión; con sesión, la inicial y un menú corto (Mis análisis, Salir). Al analizar sin sesión, la invitación sigue apareciendo en el lugar del botón.
+- **Al volver de iniciar sesión:** el análisis arranca solo, con el borrador guardado.
+
+**Plan técnico:**
+- supabase-js v2 desde jsDelivr, con versión exacta y SRI;
+- la clave pública (*publishable*) del proyecto en el sitio;
+- el análisis pasa del servicio de datos directo al Worker (`POST /api/lab/analisis` por SSE, con `Authorization` y `X-Turnstile`), y cada sección se pinta al llegar;
+- Turnstile con la clave de prueba en local;
+- «Mis análisis» y la cuota agotada van en una ronda siguiente.
+
+**Configuración que hace el usuario en Supabase:**
+- proveedores Google (cliente OAuth de Google Cloud) y correo;
+- claves de firma ES256;
+- URLs de retorno de `127.0.0.1:8765` y `localhost:8765`;
+- la clave publicable.
+
+**Titular de la presentación distinto de los títulos de tesis** (pedido del usuario: tenían la misma letra y el mismo tamaño). Como `CLAUDE.md` pide solo Libre Franklin, no se cambió de familia: el titular pasa a peso 400, con espaciado normal y a 38 px, con «más de 600 mil tesis» en negritas. Los títulos de tesis siguen en 800 y apretados. En la demostración, el nombre del campo baja cuando queda cerca del marcador o de «MI TESIS», que antes se enciman.
+
+### Inicio de sesión conectado (Supabase) y análisis por el Worker (27-sep-2026)
+
+**Configuración del usuario, verificada:**
+- **Supabase:** Google (con un cliente OAuth de Google Cloud en modo de prueba) y correo; URL de retorno `127.0.0.1:8765` y `localhost:8765`; claves de firma rotadas a ES256.
+- **Clave pública:** el JWKS público del proyecto publica `f912f378…` (ES256, P-256).
+- **Clave publicable** en el sitio. Es pública por diseño.
+
+**En `laboratorio.html`:**
+- **supabase-js 2.117.2** desde jsDelivr, con versión exacta y SRI `sha384-Rj26…`, flujo PKCE y la sesión guardada en el navegador.
+- **Barra:** «Entrar» abre la ventana (Google o enlace por correo). Con sesión aparecen la inicial (en marino) y un menú con el correo y «Salir».
+  - «Mis análisis» se deja para la ronda siguiente, para no poner un enlace que no lleva a nada.
+- **Invitación del formulario** conectada. Si se entra desde ahí, queda la marca `nodo_lab_analizar_al_volver`; al volver con sesión, el análisis arranca solo, sin pasar por la presentación.
+- **Análisis con sesión real** por el Worker: `POST /api/lab/analisis` con el token y `X-Turnstile`, en SSE.
+  - Los datos llegan primero. Cada sección de IA (nota, preguntas, Bloom) espera su evento en la secuencia.
+  - Si una sección falla o la IA se agota, lo dice sin inventar nada: «llegó a su límite de hoy» o «no está disponible en este momento». La nota vuelve a la Problematiza del estudiante.
+- **Errores al empezar:**
+  - 401: sesión caducada; vuelve la invitación a entrar.
+  - `cuota_diaria_agotada`: aviso «Ya hiciste tus análisis de hoy».
+  - `cupo_del_sitio_agotado`: aviso «Hoy llegamos al límite», sin prometer fila.
+  - El resto: el aviso del servicio caído.
+- **Sin cambios:** los ejemplos (`?demo=<id>`) y `?sesion=local` siguen por su camino.
+- **Turnstile:** en local se manda el token de prueba, que la clave secreta de prueba aprueba. **El widget real va con el despliegue.**
+
+**Worker local contra Supabase real:**
+- `services/puerta/.env.supabase` (en `.gitignore`) es `.dev.vars` sin `JWKS_LOCAL` ni `JWT_EMISOR`.
+- Se arranca con `npx wrangler dev --env-file .env.supabase`.
+- Verificado: un token firmado con las claves de prueba se rechaza con `clave_desconocida`, así que usa el JWKS del proyecto.
+- Las pruebas de integración siguen usando `.dev.vars`.
+
+**Verificación headless:**
+- supabase-js carga con SRI;
+- «Entrar» abre la ventana y el correo se valida;
+- los cuatro ejemplos siguen completos;
+- **Consola:** limpia.
+- **Pendiente:** la prueba real, con la cuenta del usuario, en su navegador.
+
+**Pendientes de esta línea:**
+- Turnstile real;
+- «Mis análisis»;
+- plantillas de correo en español;
+- SMTP de Resend para producción, porque el de Supabase manda pocos correos por hora;
+- publicar la app de Google, que hoy está en prueba y solo deja entrar a los usuarios de prueba.
+
+**Pantalla de acceso con el patrón de las apps** (pedido del usuario: «se ve genérico»). Un solo componente (`pintarAcceso`) va en la ventana de la barra y en la invitación del formulario:
+- el logo de NodOS, «Entra a NodOS» y una línea breve;
+- el botón de Google según sus pautas de marca: fondo blanco, borde `#747775`, la G oficial de cuatro colores y versión oscura en noche. Sus colores son tokens `--google-*`;
+- el separador «o», un campo de correo con caja y el botón ancho «Continuar con correo»;
+- una línea legal: «enlace sin contraseña» y el aviso de privacidad (enlace pendiente).
+
+Al enviar el enlace, el componente cambia a «Revisa tu correo», con la dirección y «Usar otro correo».
+- **Letra:** las pautas de Google piden Roboto en el texto del botón. Por la regla de solo Libre Franklin, va en Libre Franklin. Queda para decidir antes del lanzamiento.
+- **Correcciones:** la ventana salía de 640 px porque la regla `.dlg` le ganaba a `.dlg-entrar` (ahora `.dlg.dlg-entrar`, 420 px). El `h4` de «Revisa tu correo» heredaba el filete de `.dlg h4`.
+- **Verificación headless:** la ventana de día y de noche, y el estado enviado; consola limpia.
+
+**Proveedores de identidad: se queda Supabase Auth; se suma GitHub** (27-sep-2026).
+- **La pregunta del usuario:** ¿conviene uno de los servicios de *Third-Party Auth* de Supabase (Auth0, Clerk, Firebase, Cognito)?
+- **Respuesta: no.**
+  - Supabase Auth ya cubre Google, GitHub y el enlace por correo, gratis hasta 50 mil usuarios activos al mes.
+  - Lo que suman los otros (SSO empresarial, organizaciones, MFA con interfaz o una pantalla prearmada) no le hace falta a NodOS, y agregan otro proveedor que tendría los correos.
+  - Si algún día se cambia, el Worker verifica cualquier token con su JWKS.
+- **GitHub:** «Continuar con GitHub», con el marco oficial en monocromo, va en el componente de acceso. `entrarProveedor(prov)` sirve para Google y GitHub. El usuario activa el proveedor en Supabase con una OAuth App de GitHub; no pide tarjeta.
+
+### Barra común, Mi espacio y guardar de verdad (27-sep-2026)
+
+**Pedido del usuario:**
+- **Barra:** a la izquierda, logo, Mapa, Laboratorio y Acerca de. A la derecha, fijos, Ajustes, iniciar sesión y Mi espacio.
+- **Búsqueda del mapa:** baja a la esquina derecha de la fila de filtros, donde estaba «609,154 tesis».
+- **Mi espacio:** análisis guardados, tesis, asesores y la cuenta.
+
+**Decisiones del usuario:**
+- las cuatro secciones;
+- página propia;
+- la introducción del mapa solo se abre sola la primera vez y ya no tiene pestaña;
+- sin sesión, Mi espacio se ve vacío, con un nodo gris haciendo algo e invitando a entrar o crear la cuenta.
+
+**Módulo compartido** (`compartido/sesion.js` y `compartido/cuenta.css`), para el mapa, el Laboratorio y Mi espacio:
+- supabase-js con SRI, Google, GitHub y el enlace por correo;
+- el componente de acceso (`pintarAcceso`) y la ventana «Entra a NodOS», que el propio módulo inserta;
+- en la barra (`[data-nds-cuenta]`): «Entrar» o la inicial con su menú, más «Mi espacio»;
+- `NodOS.api()` hacia el Worker con el token, y la lista de lo guardado para marcar botones.
+
+El Laboratorio pasó a usarlo: se quitaron su sesión, su ventana y sus estilos propios. Su «Noche» pasó a **Ajustes** (modo noche), igual que en Mi espacio.
+
+**Worker:**
+- **Migración `0002_mi_espacio.sql`:** columna `datos` en `tesis_guardadas` y la tabla `asesores_guardados`.
+- **Datos para mostrar:** cada tesis y cada asesor guarda cómo se muestra (título, año, programa…, del catálogo público). Pasa por una lista blanca de campos y tipos, con un tope de 2 KB.
+- **Rutas:** `GET /api/asesores` y `PUT`/`DELETE` `/api/asesores/<nombre normalizado>`.
+- **Límites y cuenta:** `MAX_ASESORES_GUARDADOS` es 200; `/api/yo` cuenta los asesores; borrar la cuenta también los borra.
+- **Pruebas:** una nueva de integración («mi espacio»); pasan **9 de 9**.
+
+**Mapa (`index.html`):**
+- **Barra nueva:** «Método» pasa a «Acerca de», y la búsqueda está en la fila de filtros.
+- **Guardar tesis:** el marcador de cada tesis guarda de verdad; sin sesión, pide entrar.
+- **Guardar asesor:** nuevo, en su ficha de «Asesoría».
+
+**Laboratorio:**
+- **Guardar:** las tesis, «Guardar todas» y un botón nuevo en cada asesor guardan en Mi espacio.
+- **El análisis se guarda solo** al terminar, si vino del Worker (hasta 2). La ficha dice si se guardó o si ya hay dos.
+- **Reabrir:** `laboratorio.html?analisis=<id>` abre un análisis guardado.
+
+**Mi espacio (`espacio.html`):**
+- banda marina;
+- sin sesión, la mascota gris asomándose a una caja vacía, junto al acceso;
+- con sesión: Mis análisis (abrir y borrar, con confirmación en dos toques), Tesis guardadas (programa en su color de área, nivel y año), Asesores guardados y Cuenta (cerrar sesión y borrar la cuenta, también en dos toques).
+
+**Verificación headless:**
+- la barra del mapa y la del Lab;
+- la búsqueda en la fila de filtros;
+- sin sesión, guardar abre la ventana de entrar;
+- Mi espacio vacío y con datos de ejemplo;
+- los cuatro análisis de ejemplo siguen completos;
+- **Consola:** limpia.
+
+**Pendientes:**
+- La prueba real con la cuenta del usuario.
+- «Ver en el mapa» desde Mi espacio, que necesita leer `?tesis=` en el mapa.
+- Borrar también la identidad en Supabase. Hace falta el secreto `SUPABASE_SERVICE_KEY` en el Worker; hasta entonces, Mi espacio no promete que se borre.
+- Las plantillas de correo en español.
+
+## v4.23.0: guardar en azul, lugares del mapa, lista de lo guardado y confirmaciones (2026-09-27)
+
+**Qué cambió:**
+- **Guardar se ve igual en todas partes** (mapa, Laboratorio y Mi espacio; reglas en `compartido/cuenta.css`):
+  - el marcador está en gris en reposo y se pone azul oscuro (`--guardado`: #143a6b, el azul del logo; de noche #86b3ec) al pasar el cursor y mientras está guardado;
+  - al guardar, salta y se llena; al quitar, se vacía (`NodOS.animarGuardado`);
+  - en «Guardar todas», cada tesis salta al guardarse;
+  - sin animación si el sistema pide menos movimiento.
+- **Lugares del mapa:**
+  - campos, temas y subtemas se guardan desde su ficha;
+  - Worker: `/api/lugares` (GET, PUT y DELETE) y la migración `0003_lugares.sql`, con clave `nivel:campo[.id]` validada y datos en lista blanca;
+  - borrar la cuenta también los borra.
+- **En el mapa, un marcador junto al buscador** abre la lista de lo guardado en cinco grupos: Campos, Temas, Subtemas, Tesis y Asesores.
+  - Cada fila lleva al lugar en el mapa y tiene una × para quitarla.
+  - El marcador se llena cuando hay algo guardado.
+- **Del espacio al mapa:**
+  - `index.html?lugar=`, `?tesis=` y `?asesor=` abren el mapa sin la intro, directo en el lugar, la tesis o el asesor;
+  - en Mi espacio, cada título enlaza así;
+  - nueva sección «Campos y temas».
+- **Confirmaciones** (`NodOS.confirmar`):
+  - «Quitar» pasa a ser una ×;
+  - antes de quitar se pregunta «¿Deseas borrar <título>?», con Sí o No y un interruptor «No preguntar la próxima vez»;
+  - la preferencia se puede volver a activar en Mi espacio › Cuenta;
+  - un análisis y la cuenta siempre preguntan: un análisis cuesta rehacerlo y la cuenta no se recupera.
+  - Activar o desactivar el marcador no pregunta, porque se deshace con otro clic.
+- **Tipografía:**
+  - el encabezado de Mi espacio pasa al Titular del Laboratorio (400);
+  - el aviso del Laboratorio pasa de 800 a 700;
+  - nueva regla estricta en DESIGN.md: el 800 es solo para títulos de tesis.
+
+**Verificación:**
+- `npm run prueba` en `services/puerta`: 9 de 9, con las pruebas nuevas de lugares.
+- Headless, en escritorio y móvil:
+  - guardar un campo;
+  - la lista y la navegación desde ella;
+  - `?lugar=meso:1.C1` y `?tesis=TH_0001235`;
+  - la confirmación con el interruptor y la preferencia guardada;
+  - la confirmación para borrar la cuenta.
+- **Consola:** limpia.
+
+**Pendiente:**
+- La prueba real con sesión (los flujos se probaron con NodOS simulado).
+- Aplicar `0003_lugares.sql` en D1 remoto al desplegar.

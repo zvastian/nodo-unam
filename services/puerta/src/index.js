@@ -15,6 +15,29 @@ import { SinSesion, usuarioDe } from './sesion.js';
 const TOPE_GUARDADO = 512 * 1024;     // bytes de un análisis guardado (el contexto pesa ~55 KB)
 const RE_TESIS = /^[A-Za-z0-9_-]{1,40}$/;
 const RE_UUID = /^[0-9a-f-]{36}$/;
+const RE_ASESOR = /^[a-z0-9 .'-]{2,160}$/;   // nombre normalizado: minúsculas, sin acentos
+const RE_LUGAR = /^(macro|meso|micro):[A-Za-z0-9_.-]{1,80}$/; // campo, tema o subtema del mapa
+const TOPE_DATOS = 2 * 1024;                  // bytes de los datos de una tesis o un asesor guardado
+// Lo que se muestra de lo guardado: lista blanca de campos y tipos; lo demás se descarta.
+const CAMPOS_TESIS = { titulo: 's', anio: 'n', programa: 's', nivel: 's', plantel: 's', area: 'n' };
+const CAMPOS_ASESOR = { nombre: 's', programa: 's', plantel: 's', total: 'n', ultimo: 'n', area: 'n' };
+const CAMPOS_LUGAR = { nombre: 's', nivel: 's', campo: 's', tesis: 'n', color: 's' };
+function limpiarDatos(d, campos) {
+  const o = {};
+  if (!d || typeof d !== 'object') return o;
+  for (const [k, tipo] of Object.entries(campos)) {
+    const v = d[k];
+    if (tipo === 'n' && v !== null && v !== '' && Number.isFinite(+v)) o[k] = Math.round(+v);
+    else if (tipo === 's' && typeof v === 'string' && v.trim()) o[k] = v.trim().slice(0, 300);
+  }
+  return o;
+}
+async function datosOpcionales(request, campos) {
+  if (!(request.headers.get('Content-Type') || '').includes('json')) return null;
+  const o = limpiarDatos(await leerJson(request, TOPE_DATOS), campos);
+  return Object.keys(o).length ? JSON.stringify(o) : null;
+}
+const conDatos = (filas, clave) => filas.map((f) => ({ [clave]: f[clave], datos: f.datos ? JSON.parse(f.datos) : null, creado: f.creado }));
 
 function cors(request, env) {
   const origen = request.headers.get('Origin');
@@ -34,10 +57,12 @@ function cors(request, env) {
 
 async function yo(env, u) {
   const dia = hoy();
-  const [c, a, t] = await env.DB.batch([
+  const [c, a, t, s, l] = await env.DB.batch([
     env.DB.prepare('SELECT n FROM cuota_diaria WHERE usuario = ?1 AND dia = ?2').bind(u.id, dia),
     env.DB.prepare('SELECT count(*) AS n FROM analisis WHERE usuario = ?1').bind(u.id),
     env.DB.prepare('SELECT count(*) AS n FROM tesis_guardadas WHERE usuario = ?1').bind(u.id),
+    env.DB.prepare('SELECT count(*) AS n FROM asesores_guardados WHERE usuario = ?1').bind(u.id),
+    env.DB.prepare('SELECT count(*) AS n FROM lugares_guardados WHERE usuario = ?1').bind(u.id),
   ]);
   const limite = entero(env.CUOTA_USUARIO_DIA, 2);
   return {
@@ -45,6 +70,8 @@ async function yo(env, u) {
     analisis_hoy: { usados: c.results[0]?.n || 0, limite },
     analisis_guardados: { usados: a.results[0].n, limite: entero(env.MAX_ANALISIS_GUARDADOS, 2) },
     tesis_guardadas: t.results[0].n,
+    asesores_guardados: s.results[0].n,
+    lugares_guardados: l.results[0].n,
   };
 }
 
@@ -73,22 +100,48 @@ async function guardarAnalisis(request, env, u) {
   return { id };
 }
 
-async function guardarTesis(env, u, tesis) {
+async function guardarTesis(env, u, tesis, datos = null) {
   const limite = entero(env.MAX_TESIS_GUARDADAS, 500);
   const r = await env.DB.prepare(
-    `INSERT INTO tesis_guardadas (usuario, tesis) SELECT ?1, ?2
+    `INSERT INTO tesis_guardadas (usuario, tesis, datos) SELECT ?1, ?2, ?4
      WHERE (SELECT count(*) FROM tesis_guardadas WHERE usuario = ?1) < ?3
-     ON CONFLICT DO NOTHING`,
-  ).bind(u.id, tesis, limite).run();
+     ON CONFLICT (usuario, tesis) DO UPDATE SET datos = coalesce(excluded.datos, tesis_guardadas.datos)`,
+  ).bind(u.id, tesis, limite, datos).run();
   if (!r.meta.changes) {
     const ya = await env.DB.prepare('SELECT 1 FROM tesis_guardadas WHERE usuario = ?1 AND tesis = ?2').bind(u.id, tesis).first();
     if (!ya) throw new ErrorApi(409, 'limite_de_tesis', { limite });
   }
 }
 
+async function guardarAsesor(env, u, asesor, datos) {
+  const limite = entero(env.MAX_ASESORES_GUARDADOS, 200);
+  const r = await env.DB.prepare(
+    `INSERT INTO asesores_guardados (usuario, asesor, datos) SELECT ?1, ?2, ?4
+     WHERE (SELECT count(*) FROM asesores_guardados WHERE usuario = ?1) < ?3
+     ON CONFLICT (usuario, asesor) DO UPDATE SET datos = coalesce(excluded.datos, asesores_guardados.datos)`,
+  ).bind(u.id, asesor, limite, datos).run();
+  if (!r.meta.changes) {
+    const ya = await env.DB.prepare('SELECT 1 FROM asesores_guardados WHERE usuario = ?1 AND asesor = ?2').bind(u.id, asesor).first();
+    if (!ya) throw new ErrorApi(409, 'limite_de_asesores', { limite });
+  }
+}
+
+async function guardarLugar(env, u, lugar, datos) {
+  const limite = entero(env.MAX_LUGARES_GUARDADOS, 200);
+  const r = await env.DB.prepare(
+    `INSERT INTO lugares_guardados (usuario, lugar, datos) SELECT ?1, ?2, ?4
+     WHERE (SELECT count(*) FROM lugares_guardados WHERE usuario = ?1) < ?3
+     ON CONFLICT (usuario, lugar) DO UPDATE SET datos = coalesce(excluded.datos, lugares_guardados.datos)`,
+  ).bind(u.id, lugar, limite, datos).run();
+  if (!r.meta.changes) {
+    const ya = await env.DB.prepare('SELECT 1 FROM lugares_guardados WHERE usuario = ?1 AND lugar = ?2').bind(u.id, lugar).first();
+    if (!ya) throw new ErrorApi(409, 'limite_de_lugares', { limite });
+  }
+}
+
 async function borrarCuenta(env, u) {
   // Primero los datos propios (lo sensible); luego la identidad en Supabase.
-  await env.DB.batch(['analisis', 'tesis_guardadas', 'cuota_diaria'].map((t) =>
+  await env.DB.batch(['analisis', 'tesis_guardadas', 'asesores_guardados', 'lugares_guardados', 'cuota_diaria'].map((t) =>
     env.DB.prepare(`DELETE FROM ${t} WHERE usuario = ?1`).bind(u.id)));
   if (env.SUPABASE_SERVICE_KEY && env.SUPABASE_URL) {
     const r = await fetch(env.SUPABASE_URL.replace(/\/$/, '') + '/auth/v1/admin/users/' + u.id, {
@@ -136,14 +189,44 @@ async function rutear(request, env, ctx, h) {
   }
 
   if (p === '/api/tesis' && m === 'GET') {
-    const r = await env.DB.prepare('SELECT tesis, creado FROM tesis_guardadas WHERE usuario = ?1 ORDER BY creado DESC').bind(u.id).all();
-    return ok({ tesis: r.results });
+    const r = await env.DB.prepare('SELECT tesis, datos, creado FROM tesis_guardadas WHERE usuario = ?1 ORDER BY creado DESC').bind(u.id).all();
+    return ok({ tesis: conDatos(r.results, 'tesis') });
   }
   if ((x = /^\/api\/tesis\/([^/]+)$/.exec(p))) {
     if (!RE_TESIS.test(x[1])) throw new ErrorApi(400, 'id_de_tesis_invalido');
-    if (m === 'PUT') { await guardarTesis(env, u, x[1]); return vacio(); }
+    if (m === 'PUT') { await guardarTesis(env, u, x[1], await datosOpcionales(request, CAMPOS_TESIS)); return vacio(); }
     if (m === 'DELETE') {
       await env.DB.prepare('DELETE FROM tesis_guardadas WHERE usuario = ?1 AND tesis = ?2').bind(u.id, x[1]).run();
+      return vacio();
+    }
+  }
+
+  if (p === '/api/asesores' && m === 'GET') {
+    const r = await env.DB.prepare('SELECT asesor, datos, creado FROM asesores_guardados WHERE usuario = ?1 ORDER BY creado DESC').bind(u.id).all();
+    return ok({ asesores: conDatos(r.results, 'asesor') });
+  }
+  if ((x = /^\/api\/asesores\/([^/]+)$/.exec(p))) {
+    let clave;
+    try { clave = decodeURIComponent(x[1]); } catch { throw new ErrorApi(400, 'asesor_invalido'); }
+    if (!RE_ASESOR.test(clave)) throw new ErrorApi(400, 'asesor_invalido');
+    if (m === 'PUT') { await guardarAsesor(env, u, clave, await datosOpcionales(request, CAMPOS_ASESOR)); return vacio(); }
+    if (m === 'DELETE') {
+      await env.DB.prepare('DELETE FROM asesores_guardados WHERE usuario = ?1 AND asesor = ?2').bind(u.id, clave).run();
+      return vacio();
+    }
+  }
+
+  if (p === '/api/lugares' && m === 'GET') {
+    const r = await env.DB.prepare('SELECT lugar, datos, creado FROM lugares_guardados WHERE usuario = ?1 ORDER BY creado DESC').bind(u.id).all();
+    return ok({ lugares: conDatos(r.results, 'lugar') });
+  }
+  if ((x = /^\/api\/lugares\/([^/]+)$/.exec(p))) {
+    let clave;
+    try { clave = decodeURIComponent(x[1]); } catch { throw new ErrorApi(400, 'lugar_invalido'); }
+    if (!RE_LUGAR.test(clave)) throw new ErrorApi(400, 'lugar_invalido');
+    if (m === 'PUT') { await guardarLugar(env, u, clave, await datosOpcionales(request, CAMPOS_LUGAR)); return vacio(); }
+    if (m === 'DELETE') {
+      await env.DB.prepare('DELETE FROM lugares_guardados WHERE usuario = ?1 AND lugar = ?2').bind(u.id, clave).run();
       return vacio();
     }
   }

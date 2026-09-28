@@ -1,0 +1,24 @@
+{
+ "title": "Recarga del acuífero del Valle de México con datos satelitales",
+ "problematiza": "El acuífero del Valle de México se extrae más rápido de lo que se recarga, pero las mediciones de recarga dependen de pocos pozos y cubren mal el territorio. Los datos satelitales de gravedad y de uso de suelo podrían estimar la recarga con más detalle. ¿Qué tan precisas son esas estimaciones frente a las mediciones de campo y cómo podrían usarse para gestionar el acuífero?",
+ "keywords": [
+  "acuífero",
+  "recarga",
+  "percepción remota",
+  "Valle de México"
+ ],
+ "objectives": [
+  "Describir la variación de la recarga del acuífero entre 2000 y 2024",
+  "Comparar tres modelos de estimación de recarga con datos satelitales",
+  "Evaluar la precisión de cada modelo frente a mediciones de pozos",
+  "Proponer un esquema de monitoreo del acuífero basado en datos satelitales"
+ ],
+ "program": "Ingeniería Civil",
+ "degree": "Maestría",
+ "study_period": {
+  "applies": true,
+  "start_year": 2000,
+  "end_year": 2024,
+  "label": "2000-2024"
+ }
+}

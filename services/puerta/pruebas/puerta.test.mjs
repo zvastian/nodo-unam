@@ -7,7 +7,7 @@ import { readFileSync } from 'node:fs';
 
 const URL_PUERTA = process.env.PUERTA_URL || 'http://127.0.0.1:8787';
 const { emisor, privada } = JSON.parse(readFileSync(new URL('claves.local.json', import.meta.url)));
-const ENTRADA = JSON.parse(readFileSync(new URL('../../../prototypes/atlas_vecindario_mvp/bocetos/lab/entrada_ejemplo.json', import.meta.url)));
+const ENTRADA = JSON.parse(readFileSync(new URL('../../../prototypes/atlas_vecindario_mvp/lab/entrada_ejemplo.json', import.meta.url)));
 const ORIGEN = 'http://127.0.0.1:8765';
 const TURNSTILE = { 'X-Turnstile': 'XXXX.DUMMY.TOKEN.XXXX' };
 
@@ -122,6 +122,36 @@ test('tesis guardadas: idempotente, id validado y sin acceso cruzado', async () 
   assert.equal((await api('/api/tesis', { tk: b })).json.tesis.length, 0);
   await api('/api/tesis/TH_000123', { tk: b, metodo: 'DELETE' });
   assert.equal((await api('/api/tesis', { tk: a })).json.tesis.length, 1, 'B no borra las de A');
+});
+
+test('mi espacio: datos de tesis y asesores en lista blanca, sin acceso cruzado', async () => {
+  const [a, b] = [await token(), await token()];
+  // la tesis guarda cómo se muestra; los campos ajenos se descartan y los números se normalizan
+  assert.equal((await api('/api/tesis/TH_0000007', { tk: a, metodo: 'PUT', cuerpo: { titulo: 'Una tesis', anio: '2020', programa: 'derecho', basura: 'x' } })).status, 204);
+  assert.equal((await api('/api/tesis/TH_0000007', { tk: a, metodo: 'PUT' })).status, 204); // sin cuerpo: conserva los datos
+  const t = (await api('/api/tesis', { tk: a })).json.tesis[0];
+  assert.deepEqual(t.datos, { titulo: 'Una tesis', anio: 2020, programa: 'derecho' });
+  // asesores: clave normalizada validada, idempotente y por usuario
+  const clave = encodeURIComponent('jose davalos');
+  assert.equal((await api('/api/asesores/' + encodeURIComponent('<b>'), { tk: a, metodo: 'PUT', cuerpo: { nombre: 'x' } })).status, 400);
+  assert.equal((await api('/api/asesores/' + clave, { tk: a, metodo: 'PUT', cuerpo: { nombre: 'José Dávalos', total: 227, ultimo: 2022 } })).status, 204);
+  assert.equal((await api('/api/asesores/' + clave, { tk: a, metodo: 'PUT', cuerpo: { nombre: 'José Dávalos', total: 227, ultimo: 2022 } })).status, 204);
+  const la = (await api('/api/asesores', { tk: a })).json.asesores;
+  assert.equal(la.length, 1); assert.equal(la[0].datos.nombre, 'José Dávalos');
+  assert.equal((await api('/api/asesores', { tk: b })).json.asesores.length, 0);
+  assert.equal((await api('/api/asesores/' + clave, { tk: b, metodo: 'DELETE' })).status, 204); // no toca los de a
+  assert.equal((await api('/api/asesores', { tk: a })).json.asesores.length, 1);
+  assert.equal((await api('/api/yo', { tk: a })).json.asesores_guardados, 1);
+  // lugares del mapa: clave validada, datos en lista blanca y por usuario
+  assert.equal((await api('/api/lugares/' + encodeURIComponent('otro:1'), { tk: a, metodo: 'PUT', cuerpo: {} })).status, 400);
+  assert.equal((await api('/api/lugares/' + encodeURIComponent('macro:31'), { tk: a, metodo: 'PUT', cuerpo: { nombre: 'Política monetaria', nivel: 'macro', tesis: '812', extra: 1 } })).status, 204);
+  const lu = (await api('/api/lugares', { tk: a })).json.lugares;
+  assert.equal(lu.length, 1); assert.deepEqual(lu[0].datos, { nombre: 'Política monetaria', nivel: 'macro', tesis: 812 });
+  assert.equal((await api('/api/lugares', { tk: b })).json.lugares.length, 0);
+  // borrar la cuenta también borra los asesores
+  assert.equal((await api('/api/cuenta', { tk: a, metodo: 'DELETE' })).status, 204);
+  assert.equal((await api('/api/asesores', { tk: a })).json.asesores.length, 0);
+  assert.equal((await api('/api/lugares', { tk: a })).json.lugares.length, 0);
 });
 
 test('borrar la cuenta borra sus datos y solo los suyos', async () => {

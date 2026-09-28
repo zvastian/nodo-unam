@@ -1,0 +1,99 @@
+{
+ "_nota": "Salida real de la IA (Worker local, 2026-09-27).",
+ "nota": {
+  "main_objects": [
+   "cofradías indígenas",
+   "libros de cofradía",
+   "bienes y recursos",
+   "comunidades indígenas",
+   "instituciones españolas"
+  ],
+  "interpretive_angle": "Comparativo institucional",
+  "scope": {
+   "temporal": {
+    "applies": true,
+    "start": 1600,
+    "end": 1700,
+    "text": "El estudio abarca un siglo amplio (1600‑1700); se sugiere dividirlo en dos bloques de medio siglo para observar posibles cambios internos."
+   },
+   "geographic": {
+    "applies": true,
+    "units": [
+     "Puebla"
+    ],
+    "text": "Se focaliza en la región de Puebla, lo que permite acceso a archivos locales y comparabilidad con otras instituciones coloniales."
+   }
+  }
+ },
+ "preguntas": {
+  "items": [
+   {
+    "type": "Histórica",
+    "question": "¿Cómo evolucionó la estructura organizativa de las cofradías indígenas en Puebla a lo largo del siglo XVII?",
+    "methodological_angle": "Análisis cronológico de los libros de cofradía combinando fuentes documentales y registros notariales del periodo."
+   },
+   {
+    "type": "Comparativa",
+    "question": "¿En qué aspectos difieren la gestión de bienes de las cofradías indígenas y las cofradías españolas en Puebla durante el mismo siglo?",
+    "methodological_angle": "Comparación de inventarios y actas de cofradías mediante estudio documental y técnicas de análisis comparativo."
+   },
+   {
+    "type": "Causal",
+    "question": "¿Qué factores internos y externos influyeron en que las cofradías indígenas mantuvieran autonomía frente a la Iglesia y la Corona?",
+    "methodological_angle": "Identificación de variables a partir de correspondencia e informes eclesiásticos, aplicando análisis de causalidad histórica."
+   },
+   {
+    "type": "Exploratoria",
+    "question": "¿Qué roles sociales y simbólicos desempeñaban las cofradías indígenas en la vida cotidiana de sus comunidades en Puebla?",
+    "methodological_angle": "Exploración de relatos comunitarios y documentos litúrgicos mediante lectura crítica y análisis de contenido temático."
+   }
+  ]
+ },
+ "bloom": {
+  "main_risk": "Al quedar todos los objetivos en el mismo nivel, la tesis no demostrará la profundidad requerida para un doctorado y limitará su aporte original.",
+  "objectives": [
+   {
+    "original": "Reconstruir la organización de las cofradías indígenas de Puebla a partir de sus libros",
+    "level": null,
+    "diagnosis": "Falta especificar qué criterios o indicadores se usarán para validar la reconstrucción y qué unidades documentales se analizarán.",
+    "improvement": "Precisar indicadores de organización y delimitar el conjunto de libros que servirán como evidencia para la reconstrucción."
+   },
+   {
+    "original": "Analizar cómo administraban sus bienes y recursos",
+    "level": null,
+    "diagnosis": "No se indica qué tipo de bienes, fuentes de información ni parámetros de análisis se emplearán para comprobar la administración.",
+    "improvement": "Definir los bienes específicos, las fuentes documentales y los parámetros de análisis que permitirán evaluar la administración."
+   },
+   {
+    "original": "Interpretar el papel de las cofradías en la autonomía de las comunidades",
+    "level": null,
+    "diagnosis": "Se necesita establecer qué aspectos de autonomía se medirán y cómo se relacionarán con la actividad de las cofradías.",
+    "improvement": "Establecer indicadores de autonomía y describir la relación operativa entre cofradías y comunidad para la interpretación."
+   },
+   {
+    "original": "Comparar las cofradías indígenas con las de españoles de la misma ciudad",
+    "level": null,
+    "diagnosis": "No se especifican los criterios de comparación ni los casos concretos que se contrastarán.",
+    "improvement": "Seleccionar criterios comparativos claros y casos representativos de cofradías indígenas y españolas para la comparación."
+   }
+  ],
+  "revised": [
+   {
+    "text": "Describir la estructura organizativa de las cofradías indígenas de Puebla mediante el análisis sistemático de sus libros."
+   },
+   {
+    "text": "Describir los bienes y recursos administrados por las cofradías según los registros contables."
+   },
+   {
+    "text": "Evaluar el grado de autonomía comunitaria asociado a la gestión de las cofradías mediante indicadores de independencia institucional."
+   },
+   {
+    "text": "Comparar los modelos de gestión de cofradías indígenas y españolas usando criterios de organización y control de recursos."
+   },
+   {
+    "text": "Proponer un modelo teórico que explique la influencia de las cofradías en la preservación social y patrimonial de las comunidades indígenas."
+   }
+  ],
+  "final_note": "Verifica cada objetivo con indicadores claros, fuentes documentales definidas y resultados concretos que puedan ser medidos o contrastados."
+ }
+}
