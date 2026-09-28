@@ -1,0 +1,2 @@
+# las librerías de terceros se guardan byte a byte: supabase-js lleva SRI y un CRLF lo rompería
+prototypes/atlas_vecindario_mvp/vendor/*.js -text
