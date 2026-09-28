@@ -121,6 +121,7 @@
   .fb-label { font-size: 14px; color: var(--ink-3); }
   .fb-count { font-size: 13px; color: var(--ink-3); }
   /* v4.33: aclaración de la cifra de tesis, en un «?» en círculo */
+  .fb-info[hidden] { display: none; }
   .fb-info { position: relative; display: inline-flex; align-items: center; margin-left: -18px; }
   .fb-q { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; padding: 0; border: 1px solid var(--ink-3); border-radius: 50%; background: none; font: inherit; font-size: 10.5px; font-weight: 700; line-height: 1; color: var(--ink-3); cursor: pointer; }
   .fb-q:hover, .fb-q[aria-expanded="true"] { border-color: var(--ink); color: var(--ink); }
@@ -682,7 +683,7 @@
        año, nivel -- cada filtro nuevo es otro .fb-group aqui. -->
   <div class="filterbar" id="filterbar" role="toolbar" aria-label="Filtros del mapa">
     <nav id="crumbs" aria-label="Ubicación en el mapa" hidden></nav>
-    <span class="fb-count" id="fb-count"></span><span class="fb-info"><button type="button" class="fb-q" id="fb-q" aria-expanded="false" aria-controls="fb-nota" aria-label="Sobre esta cifra" title="Sobre esta cifra">?</button><span class="fb-nota" id="fb-nota" role="note" hidden>Tesis del catálogo público TESIUNAM incluidas en NodOS, según la copia del catálogo que se procesó para construir el mapa. El catálogo en línea puede tener registros más recientes o registros que no se incluyeron. El catálogo depurado se publica como <a href="#" data-pendiente="kaggle" target="_blank" rel="noopener">dataset abierto en Kaggle</a>.</span></span>
+    <span class="fb-count" id="fb-count"></span><span class="fb-info" id="fb-info" hidden><button type="button" class="fb-q" id="fb-q" aria-expanded="false" aria-controls="fb-nota" aria-label="Sobre esta cifra" title="Sobre esta cifra">?</button><span class="fb-nota" id="fb-nota" role="note" hidden>Tesis del catálogo público TESIUNAM incluidas en NodOS, según la copia que se procesó para construir el mapa. La versión en línea puede tener registros más recientes o que no se incluyeron. Los datos depurados se publican como <a href="#" data-pendiente="kaggle" target="_blank" rel="noopener">dataset abierto en Kaggle</a>.</span></span>
     <button type="button" class="navsearch" id="btn-search" aria-label="Buscar (Ctrl+K)"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5"/><path d="M10.4 10.4L14 14"/></svg><span>Buscar tema, título o asesor</span></button>
     <button type="button" class="navguardados" id="btn-guardados" aria-haspopup="true" aria-expanded="false" aria-controls="guardados-menu" title="Lo que guardaste"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5h8v11l-4-3-4 3z"/></svg></button>
     <div id="guardados-menu" hidden role="region" aria-label="Lo que guardaste"></div>
@@ -764,7 +765,7 @@
 
   <footer>
     <span>Proyecto independiente, no oficial. Datos del catálogo público TESIUNAM.</span>
-    <span><a id="foot-metodo" href="acerca.html#mapa">Cómo se hizo el mapa</a><span class="foot-sep"></span><a href="privacidad.html">Privacidad</a><span class="foot-sep"></span>versión <span id="app-version">4.33.1</span></span>
+    <span><a id="foot-metodo" href="acerca.html#mapa">Cómo se hizo el mapa</a><span class="foot-sep"></span><a href="privacidad.html">Privacidad</a><span class="foot-sep"></span>versión <span id="app-version">4.33.2</span></span>
   </footer>
 </div>
 
@@ -998,7 +999,7 @@
     // rawX/rawY: coordenadas PaCMAP crudas (para ubicar la tesela de titulos);
     // dispX/dispY: donde esta DIBUJADO cada punto ahora (difiere en modo aislado).
     state.rawX = xs; state.rawY = ys; state.dispX = state.ndcX; state.dispY = state.ndcY;
-    $('fb-count').textContent = fmtNum(n) + ' tesis';
+    $('fb-count').textContent = fmtNum(n) + ' tesis'; $('fb-info').hidden = false; // el «?» aparece con la cifra, no antes
     // el «?» de la cifra: abre y cierra la nota; se cierra con Esc o con un clic fuera
     var notaCifra = function (on) { $('fb-nota').hidden = !on; $('fb-q').setAttribute('aria-expanded', String(on)); };
     $('fb-q').addEventListener('click', function (ev) { ev.stopPropagation(); notaCifra($('fb-nota').hidden); });

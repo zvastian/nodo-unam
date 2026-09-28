@@ -4237,3 +4237,22 @@ El nombre de cada uno queda en `aria-label` y `title`. Entrar y Mi espacio los p
 **Por qué:** lo pidió el usuario: faltaba la información del dataset público.
 
 **Verificación:** Chrome headless, escritorio y móvil. Consola limpia.
+
+## v4.33.2: dataset y licencia como pasos 12 y 13; la nota de la cifra, más limpia (2026-09-28)
+
+**Qué cambió:**
+- **Acerca de:** una tercera parte, «Publicación», con dos pasos del mismo formato que los demás.
+  - **12. Dataset:** el catálogo depurado como dataset abierto en Kaggle, con el enlace pendiente. La ilustración es la fila de la tesis de ejemplo con las columnas del esquema de ADR-0011: `anio`, `nivel`, `programa`, `area`, `asesor` y `titulo`, con sus valores en forma legible.
+  - **13. Licencia:** el código con licencia MIT, **open source**, y el logo como ilustración.
+  - Tras los pasos, una línea: «NodOS es un proyecto independiente; no es un sitio oficial de la Universidad Nacional Autónoma de México.» Después va el autor.
+- **Mapa, nota del «?»:** se reescribió para no repetir «catálogo»: «…según la copia que se procesó para construir el mapa. La versión en línea puede tener registros más recientes o que no se incluyeron. Los datos depurados se publican como dataset abierto en Kaggle.»
+- **Mapa, el «?»:** aparecía antes que la cifra y se recorría cuando llegaba. Ahora está oculto (`#fb-info[hidden]`) hasta que se escribe la cifra, y aparecen juntos.
+
+**Por qué:** lo pidió el usuario.
+
+**Verificación:** Chrome headless.
+- Antes de cargar, el «?» está oculto y la cifra vacía; después se muestran juntos, «609,154 tesis ?».
+- Acerca de, en escritorio y móvil.
+- Consola limpia.
+
+**Riesgo antes de publicar el dataset:** el esquema de ADR-0011 incluye `titulo_original`, «la cadena bibliográfica cruda». En el catálogo, esa cadena a veces trae la mención de autor que el mapa retira del título. Hay que pasarle `limpiar_autores_atlas.py` (o su criterio) antes de subirlo a Kaggle, o excluir la columna.
