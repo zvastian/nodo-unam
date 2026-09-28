@@ -3825,3 +3825,50 @@ El Laboratorio pasó a usarlo: se quitaron su sesión, su ventana y sus estilos 
 **Pendiente:**
 - Probar guardar con una sesión real.
 - El IVF con nprobe 48 coincide en 87% con una búsqueda casi exacta (nprobe 768), así que alguna de las 30 puede no ser la óptima.
+
+## v4.24.1: sin deriva en el modo aislado (2026-09-27)
+
+**Qué cambió:** las tesis de un subtema o de las similares ya no se mueven. Antes, la capa WebGL del modo aislado se redibujaba en cada cuadro (unos 45 por segundo en headless) mientras el tema estuviera abierto. Ahora se pinta solo cuando algo cambia: cámara, selección, tamaño o color (`paintMarks` llama a `flowFrame`). Se quitaron `driftAmp` y la entrada gradual.
+
+**Por qué:** lo pidió el usuario, porque sospechaba que la animación consumía mucha RAM.
+- La medición no lo confirma: el heap de JS queda igual (294 MB antes, 293 MB después).
+- El gasto era de CPU y GPU, por redibujar sin parar, y eso sí desaparece.
+- La RAM la ocupan sobre todo los datos del mapa.
+
+**Verificación:** Chrome headless, 1600×900.
+- Con las similares abiertas, en 2 s no queda ningún cuadro pendiente del modo aislado.
+- Al mover la cámara, puntos y enlaces la siguen.
+- Consola limpia.
+
+## v4.24.2: abrir un subtema grande ya no congela la página (2026-09-27)
+
+**Qué cambió:**
+- **La separación entre tesis del modo aislado** usa `colisionRejilla` en lugar de `d3.forceCollide`. La regla es la misma (radios iguales, fuerza 1, posición prevista x + vx, 4 pasadas y 320 vueltas), pero busca vecinas en una rejilla de celdas del tamaño del diámetro, en lugar de un quadtree.
+- **El acomodo de cada subtema y de cada lista de similares se guarda en memoria**, por tamaño de pantalla. Solo se guardan las posiciones de sus tesis (~20 KB en el subtema más grande), y el claro alrededor se recalcula.
+
+**Por qué:** el usuario notaba lento el flujo.
+- **Medición (Chrome headless con GPU real, d3d11):** mover y hacer zoom iba a 55 fps en todos los modos, y el heap de JS se mantenía entre 110 y 240 MB.
+- **El cuello estaba en la colisión de d3** al abrir un subtema:
+  - 1.5 s con 779 tesis;
+  - 6.7 s con 2,475 (el más grande, «Exploración sanitaria – General exploración»), con una tarea larga de 7.2 s.
+- **Subir las 609 mil posiciones a la GPU** tarda ~0.25 s por apertura, y eso no cambió.
+
+**Verificación**, en el subtema de 2,475 tesis:
+- **Primera apertura:** la tarea más larga baja de 7,173 ms a 1,269 ms.
+- **Reapertura:** unos 230 ms, que es lo que tarda la subida a la GPU.
+- **Tesis encimadas:** 3 pares a 20.7 px entre centros, con puntos de 15 px, así que no se tocan. Con d3 eran 0.
+- **Similares:** 0 encimadas, a 24 px.
+- **Captura:** igual que antes.
+- **Consola:** limpia.
+
+## v4.24.3: las similares abren con animaciones cortas (2026-09-27)
+
+**Qué cambió:** al abrir las similares, la cámara vuela en 0.5 s (antes entre 1 y 1.5 s) y los puntos se separan en 0.6 s (antes 1.5 s). `aislar` acepta `vuelo` y `transicion`, y `flyToVisible` acepta una duración. El subtema conserva sus animaciones.
+
+**Por qué:** el usuario notaba lentas las similares. La medición (Chrome headless con GPU real) mostró que de los ~4.1 s entre el clic y el final:
+- los datos y el acomodo tardaban 0.17 s en local;
+- el resto eran las dos animaciones, que van una tras otra, más ~0.5 s de subir las 609 mil posiciones a la GPU.
+
+**Verificación:** del clic al final pasan 2.3 s, antes 4.1 s. Consola limpia.
+
+**Pendiente (propuesto, no hecho):** en el sitio publicado, mostrar 30 títulos descarga unos 15 archivos de títulos (~1.3 MB) además del bloque de vecinas. Guardar los títulos junto con las vecinas lo haría un solo archivo, a cambio de unos 100 a 150 MB más en el repositorio.

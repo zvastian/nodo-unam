@@ -785,7 +785,7 @@
 
   <footer>
     <span>Proyecto independiente, no oficial. Datos del catálogo público TESIUNAM.</span>
-    <span><button type="button" id="foot-metodo">Cómo se hizo el mapa</button><span class="foot-sep"></span>versión <span id="app-version">4.24.0</span></span>
+    <span><button type="button" id="foot-metodo">Cómo se hizo el mapa</button><span class="foot-sep"></span>versión <span id="app-version">4.24.3</span></span>
   </footer>
 </div>
 
@@ -3502,6 +3502,7 @@
   function drawMarks() { if (!marksRaf) marksRaf = requestAnimationFrame(function () { marksRaf = 0; paintMarks(); }); }
   function paintMarks() {
     var cv = $('marks'); if (!state.scatterplot || !state.dispX) return;
+    if (flow.running) flowFrame(); // la capa del tema aislado sigue a la camara en el mismo cuadro
     var dpr = window.devicePixelRatio || 1, W = state.W, H = state.H;
     if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
     var ctx = cv.getContext('2d');
@@ -3537,9 +3538,9 @@
     return box;
   }
   // Vuela de modo que (x, y) quede al centro de la zona visible, no detras de la ficha.
-  function flyToVisible(x, y, dist) {
+  function flyToVisible(x, y, dist, duration) {
     var b = visibleBox(), s = (state.H / 2) / dist;
-    return flyTo(x - ((b.l + b.r) / 2 - state.W / 2) / s, y + ((b.t + b.b) / 2 - state.H / 2) / s, dist);
+    return flyTo(x - ((b.l + b.r) / 2 - state.W / 2) / s, y + ((b.t + b.b) / 2 - state.H / 2) / s, dist, duration);
   }
   function wrapText(ctx, text, maxW, maxLines) {
     var words = String(text).split(/\s+/), lines = [], cur = '', i;
@@ -3706,12 +3707,54 @@
       }
       // temas compactos se amplian x3.2; los ya dispersos, lo justo (tope 0.12 NDC):
       // mejor acercar la camara que empujar medio mapa
-      aislar({ token: token, node: n, idxs: idxs, byIdx: byIdx, edges: edges, cx: cx, cy: cy, Rndc: Math.max(R90 * 1.6, Math.min(R90 * ISO_EXPAND, 0.12)),
+      aislar({ token: token, clave: 'micro:' + n.clusterId, node: n, idxs: idxs, byIdx: byIdx, edges: edges, cx: cx, cy: cy, Rndc: Math.max(R90 * 1.6, Math.min(R90 * ISO_EXPAND, 0.12)),
         // posicion real ampliada
         destino: function (Rpx) { var sc = (Rpx * 0.8) / R90; return idxs.map(function (i) { return [(X0[i] - cx) * sc, (Y0[i] - cy) * sc]; }); },
         nombre: n.name, nTxt: fmtNum(N) + ' tesis' });
     });
   }
+  // v4.24.2: la colision de d3 (quadtree) tardaba 7 a 9 s en el subtema de 2,475 tesis (320
+  // vueltas x 4 pasadas en el hilo principal). Esta es la misma regla que d3.forceCollide (radios
+  // iguales, fuerza 1, posiciones previstas x + vx), pero busca vecinas en una rejilla de celdas
+  // del tamano del diametro: solo mira las 9 celdas alrededor.
+  function colisionRejilla(radio, pasadas) {
+    var nodes, D = radio * 2, D2 = D * D, cab = null, sig = null, px = null, py = null;
+    function force() {
+      var n = nodes.length, i, j, k;
+      if (!px || px.length < n) { px = new Float64Array(n); py = new Float64Array(n); sig = new Int32Array(n); }
+      for (var it = 0; it < pasadas; it++) {
+        var x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+        for (i = 0; i < n; i++) {
+          px[i] = nodes[i].x + nodes[i].vx; py[i] = nodes[i].y + nodes[i].vy;
+          if (px[i] < x0) x0 = px[i]; if (px[i] > x1) x1 = px[i]; if (py[i] < y0) y0 = py[i]; if (py[i] > y1) y1 = py[i];
+        }
+        var cw = Math.floor((x1 - x0) / D) + 1, ch = Math.floor((y1 - y0) / D) + 1;
+        if (!cab || cab.length < cw * ch) cab = new Int32Array(cw * ch);
+        cab.fill(-1, 0, cw * ch);
+        for (i = 0; i < n; i++) { k = Math.floor((py[i] - y0) / D) * cw + Math.floor((px[i] - x0) / D); sig[i] = cab[k]; cab[k] = i; }
+        for (i = 0; i < n; i++) {
+          var a = nodes[i], xi = px[i], yi = py[i], gx = Math.floor((xi - x0) / D), gy = Math.floor((yi - y0) / D);
+          for (var yy = Math.max(0, gy - 1); yy <= Math.min(ch - 1, gy + 1); yy++) {
+            for (var xx = Math.max(0, gx - 1); xx <= Math.min(cw - 1, gx + 1); xx++) {
+              for (j = cab[yy * cw + xx]; j >= 0; j = sig[j]) {
+                if (j <= i) continue;
+                var b = nodes[j], x = xi - b.x - b.vx, y = yi - b.y - b.vy, l = x * x + y * y;
+                if (l >= D2) continue;
+                if (x === 0) { x = (Math.random() - 0.5) * 1e-6; l += x * x; }
+                if (y === 0) { y = (Math.random() - 0.5) * 1e-6; l += y * y; }
+                l = Math.sqrt(l); l = (D - l) / l;
+                a.vx += (x *= l) * 0.5; a.vy += (y *= l) * 0.5;
+                b.vx -= x * 0.5; b.vy -= y * 0.5;
+              }
+            }
+          }
+        }
+      }
+    }
+    force.initialize = function (ns) { nodes = ns; };
+    return force;
+  }
+  var acomodos = new Map();
   // v4.24: separa un conjunto de tesis del resto del mapa (un subtema o las similares de una tesis).
   // sp.destino(Rpx) da la posicion deseada de cada tesis en pixeles, relativa a (cx, cy); luego una
   // relajacion de colisiones garantiza ISO_MIN_PX entre centros.
@@ -3727,21 +3770,27 @@
     var D = Math.max(1 / K_MAX_ZOOM, Math.min(DEFAULT_CAMERA_DISTANCE, sp.Rndc * (H / 2) / Rpx));
     var pxPerNdc = (H / 2) / D;
 
-    // 2) layout en pixeles: posicion deseada + relajacion de colisiones
-    var GA = Math.PI * (3 - Math.sqrt(5)), dest = sp.destino(Rpx);
-    var nodes = idxs.map(function (i, k) {
-      var x = dest[k][0], y = dest[k][1];
-      // titulos identicos caen en el MISMO punto: semilla en espiral para que se separen
-      if (Math.hypot(x, y) < 1 && k !== sp.fijo) { var rr = 4 * Math.sqrt(k + 1); x = rr * Math.cos(k * GA); y = rr * Math.sin(k * GA); }
-      return { x: x, y: y, tx: x, ty: y };
-    });
-    if (sp.fijo != null) { nodes[sp.fijo].fx = nodes[sp.fijo].x; nodes[sp.fijo].fy = nodes[sp.fijo].y; } // la tesis de origen no se mueve del centro
-    var sim = d3.forceSimulation(nodes)
-      .force('collide', d3.forceCollide(ISO_MIN_PX / 2).iterations(4))
-      .force('x', d3.forceX(function (d) { return d.tx; }).strength(0.035))
-      .force('y', d3.forceY(function (d) { return d.ty; }).strength(0.035))
-      .stop();
-    for (var t = 0; t < 320; t++) sim.tick();
+    // 2) layout en pixeles: posicion deseada + relajacion de colisiones. v4.24.2: el acomodo de
+    //    cada conjunto se guarda por tamano de pantalla; al volver a abrirlo no se recalcula.
+    var clave = sp.clave + '|' + Rpx.toFixed(1) + '|' + H, nodes = acomodos.get(clave);
+    if (!nodes) {
+      var GA = Math.PI * (3 - Math.sqrt(5)), dest = sp.destino(Rpx);
+      nodes = idxs.map(function (i, k) {
+        var x = dest[k][0], y = dest[k][1];
+        // titulos identicos caen en el MISMO punto: semilla en espiral para que se separen
+        if (Math.hypot(x, y) < 1 && k !== sp.fijo) { var rr = 4 * Math.sqrt(k + 1); x = rr * Math.cos(k * GA); y = rr * Math.sin(k * GA); }
+        return { x: x, y: y, tx: x, ty: y };
+      });
+      if (sp.fijo != null) { nodes[sp.fijo].fx = nodes[sp.fijo].x; nodes[sp.fijo].fy = nodes[sp.fijo].y; } // la tesis de origen no se mueve del centro
+      var sim = d3.forceSimulation(nodes)
+        .force('collide', colisionRejilla(ISO_MIN_PX / 2, 4))
+        .force('x', d3.forceX(function (d) { return d.tx; }).strength(0.035))
+        .force('y', d3.forceY(function (d) { return d.ty; }).strength(0.035))
+        .stop();
+      for (var t = 0; t < 320; t++) sim.tick();
+      nodes = nodes.map(function (d) { return { x: d.x, y: d.y }; });
+      acomodos.set(clave, nodes);
+    }
 
     var NX = new Float32Array(X0), NY = new Float32Array(Y0), radii = [];
     nodes.forEach(function (d, k) {
@@ -3774,12 +3823,13 @@
 
     // 4) secuencia: acercarse al conjunto y luego abrirlo (la camara y los puntos
     //    comparten el mismo tween en la libreria: no pueden animarse a la vez)
-    (sp.visible ? flyToVisible(cx, cy, D) : flyTo(cx, cy, D, 750)).then(function () {
+    // v4.24.3: las similares (31 tesis) usan animaciones cortas; el subtema conserva las suyas
+    (sp.visible ? flyToVisible(cx, cy, D, sp.vuelo || 750) : flyTo(cx, cy, D, sp.vuelo || 750)).then(function () {
       if (token !== isoToken) return;
       state.dispX = NX; state.dispY = NY;
       state.highlightKey = 'iso|' + n.id;
       lastPointSize = null; updatePointSize();
-      drawPoints(NX, NY, cats, { transition: true, transitionDuration: 1500, transitionEasing: 'cubicInOut' })
+      drawPoints(NX, NY, cats, { transition: true, transitionDuration: sp.transicion || 1500, transitionEasing: 'cubicInOut' })
         .then(function () { if (token === isoToken && state.iso && state.iso.mode === 'eco') startFlow(); });
     });
   }
@@ -3835,7 +3885,7 @@
       var smax = vs.length ? vs[0].s : 1, smin = vs.length ? vs[vs.length - 1].s : 0, rango = Math.max(0.01, smax - smin);
       var dists = vs.map(function (v) { return Math.hypot(X0[v.i] - cx, Y0[v.i] - cy); }).sort(function (a, b) { return a - b; });
       var R90 = vs.length ? Math.max(dists[Math.floor(0.9 * (vs.length - 1))], 0.004) : 0.02;
-      aislar({ token: token, node: n, idxs: idxs, byIdx: byIdx, edges: edges, cx: cx, cy: cy, fijo: 0, visible: true, Rndc: Math.min(0.12, Math.max(0.03, R90 * 1.6)),
+      aislar({ token: token, clave: 'sim:' + idx, node: n, idxs: idxs, byIdx: byIdx, edges: edges, cx: cx, cy: cy, fijo: 0, visible: true, vuelo: 500, transicion: 600, Rndc: Math.min(0.12, Math.max(0.03, R90 * 1.6)),
         destino: function (Rpx) {
           var GA = Math.PI * (3 - Math.sqrt(5));
           return [[0, 0]].concat(vs.map(function (v, k) {
@@ -3865,6 +3915,7 @@
     var c = isoColor(state.iso.node);
     state.palette[C_HL_MULTI] = c; state.scatterplot.set({ pointColor: state.palette });
     $('iso-chip').style.setProperty('--c', c);
+    pedirFlow();
     var tint = $('tint');
     tint.style.background = hexToRgba(c, 0.05); // tono plano, sin degradado (v4)
     tint.classList.add('on');
@@ -3899,17 +3950,15 @@
   // vez y la deriva se calcula en el shader; por cuadro solo cambian tiempo y camara.
   // En WebGL de fondo las tesis del tema quedan INVISIBLES pero seleccionables
   // (hover/clic funcionan; la deriva es de pocos px).
-  var DRIFT_PX = 5.5;          // amplitud: "lento pero notable"; con 24 px entre centros solo se rozan un instante en el peor caso
-  var flow = { raf: 0, running: false, ampT0: 0, t0: 0, focus: -1, regl: null, draws: null };
-  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // v4.24.1, pedido del usuario: fuera la deriva. El cuadro se redibujaba 60 veces por segundo
+  // mientras el tema estuviera abierto; ahora las tesis quedan quietas y la capa se pinta solo
+  // cuando algo cambia (camara, seleccion, tamano, color), desde paintMarks.
+  var DRIFT_PX = 0;
+  var flow = { raf: 0, running: false, focus: -1, regl: null, draws: null };
   function simW(s) { return Math.max(0, Math.min(1, (s - 0.82) / 0.16)); }
   function resizeFlow() {
     var cv = $('flow'), dpr = window.devicePixelRatio || 1;
     cv.width = Math.round(state.W * dpr); cv.height = Math.round(state.H * dpr);
-  }
-  function driftAmp(ts) {
-    var u = Math.min(1, (ts - flow.ampT0) / 1400);
-    return u < 0.5 ? 2 * u * u : 1 - Math.pow(-2 * u + 2, 2) / 2;
   }
   var DRIFT_GLSL = [
     'uniform vec2 cam; uniform vec2 view; uniform float scale, amp, t;',
@@ -3983,10 +4032,11 @@
     var hid = new Float32Array(iso.ecoCats);
     iso.idxs.forEach(function (i) { hid[i] = C_HIDDEN; });
     iso.cats = hid; state.highlightKey = '';
-    flow.ampT0 = flow.t0 = performance.now(); flow.running = true; flow.focus = iso.posOf[state.focus] != null ? state.focus : -1; // la tesis de origen de las similares sigue en tinta
+    flow.running = true; flow.focus = iso.posOf[state.focus] != null ? state.focus : -1; // la tesis de origen de las similares sigue en tinta
     restoreView();
-    if (!flow.raf) flow.raf = requestAnimationFrame(flowFrame);
+    pedirFlow();
   }
+  function pedirFlow() { if (flow.running && !flow.raf) flow.raf = requestAnimationFrame(flowFrame); }
   // Apagado inmediato: el que llama redibuja en WebGL de fondo con las tesis visibles.
   function stopFlow() {
     flow.running = false;
@@ -3994,11 +4044,11 @@
     if (flow.regl) { flow.regl.poll(); flow.regl.clear({ color: [0, 0, 0, 0] }); }
     if (state.iso) state.iso.cats = state.iso.ecoCats;
   }
-  function flowFrame(ts) {
-    flow.raf = requestAnimationFrame(flowFrame);
+  function flowFrame() {
+    flow.raf = 0;
     var iso = state.iso; if (!iso || !flow.running || !flow.pts) return;
     var rg = flow.regl, c = camXform(), col = hexRgb(state.palette[C_HL_MULTI]), dpr = window.devicePixelRatio || 1;
-    var props = { cam: [c.tx, c.ty], view: [state.W, state.H], scale: c.s, amp: reduceMotion ? 0 : DRIFT_PX * driftAmp(ts), t: (ts - flow.t0) / 1000, color: col, fade: Math.min(1, (ts - flow.ampT0) / 350) };
+    var props = { cam: [c.tx, c.ty], view: [state.W, state.H], scale: c.s, amp: 0, t: 0, color: col, fade: 1 };
     rg.poll();
     rg.clear({ color: [0, 0, 0, 0] });
     flow.drawLines(Object.assign({}, props, flow.lines));
