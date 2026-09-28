@@ -384,6 +384,9 @@
   #map-selection .btn { padding: 0; height: auto; margin-top: 12px; color: var(--link); background: none; display: flex; }
   #map-selection .btn:hover { text-decoration: underline; background: none; }
   #map-selection .btn + .btn { margin-top: 6px; }
+  /* «Guardar tesis»: en gris; azul oscuro al pasar y guardada (el azul de enlace no lo distinguía) */
+  #map-selection .btn.guardar-txt { color: var(--ink-2); }
+  #map-selection .btn.guardar-txt:hover, #map-selection .btn.guardar-txt.on { color: var(--guardado); }
 
   /* ---------- relato (intro / rutas): hoja inferior acoplada [3][19] ---------- */
   #story { position: absolute; left: 0; right: 0; bottom: 0; z-index: 9; background: var(--paper); border-top: 1px solid var(--line-strong); padding: 16px 24px 14px; }
@@ -673,7 +676,7 @@
   #modo-mapa button { gap: 10px; font-size: 14px; }
   #modo-mapa img { width: 96px; height: 96px; }
 </style>
-<link rel="stylesheet" href="compartido/cuenta.css">
+<link rel="stylesheet" href="compartido/cuenta.css?v=4.23.2">
 </head>
 <body>
 <div class="app">
@@ -779,7 +782,7 @@
 
   <footer>
     <span>Proyecto independiente, no oficial. Datos del catálogo público TESIUNAM.</span>
-    <span><button type="button" id="foot-metodo">Cómo se hizo el mapa</button><span class="foot-sep"></span>versión <span id="app-version">4.23.0</span></span>
+    <span><button type="button" id="foot-metodo">Cómo se hizo el mapa</button><span class="foot-sep"></span>versión <span id="app-version">4.23.2</span></span>
   </footer>
 </div>
 
@@ -861,7 +864,7 @@
 
 <!-- supabase-js 2.117.2 (UMD), versión exacta con SRI, y la sesión compartida (compartido/sesion.js) -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js" integrity="sha384-Rj26LVGvoeRVR6+mwQmFfcR3QOBEwT+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok" crossorigin="anonymous"></script>
-<script src="compartido/sesion.js"></script>
+<script src="compartido/sesion.js?v=4.23.2"></script>
 <script>
 (function () {
   'use strict';

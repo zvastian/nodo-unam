@@ -2515,22 +2515,22 @@ Diagnóstico de todo el proyecto al cierre del 25-sep-2026. **Reemplaza a «Pend
 
 ### Dónde estamos
 
-Actualizado el 27-sep-2026. La columna del 25-sep queda como punto de partida.
+Actualizado el 27-sep-2026 por la noche (tras v4.23.2). La columna del 25-sep queda como punto de partida; la de la mañana del 27, como paso intermedio.
 
-| Frente | 25-sep | 27-sep | Estado al 27-sep |
-|---|---|---|---|
-| Datos (pipeline offline) | ~90 % | ~90 % | Corpus de 609,154 tesis limpio y sin autores en el título; e5-large, HDBSCAN + Ward + PaCMAP; jerarquía corregida a mano; dataset público `data_unam.parquet` (sin publicar). Falta votar campo y tema con las 609,154 tesis. |
-| Frontend del atlas | ~85 % | ~87 % | v4.22.2: a lo de v4.18 se suman los enlaces a TESIUNAM, «Codirigió con», el botón de guardar, el logo y el favicon. Falta leer `?tesis=` en la URL, MI TESIS y la página Método. |
-| Frontend del Laboratorio | ~40 % | ~60 % | Formulario construido en el boceto: la ficha se escribe, Bloom en vivo, errores, borrador e invitación a entrar. `DESIGN.md` documenta el sistema. Falta el inicio de sesión real, conectar el formulario al Worker por SSE, cuota y «mis análisis». El usuario anunció cambios. |
-| Backend del Laboratorio | ~5 % | ~65 % | Servicio de datos (local, Docker y Modal), Worker puerta (JWT, D1, cuotas y guardados) e IA por SSE con Groq y Workers AI, más la evaluación de 11 casos. Falta probar con un token real de Supabase, reducir tokens, el límite por IP y el despliegue. |
-| Producción | 0 % | ~10 % | Proyecto de Supabase, cuenta de Cloudflare y el servicio de datos en Modal (1 USD sin tarjeta, solo para desarrollo). Nada público todavía; el sitio viejo se retiró el 27-sep. |
-| Pruebas | ~10 % | ~25 % | 8 pruebas de integración del Worker, 13 del léxico, evaluación de IA con chequeos automáticos y verificación visual con `tools/cdp.mjs`. Falta CI, pruebas de extremo a extremo y la revisión humana de la IA. |
-| Ciberseguridad | ~15 % | ~30 % | **API:** verificación de JWT, CORS explícito, Turnstile, cuotas atómicas, clave compartida con el servicio, pruebas de acceso cruzado (IDOR), sin textos en los logs y Groq sin retención de datos. **Falta:** limpieza de entradas antes de cada llamada a la IA y en el formulario (ver el frente 6), CSP y cabeceras, librerías con versión fija, aviso de privacidad y rotar las claves viejas. |
+| Frente | 25-sep | 27-sep (mañana) | 27-sep (noche) | Estado |
+|---|---|---|---|---|
+| Datos (pipeline offline) | ~90 % | ~90 % | ~90 % | Corpus de 609,154 tesis limpio y sin autores en el título; e5-large, HDBSCAN + Ward + PaCMAP; jerarquía corregida a mano; dataset público `data_unam.parquet` (sin publicar). Falta votar campo y tema con las 609,154 tesis. |
+| Frontend del atlas | ~85 % | ~87 % | ~91 % | v4.23.2. Ya tiene: barra nueva (Mapa, Laboratorio, Acerca de; Ajustes, Entrar y Mi espacio), la búsqueda en la fila de filtros, guardar tesis, asesores, campos, temas y subtemas, y la lista de lo guardado junto al buscador. `?tesis=`, `?lugar=` y `?asesor=` abren el mapa directo. Falta la prueba real con sesión, MI TESIS y la página Acerca de. |
+| Frontend del Laboratorio | ~40 % | ~60 % | ~80 % | Ya tiene: portada con cuatro análisis de ejemplo completos, inicio de sesión real (Google, GitHub y correo), formulario conectado al Worker por SSE, avisos de fila y de cuota, análisis que se guardan solos (hasta 2), guardar tesis y asesores, y el enlace de apoyo con Stripe (en prueba). Mi espacio (`espacio.html`) reúne lo guardado, con confirmaciones al borrar. Falta el widget real de Turnstile, corregir `bloom.js` (artículo tomado como verbo) y la prueba con una cuenta real. |
+| Backend del Laboratorio | ~5 % | ~65 % | ~75 % | El Worker verifica tokens reales de Supabase (JWKS, ES256). Ya tiene: rutas de Mi espacio (tesis y asesores con datos en lista blanca, lugares del mapa y borrar la cuenta) y las migraciones 0002 y 0003 aplicadas en local. Falta reducir tokens, el límite por IP, una cola real para la fila, borrar también la identidad en Supabase (`SUPABASE_SERVICE_KEY`) y el despliegue. |
+| Producción | 0 % | ~10 % | ~15 % | Supabase con Google (app en modo prueba) y GitHub configurados, Cloudflare y el servicio de datos en Modal; el enlace de Stripe existe en modo prueba. Nada público todavía. Falta aplicar las migraciones en D1 remoto, publicar la app de Google, activar Stripe en vivo y las plantillas de correo en español. |
+| Pruebas | ~10 % | ~25 % | ~28 % | 9 pruebas de integración del Worker (incluye Mi espacio y lugares, sin acceso cruzado), 13 del léxico, evaluación de IA y verificación visual con `tools/cdp.mjs`, con hover real del mouse. Falta CI, pruebas de extremo a extremo con sesión y la revisión humana de la IA. |
+| Ciberseguridad | ~15 % | ~30 % | ~35 % | **API:** verificación de JWT con JWKS, CORS explícito, Turnstile, cuotas atómicas, clave compartida con el servicio y pruebas de acceso cruzado (IDOR). Además, lo guardado pasa por lista blanca de campos con tope de 2 KB, supabase-js va con versión fija y SRI, y los secretos quedan fuera de git. **Falta:** limpiar las entradas antes de cada llamada a la IA (ver el frente 6), CSP y cabeceras, el aviso de privacidad y rotar las claves viejas. |
 
 **Lo que más frena el lanzamiento:**
 1. un medio de pago para Groq y para el servicio de datos;
-2. el inicio de sesión en la interfaz;
-3. el despliegue (paso 4 de ADR-0015).
+2. la prueba real de la sesión y de Mi espacio con una cuenta;
+3. el despliegue (paso 4 de ADR-0015), con las migraciones de D1.
 
 ### Hecho (resumen; el detalle está en las secciones de arriba)
 
@@ -3781,3 +3781,17 @@ El Laboratorio pasó a usarlo: se quitaron su sesión, su ventana y sus estilos 
 **Pendiente:**
 - La prueba real con sesión (los flujos se probaron con NodOS simulado).
 - Aplicar `0003_lugares.sql` en D1 remoto al desplegar.
+
+## v4.23.1: «Guardar tesis» sí se pinta de azul al pasar (2026-09-27)
+
+**Qué cambió:**
+- **Color del botón:** en la ficha del mapa, «Guardar tesis» heredaba el azul de enlace (`#map-selection .btn`, más específico que la regla compartida). Ya era azul en reposo y al pasar solo aparecía el subrayado. Ahora está en gris (`--ink-2`) y se pinta de azul oscuro (`--guardado`) al pasar y mientras está guardada.
+- **Caché:** `cuenta.css` y `sesion.js` se cargan con `?v=4.23.1`, para que el navegador no use la versión anterior.
+
+**Verificación:** hover real con el mouse en Chrome headless (`hoverAt`). El texto y el icono pasan de rgb(77,77,77) a rgb(20,58,107).
+
+## v4.23.2: el marcador se rellena de azul al pasar (2026-09-27)
+
+**Qué cambió:** al pasar el cursor, el símbolo de guardar ya no solo cambia de trazo, sino que se rellena de azul oscuro (`--guardado`), igual que cuando está guardado. Aplica en todas partes: tesis, «Guardar tesis», asesores y lugares. El caché de los archivos compartidos pasa a `?v=4.23.2`.
+
+**Verificación:** hover real en Chrome headless; el trazo y el relleno del icono quedan en rgb(20,58,107).

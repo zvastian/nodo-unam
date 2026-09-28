@@ -72,6 +72,7 @@ body .guardar, body .guardar-as, body .guardar-lugar, body .guardar-txt .ico { t
 body .guardar svg, body .guardar-as svg, body .guardar-lugar svg, body .guardar-txt svg { transition: fill 180ms ease; transform-origin: 50% 60%; }
 body .guardar:hover, body .guardar-as:hover, body .guardar-lugar:hover, body .guardar-txt:hover, body .guardar-txt:hover .ico,
 body .guardar.on, body .guardar-as.on, body .guardar-lugar.on, body .guardar-txt.on, body .guardar-txt.on .ico { color: var(--guardado); }
+body .guardar:hover svg, body .guardar-as:hover svg, body .guardar-lugar:hover svg, body .guardar-txt:hover svg,
 body .guardar.on svg, body .guardar-as.on svg, body .guardar-lugar.on svg, body .guardar-txt.on svg { fill: currentColor; }
 .nds-pop svg { animation: nds-pop 420ms cubic-bezier(0.3, 1.6, 0.5, 1); }
 .nds-suelta svg { animation: nds-suelta 320ms ease-out; }
