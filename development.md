@@ -4027,3 +4027,26 @@ Pasos hacia el lanzamiento del atlas solo (v0), según «Orden propuesto», punt
   - el Worker debe quedar en el mismo dominio, porque `sesion.js` usa rutas relativas en producción y la CSP solo permite `connect-src 'self'`;
   - aplicar las migraciones en D1 remoto.
 - **Revisión humana de los nombres de campo.**
+
+## v4.29.0: el aviso de privacidad como documento legal (2026-09-28)
+
+**Qué cambió:** `privacidad.html` se reescribió en registro formal: «el Responsable», «el Titular», «en lo sucesivo».
+- **Apartados:**
+  - I. Datos personales que se recaban;
+  - II. Finalidades del tratamiento;
+  - III. Encargados y transferencias;
+  - IV. Almacenamiento en el navegador (apartado nuevo);
+  - V. Plazo de conservación;
+  - VI. Derechos ARCO y revocación del consentimiento;
+  - VII. Datos contenidos en el catálogo de tesis;
+  - VIII. Identidad y domicilio del Responsable (antes era el primero);
+  - IX. Cambios al aviso de privacidad.
+- Las listas van con incisos.
+- **Diseño de documento:** una columna de texto alineada a la izquierda y la fecha de actualización bajo el título. Se quitaron la banda marina, las rejillas de definición y la entrada «Qué datos personales trata NodOS…».
+  - Se probó el texto justificado y se descartó porque abría huecos entre palabras.
+- **Mismo contenido que en v4.28:** ninguna afirmación nueva, salvo el apartado IV, que describe lo que ya hace el sitio (preferencias, borrador y sesión en el navegador; sin cookies de rastreo ni analítica).
+- `prueba_humo.mjs` ahora comprueba los 9 apartados.
+
+**Por qué:** lo pidió el usuario: «debe verse más como texto legal, no como UI atractiva», con el responsable abajo, antes de los cambios al aviso. Las páginas legales quedan fuera de la regla de «demasiado blanco» (PRODUCT.md, n.º 25).
+
+**Verificación:** Chrome headless, escritorio y móvil, con la consola limpia. `prueba_humo.mjs` pasa.

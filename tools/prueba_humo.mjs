@@ -16,7 +16,7 @@ const PAGINAS = [
   { pagina: 'laboratorio.html', espera: 6000, listo: "!!document.getElementById('pr-titulo')&&typeof NodosAjustes==='object'" },
   { pagina: 'espacio.html', espera: 5000, listo: "!document.getElementById('esp-vacio').hidden" },
   { pagina: 'acerca.html', espera: 4000, listo: "document.querySelectorAll('#mini circle').length===130" },
-  { pagina: 'privacidad.html', espera: 3000, listo: "document.querySelectorAll('.ac-sec').length>=8" },
+  { pagina: 'privacidad.html', espera: 3000, listo: "document.querySelectorAll('.legal h2').length===9" },
 ];
 // ruido de Chrome headless que no viene de la página
 const IGNORAR = [/GPU stall due to ReadPixels/i, /WebGL.*software/i];
@@ -24,7 +24,9 @@ const IGNORAR = [/GPU stall due to ReadPixels/i, /WebGL.*software/i];
 let fallas = 0;
 for (const [i, p] of PAGINAS.entries()) {
   const pasos = path.join(dir, `p${i}.json`);
-  fs.writeFileSync(pasos, JSON.stringify([{ wait: p.espera, eval: `(function(){try{return (0,eval)(${JSON.stringify(p.listo)})?'LISTO':'FALTA'}catch(e){return 'ERROR '+e.message}})()` }]));
+  // la comprobación se repite hasta 3 veces más, cada 4 s: en headless sin GPU la carga varía
+  const comprobar = `(function(){try{return (0,eval)(${JSON.stringify(p.listo)})?'LISTO':'FALTA'}catch(e){return 'ERROR '+e.message}})()`;
+  fs.writeFileSync(pasos, JSON.stringify([p.espera, 4000, 4000, 4000].map((wait) => ({ wait, eval: comprobar }))));
   const r = spawnSync(process.execPath, [path.join('tools', 'cdp.mjs'), base + p.pagina, pasos, path.join(dir, `o${i}`)], { encoding: 'utf8', timeout: 120000 });
   const out = (r.stdout || '') + (r.stderr || '');
   const listo = /EVAL\s+"LISTO"/.test(out);

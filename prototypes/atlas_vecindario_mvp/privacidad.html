@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Aviso de privacidad · NodOS</title>
-<meta name="description" content="Qué datos personales trata NodOS, para qué, con quién y cómo ejercer tus derechos.">
+<meta name="description" content="Aviso de privacidad integral de NodOS.">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="compartido/cuenta.css?v=4.23.2">
 <link rel="stylesheet" href="compartido/ajustes.css?v=4.26.0">
@@ -44,54 +44,21 @@
   .linkbtn { background: none; border: none; padding: 2px 0; cursor: pointer; color: var(--ink-2); font-size: 14px; }
   .linkbtn:hover { color: var(--ink); }
 
-  /* Aviso de privacidad (v4.28): la misma página que Acerca de, sin el diagrama */
-  .pv-fecha { margin: 0; font-size: 13.5px; color: var(--pie-tinta-2); }
-  .pv-banda .lead { margin-bottom: 14px; }
-  .navlinks a[aria-current="page"] { color: var(--ink); font-weight: 600; border-bottom-color: var(--ink); }
-  .page { max-width: 1080px; margin: 0 auto; padding: 32px 24px 72px; }
-  .ac-banda { padding: 30px 32px 34px; background: color-mix(in oklch, var(--pie-fondo) 72%, black); color: var(--pie-tinta); }
-  body.noche .ac-banda { background: color-mix(in oklch, var(--pie-fondo) 55%, black); }
-  .ac-banda h1 { font-size: clamp(30px, 3vw, 42px); line-height: 1.12; font-weight: 400; letter-spacing: -0.005em; margin: 0 0 10px; }
-  .ac-banda .lead { max-width: 60ch; margin: 0 0 30px; font-size: 17px; line-height: 1.55; color: var(--pie-tinta-2); }
-  /* secciones: la regla gruesa de Mi espacio */
-  .ac-sec { padding: 44px 0 0; }
-  .ac-sec > h2 { margin: 0 0 18px; padding-bottom: 8px; border-bottom: 2px solid var(--ink); font-size: 24px; font-weight: 700; }
-  .ac-sec h3 { margin: 26px 0 8px; font-size: 17px; font-weight: 700; }
-  .ac-sec > h2 + h3 { margin-top: 0; }
-  .ac-sec ul + p { margin-top: 14px; }
-  .ac-sec p, .ac-sec li { max-width: 72ch; font-size: 15.5px; line-height: 1.7; color: var(--ink-2); }
-  .ac-sec p { margin: 0 0 10px; }
-  .ac-sec ul { margin: 0; padding-left: 20px; }
-  .ac-sec li + li { margin-top: 6px; }
-  .ac-sec dl { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 0 24px; margin: 6px 0 0; max-width: 860px; }
-  .ac-sec dt, .ac-sec dd { padding: 10px 0; border-top: 1px solid var(--line); }
-  .ac-sec dt { font-weight: 600; color: var(--ink); }
-  .ac-sec dd { margin: 0; color: var(--ink-2); line-height: 1.6; }
-  .ac-cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 36px; }
-  .ac-cols h3 { margin-top: 0; }
-  .ac-sec strong { color: var(--ink); font-weight: 600; }
-  @media (max-width: 900px) {
-    .pasos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .paso:nth-child(3) { padding-left: 0; border-left: 0; }
-    .paso:nth-child(3)::before { display: none; }
-    .paso:nth-child(n+3) { margin-top: 18px; border-top: 1px solid var(--pie-linea); }
-  }
+  /* Aviso de privacidad (v4.29): documento legal, no página de producto. Una columna de texto,
+     apartados numerados, sin bandas ni rejillas */
+  .legal { max-width: 760px; margin: 0 auto; padding: 48px 24px 80px; }
+  .legal h1 { margin: 0 0 6px; font-size: 26px; line-height: 1.25; font-weight: 700; }
+  .legal .fecha { margin: 0 0 28px; padding-bottom: 20px; border-bottom: 1px solid var(--line); font-size: 14px; color: var(--ink-3); }
+  .legal h2 { margin: 30px 0 10px; font-size: 16px; line-height: 1.4; font-weight: 700; }
+  .legal p, .legal li { font-size: 15px; line-height: 1.7; color: var(--ink); }
+  .legal p { margin: 0 0 12px; }
+  .legal ol.incisos { margin: 0 0 12px; padding-left: 28px; list-style: lower-alpha; }
+  .legal ol.incisos li { padding-left: 4px; }
+  .legal ol.incisos li + li { margin-top: 6px; }
+  .legal strong { font-weight: 600; }
   @media (max-width: 640px) {
-    .page { padding: 20px 16px 56px; }
-    .ac-banda { margin: 0 -16px; padding: 24px 16px 28px; }
-    .pasos { grid-template-columns: minmax(0, 1fr); }
-    .paso, .paso + .paso { padding: 16px 0 0; border-left: 0; }
-    .paso + .paso { margin-top: 16px; border-top: 1px solid var(--pie-linea); }
-    .paso + .paso::before { display: none; }
-    .ac-sec dl, .ac-cols { grid-template-columns: minmax(0, 1fr); gap: 0; }
-    .ac-sec dd { border-top: 0; padding-top: 0; }
+    .legal { padding: 28px 16px 56px; }
   }
-  /* el libro en un círculo, junto al título: abre la tesis en TESIUNAM (en blanco sobre la banda) */
-  .leer { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; margin-left: 8px; border: 1px solid var(--pie-tinta-2); border-radius: 50%; color: var(--pie-tinta); vertical-align: -4px; text-decoration: none !important; }
-  .leer:hover { border-color: var(--pie-tinta); }
-  .leer:focus-visible, .ej-tit:focus-visible { outline: 2px solid var(--pie-tinta); outline-offset: 2px; }
-  .leer svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linejoin: round; }
-  a.ej-tit:hover { text-decoration: underline; text-underline-offset: 3px; }
   .pie-pag { background: var(--pie-fondo); color: var(--pie-tinta-2); font-size: 14px; line-height: 1.45; }
   .pie-in { max-width: 1280px; margin: 0 auto; padding: 44px 24px 44px 92px; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0 44px; align-items: center; }
   .pie-logo { width: 112px; height: auto; display: block; fill: var(--pie-tinta); fill-rule: evenodd; }
@@ -131,77 +98,59 @@
   </div>
 </header>
 
-<main class="page">
-  <section class="ac-banda pv-banda" aria-labelledby="pv-titulo">
-    <h1 id="pv-titulo">Aviso de privacidad</h1>
-    <p class="lead">Qué datos personales trata NodOS, para qué, con quién y cómo ejercer tus derechos, conforme a la Ley Federal de Protección de Datos Personales en Posesión de los Particulares.</p>
-    <p class="pv-fecha">Actualizado el 28 de septiembre de 2026</p>
-  </section>
+<main class="legal" lang="es">
+  <h1>Aviso de privacidad integral</h1>
+  <p class="fecha">Última actualización: 28 de septiembre de 2026</p>
 
-  <section class="ac-sec" id="responsable" aria-labelledby="h-resp">
-    <h2 id="h-resp">Responsable</h2>
-    <p><strong>Sebastián Díaz</strong>, responsable de NodOS, proyecto independiente con domicilio en la Ciudad de México. Para cualquier asunto de este aviso: <a href="#" data-pendiente="contacto">correo de contacto</a>.</p>
-    <p>NodOS no es un sitio de la UNAM ni de la Dirección General de Bibliotecas.</p>
-  </section>
+  <p>En cumplimiento de la Ley Federal de Protección de Datos Personales en Posesión de los Particulares (en lo sucesivo, la «Ley»), Sebastián Díaz (en lo sucesivo, el «Responsable»), cuya identidad y domicilio se señalan en el apartado VIII, pone a disposición del titular de los datos personales (en lo sucesivo, el «Titular») el presente aviso de privacidad, que regula el tratamiento de los datos personales recabados a través del sitio NodOS (en lo sucesivo, el «Sitio»), que comprende el mapa de tesis, el Laboratorio y Mi espacio.</p>
 
-  <section class="ac-sec" id="datos" aria-labelledby="h-datos">
-    <h2 id="h-datos">Qué datos se tratan</h2>
-    <dl>
-      <dt>Si solo usas el mapa</dt><dd>Ningún dato personal. Tus preferencias (modo claro u oscuro, color de los puntos, si ya viste la introducción) se guardan en tu propio navegador, no en NodOS.</dd>
-      <dt>Si creas una cuenta</dt><dd>Tu correo electrónico y el identificador que te asigna el servicio de acceso. Si entras con Google o GitHub, ese servicio puede compartir también tu nombre y tu foto de perfil; NodOS no los usa ni los muestra.</dd>
-      <dt>Lo que guardas</dt><dd>Las tesis, los asesores, los campos y los temas que guardas en Mi espacio.</dd>
-      <dt>Tus análisis</dt><dd>Lo que escribes en el Laboratorio (título, planteamiento, objetivos, palabras clave, programa, grado y periodo) y el análisis que resulta. El borrador del formulario se guarda solo en tu navegador.</dd>
-      <dt>Registros técnicos</dt><dd>Los servicios de alojamiento registran datos de conexión, como la dirección IP y el navegador, por seguridad. Los registros de NodOS no guardan el texto de tu tesis.</dd>
-    </dl>
-    <p>NodOS no pide datos personales sensibles. Te pedimos no escribir en el Laboratorio datos personales tuyos ni de otras personas: basta con la descripción de tu investigación.</p>
-  </section>
+  <h2 id="datos">I. Datos personales que se recaban</h2>
+  <p>El Responsable recaba y trata las siguientes categorías de datos personales:</p>
+  <ol class="incisos">
+    <li><strong>Datos de identificación y contacto:</strong> la dirección de correo electrónico del Titular y el identificador asignado por el servicio de autenticación, únicamente cuando el Titular crea una cuenta. Si el Titular inicia sesión mediante Google o GitHub, dichos servicios pueden proporcionar además su nombre y fotografía de perfil, los cuales el Responsable no utiliza ni muestra.</li>
+    <li><strong>Contenido proporcionado por el Titular:</strong> la información que el Titular captura en el Laboratorio (título, planteamiento, objetivos, palabras clave, programa, grado y periodo), los análisis que de ella resultan, y las tesis, asesores, campos y temas que el Titular guarda en Mi espacio.</li>
+    <li><strong>Datos técnicos de conexión:</strong> la dirección IP y el tipo de navegador, que los servicios de alojamiento registran por motivos de seguridad. Dichos registros no incluyen el contenido capturado por el Titular.</li>
+  </ol>
+  <p>El uso del mapa no requiere cuenta ni implica el tratamiento de datos personales. El Responsable no recaba datos personales sensibles. Se solicita al Titular abstenerse de incluir, en la información que captura en el Laboratorio, datos personales propios o de terceros distintos de la descripción de su investigación.</p>
 
-  <section class="ac-sec" id="finalidades" aria-labelledby="h-fin">
-    <h2 id="h-fin">Para qué se usan</h2>
-    <ul>
-      <li>Crear tu cuenta y dejarte entrar.</li>
-      <li>Generar tus análisis y guardar lo que eliges en Mi espacio.</li>
-      <li>Aplicar los límites de uso (2 análisis al día y 2 guardados por cuenta) y evitar el abuso del servicio.</li>
-    </ul>
-    <p>No hay finalidades secundarias: tus datos no se venden, no se usan para publicidad ni para entrenar modelos de inteligencia artificial.</p>
-  </section>
+  <h2 id="finalidades">II. Finalidades del tratamiento</h2>
+  <p>Los datos personales se tratan exclusivamente para las siguientes finalidades, necesarias para la prestación del servicio:</p>
+  <ol class="incisos">
+    <li>crear y administrar la cuenta del Titular y permitir su autenticación;</li>
+    <li>generar los análisis solicitados por el Titular y conservar la información que éste decida guardar;</li>
+    <li>aplicar los límites de uso del servicio (dos análisis diarios y dos análisis guardados por cuenta) y prevenir su uso abusivo.</li>
+  </ol>
+  <p>El Responsable no trata los datos personales para finalidades secundarias. En particular, no los vende, no los utiliza con fines publicitarios ni para el entrenamiento de modelos de inteligencia artificial.</p>
 
-  <section class="ac-sec" id="encargados" aria-labelledby="h-enc">
-    <h2 id="h-enc">Quién más los procesa</h2>
-    <p>NodOS se apoya en servicios que procesan datos a su nombre y solo para prestar el servicio. Algunos operan fuera de México, sobre todo en Estados Unidos.</p>
-    <dl>
-      <dt>Supabase</dt><dd>Cuentas e inicio de sesión (correo, Google o GitHub).</dd>
-      <dt>Cloudflare</dt><dd>Alojamiento del sitio, base de datos de Mi espacio y de los análisis, verificación contra robots (Turnstile) y modelo de IA de respaldo (Workers AI).</dd>
-      <dt>Groq</dt><dd>Modelo de IA que redacta los textos del Laboratorio. Tiene activada la retención cero: no guarda lo que se le envía.</dd>
-      <dt>Modal</dt><dd>Servidor que convierte tu título, tu planteamiento y tus palabras clave en un vector para compararlo con el catálogo.</dd>
-      <dt>Stripe</dt><dd>Solo si decides apoyar el proyecto. El pago ocurre en la página de Stripe: NodOS no recibe los datos de tu tarjeta.</dd>
-    </dl>
-    <p>Fuera de estos servicios, NodOS no transfiere tus datos a nadie.</p>
-  </section>
+  <h2 id="encargados">III. Encargados y transferencias</h2>
+  <p>Para la prestación del servicio, el Responsable se apoya en los siguientes encargados, que tratan los datos personales por cuenta del Responsable y únicamente para los fines indicados:</p>
+  <ol class="incisos">
+    <li><strong>Supabase:</strong> administración de cuentas y autenticación.</li>
+    <li><strong>Cloudflare:</strong> alojamiento del Sitio, base de datos de Mi espacio y de los análisis, verificación contra accesos automatizados (Turnstile) y modelo de inteligencia artificial de respaldo (Workers AI).</li>
+    <li><strong>Groq:</strong> modelo de inteligencia artificial que redacta los textos del Laboratorio, con la retención de datos desactivada.</li>
+    <li><strong>Modal:</strong> procesamiento que convierte el título, el planteamiento y las palabras clave capturados por el Titular en una representación numérica para compararlos con el catálogo de tesis.</li>
+    <li><strong>Stripe:</strong> procesamiento de pagos, sólo en caso de que el Titular decida realizar una aportación voluntaria. El pago se efectúa en el sitio de Stripe; el Responsable no recibe los datos de la tarjeta.</li>
+  </ol>
+  <p>Algunos de estos encargados se ubican fuera del territorio nacional, principalmente en los Estados Unidos de América. Fuera de los supuestos anteriores, el Responsable no transfiere los datos personales a terceros.</p>
 
-  <section class="ac-sec" id="conservacion" aria-labelledby="h-cons">
-    <h2 id="h-cons">Cuánto tiempo se guardan</h2>
-    <ul>
-      <li>Tus análisis y lo que guardas se conservan hasta que los borras.</li>
-      <li>Al borrar tu cuenta desde Mi espacio se eliminan de inmediato tus análisis y todo lo guardado. Tu registro de acceso (correo) se elimina del servicio de cuentas cuando lo pides por correo.</li>
-    </ul>
-  </section>
+  <h2 id="navegador">IV. Almacenamiento en el navegador</h2>
+  <p>El Sitio no utiliza cookies de rastreo ni herramientas de analítica. Almacena en el navegador del Titular sus preferencias (modo de visualización, color de los puntos del mapa y presentación de la introducción), el borrador del formulario del Laboratorio y la sesión iniciada. Esta información permanece en el dispositivo del Titular, quien puede eliminarla en cualquier momento desde la configuración de su navegador. El servicio Turnstile de Cloudflare puede emplear tecnologías propias para verificar que el acceso no es automatizado.</p>
 
-  <section class="ac-sec" id="derechos" aria-labelledby="h-der">
-    <h2 id="h-der">Tus derechos</h2>
-    <p>Puedes <strong>acceder</strong> a tus datos, <strong>rectificarlos</strong>, <strong>cancelarlos</strong> u <strong>oponerte</strong> a su tratamiento (derechos ARCO), y revocar tu consentimiento. Buena parte lo haces tú mismo en Mi espacio: ver lo guardado, quitarlo o borrar la cuenta.</p>
-    <p>Para lo demás, escribe a <a href="#" data-pendiente="contacto">correo de contacto</a> desde el correo de tu cuenta, con lo que pides. La respuesta llega en un máximo de 20 días hábiles.</p>
-  </section>
+  <h2 id="conservacion">V. Plazo de conservación</h2>
+  <p>Los análisis y la información guardada se conservan mientras el Titular no los elimine. Al eliminar su cuenta desde Mi espacio, se suprimen de inmediato sus análisis y toda la información guardada. El registro de acceso (correo electrónico) en el servicio de autenticación se suprime a solicitud del Titular, conforme al apartado VI.</p>
 
-  <section class="ac-sec" id="tesis" aria-labelledby="h-tesis">
-    <h2 id="h-tesis">Datos de las tesis</h2>
-    <p>Los títulos, años, programas y nombres de asesores vienen del catálogo público TESIUNAM. NodOS retira del título el nombre de quien escribió la tesis y no lo muestra en ningún lugar. Si eres asesor y quieres corregir cómo aparece tu nombre, o que no aparezca, escribe a <a href="#" data-pendiente="contacto">correo de contacto</a>.</p>
-  </section>
+  <h2 id="derechos">VI. Derechos ARCO y revocación del consentimiento</h2>
+  <p>El Titular tiene derecho a acceder a sus datos personales, rectificarlos, cancelarlos u oponerse a su tratamiento (derechos ARCO), así como a revocar el consentimiento otorgado. El Titular puede consultar, eliminar la información guardada y cancelar su cuenta directamente desde Mi espacio.</p>
+  <p>Para cualquier otra solicitud, el Titular deberá enviar un correo electrónico a la <a href="#" data-pendiente="contacto">dirección de contacto</a> desde la cuenta de correo registrada, con la descripción clara de los datos y del derecho que desea ejercer. El Responsable dará respuesta en un plazo máximo de veinte días hábiles contados a partir de la recepción de la solicitud.</p>
 
-  <section class="ac-sec" id="cambios" aria-labelledby="h-camb">
-    <h2 id="h-camb">Cambios a este aviso</h2>
-    <p>Cualquier cambio se publica en esta página, con su fecha de actualización.</p>
-  </section>
+  <h2 id="tesis">VII. Datos contenidos en el catálogo de tesis</h2>
+  <p>Los títulos, años, programas, planteles, niveles y nombres de asesores que muestra el Sitio provienen del catálogo público TESIUNAM de la Universidad Nacional Autónoma de México. El Responsable suprime del título el nombre de la persona autora de cada tesis y no lo muestra en el Sitio. Los asesores que deseen rectificar la forma en que aparece su nombre, u oponerse a que aparezca, podrán solicitarlo en los términos del apartado VI.</p>
+
+  <h2 id="responsable">VIII. Identidad y domicilio del Responsable</h2>
+  <p>El responsable del tratamiento de los datos personales es Sebastián Díaz, titular del proyecto independiente NodOS, con domicilio en la Ciudad de México y correo electrónico de contacto: <a href="#" data-pendiente="contacto">dirección de contacto</a>. NodOS no es un sitio oficial de la Universidad Nacional Autónoma de México ni de su Dirección General de Bibliotecas.</p>
+
+  <h2 id="cambios">IX. Cambios al aviso de privacidad</h2>
+  <p>El Responsable podrá modificar el presente aviso de privacidad. Cualquier modificación se publicará en esta misma página, con indicación de la fecha de su última actualización.</p>
 </main>
 <footer class="pie-pag">
   <div class="pie-in">
