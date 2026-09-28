@@ -3978,3 +3978,51 @@ El Laboratorio pasó a usarlo: se quitaron su sesión, su ventana y sus estilos 
 **Pendiente:**
 - La página `privacidad.html` y el correo de contacto (el enlace sigue en `#`).
 - El tema del ejemplo, «Coli – Escherichia», muestra que los nombres de tema salen de palabras clave: entra en la revisión humana de nombres.
+
+## v4.28.0: aviso de privacidad, licencia, librerías propias, cabeceras de seguridad y CI (2026-09-28)
+
+Pasos hacia el lanzamiento del atlas solo (v0), según «Orden propuesto», punto 2.
+
+**Qué cambió:**
+- **`privacidad.html`, aviso de privacidad.** Conforme a la Ley Federal de Protección de Datos Personales en Posesión de los Particulares. Datos que dio el usuario: responsable Sebastián Díaz, domicilio en la Ciudad de México y el correo del proyecto, que aún no existe.
+  - Qué datos se tratan: sin cuenta, ninguno; con cuenta, el correo, lo guardado, los análisis y los registros técnicos.
+  - Para qué se usan; no hay finalidades secundarias.
+  - Quién más los procesa: Supabase, Cloudflare, Groq, Modal y Stripe.
+  - Cuánto tiempo se conservan.
+  - Los derechos ARCO.
+  - Los datos de las tesis: los asesores pueden pedir que se corrija o se quite su nombre.
+  - Cambios al aviso.
+  - Todo verificado contra el código:
+    - los registros del Worker no guardan el texto (solo eventos y largos);
+    - borrar la cuenta en Supabase requiere `SUPABASE_SERVICE_KEY`, que aún no está configurada, así que el aviso dice que ese registro se borra a petición por correo.
+  - El pie de todas las páginas enlaza al aviso; el del mapa, como «Privacidad».
+- **Licencia MIT** (`LICENSE`), a nombre de Sebastián Díaz. Excluye los datos del catálogo, el nombre y el logo. Acerca de lo dice, con enlace al repositorio público.
+- **Librerías servidas desde el sitio** (`vendor/`, con `LEEME.md`), con versión exacta:
+  - d3 7.9.0 (antes `d3@7`, sin versión exacta), regl 2.1.1, regl-scatterplot 1.16.0, pub-sub-es 3.0.0 y supabase-js 2.117.2;
+  - supabase-js coincide con su SRI publicado y lo conserva;
+  - ya no se depende de jsDelivr.
+- **Cabeceras de seguridad** (`_headers`, para Cloudflare Pages):
+  - CSP con orígenes explícitos, HSTS, `nosniff`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy` y COOP;
+  - la CSP se probó en Chrome, página por página, con una copia que la llevaba en `<meta>`;
+  - **el mapa necesita `'unsafe-eval'`**, porque regl compila sus shaders con `new Function`; sin él, el mapa no arranca. Por eso solo `/` y `/index.html` lo llevan;
+  - todas llevan `'unsafe-inline'` porque el código va en línea (no hay build). Quitarlo exigiría mover los scripts a archivos o usar hashes.
+- **CI** (`.github/workflows/pruebas.yml`), en cada push a `main` y en cada pull request:
+  - **privacidad:** `pipeline/limpiar_autores_atlas.py --verificar` (modo nuevo) falla si algún título trae mención de autor o algún JSON trae un campo `author`, `autor`, `sustentante` o `title_raw`. Hoy: 0 y 0, en unos 40 s;
+  - **humo:** `tools/prueba_humo.mjs` abre cada página en Chrome headless, comprueba que cargó lo esencial y falla si la consola trae errores;
+  - **léxico:** las 13 pruebas de Bloom.
+- **`tools/construir_sitio.py`** arma `dist/` con solo lo que se publica: 3,415 archivos y 283 MB, dentro de los límites de Pages. Deja fuera `index.v*.html` y `bocetos/`, que se habrían publicado tal cual. `dist/` va en `.gitignore`.
+- **Rendimiento:** el mapa pedía sus datos con `cache: 'no-store'` y los volvía a descargar completos en cada visita. Ahora usa `'no-cache'`: el navegador revalida con ETag y, si nada cambió, recibe un 304.
+
+**Verificación:**
+- `prueba_humo.mjs` pasa las 6 páginas, servidas desde la carpeta de trabajo y desde `dist/`. Falla, como debe, con una ruta que no existe.
+- El aviso, en escritorio y en móvil.
+- Consola limpia.
+
+**Falta para lanzar el atlas:**
+- **El correo del proyecto:** los enlaces de contacto siguen en `#`.
+- **El despliegue:**
+  - crear el proyecto de Pages y publicar `dist/`;
+  - decidir el dominio (RFC-0002);
+  - el Worker debe quedar en el mismo dominio, porque `sesion.js` usa rutas relativas en producción y la CSP solo permite `connect-src 'self'`;
+  - aplicar las migraciones en D1 remoto.
+- **Revisión humana de los nombres de campo.**

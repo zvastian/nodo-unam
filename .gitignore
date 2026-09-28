@@ -88,3 +88,6 @@ app/AI Pipeline/Scripts/ai_rerank.py
 # Cloud Storage. ---
 services/lab/.venv/
 services/lab/artefactos/
+
+# sitio armado para publicar (tools/construir_sitio.py)
+/dist/

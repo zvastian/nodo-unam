@@ -7,7 +7,7 @@ tutor …"). Complementa el corte en origen de `generar_atlas_tesis_por_micro.py
 (RESP_RE / AUTOR_RE), que no cubre todas las variantes ni todos los archivos
 (vecindario_preview y las teselas se generan por otra vía).
 
-Uso:  python pipeline/limpiar_autores_atlas.py [--dry-run]
+Uso:  python pipeline/limpiar_autores_atlas.py [--dry-run | --verificar]
 Se corre después de regenerar cualquier dato del prototipo y antes de versionarlo.
 """
 import json
@@ -47,10 +47,15 @@ def limpiar(t):
     return t[:cut].rstrip(' ,.;:/') if cut < len(t) else t
 
 
-def main(dry):
-    cambios = []
+CAMPOS_PROHIBIDOS = {'author', 'autor', 'autores', 'authors', 'sustentante', 'title_raw'}
+
+
+def main(dry, verificar=False):
+    cambios, campos = [], []
 
     def walk(o, rel):
+        if isinstance(o, dict):
+            campos.extend((rel, k) for k in o if isinstance(k, str) and k.lower() in CAMPOS_PROHIBIDOS)
         if isinstance(o, list):
             for i, x in enumerate(o):
                 if isinstance(x, str) and len(x) > 25:
@@ -77,8 +82,15 @@ def main(dry):
                     json.dump(data, f, ensure_ascii=False, separators=(',', ':') if compact else None, indent=None if compact else 1)
     for rel, a, b in cambios:
         print('%-40s %s\n%-40s -> %s' % (rel[:40], a, '', b))
-    print('cambios:', len(cambios), '(dry-run)' if dry else '')
+    for rel, k in campos:
+        print('campo prohibido %r en %s' % (k, rel))
+    print('cambios:', len(cambios), '(dry-run)' if dry else '', ' campos prohibidos:', len(campos))
+    if verificar and (cambios or campos):
+        sys.exit(1)
 
 
 if __name__ == '__main__':
-    main('--dry-run' in sys.argv)
+    # --verificar: no escribe nada y termina con error si algún título trae mención de autor
+    # o algún JSON trae un campo de autor (lo usa el CI, .github/workflows/pruebas.yml)
+    v = '--verificar' in sys.argv
+    main('--dry-run' in sys.argv or v, verificar=v)

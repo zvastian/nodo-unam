@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Acerca de NodOS</title>
-<meta name="description" content="Cómo se hizo el mapa de las 609,154 tesis de la UNAM, qué hace el Laboratorio, privacidad y quién hace NodOS.">
+<title>Aviso de privacidad · NodOS</title>
+<meta name="description" content="Qué datos personales trata NodOS, para qué, con quién y cómo ejercer tus derechos.">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="compartido/cuenta.css?v=4.23.2">
 <link rel="stylesheet" href="compartido/ajustes.css?v=4.26.0">
@@ -44,38 +44,15 @@
   .linkbtn { background: none; border: none; padding: 2px 0; cursor: pointer; color: var(--ink-2); font-size: 14px; }
   .linkbtn:hover { color: var(--ink); }
 
-  /* Acerca de (v4.27): página propia. Banda marina con el método en cuatro pasos, con una tesis real */
+  /* Aviso de privacidad (v4.28): la misma página que Acerca de, sin el diagrama */
+  .pv-fecha { margin: 0; font-size: 13.5px; color: var(--pie-tinta-2); }
+  .pv-banda .lead { margin-bottom: 14px; }
   .navlinks a[aria-current="page"] { color: var(--ink); font-weight: 600; border-bottom-color: var(--ink); }
   .page { max-width: 1080px; margin: 0 auto; padding: 32px 24px 72px; }
   .ac-banda { padding: 30px 32px 34px; background: color-mix(in oklch, var(--pie-fondo) 72%, black); color: var(--pie-tinta); }
   body.noche .ac-banda { background: color-mix(in oklch, var(--pie-fondo) 55%, black); }
   .ac-banda h1 { font-size: clamp(30px, 3vw, 42px); line-height: 1.12; font-weight: 400; letter-spacing: -0.005em; margin: 0 0 10px; }
   .ac-banda .lead { max-width: 60ch; margin: 0 0 30px; font-size: 17px; line-height: 1.55; color: var(--pie-tinta-2); }
-  /* los cuatro pasos: una fila con flechas; cada paso, su número, su nombre, su imagen y una línea */
-  .pasos { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; border-top: 1px solid var(--pie-linea); }
-  .paso { position: relative; padding: 18px 26px 0 0; display: flex; flex-direction: column; gap: 10px; }
-  .paso + .paso { padding-left: 26px; border-left: 1px solid var(--pie-linea); }
-  .paso + .paso::before { content: ''; position: absolute; left: -7px; top: 22px; width: 12px; height: 12px; background: color-mix(in oklch, var(--pie-fondo) 72%, black); border-top: 1px solid var(--pie-tinta-2); border-right: 1px solid var(--pie-tinta-2); transform: rotate(45deg); }
-  body.noche .paso + .paso::before { background: color-mix(in oklch, var(--pie-fondo) 55%, black); }
-  .paso h2 { display: flex; align-items: baseline; gap: 8px; margin: 0; font-size: 15px; font-weight: 700; color: var(--pie-tinta); }
-  .paso h2 span { font-weight: 400; color: var(--pie-tinta-2); }
-  .paso p { margin: 0; font-size: 13.5px; line-height: 1.5; color: var(--pie-tinta-2); }
-  .paso .fig { min-height: 130px; display: flex; flex-direction: column; justify-content: center; }
-  .ej-tit { font-size: 16px; font-weight: 700; line-height: 1.3; color: var(--pie-tinta); }
-  .ej-meta { margin-top: 6px; font-size: 13px; color: var(--pie-tinta-2); }
-  .vector { display: flex; align-items: center; gap: 2px; height: 72px; }
-  .vector i { flex: 1; min-width: 1px; background: var(--pie-tinta); opacity: 0.85; }
-  .vector-n { margin-top: 6px; font-size: 13px; color: var(--pie-tinta-2); }
-  .niveles { list-style: none; margin: 0; padding: 0; font-size: 13.5px; }
-  .niveles li { display: grid; grid-template-columns: 62px minmax(0, 1fr); gap: 8px; padding: 4px 0; border-bottom: 1px solid var(--pie-linea); }
-  .niveles li:last-child { border-bottom: 0; }
-  .niveles span { color: var(--pie-tinta-2); }
-  .niveles b { font-weight: 600; color: var(--pie-tinta); }
-  .mini { display: block; width: 100%; height: 130px; }
-  .mini circle { fill-opacity: 0.8; }
-  .mini .aqui { fill: var(--pie-tinta); fill-opacity: 1; stroke: color-mix(in oklch, var(--pie-fondo) 72%, black); stroke-width: 1.5; }
-  .mini text { fill: var(--pie-tinta); font-size: 11px; font-weight: 600; }
-
   /* secciones: la regla gruesa de Mi espacio */
   .ac-sec { padding: 44px 0 0; }
   .ac-sec > h2 { margin: 0 0 18px; padding-bottom: 8px; border-bottom: 2px solid var(--ink); font-size: 24px; font-weight: 700; }
@@ -146,7 +123,7 @@
   <nav class="navlinks" aria-label="Secciones">
     <a href="index.html">Mapa</a>
     <a href="laboratorio.html">Laboratorio<span class="nav-beta">beta</span></a>
-    <a href="acerca.html" aria-current="page">Acerca de</a>
+    <a href="acerca.html">Acerca de</a>
   </nav>
   <div class="nav-right">
     <button type="button" class="linkbtn" id="btn-ajustes" title="Ajustes"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h11"/><circle cx="10" cy="4.5" r="1.6"/><circle cx="5.5" cy="8" r="1.6"/><circle cx="11" cy="11.5" r="1.6"/></svg><span>Ajustes</span></button>
@@ -155,101 +132,75 @@
 </header>
 
 <main class="page">
-  <section class="ac-banda" aria-labelledby="ac-titulo">
-    <h1 id="ac-titulo">Acerca de NodOS</h1>
-    <p class="lead">Un mapa de las 609,154 tesis de la UNAM ordenadas por lo que dicen sus títulos, y un laboratorio para contrastar tu propia tesis con ellas.</p>
-    <ol class="pasos" aria-label="Cómo se hizo el mapa, con una tesis del catálogo">
-      <li class="paso">
-        <h2>1 <span>Título</span></h2>
-        <div class="fig"><div><a class="ej-tit" id="ej-tit" href="#">…</a></div><div class="ej-meta" id="ej-meta"></div></div>
-        <p>Del catálogo público TESIUNAM, sin el nombre de quien la escribió.</p>
-      </li>
-      <li class="paso">
-        <h2>2 <span>Vector</span></h2>
-        <div class="fig"><div class="vector" id="vector" aria-hidden="true"></div><div class="vector-n">1,024 números</div></div>
-        <p>Un modelo de lenguaje resume el significado del título en números. Títulos parecidos dan números parecidos.</p>
-      </li>
-      <li class="paso">
-        <h2>3 <span>Grupos</span></h2>
-        <div class="fig"><ul class="niveles" id="ej-niveles"></ul></div>
-        <p>Los títulos cercanos forman grupos en tres niveles: 130 campos, unos 440 temas y 513 subtemas.</p>
-      </li>
-      <li class="paso">
-        <h2>4 <span>Mapa</span></h2>
-        <div class="fig"><svg class="mini" id="mini" role="img" aria-label="Los 130 campos del mapa, con el de la tesis de ejemplo marcado"></svg></div>
-        <p>Los números se proyectan a dos dimensiones: cada tesis queda junto a las que tratan temas parecidos.</p>
-      </li>
-    </ol>
+  <section class="ac-banda pv-banda" aria-labelledby="pv-titulo">
+    <h1 id="pv-titulo">Aviso de privacidad</h1>
+    <p class="lead">Qué datos personales trata NodOS, para qué, con quién y cómo ejercer tus derechos, conforme a la Ley Federal de Protección de Datos Personales en Posesión de los Particulares.</p>
+    <p class="pv-fecha">Actualizado el 28 de septiembre de 2026</p>
   </section>
 
-  <section class="ac-sec" id="mapa" aria-labelledby="h-mapa">
-    <h2 id="h-mapa">El mapa</h2>
-    <h3>Datos</h3>
-    <p>Títulos, año, plantel, programa, nivel y asesores del catálogo público TESIUNAM de la Dirección General de Bibliotecas. El mapa no muestra el nombre de quien escribió la tesis: se retira del título cuando el catálogo lo incluye. Sí muestra a los asesores. Cada tesis enlaza a su registro en TESIUNAM, donde se puede consultar.</p>
-    <h3>Del texto al mapa</h3>
+  <section class="ac-sec" id="responsable" aria-labelledby="h-resp">
+    <h2 id="h-resp">Responsable</h2>
+    <p><strong>Sebastián Díaz</strong>, responsable de NodOS, proyecto independiente con domicilio en la Ciudad de México. Para cualquier asunto de este aviso: <a href="#" data-pendiente="contacto">correo de contacto</a>.</p>
+    <p>NodOS no es un sitio de la UNAM ni de la Dirección General de Bibliotecas.</p>
+  </section>
+
+  <section class="ac-sec" id="datos" aria-labelledby="h-datos">
+    <h2 id="h-datos">Qué datos se tratan</h2>
     <dl>
-      <dt>Representación</dt><dd>Cada título se convierte en un vector de 1,024 números con el modelo de lenguaje multilingual-e5-large.</dd>
-      <dt>Agrupamiento</dt><dd>HDBSCAN encuentra grupos densos de títulos parecidos y el método de Ward los organiza en tres niveles: campo, tema y subtema.</dd>
-      <dt>Proyección</dt><dd>PaCMAP lleva los vectores a dos dimensiones para dibujarlos.</dd>
-      <dt>Asesores</dt><dd>El catálogo escribe a una misma persona de varias formas: con y sin acentos, «Ma.» por María, con el nombre incompleto o con errores de captura. Las 117,482 formas se agruparon en 81,151 asesores con reglas conservadoras. Ante la duda se dejan separadas, así que alguna persona puede aparecer con dos nombres.</dd>
-      <dt>Tesis similares</dt><dd>Las 30 similares de una tesis son las de título más parecido en todo el catálogo. Dentro de un subtema, cada tesis se une a sus tres más parecidas.</dd>
+      <dt>Si solo usas el mapa</dt><dd>Ningún dato personal. Tus preferencias (modo claro u oscuro, color de los puntos, si ya viste la introducción) se guardan en tu propio navegador, no en NodOS.</dd>
+      <dt>Si creas una cuenta</dt><dd>Tu correo electrónico y el identificador que te asigna el servicio de acceso. Si entras con Google o GitHub, ese servicio puede compartir también tu nombre y tu foto de perfil; NodOS no los usa ni los muestra.</dd>
+      <dt>Lo que guardas</dt><dd>Las tesis, los asesores, los campos y los temas que guardas en Mi espacio.</dd>
+      <dt>Tus análisis</dt><dd>Lo que escribes en el Laboratorio (título, planteamiento, objetivos, palabras clave, programa, grado y periodo) y el análisis que resulta. El borrador del formulario se guarda solo en tu navegador.</dd>
+      <dt>Registros técnicos</dt><dd>Los servicios de alojamiento registran datos de conexión, como la dirección IP y el navegador, por seguridad. Los registros de NodOS no guardan el texto de tu tesis.</dd>
     </dl>
-    <h3>Cómo leerlo</h3>
+    <p>NodOS no pide datos personales sensibles. Te pedimos no escribir en el Laboratorio datos personales tuyos ni de otras personas: basta con la descripción de tu investigación.</p>
+  </section>
+
+  <section class="ac-sec" id="finalidades" aria-labelledby="h-fin">
+    <h2 id="h-fin">Para qué se usan</h2>
     <ul>
-      <li>Las posiciones no tienen unidad: importa quién está cerca de quién, no las coordenadas ni las distancias largas.</li>
-      <li>El 67% de las tesis no quedó en ningún grupo claro. Se dibujan en gris tenue en lugar de ocultarse.</li>
-      <li>Los nombres de los 130 campos son un borrador curado a mano, pendiente de revisión. Los de temas y subtemas son las palabras que más distinguen a cada grupo; sus acentos y siglas se restituyen con un diccionario aprendido del catálogo, así que puede haber alguna palabra mal escrita.</li>
-      <li>Las áreas administrativas vienen del catálogo, no del algoritmo. Sirven para comparar; no son la estructura del mapa.</li>
+      <li>Crear tu cuenta y dejarte entrar.</li>
+      <li>Generar tus análisis y guardar lo que eliges en Mi espacio.</li>
+      <li>Aplicar los límites de uso (2 análisis al día y 2 guardados por cuenta) y evitar el abuso del servicio.</li>
+    </ul>
+    <p>No hay finalidades secundarias: tus datos no se venden, no se usan para publicidad ni para entrenar modelos de inteligencia artificial.</p>
+  </section>
+
+  <section class="ac-sec" id="encargados" aria-labelledby="h-enc">
+    <h2 id="h-enc">Quién más los procesa</h2>
+    <p>NodOS se apoya en servicios que procesan datos a su nombre y solo para prestar el servicio. Algunos operan fuera de México, sobre todo en Estados Unidos.</p>
+    <dl>
+      <dt>Supabase</dt><dd>Cuentas e inicio de sesión (correo, Google o GitHub).</dd>
+      <dt>Cloudflare</dt><dd>Alojamiento del sitio, base de datos de Mi espacio y de los análisis, verificación contra robots (Turnstile) y modelo de IA de respaldo (Workers AI).</dd>
+      <dt>Groq</dt><dd>Modelo de IA que redacta los textos del Laboratorio. Tiene activada la retención cero: no guarda lo que se le envía.</dd>
+      <dt>Modal</dt><dd>Servidor que convierte tu título, tu planteamiento y tus palabras clave en un vector para compararlo con el catálogo.</dd>
+      <dt>Stripe</dt><dd>Solo si decides apoyar el proyecto. El pago ocurre en la página de Stripe: NodOS no recibe los datos de tu tarjeta.</dd>
+    </dl>
+    <p>Fuera de estos servicios, NodOS no transfiere tus datos a nadie.</p>
+  </section>
+
+  <section class="ac-sec" id="conservacion" aria-labelledby="h-cons">
+    <h2 id="h-cons">Cuánto tiempo se guardan</h2>
+    <ul>
+      <li>Tus análisis y lo que guardas se conservan hasta que los borras.</li>
+      <li>Al borrar tu cuenta desde Mi espacio se eliminan de inmediato tus análisis y todo lo guardado. Tu registro de acceso (correo) se elimina del servicio de cuentas cuando lo pides por correo.</li>
     </ul>
   </section>
 
-  <section class="ac-sec" id="laboratorio" aria-labelledby="h-lab">
-    <h2 id="h-lab">El Laboratorio</h2>
-    <p>Escribes el título, el planteamiento, los objetivos y las palabras clave de tu tesis, y el Laboratorio los contrasta con el catálogo completo. Está en beta.</p>
-    <div class="ac-cols">
-      <div>
-        <h3>Lo que sale del catálogo</h3>
-        <p>Tu título, tu planteamiento y tus palabras clave se convierten en un vector con el mismo modelo que el mapa, y se comparan con los títulos de las 609,154 tesis. De ahí salen, sin inteligencia artificial generativa:</p>
-        <ul>
-          <li>tu ubicación en el mapa y el campo en que se inscribe;</li>
-          <li>las 100 tesis más parecidas;</li>
-          <li>los asesores de esas tesis.</li>
-        </ul>
-      </div>
-      <div>
-        <h3>Lo que escribe una IA</h3>
-        <p>Tres textos los redacta un modelo de lenguaje (gpt-oss-120b, en Groq o en Cloudflare Workers AI), a partir de lo que escribiste y de las tesis parecidas:</p>
-        <ul>
-          <li>una lectura del planteamiento;</li>
-          <li>la revisión de los objetivos según la taxonomía de Bloom;</li>
-          <li>preguntas de investigación sugeridas.</li>
-        </ul>
-      </div>
-    </div>
-    <h3>Límites</h3>
-    <ul>
-      <li>La IA puede equivocarse. Sus textos son una orientación para conversar con tu asesor, no una evaluación.</li>
-      <li>De las tesis del catálogo solo se conoce el título: el Laboratorio no lee su texto completo.</li>
-      <li>Cada cuenta puede hacer 2 análisis al día y guardar 2.</li>
-    </ul>
+  <section class="ac-sec" id="derechos" aria-labelledby="h-der">
+    <h2 id="h-der">Tus derechos</h2>
+    <p>Puedes <strong>acceder</strong> a tus datos, <strong>rectificarlos</strong>, <strong>cancelarlos</strong> u <strong>oponerte</strong> a su tratamiento (derechos ARCO), y revocar tu consentimiento. Buena parte lo haces tú mismo en Mi espacio: ver lo guardado, quitarlo o borrar la cuenta.</p>
+    <p>Para lo demás, escribe a <a href="#" data-pendiente="contacto">correo de contacto</a> desde el correo de tu cuenta, con lo que pides. La respuesta llega en un máximo de 20 días hábiles.</p>
   </section>
 
-  <section class="ac-sec" id="privacidad" aria-labelledby="h-priv">
-    <h2 id="h-priv">Privacidad</h2>
-    <ul>
-      <li>El mapa no pide cuenta. Tus preferencias, como el modo claro u oscuro, se guardan solo en tu navegador.</li>
-      <li>Para el Laboratorio y Mi espacio entras con Google, GitHub o tu correo. Se guardan tu correo, tus análisis y lo que guardas del mapa. Desde Mi espacio puedes borrar tu cuenta y todo lo asociado.</li>
-      <li>Lo que escribes en el Laboratorio se envía al proveedor de IA solo para generar tu análisis. En Groq está activada la retención cero: no guarda el texto.</li>
-      <li>De las tesis no se muestra el nombre de quien las escribió.</li>
-    </ul>
-    <p><a href="privacidad.html">Aviso de privacidad completo</a></p>
+  <section class="ac-sec" id="tesis" aria-labelledby="h-tesis">
+    <h2 id="h-tesis">Datos de las tesis</h2>
+    <p>Los títulos, años, programas y nombres de asesores vienen del catálogo público TESIUNAM. NodOS retira del título el nombre de quien escribió la tesis y no lo muestra en ningún lugar. Si eres asesor y quieres corregir cómo aparece tu nombre, o que no aparezca, escribe a <a href="#" data-pendiente="contacto">correo de contacto</a>.</p>
   </section>
 
-  <section class="ac-sec" id="proyecto" aria-labelledby="h-proy">
-    <h2 id="h-proy">El proyecto</h2>
-    <p>NodOS es un proyecto independiente de <strong>Sebastián Díaz</strong>. No es un sitio oficial de la UNAM ni de la Dirección General de Bibliotecas, y no usa su escudo ni su identidad. Los datos de las tesis son del catálogo público TESIUNAM; cada una enlaza a su registro original.</p>
-    <p>El <a href="https://github.com/zvastian/nodo-unam" rel="noopener">código</a> es software libre con licencia MIT. La licencia no cubre los datos del catálogo ni el nombre y el logo de NodOS.</p>
-    <p><a href="#" data-pendiente="contacto">Contacto</a></p>
+  <section class="ac-sec" id="cambios" aria-labelledby="h-camb">
+    <h2 id="h-camb">Cambios a este aviso</h2>
+    <p>Cualquier cambio se publica en esta página, con su fecha de actualización.</p>
   </section>
 </main>
 <footer class="pie-pag">
@@ -289,63 +240,9 @@
 <script>
 (function () {
   'use strict';
-  function $(id) { return document.getElementById(id); }
-  function esc(t) { return String(t == null ? '' : t).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function noche() { return document.body.classList.contains('noche'); }
-
-  // la tesis del ejemplo, tal como la muestra el mapa (campo, tema y subtema de v4.26)
-  var EJ = {
-    id: 'TH_0462868', catalogo: 760141, macroId: 53,
-    titulo: 'Análisis de la expresión de catalasas de Debaryomyces hansenii en Saccharomyces cerevisiae',
-    meta: 'Maestría en Ciencias Biológicas, 2017',
-    niveles: [['Campo', 'Biología molecular'], ['Tema', 'Coli – Escherichia'], ['Subtema', 'Cerevisiae – Saccharomyces']]
-  };
-  var ICO_LEER = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 4.6C6.6 3.6 4.8 3.1 2.6 3.1v8.8c2.2 0 4 .5 5.4 1.5 1.4-1 3.2-1.5 5.4-1.5V3.1c-2.2 0-4 .5-5.4 1.5zM8 4.6v8.8"/></svg>';
-  $('ej-tit').textContent = EJ.titulo;
-  $('ej-tit').href = 'index.html?tesis=' + EJ.id;
-  $('ej-tit').title = 'Ver la tesis en el mapa';
-  $('ej-tit').insertAdjacentHTML('afterend', '&#8288;<a class="leer" href="https://tesiunam.dgb.unam.mx/cgi-bin/koha/opac-detail.pl?biblionumber=' + EJ.catalogo + '" target="_blank" rel="noopener" title="Leer en TESIUNAM" aria-label="Leer la tesis en TESIUNAM">' + ICO_LEER + '</a>');
-  $('ej-meta').textContent = EJ.meta;
-  $('ej-niveles').innerHTML = EJ.niveles.map(function (n) { return '<li><span>' + n[0] + '</span><b>' + esc(n[1]) + '</b></li>'; }).join('');
-
-  // el vector: un esquema de barras (los 1,024 valores reales no se publican)
-  var v = '';
-  for (var i = 0; i < 64; i++) { var h = 18 + 78 * Math.abs(Math.sin(i * 12.9898 + 4.1) * Math.cos(i * 0.73)); v += '<i style="height:' + h.toFixed(0) + '%"></i>'; }
-  $('vector').innerHTML = v;
-
-  // el mapa: los 130 campos en su posición, del tamaño de sus tesis y con los colores de buildPalette (index.html)
-  var campos = null;
-  function dibujar() {
-    if (!campos) return;
-    var W = 240, H = 130, pad = 10, mx = 0, my = 0;
-    var q = function (v, f) { v = v.slice().sort(function (a, b) { return a - b; }); return v[Math.round(f * (v.length - 1))]; };
-    var xs = campos.map(function (c) { return c.position.x; }), ys = campos.map(function (c) { return c.position.y; });
-    var x0 = q(xs, 0.03), x1 = q(xs, 0.97), y0 = q(ys, 0.03), y1 = q(ys, 0.97);
-    campos.forEach(function (c) { mx += c.position.x; my += c.position.y; });
-    mx /= campos.length; my /= campos.length;
-    var k = Math.min((W - 2 * pad) / (x1 - x0), (H - 2 * pad) / (y1 - y0)), ox = (W - k * (x1 - x0)) / 2, oy = (H - k * (y1 - y0)) / 2;
-    var X = function (x) { return ox + (x - x0) * k; }, Y = function (y) { return H - (oy + (y - y0) * k); };
-    var orden = campos.map(function (c, i) { return { i: i, a: Math.atan2(c.position.y - my, c.position.x - mx) }; }).sort(function (a, b) { return a.a - b.a; });
-    var L = noche() ? [0.66, 0.73, 0.80] : [0.50, 0.60, 0.69], C = noche() ? [0.14, 0.13, 0.115] : [0.13, 0.135, 0.12], color = [];
-    orden.forEach(function (o, r) { color[o.i] = 'oklch(' + L[r % 3] + ' ' + C[r % 3] + ' ' + ((o.a * 180 / Math.PI + 360 + 150 + [0, 14, -14][r % 3]) % 360).toFixed(1) + ')'; });
-    var s = '', aqui = null;
-    campos.forEach(function (c, i) {
-      var r = Math.max(2, Math.sqrt(c.size) * 0.075);
-      if (c.macroId === EJ.macroId) aqui = { x: X(c.position.x), y: Y(c.position.y), r: r };
-      else s += '<circle cx="' + X(c.position.x).toFixed(1) + '" cy="' + Y(c.position.y).toFixed(1) + '" r="' + r.toFixed(1) + '" fill="' + color[i] + '"/>';
-    });
-    if (aqui) s += '<circle class="aqui" cx="' + aqui.x.toFixed(1) + '" cy="' + aqui.y.toFixed(1) + '" r="' + Math.max(4, aqui.r).toFixed(1) + '"/>';
-    $('mini').setAttribute('viewBox', '0 0 ' + W + ' ' + H);
-    $('mini').innerHTML = s;
-  }
-  fetch('data/atlas_macro_graph.v1.json').then(function (r) { return r.json(); }).then(function (g) {
-    campos = g.nodes.filter(function (n) { return n.level === 'macro'; });
-    dibujar();
-  }).catch(function () { $('mini').closest('.paso').querySelector('.fig').hidden = true; });
-
-  // Ajustes: la misma ventana que en el mapa, el Laboratorio y Mi espacio
   if (NodosAjustes.oscuro()) document.body.classList.add('noche');
-  NodosAjustes.montar({ boton: $('btn-ajustes'), modo: noche, alModo: function (oscuro) { document.body.classList.toggle('noche', oscuro); dibujar(); } });
+  NodosAjustes.montar({ boton: document.getElementById('btn-ajustes'), modo: noche, alModo: function (oscuro) { document.body.classList.toggle('noche', oscuro); } });
 })();
 </script>
 </body>
