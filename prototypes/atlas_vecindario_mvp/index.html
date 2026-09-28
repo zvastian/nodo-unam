@@ -503,6 +503,8 @@
   .fc-more { border: 0; background: none; padding: 4px 0 0; font: inherit; font-size: 13px; color: var(--link); cursor: pointer; }
   .fc-clear { border: 0; background: none; padding: 0; font: inherit; font-size: 13px; color: var(--link); cursor: pointer; margin-top: 12px; }
   .tl-list { padding-top: 12px; min-width: 0; }
+  .tl-todas { padding: 10px 0 2px; }
+  .tl-todas .btn { margin: 0; padding: 0; height: auto; color: var(--ink-2); }
   .tl-cap { font-size: 13.5px; color: var(--ink-3); padding: 8px 0 6px; }
   .tl-grp { display: flex; justify-content: space-between; align-items: baseline; margin: 22px 0 0; padding-bottom: 6px; border-bottom: 2px solid var(--c, var(--ink)); font-size: 15px; font-weight: 600; color: var(--ink); }
   .tl-grp b { font-weight: 400; font-size: 13.5px; color: var(--ink-3); }
@@ -746,6 +748,7 @@
       <div class="ms-note" id="ms-note"></div>
       <div class="ms-actions">
         <button class="btn" id="ms-go-territory" type="button" hidden>Ir a su campo</button>
+        <button class="btn" id="ms-similares" type="button" hidden>Ver tesis similares</button>
         <button class="btn guardar-txt" id="ms-guardar" type="button" hidden></button>
       </div>
     </div>
@@ -782,7 +785,7 @@
 
   <footer>
     <span>Proyecto independiente, no oficial. Datos del catálogo público TESIUNAM.</span>
-    <span><button type="button" id="foot-metodo">Cómo se hizo el mapa</button><span class="foot-sep"></span>versión <span id="app-version">4.23.2</span></span>
+    <span><button type="button" id="foot-metodo">Cómo se hizo el mapa</button><span class="foot-sep"></span>versión <span id="app-version">4.24.0</span></span>
   </footer>
 </div>
 
@@ -827,7 +830,7 @@
       <dt>Agrupamiento</dt><dd>HDBSCAN encuentra grupos densos de títulos parecidos; Ward los organiza en tres niveles: 130 campos, unos 440 temas y 513 subtemas.</dd>
       <dt>Proyección</dt><dd>PaCMAP lleva los vectores a dos dimensiones para dibujarlos.</dd>
       <dt>Asesores</dt><dd>El catálogo escribe a una misma persona de varias formas (con y sin acentos, «Ma.» por María, nombre incompleto, errores de captura). Las 117,482 formas se agruparon en 81,151 asesores con reglas conservadoras: ante la duda se dejan separadas, así que alguna persona puede aparecer con dos nombres.</dd>
-      <dt>Vecindarios</dt><dd>Para una tesis, sus vecinas son las de título más parecido en todo el corpus. Dentro de un subtema, cada tesis se une a sus tres más parecidas.</dd>
+      <dt>Vecindarios</dt><dd>Para una tesis, sus 30 similares son las de título más parecido en todo el corpus. Dentro de un subtema, cada tesis se une a sus tres más parecidas.</dd>
     </dl>
     <h3>Cómo leerlo</h3>
     <ul>
@@ -2256,12 +2259,12 @@
   var taller = { node: null, rows: [], idx: [], m: [], tab: 'tesis', flat: [], shown: 0, q: '', sort: 'az', grp: '', fnv: 0, fpr: '', fpl: '', fas: '', masPr: false, masPl: false, masAs: false };
   function openTaller(n, rows) {
     cerrarFichaTesis();
-    Object.assign(taller, { node: n, rows: rows, q: '', sort: 'az', grp: '', fnv: 0, fpr: '', fpl: '', fas: '', masPr: false, masPl: false, masAs: false });
+    Object.assign(taller, { node: n, rows: rows, q: '', sort: n.similares ? 'sim' : 'az', grp: '', fnv: 0, fpr: '', fpl: '', fas: '', masPr: false, masPl: false, masAs: false });
     var lvl = n.level || 'macro';
     $('taller').style.setProperty('--c', colorNodo(n));
-    $('tl-crumb').textContent = '';
+    $('tl-crumb').textContent = n.similares ? 'Las ' + rows.length + ' tesis más similares a' : '';
     $('tl-title').textContent = n.name;
-    $('tl-kw').innerHTML = rangoHtml(n, false);
+    $('tl-kw').innerHTML = n.similares ? '' : rangoHtml(n, false);
     var yr = yearRange(rows);
     $('tl-kpis').textContent = ''; // v4.10: el conteo ya va en la pestaña y el rango en el Perfil
     var nAs = {}; rows.forEach(function (r) { r.as.forEach(function (a) { nAs[a] = 1; }); });
@@ -2300,9 +2303,10 @@
   // --- Tesis ---
   function renderTesis() {
     $('tl-body').innerHTML = '<div class="tl-tesis"><aside class="tl-fac" id="tl-fac"></aside>' +
-      '<div class="tl-list"><div class="tl-cap" id="tl-cap"></div><div id="tl-items"></div><button type="button" class="tl-more" id="tl-more">Mostrar más</button></div></div>';
+      '<div class="tl-list">' + (taller.node.similares ? '<div class="tl-todas"><button type="button" class="btn guardar-txt" id="tl-guardar-todas"></button></div>' : '') + '<div class="tl-cap" id="tl-cap"></div><div id="tl-items"></div><button type="button" class="tl-more" id="tl-more">Mostrar más</button></div></div>';
     renderFacetas();
     $('tl-more').addEventListener('click', function () { appendTesis(150); });
+    if (taller.node.similares) { pintarGuardarTodas(); $('tl-guardar-todas').addEventListener('click', guardarTodas); }
     applyTesis();
   }
   function renderFacetas() {
@@ -2316,7 +2320,7 @@
       return '<button type="button" data-f="' + f + '" data-v="' + escapeHtml(String(v)) + '"' + (on ? ' class="on"' : '') + '>' + glifo + '<span class="n" title="' + escapeHtml(nom) + '">' + escapeHtml(nom) + '</span><b>' + fmtNum(n) + '</b></button>';
     };
     var h = '<input id="tl-q" type="search" placeholder="Buscar en esta lista" value="' + escapeHtml(taller.q) + '">';
-    h += opts('Orden', 'sort', [['az', 'A–Z'], ['new', 'Más recientes'], ['old', 'Más antiguas']]);
+    h += opts('Orden', 'sort', (taller.node.similares ? [['sim', 'Más similares']] : []).concat([['az', 'A–Z'], ['new', 'Más recientes'], ['old', 'Más antiguas']]));
     h += opts('Agrupar', 'grp', [['', 'Sin agrupar'], ['dec', 'Década'], ['pr', 'Programa'], ['nv', 'Nivel']]);
     if (taller.fas) h += '<div class="fc"><h4>Asesoría</h4><div class="fc-list">' + fila('fas', '', true, '<i class="tb"></i>', taller.fas, rows.filter(function (r) { return r.as.indexOf(taller.fas) >= 0; }).length) + '</div></div>';
     var nvc = [0, 0, 0, 0]; M.forEach(function (m) { if (m.nv) nvc[m.nv - 1]++; });
@@ -2449,6 +2453,31 @@
       '<span class="tt-t">' + resaltarHtml(r.t, tk) + '</span>' +
       '<span class="tc" style="--c:' + AREA_HEX[m.ar] + '"><span class="tc-r" title="' + escapeHtml(AREA_NAMES[m.ar]) + '"></span>' +
       item('tc-p', r.pr, 'Programa') + item('tc-l', r.pl ? plantelCorto(r.pl) : '', 'Plantel') + item('tc-a', r.as.join(', '), 'Asesoría') + '</span></button>' + btnGuardar(state.thesisIdToIndex.get(r.id)) + '</div>';
+  }
+
+  // v4.24: las similares de una tesis se guardan todas de una vez (una por una, como en el Laboratorio)
+  function pintarGuardarTodas() {
+    var b = $('tl-guardar-todas'); if (!b || b.disabled) return;
+    var n = taller.rows.length, todas = taller.rows.every(function (r) { var i = state.thesisIdToIndex.get(r.id); return i != null && tesisGuardada(i); });
+    b.classList.toggle('on', todas);
+    b.innerHTML = ICO_GUARDAR + (todas ? 'Las ' + n + ' están en Mi espacio' : 'Guardar las ' + n);
+  }
+  async function guardarTodas() {
+    var b = this; if (!window.NodOS) return;
+    if (!NodOS.usuario()) { NodOS.abrirEntrar(b); return; }
+    var idxs = taller.rows.map(function (r) { return state.thesisIdToIndex.get(r.id); }).filter(function (i) { return i != null && !tesisGuardada(i); });
+    if (!idxs.length) return;
+    b.disabled = true; b.innerHTML = ICO_GUARDAR + 'Guardando…';
+    if (!tmeta) await loadTesisMeta();
+    for (var k = 0; k < idxs.length; k++) {
+      var i = idxs[k];
+      try {
+        await NodOS.guardarTesis(state.thesisIds[i], datosTesisMapa(i), true);
+        pintarGuardada(i, true);
+        document.querySelectorAll('.guardar[data-guardar="' + i + '"]').forEach(function (x) { NodOS.animarGuardado(x, true); });
+      } catch (err) { dlog('guardar todas: ' + (err.codigo || err.message)); break; }
+    }
+    b.disabled = false; pintarGuardarTodas();
   }
 
   // --- Perfil: las graficas de la ficha del cluster, en grande ---
@@ -2648,7 +2677,7 @@
       g.classList.toggle('on', on); g.setAttribute('aria-pressed', on); g.title = on ? 'Guardada en Mi espacio' : 'Guardar en Mi espacio';
       if (g.classList.contains('guardar-txt')) g.innerHTML = ICO_GUARDAR + (on ? 'Guardada' : 'Guardar tesis');
     });
-    pintarBtnGuardados();
+    pintarBtnGuardados(); pintarGuardarTodas();
   }
   // lo que se muestra de la tesis en Mi espacio: título, año, programa, nivel y plantel del catálogo público
   function datosTesisMapa(idx) {
@@ -2896,6 +2925,7 @@
     var gb = $('ms-guardar'); gb.hidden = idx == null;
     if (idx != null) { gb.setAttribute('data-guardar', idx); pintarGuardada(idx, tesisGuardada(idx)); }
     card.classList.toggle('tesis', idx != null); card.classList.remove('grupo'); card.removeAttribute('data-grupo');
+    pintarBtnSimilares();
     if (idx == null) { box.innerHTML = ''; $('ms-nivel').innerHTML = ''; return; }
     card.style.setProperty('--c', AREA_HEX[state.areaCode[idx] || 0]);
     pintaLocator($('ms-loc'), 60, [idx], AREA_HEX[state.areaCode[idx] || 0]);
@@ -3444,6 +3474,7 @@
     return 'rgba(' + ((v >> 16) & 255) + ',' + ((v >> 8) & 255) + ',' + (v & 255) + ',' + a + ')';
   }
   function isoColor(n) {
+    if (n.similares) return colorTesis(n.focal);
     if (state.lens === 'area') return AREA_HEX[AREA_STR_TO_CODE[(n.dominantArea || '').toLowerCase()] || 0];
     return (n.parentMacro && n.parentMacro.color) || '#3f4a5c';
   }
@@ -3502,6 +3533,7 @@
       if (e.width >= mr.width * 0.9) box.b = Math.min(box.b, e.top - mr.top); // hoja inferior (movil)
       else box.r = Math.min(box.r, e.left - mr.left);
     });
+    var ic = $('iso-chip'); if (!ic.hidden) box.t = Math.max(box.t, ic.getBoundingClientRect().bottom - mr.top); // la barra del modo aislado
     return box;
   }
   // Vuela de modo que (x, y) quede al centro de la zona visible, no detras de la ficha.
@@ -3660,53 +3692,6 @@
       var cx = median(idxs.map(function (i) { return X0[i]; })), cy = median(idxs.map(function (i) { return Y0[i]; }));
       var dists = idxs.map(function (i) { return Math.hypot(X0[i] - cx, Y0[i] - cy); }).sort(function (a, b) { return a - b; });
       var R90 = Math.max(dists[Math.floor(0.9 * (N - 1))], 0.004);
-
-      // 1) espacio que necesita el tema en pantalla y zoom al que se ve
-      var W = state.W, H = state.H;
-      var Rpx = Math.max(0.33 * Math.min(W, H), Math.sqrt(N * ISO_MIN_PX * ISO_MIN_PX * 1.3 / Math.PI));
-      // temas compactos se amplian x3.2; los ya dispersos, lo justo (tope 0.12 NDC):
-      // mejor acercar la camara que empujar medio mapa
-      var Rndc = Math.max(R90 * 1.6, Math.min(R90 * ISO_EXPAND, 0.12));
-      var D = Math.max(1 / K_MAX_ZOOM, Math.min(DEFAULT_CAMERA_DISTANCE, Rndc * (H / 2) / Rpx));
-      var pxPerNdc = (H / 2) / D;
-
-      // 2) layout en pixeles: posicion real ampliada + relajacion de colisiones
-      var GA = Math.PI * (3 - Math.sqrt(5)), sc = (Rpx * 0.8) / R90;
-      var nodes = idxs.map(function (i, k) {
-        var x = (X0[i] - cx) * sc, y = (Y0[i] - cy) * sc;
-        // titulos identicos caen en el MISMO punto: semilla en espiral para que se separen
-        if (Math.hypot(x, y) < 1) { var rr = 4 * Math.sqrt(k + 1); x = rr * Math.cos(k * GA); y = rr * Math.sin(k * GA); }
-        return { x: x, y: y, tx: x, ty: y };
-      });
-      var sim = d3.forceSimulation(nodes)
-        .force('collide', d3.forceCollide(ISO_MIN_PX / 2).iterations(4))
-        .force('x', d3.forceX(function (d) { return d.tx; }).strength(0.035))
-        .force('y', d3.forceY(function (d) { return d.ty; }).strength(0.035))
-        .stop();
-      for (var t = 0; t < 320; t++) sim.tick();
-
-      var NX = new Float32Array(X0), NY = new Float32Array(Y0), radii = [];
-      nodes.forEach(function (d, k) {
-        var i = idxs[k]; NX[i] = cx + d.x / pxPerNdc; NY[i] = cy + d.y / pxPerNdc;
-        radii.push(Math.hypot(d.x, d.y) / pxPerNdc);
-      });
-      radii.sort(function (a, b) { return a - b; });
-      // el claro se mide con el p95 del tema, no con su tesis mas lejana
-      var Rmax = radii[Math.floor(0.95 * (radii.length - 1))];
-      // 3) el resto del mapa se abre: claro de radio Rc alrededor del tema, con
-      //    desplazamiento que se desvanece suave hasta 3*Rc (monotono: no cruza puntos)
-      var Rc = Rmax * 1.12, member = new Uint8Array(state.n);
-      idxs.forEach(function (i) { member[i] = 1; });
-      for (var j = 0; j < state.n; j++) {
-        if (member[j]) continue;
-        var dx = X0[j] - cx, dy = Y0[j] - cy, dd = Math.hypot(dx, dy);
-        if (dd >= 3 * Rc) continue;
-        var nd = dd < Rc ? 1.15 * Rc + 0.35 * dd : dd + 0.5 * Rc * (1 - (dd - Rc) / (2 * Rc));
-        if (dd < 1e-9) { var h = Math.sin(j * 12.9898) * 43758.5453, a = (h - Math.floor(h)) * 2 * Math.PI; dx = Math.cos(a); dy = Math.sin(a); dd = 1; }
-        NX[j] = cx + dx / dd * nd; NY[j] = cy + dy / dd * nd;
-      }
-      var cats = new Float32Array(state.n); cats.fill(C_DIM);
-      idxs.forEach(function (i) { cats[i] = C_HL_MULTI; });
       // enlaces reales (vecinas e5 dentro del tema, ver generar_atlas_tesis_por_micro.py)
       var edges = (raw.edges || []).map(function (e) { return [rowIdx[e[0]], rowIdx[e[1]], e[2]]; })
         .filter(function (e) { return e[0] != null && e[1] != null; });
@@ -3719,26 +3704,163 @@
         edges.forEach(function (e) { if (!cubre.has(e[0]) || !cubre.has(e[1])) { keep.push(e); cubre.add(e[0]); cubre.add(e[1]); } else resto.push(e); });
         edges = keep.concat(resto.slice(0, Math.max(0, EDGE_MAX - keep.length)));
       }
+      // temas compactos se amplian x3.2; los ya dispersos, lo justo (tope 0.12 NDC):
+      // mejor acercar la camara que empujar medio mapa
+      aislar({ token: token, node: n, idxs: idxs, byIdx: byIdx, edges: edges, cx: cx, cy: cy, Rndc: Math.max(R90 * 1.6, Math.min(R90 * ISO_EXPAND, 0.12)),
+        // posicion real ampliada
+        destino: function (Rpx) { var sc = (Rpx * 0.8) / R90; return idxs.map(function (i) { return [(X0[i] - cx) * sc, (Y0[i] - cy) * sc]; }); },
+        nombre: n.name, nTxt: fmtNum(N) + ' tesis' });
+    });
+  }
+  // v4.24: separa un conjunto de tesis del resto del mapa (un subtema o las similares de una tesis).
+  // sp.destino(Rpx) da la posicion deseada de cada tesis en pixeles, relativa a (cx, cy); luego una
+  // relajacion de colisiones garantiza ISO_MIN_PX entre centros.
+  function aislar(sp) {
+    var token = sp.token, n = sp.node, idxs = sp.idxs, N = idxs.length, cx = sp.cx, cy = sp.cy, X0 = state.ndcX, Y0 = state.ndcY;
+    $('iso-name').textContent = sp.nombre; $('iso-n').textContent = sp.nTxt;
+    $('iso-analyze').textContent = n.similares ? 'Ver la lista' : 'Ver tesis y análisis';
+    $('iso-chip').hidden = false;
+    // 1) espacio que necesita el conjunto en pantalla y zoom al que se ve
+    // con sp.visible se mide y se centra en la zona que no tapa la ficha (en movil, la mitad de arriba)
+    var W = state.W, H = state.H, bx = sp.visible ? visibleBox() : { l: 0, t: 0, r: W, b: H };
+    var Rpx = Math.max(0.33 * Math.min(bx.r - bx.l, bx.b - bx.t), Math.sqrt(N * ISO_MIN_PX * ISO_MIN_PX * 1.3 / Math.PI));
+    var D = Math.max(1 / K_MAX_ZOOM, Math.min(DEFAULT_CAMERA_DISTANCE, sp.Rndc * (H / 2) / Rpx));
+    var pxPerNdc = (H / 2) / D;
 
-      var posOf = {}; idxs.forEach(function (i, k) { posOf[i] = k; });
-      state.iso = { node: n, idxs: idxs, byIdx: byIdx, posOf: posOf, cats: cats, ecoCats: cats, X: NX, Y: NY, ecoX: NX, ecoY: NY, cx: cx, cy: cy, D: D, edges: edges, mode: 'eco', groupBy: 'plantel' };
-      document.body.classList.add('iso');
-      $('iso-name').textContent = n.name; $('iso-n').textContent = fmtNum(N) + ' tesis';
-      $('iso-chip').hidden = false;
-      applyIsoColor();
+    // 2) layout en pixeles: posicion deseada + relajacion de colisiones
+    var GA = Math.PI * (3 - Math.sqrt(5)), dest = sp.destino(Rpx);
+    var nodes = idxs.map(function (i, k) {
+      var x = dest[k][0], y = dest[k][1];
+      // titulos identicos caen en el MISMO punto: semilla en espiral para que se separen
+      if (Math.hypot(x, y) < 1 && k !== sp.fijo) { var rr = 4 * Math.sqrt(k + 1); x = rr * Math.cos(k * GA); y = rr * Math.sin(k * GA); }
+      return { x: x, y: y, tx: x, ty: y };
+    });
+    if (sp.fijo != null) { nodes[sp.fijo].fx = nodes[sp.fijo].x; nodes[sp.fijo].fy = nodes[sp.fijo].y; } // la tesis de origen no se mueve del centro
+    var sim = d3.forceSimulation(nodes)
+      .force('collide', d3.forceCollide(ISO_MIN_PX / 2).iterations(4))
+      .force('x', d3.forceX(function (d) { return d.tx; }).strength(0.035))
+      .force('y', d3.forceY(function (d) { return d.ty; }).strength(0.035))
+      .stop();
+    for (var t = 0; t < 320; t++) sim.tick();
 
-      // 4) secuencia: acercarse al tema y luego abrirlo (la camara y los puntos
-      //    comparten el mismo tween en la libreria: no pueden animarse a la vez)
-      flyTo(cx, cy, D, 750).then(function () {
-        if (token !== isoToken) return;
-        state.dispX = NX; state.dispY = NY;
-        state.highlightKey = 'iso|' + n.id;
-        lastPointSize = null; updatePointSize();
-        drawPoints(NX, NY, cats, { transition: true, transitionDuration: 1500, transitionEasing: 'cubicInOut' })
-          .then(function () { if (token === isoToken && state.iso && state.iso.mode === 'eco') startFlow(); });
+    var NX = new Float32Array(X0), NY = new Float32Array(Y0), radii = [];
+    nodes.forEach(function (d, k) {
+      var i = idxs[k]; NX[i] = cx + d.x / pxPerNdc; NY[i] = cy + d.y / pxPerNdc;
+      radii.push(Math.hypot(d.x, d.y) / pxPerNdc);
+    });
+    radii.sort(function (a, b) { return a - b; });
+    // el claro se mide con el p95 del conjunto, no con su tesis mas lejana
+    var Rmax = radii[Math.floor(0.95 * (radii.length - 1))];
+    // 3) el resto del mapa se abre: claro de radio Rc alrededor del conjunto, con
+    //    desplazamiento que se desvanece suave hasta 3*Rc (monotono: no cruza puntos)
+    var Rc = Rmax * 1.12, member = new Uint8Array(state.n);
+    idxs.forEach(function (i) { member[i] = 1; });
+    for (var j = 0; j < state.n; j++) {
+      if (member[j]) continue;
+      var dx = X0[j] - cx, dy = Y0[j] - cy, dd = Math.hypot(dx, dy);
+      if (dd >= 3 * Rc) continue;
+      var nd = dd < Rc ? 1.15 * Rc + 0.35 * dd : dd + 0.5 * Rc * (1 - (dd - Rc) / (2 * Rc));
+      if (dd < 1e-9) { var h = Math.sin(j * 12.9898) * 43758.5453, a = (h - Math.floor(h)) * 2 * Math.PI; dx = Math.cos(a); dy = Math.sin(a); dd = 1; }
+      NX[j] = cx + dx / dd * nd; NY[j] = cy + dy / dd * nd;
+    }
+    var cats = new Float32Array(state.n); cats.fill(C_DIM);
+    idxs.forEach(function (i) { cats[i] = C_HL_MULTI; });
+
+    var posOf = {}; idxs.forEach(function (i, k) { posOf[i] = k; });
+    state.iso = { node: n, idxs: idxs, byIdx: sp.byIdx, posOf: posOf, cats: cats, ecoCats: cats, X: NX, Y: NY, ecoX: NX, ecoY: NY, cx: cx, cy: cy, D: D, edges: sp.edges, mode: 'eco', groupBy: 'plantel' };
+    document.body.classList.add('iso');
+    applyIsoColor();
+    pintarBtnSimilares();
+
+    // 4) secuencia: acercarse al conjunto y luego abrirlo (la camara y los puntos
+    //    comparten el mismo tween en la libreria: no pueden animarse a la vez)
+    (sp.visible ? flyToVisible(cx, cy, D) : flyTo(cx, cy, D, 750)).then(function () {
+      if (token !== isoToken) return;
+      state.dispX = NX; state.dispY = NY;
+      state.highlightKey = 'iso|' + n.id;
+      lastPointSize = null; updatePointSize();
+      drawPoints(NX, NY, cats, { transition: true, transitionDuration: 1500, transitionEasing: 'cubicInOut' })
+        .then(function () { if (token === isoToken && state.iso && state.iso.mode === 'eco') startFlow(); });
+    });
+  }
+
+  // ==================== tesis similares (v4.24) ====================
+  // pipeline/generar_vecinas_tesis.py: para cada tesis, las 30 de titulo mas parecido en todo el
+  // corpus (e5-large). Un archivo por bloque de tesis en el orden del mapa; se pide solo el de la
+  // tesis abierta. Se muestran con el modo aislado del subtema: la tesis de origen al centro, en
+  // tinta; cada similar a una distancia que crece al bajar la similitud, en la direccion en la que
+  // esta en el mapa, y unida al centro por un enlace cuyo grosor es la similitud.
+  var vecinas = { manP: null, bloques: {} };
+  function loadVecinas(idx) {
+    if (!vecinas.manP) vecinas.manP = fetchJson('./data/vecinas.v1.json').catch(function (e) { vecinas.manP = null; throw e; });
+    return vecinas.manP.then(function (m) {
+      var b = Math.floor(idx / m.bloque);
+      if (!vecinas.bloques[b]) vecinas.bloques[b] = fetch('./data/vecinas/' + b + '.bin').then(function (r) { if (!r.ok) throw new Error('vecinas ' + b + ' -> ' + r.status); return r.arrayBuffer(); })
+        .catch(function (e) { delete vecinas.bloques[b]; throw e; });
+      return vecinas.bloques[b].then(function (buf) {
+        var k = m.k, filas = buf.byteLength / (k * 5), r = idx - b * m.bloque, out = [];
+        var I = new Int32Array(buf, r * k * 4, k), Q = new Uint8Array(buf, filas * k * 4 + r * k, k);
+        for (var j = 0; j < k; j++) if (I[j] >= 0) out.push({ i: I[j], s: 0.5 + Q[j] / 510 });
+        return out;
       });
     });
   }
+  // fila del taller para una tesis cualquiera (mismos campos que rowObj)
+  function filaTesis(i) {
+    var info = pointInfo(i) || {}, pr = tmeta ? tmeta.pr[i] : 0, pl = tmeta ? tmeta.pl[i] : 0, nv = tmeta ? tmeta.nv[i] : 0, t = info.t || 'Título sin registro';
+    return { id: state.thesisIds[i], t: t, y: info.y || (ases.anio ? ases.anio[i] : 0) || 0,
+      pr: pr ? pretty(tmeta.m.programas[pr - 1]) : '', pl: pl && tmeta.m.planteles ? pretty(tmeta.m.planteles[pl - 1]) : '',
+      nv: nv ? tmeta.m.niveles[nv - 1] : '', as: asesoresDe(i) || [], k: norm(t).replace(/[^a-z0-9 ]/g, '') };
+  }
+  function colorTesis(i) {
+    var mc = state.macroCode[i];
+    return state.lens !== 'area' && mc >= 0 ? state.macroById[mc].color : AREA_HEX[state.areaCode[i] || 0];
+  }
+  function verSimilares(idx) {
+    var token = ++isoToken;
+    if (state.iso) stopFlow();
+    var b = $('ms-similares'); b.disabled = true; b.textContent = 'Buscando similares…';
+    loadVecinas(idx).then(function (vs) {
+      var todas = [idx].concat(vs.map(function (v) { return v.i; }));
+      return Promise.all(todas.map(titleTileFor).concat([loadTesisMeta(), loadAsesores().catch(function () {})])).then(function () { return vs; });
+    }).then(function (vs) {
+      if (token !== isoToken) return;
+      var X0 = state.ndcX, Y0 = state.ndcY, cx = X0[idx], cy = Y0[idx];
+      var idxs = [idx], byIdx = {}, rows = [], edges = [];
+      byIdx[idx] = filaTesis(idx);
+      vs.forEach(function (v) { idxs.push(v.i); byIdx[v.i] = filaTesis(v.i); rows.push(byIdx[v.i]); edges.push([idx, v.i, v.s]); });
+      var info = byIdx[idx];
+      var n = { id: 'sim' + idx, similares: true, focal: idx, name: info.t, color: colorTesis(idx), rows: rows };
+      // radio segun la similitud, relativa a la lista (la de e5 esta comprimida: 0.85-0.95)
+      var smax = vs.length ? vs[0].s : 1, smin = vs.length ? vs[vs.length - 1].s : 0, rango = Math.max(0.01, smax - smin);
+      var dists = vs.map(function (v) { return Math.hypot(X0[v.i] - cx, Y0[v.i] - cy); }).sort(function (a, b) { return a - b; });
+      var R90 = vs.length ? Math.max(dists[Math.floor(0.9 * (vs.length - 1))], 0.004) : 0.02;
+      aislar({ token: token, node: n, idxs: idxs, byIdx: byIdx, edges: edges, cx: cx, cy: cy, fijo: 0, visible: true, Rndc: Math.min(0.12, Math.max(0.03, R90 * 1.6)),
+        destino: function (Rpx) {
+          var GA = Math.PI * (3 - Math.sqrt(5));
+          return [[0, 0]].concat(vs.map(function (v, k) {
+            var dx = X0[v.i] - cx, dy = Y0[v.i] - cy, a = Math.hypot(dx, dy) > 1e-9 ? Math.atan2(dy, dx) : k * GA;
+            var r = Rpx * (0.3 + 0.62 * (smax - v.s) / rango);
+            return [r * Math.cos(a), r * Math.sin(a)];
+          }));
+        },
+        nombre: 'Similares a «' + info.t + '»', nTxt: fmtNum(vs.length) + ' tesis' });
+      focusThesis(idx, { t: info.t, y: info.y });
+    }).catch(function (e) {
+      dlog('similares ' + e.message);
+      if (token === isoToken) { b.textContent = 'No se pudieron cargar las similares'; }
+    });
+  }
+  // el boton de la ficha: se oculta si ya se estan viendo las similares de esa tesis
+  function pintarBtnSimilares() {
+    var b = $('ms-similares'), idx = +$('ms-tags').getAttribute('data-idx'), hay = $('ms-tags').getAttribute('data-idx') !== '';
+    b.hidden = !hay || !!(state.iso && state.iso.node.focal === idx);
+    b.disabled = false; b.textContent = 'Ver tesis similares';
+  }
+  $('ms-similares').addEventListener('click', function () {
+    var idx = $('ms-tags').getAttribute('data-idx'); if (idx === '') return;
+    verSimilares(+idx);
+  });
   function applyIsoColor() {
     var c = isoColor(state.iso.node);
     state.palette[C_HL_MULTI] = c; state.scatterplot.set({ pointColor: state.palette });
@@ -3861,7 +3983,7 @@
     var hid = new Float32Array(iso.ecoCats);
     iso.idxs.forEach(function (i) { hid[i] = C_HIDDEN; });
     iso.cats = hid; state.highlightKey = '';
-    flow.ampT0 = flow.t0 = performance.now(); flow.running = true; flow.focus = -1;
+    flow.ampT0 = flow.t0 = performance.now(); flow.running = true; flow.focus = iso.posOf[state.focus] != null ? state.focus : -1; // la tesis de origen de las similares sigue en tinta
     restoreView();
     if (!flow.raf) flow.raf = requestAnimationFrame(flowFrame);
   }
@@ -3892,6 +4014,7 @@
   // tesis por nivel, programa, plantel y decada con mas detalle.
   $('iso-analyze').addEventListener('click', function () {
     var n = state.iso && state.iso.node; if (!n) return;
+    if (n.similares) { openTaller(n, n.rows); return; }
     loadThesesFor(n).then(function (rows) { openTaller(n, rows); });
   });
 

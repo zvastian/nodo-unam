@@ -15,6 +15,7 @@ prototypes/**/data/
 *.npz
 *.bin
 !prototypes/atlas_vecindario_mvp/data/*.bin
+!prototypes/atlas_vecindario_mvp/data/vecinas/*.bin
 *.wasm
 *.joblib
 *.pkl

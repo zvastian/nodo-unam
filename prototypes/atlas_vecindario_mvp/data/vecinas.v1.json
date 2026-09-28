@@ -1,0 +1,10 @@
+{
+ "version": "atlas-vecinas-v1",
+ "n": 609154,
+ "k": 30,
+ "bloque": 4096,
+ "formato": "por bloque: k int32 (indice del mapa, -1 = vacio) por tesis y luego k uint8 por tesis",
+ "sim": "0.5 + q / 510",
+ "modelo": "intfloat/multilingual-e5-large, titulo contra titulo",
+ "indice": "IVF4096-SQ8, nprobe 48, 60 candidatas reordenadas con producto interno exacto"
+}

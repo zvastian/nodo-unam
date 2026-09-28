@@ -3795,3 +3795,33 @@ El Laboratorio pasó a usarlo: se quitaron su sesión, su ventana y sus estilos 
 **Qué cambió:** al pasar el cursor, el símbolo de guardar ya no solo cambia de trazo, sino que se rellena de azul oscuro (`--guardado`), igual que cuando está guardado. Aplica en todas partes: tesis, «Guardar tesis», asesores y lugares. El caché de los archivos compartidos pasa a `?v=4.23.2`.
 
 **Verificación:** hover real en Chrome headless; el trazo y el relleno del icono quedan en rgb(20,58,107).
+
+## v4.24.0: las 30 tesis similares de cada tesis, con el modo del subtema (2026-09-27)
+
+**Qué cambió:**
+- **Datos nuevos:** `pipeline/generar_vecinas_tesis.py` calcula, para las 609,154 tesis, las 30 de título más parecido en todo el corpus (e5-large, índice IVF-SQ8 del Laboratorio con nprobe 48; 60 candidatas reordenadas con el producto interno exacto).
+  - Salida: `data/vecinas/<bloque>.bin` (149 archivos de 4,096 tesis, ~600 KB cada uno) y el manifiesto `data/vecinas.v1.json`.
+  - El mapa pide solo el bloque de la tesis abierta.
+- **En la ficha de una tesis, «Ver tesis similares».** Abre el mismo modo aislado que un subtema: las tesis se separan, el resto del mapa se abre y el fondo se tiñe.
+  - La tesis de origen queda al centro, en tinta.
+  - Cada similar se aleja más cuanto menos se parece (relativo a la lista, porque la similitud e5 está comprimida). Queda en la dirección en la que está en el mapa y unida al centro por un enlace cuyo grosor es la similitud.
+  - Se encuadra en la zona que no tapan la ficha ni la barra (en móvil, la mitad de arriba).
+  - Al abrir una similar, su ficha trae el mismo botón: se puede seguir de una tesis a otra.
+- **La barra lleva a «Ver la lista»:** el taller con las 30, ordenado por «Más similares» (también A–Z y por año), con perfil y asesores.
+  - Cada tesis tiene su marcador para guardarla.
+  - «Guardar las 30» las guarda de una en una, como en el Laboratorio, y termina en «Las 30 están en Mi espacio».
+- **Código:** `isolateMicro` se partió en la carga del subtema y `aislar(sp)`, que separa cualquier conjunto de tesis. El subtema se comporta igual que antes.
+
+**Por qué:** el usuario pidió poder ver, desde una tesis concreta, las más parecidas en todo el corpus y guardarlas, con el mismo modo que los subtemas. Solo las 30 primeras.
+
+**Verificación:** Chrome headless, escritorio (1600×900) y móvil (390×844).
+- La ficha, el modo aislado y la lista.
+- Encadenar similares.
+- Esc para salir.
+- El subtema, igual que en v4.23.2.
+- «Guardar las 30» con NodOS simulado: 30 llamadas y 30 marcadores llenos.
+- Consola limpia.
+
+**Pendiente:**
+- Probar guardar con una sesión real.
+- El IVF con nprobe 48 coincide en 87% con una búsqueda casi exacta (nprobe 768), así que alguna de las 30 puede no ser la óptima.
