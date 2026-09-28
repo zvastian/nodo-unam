@@ -4191,3 +4191,19 @@ El nombre de cada uno queda en `aria-label` y `title`. Entrar y Mi espacio los p
 **Por qué:** lo pidió el usuario: la casa se veía chica y desalineada.
 
 **Verificación:** Chrome headless, el mapa y Acerca de. Consola limpia.
+
+## v4.32.0: la búsqueda abre el taller con su análisis (2026-09-28)
+
+**Qué cambió:**
+- **En la lista de resultados**, junto a «Ver las N en el mapa», está ahora «Ver su análisis». Pone las tesis en el mapa y abre directamente el taller con todas ellas: Tesis, Perfil y Asesores.
+- **Al final de la ficha «Búsqueda en títulos»** está el mismo paso que en la del asesor: «Ver las N tesis y su análisis».
+- **`tallerGrupo` sirve para el asesor y para la búsqueda.** En la búsqueda, la ruta del taller dice «Búsqueda en títulos» y el nombre es la consulta entre comillas. Acepta que no haya botón, cuando se abre desde la lista.
+- **Tope de 3,000 tesis** (`TOPE_TALLER`). El taller carga el título de cada tesis desde las teselas del mapa, y una búsqueda general puede traer cientos de miles. Con más de 3,000 no aparece el enlace en la lista, y la ficha pide acotar la búsqueda.
+- **El texto de la búsqueda vacía** ya no dice la cifra exacta de tesis ni de asesores.
+
+**Por qué:** lo pidió el usuario: poder abrir el modo taller o análisis desde una búsqueda de títulos, en la lista y al final de la ficha.
+
+**Verificación:** Chrome headless, 1600×900, con «freud» (125 tesis).
+- «Ver su análisis» abre el taller con 125 filas y la ruta «Búsqueda en títulos».
+- Al cerrarlo, la ficha termina en «Ver las 125 tesis y su análisis».
+- Consola limpia.

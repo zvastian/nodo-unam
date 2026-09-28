@@ -420,6 +420,7 @@
   .s-sec span { font-weight: 400; color: var(--ink-3); }
   .s-sec .s-all { margin-left: auto; border: none; background: none; padding: 0; font: inherit; font-weight: 400; color: var(--link); cursor: pointer; }
   .s-sec .s-all:hover { text-decoration: underline; }
+  .s-sec .s-all + .s-taller { margin-left: 16px; }
   .s-load { color: var(--ink-3); }
   .sr-item.active .nm, .sr-item:hover .nm { text-decoration: underline; text-underline-offset: 2px; }
   .sr-item .lv { font-size: 13px; color: var(--ink-3); }
@@ -757,7 +758,7 @@
 
   <footer>
     <span>Proyecto independiente, no oficial. Datos del catálogo público TESIUNAM.</span>
-    <span><a id="foot-metodo" href="acerca.html#mapa">Cómo se hizo el mapa</a><span class="foot-sep"></span><a href="privacidad.html">Privacidad</a><span class="foot-sep"></span>versión <span id="app-version">4.31.2</span></span>
+    <span><a id="foot-metodo" href="acerca.html#mapa">Cómo se hizo el mapa</a><span class="foot-sep"></span><a href="privacidad.html">Privacidad</a><span class="foot-sep"></span>versión <span id="app-version">4.32.0</span></span>
   </footer>
 </div>
 
@@ -3018,6 +3019,8 @@
     });
   }
 
+  // v4.32: el taller de una búsqueda carga el título de cada tesis (teselas del mapa); con más, se pide acotarla
+  var TOPE_TALLER = 3000;
   function openSearch() {
     if (state.introActive) return;
     $('search').hidden = false; var inp = $('search-input'); inp.value = ''; inp.focus();
@@ -3030,7 +3033,7 @@
   function runSearch() {
     var raw = $('search-input').value, q = norm(raw).trim(), box = $('search-results'), seq = ++search.seq;
     if (!q) {
-      box.innerHTML = '<div class="s-empty">Busca un tema, una palabra de los títulos o un asesor. Se buscan los 130 campos, sus temas y subtemas, los títulos de las 609,154 tesis y 81,151 asesores. Prueba «freud», «amparo», «diabetes» o el apellido de un asesor.</div>';
+      box.innerHTML = '<div class="s-empty">Busca un tema, una palabra de los títulos o un asesor. Se buscan los campos, temas y subtemas, los títulos del catálogo y los asesores. Prueba «freud», «amparo», «diabetes» o el apellido de un asesor.</div>';
       search.results = []; return;
     }
     var toks = q.split(/[^a-z0-9]+/).filter(function (t) { return t && !VACIAS[t]; });
@@ -3082,7 +3085,8 @@
     }
     if (total) {
       html += '<div class="s-sec">Tesis <span>' + fmtNum(total) + '</span>' +
-        (total > 1 ? '<button type="button" class="s-all" id="s-all">Ver las ' + fmtNum(total) + ' en el mapa</button>' : '') + '</div>';
+        (total > 1 ? '<button type="button" class="s-all" id="s-all">Ver las ' + fmtNum(total) + ' en el mapa</button>' : '') +
+        (total > 1 && total <= TOPE_TALLER ? '<button type="button" class="s-all s-taller" id="s-taller">Ver su análisis</button>' : '') + '</div>';
       muestra.forEach(function (idx) {
         var info = pointInfo(idx), mc = state.macroCode[idx];
         var anioS = ases.anio && ases.anio[idx] ? ases.anio[idx] + ', ' : '';
@@ -3101,6 +3105,8 @@
     var first = box.querySelector('.sr-item'); if (first) first.classList.add('active');
     box.querySelectorAll('.sr-item').forEach(function (b) { b.addEventListener('click', function () { pickResult(+b.getAttribute('data-i')); }); });
     var all = $('s-all'); if (all) all.addEventListener('click', function () { verEnMapa(search.hits, '«' + search.q + '»', { q: search.q }); });
+    // v4.32: el taller con todas las tesis de la búsqueda, desde la lista, sin pasar por la ficha
+    var tl = $('s-taller'); if (tl) tl.addEventListener('click', function () { verEnMapa(search.hits, '«' + search.q + '»', { q: search.q }); if (tallerGrupo) tallerGrupo(null); });
     // titulos que faltan: se cargan por tesela y se rellenan sin volver a buscar
     muestra.forEach(function (idx, k) {
       if (pointInfo(idx) !== undefined) return;
@@ -3173,6 +3179,9 @@
           return '<button type="button" data-macro="' + mc + '" style="--c:' + m.color + '" title="Ir a este campo"><span class="dot"></span><span class="n">' + escapeHtml(m.name) + '</span><b>' + fmtNum(cnt[mc]) + '</b></button>';
         }).join('') +
         (sin ? '<button type="button" disabled style="--c:var(--line-strong)"><span class="dot"></span><span class="n">Sin campo</span><b>' + fmtNum(sin) + '</b></button>' : '') + '</div></div>';
+      if (opts.q != null) h += '<div class="cs">' + (idxs.length <= TOPE_TALLER
+        ? '<button type="button" class="cs-link" data-taller>Ver ' + (idxs.length === 1 ? 'la tesis' : 'las ' + fmtNum(idxs.length) + ' tesis') + ' y su análisis' + ICO_R + '</button>'
+        : '<p class="cs-foot">Para ver el análisis, acota la búsqueda a ' + fmtNum(TOPE_TALLER) + ' tesis o menos.</p>') + '</div>';
       if (opts.aid != null && ases.off) {
         var co = {};
         idxs.forEach(function (i) { for (var j = ases.off[i]; j < ases.off[i + 1]; j++) if (ases.ids[j] !== opts.aid) co[ases.ids[j]] = (co[ases.ids[j]] || 0) + 1; });
@@ -3202,11 +3211,12 @@
     }
     // el taller del asesor: todas sus tesis con Perfil y Asesores, como un campo o un tema
     tallerGrupo = function (b) {
-      b.disabled = true; b.textContent = 'Cargando tesis…';
+      if (b) { b.disabled = true; b.textContent = 'Cargando tesis…'; }
+      var asesor = opts.aid != null;
       Promise.all(idxs.map(titleTileFor).concat([loadTesisMeta(), loadAsesores().catch(function () {})])).then(function () {
         var rows = idxs.map(filaTesis);
-        openTaller({ id: 'as' + opts.aid, lista: true, crumb: 'Tesis dirigidas por', orden: 'new', name: titulo, color: c, rows: rows }, rows);
-      }).catch(function (e) { dlog('taller asesor ' + e.message); }).then(function () { if (b.isConnected) pinta(); });
+        openTaller({ id: asesor ? 'as' + opts.aid : 'q|' + titulo, lista: true, crumb: asesor ? 'Tesis dirigidas por' : 'Búsqueda en títulos', orden: 'new', name: titulo, color: c, rows: rows }, rows);
+      }).catch(function (e) { dlog('taller grupo ' + e.message); }).then(function () { if (b && b.isConnected) pinta(); });
     };
     // tesis de los dos, de la mas reciente a la mas antigua
     function coTesisHtml(a, b) {
