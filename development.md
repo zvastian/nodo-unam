@@ -4007,7 +4007,8 @@ Pasos hacia el lanzamiento del atlas solo (v0), según «Orden propuesto», punt
   - **el mapa necesita `'unsafe-eval'`**, porque regl compila sus shaders con `new Function`; sin él, el mapa no arranca. Por eso solo `/` y `/index.html` lo llevan;
   - todas llevan `'unsafe-inline'` porque el código va en línea (no hay build). Quitarlo exigiría mover los scripts a archivos o usar hashes.
 - **CI** (`.github/workflows/pruebas.yml`), en cada push a `main` y en cada pull request:
-  - **privacidad:** `pipeline/limpiar_autores_atlas.py --verificar` (modo nuevo) falla si algún título trae mención de autor o algún JSON trae un campo `author`, `autor`, `sustentante` o `title_raw`. Hoy: 0 y 0, en unos 40 s;
+  - **privacidad:** `pipeline/limpiar_autores_atlas.py --verificar` (modo nuevo) falla si algún título trae mención de autor, o si un registro de tesis o un esquema de columnas (`fields`) trae un campo `author`, `autor`, `sustentante` o `title_raw`. Hoy: 0 y 0, en unos 40 s.
+    - La primera versión revisaba todas las claves y falló en el CI con un falso positivo: en el índice de búsqueda (`busqueda/titulos/`) las claves son palabras de los títulos, como «autor» en «derechos de autor»;
   - **humo:** `tools/prueba_humo.mjs` abre cada página en Chrome headless, comprueba que cargó lo esencial y falla si la consola trae errores;
   - **léxico:** las 13 pruebas de Bloom.
 - **`tools/construir_sitio.py`** arma `dist/` con solo lo que se publica: 3,415 archivos y 283 MB, dentro de los límites de Pages. Deja fuera `index.v*.html` y `bocetos/`, que se habrían publicado tal cual. `dist/` va en `.gitignore`.
