@@ -4,14 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Acerca de NodOS</title>
-<meta name="description" content="Cómo se hizo el mapa de las 609,154 tesis de la UNAM, qué hace el Laboratorio, privacidad y quién hace NodOS.">
+<meta name="description" content="Cómo se construyó NodOS, mapa semántico del catálogo de tesis de la UNAM: del catálogo al mapa y al Laboratorio.">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="compartido/cuenta.css?v=4.23.2">
 <link rel="stylesheet" href="compartido/ajustes.css?v=4.26.0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-  /* Acerca de (v4.27): tokens idénticos a laboratorio.html y espacio.html */
+  /* Acerca de (v4.30): tokens idénticos a laboratorio.html y espacio.html */
   :root {
     --bg: #ffffff; --paper: #ffffff;
     --ink: #1a1a1a; --ink-2: #4d4d4d; --ink-3: #6e6e6e;
@@ -44,77 +44,106 @@
   .linkbtn { background: none; border: none; padding: 2px 0; cursor: pointer; color: var(--ink-2); font-size: 14px; }
   .linkbtn:hover { color: var(--ink); }
 
-  /* Acerca de (v4.27): página propia. Banda marina con el método en cuatro pasos, con una tesis real */
+  /* Acerca de (v4.30): el método paso a paso; cada paso con su ilustración, hecha con datos reales (data/acerca.v1.json) */
   .navlinks a[aria-current="page"] { color: var(--ink); font-weight: 600; border-bottom-color: var(--ink); }
-  .page { max-width: 1080px; margin: 0 auto; padding: 32px 24px 72px; }
-  .ac-banda { padding: 30px 32px 34px; background: color-mix(in oklch, var(--pie-fondo) 72%, black); color: var(--pie-tinta); }
+  .page { max-width: 1080px; margin: 0 auto; padding: 32px 24px 80px; }
+  .ac-banda { padding: 34px 32px 36px; background: color-mix(in oklch, var(--pie-fondo) 72%, black); color: var(--pie-tinta); }
   body.noche .ac-banda { background: color-mix(in oklch, var(--pie-fondo) 55%, black); }
-  .ac-banda h1 { font-size: clamp(30px, 3vw, 42px); line-height: 1.12; font-weight: 400; letter-spacing: -0.005em; margin: 0 0 10px; }
-  .ac-banda .lead { max-width: 60ch; margin: 0 0 30px; font-size: 17px; line-height: 1.55; color: var(--pie-tinta-2); }
-  /* los cuatro pasos: una fila con flechas; cada paso, su número, su nombre, su imagen y una línea */
-  .pasos { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; border-top: 1px solid var(--pie-linea); }
-  .paso { position: relative; padding: 18px 26px 0 0; display: flex; flex-direction: column; gap: 10px; }
-  .paso + .paso { padding-left: 26px; border-left: 1px solid var(--pie-linea); }
-  .paso + .paso::before { content: ''; position: absolute; left: -7px; top: 22px; width: 12px; height: 12px; background: color-mix(in oklch, var(--pie-fondo) 72%, black); border-top: 1px solid var(--pie-tinta-2); border-right: 1px solid var(--pie-tinta-2); transform: rotate(45deg); }
-  body.noche .paso + .paso::before { background: color-mix(in oklch, var(--pie-fondo) 55%, black); }
-  .paso h2 { display: flex; align-items: baseline; gap: 8px; margin: 0; font-size: 15px; font-weight: 700; color: var(--pie-tinta); }
-  .paso h2 span { font-weight: 400; color: var(--pie-tinta-2); }
-  .paso p { margin: 0; font-size: 13.5px; line-height: 1.5; color: var(--pie-tinta-2); }
-  .paso .fig { min-height: 130px; display: flex; flex-direction: column; justify-content: center; }
-  .ej-tit { font-size: 16px; font-weight: 700; line-height: 1.3; color: var(--pie-tinta); }
-  .ej-meta { margin-top: 6px; font-size: 13px; color: var(--pie-tinta-2); }
-  .vector { display: flex; align-items: center; gap: 2px; height: 72px; }
-  .vector i { flex: 1; min-width: 1px; background: var(--pie-tinta); opacity: 0.85; }
-  .vector-n { margin-top: 6px; font-size: 13px; color: var(--pie-tinta-2); }
-  .niveles { list-style: none; margin: 0; padding: 0; font-size: 13.5px; }
-  .niveles li { display: grid; grid-template-columns: 62px minmax(0, 1fr); gap: 8px; padding: 4px 0; border-bottom: 1px solid var(--pie-linea); }
-  .niveles li:last-child { border-bottom: 0; }
-  .niveles span { color: var(--pie-tinta-2); }
-  .niveles b { font-weight: 600; color: var(--pie-tinta); }
-  .mini { display: block; width: 100%; height: 130px; }
-  .mini circle { fill-opacity: 0.8; }
-  .mini .aqui { fill: var(--pie-tinta); fill-opacity: 1; stroke: color-mix(in oklch, var(--pie-fondo) 72%, black); stroke-width: 1.5; }
-  .mini text { fill: var(--pie-tinta); font-size: 11px; font-weight: 600; }
+  .ac-banda h1 { margin: 0 0 8px; font-size: clamp(30px, 3vw, 42px); line-height: 1.12; font-weight: 400; letter-spacing: -0.005em; }
+  .ac-banda p { margin: 0; max-width: 60ch; font-size: 17px; line-height: 1.5; color: var(--pie-tinta-2); }
+  .ac-parte { margin: 52px 0 0; padding-bottom: 8px; border-bottom: 2px solid var(--ink); font-size: 22px; font-weight: 700; }
 
-  /* secciones: la regla gruesa de Mi espacio */
-  .ac-sec { padding: 44px 0 0; }
-  .ac-sec > h2 { margin: 0 0 18px; padding-bottom: 8px; border-bottom: 2px solid var(--ink); font-size: 24px; font-weight: 700; }
-  .ac-sec h3 { margin: 26px 0 8px; font-size: 17px; font-weight: 700; }
-  .ac-sec > h2 + h3 { margin-top: 0; }
-  .ac-sec ul + p { margin-top: 14px; }
-  .ac-sec p, .ac-sec li { max-width: 72ch; font-size: 15.5px; line-height: 1.7; color: var(--ink-2); }
-  .ac-sec p { margin: 0 0 10px; }
-  .ac-sec ul { margin: 0; padding-left: 20px; }
-  .ac-sec li + li { margin-top: 6px; }
-  .ac-sec dl { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 0 24px; margin: 6px 0 0; max-width: 860px; }
-  .ac-sec dt, .ac-sec dd { padding: 10px 0; border-top: 1px solid var(--line); }
-  .ac-sec dt { font-weight: 600; color: var(--ink); }
-  .ac-sec dd { margin: 0; color: var(--ink-2); line-height: 1.6; }
-  .ac-cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 36px; }
-  .ac-cols h3 { margin-top: 0; }
-  .ac-sec strong { color: var(--ink); font-weight: 600; }
-  @media (max-width: 900px) {
-    .pasos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .paso:nth-child(3) { padding-left: 0; border-left: 0; }
-    .paso:nth-child(3)::before { display: none; }
-    .paso:nth-child(n+3) { margin-top: 18px; border-top: 1px solid var(--pie-linea); }
+  .paso { display: grid; grid-template-columns: minmax(0, 330px) minmax(0, 1fr); gap: 56px; padding: 34px 0; border-bottom: 1px solid var(--line); align-items: start; }
+  .paso h3 { display: flex; align-items: baseline; gap: 12px; margin: 0 0 8px; font-size: 18px; font-weight: 700; }
+  .paso h3 .n { min-width: 22px; font-size: 15px; font-weight: 600; color: var(--ink-3); }
+  .paso-txt p { margin: 0 0 0 34px; font-size: 15px; line-height: 1.65; color: var(--ink-2); }
+  .fig { min-width: 0; font-size: 13.5px; color: var(--ink-2); }
+  .fig b { font-weight: 600; color: var(--ink); }
+  .fig .lbl { display: block; margin: 0 0 6px; font-size: 12.5px; color: var(--ink-3); }
+  .fig svg { display: block; overflow: visible; }
+
+  /* 1: el registro del catálogo y lo que queda en el mapa */
+  .registro { display: grid; grid-template-columns: minmax(0, 1fr) 36px minmax(0, 1fr); align-items: stretch; }
+  .registro > div { display: flex; flex-direction: column; }
+  .registro .caja { flex: 1; }
+  .registro .flecha { align-self: center; margin-top: 20px; }
+  .registro .caja { padding: 12px 14px; border: 1px solid var(--line-strong); }
+  .registro .caja p { margin: 0 0 8px; color: var(--ink); line-height: 1.45; }
+  .registro .caja p:last-child { margin: 0; color: var(--ink-2); }
+  .tachado { display: inline-block; width: 13ch; height: 0.95em; vertical-align: -2px; background: var(--ink); }
+  .flecha { width: 36px; height: 14px; }
+  .flecha path { fill: none; stroke: var(--ink-3); stroke-width: 1.4; }
+
+  /* 2: reglas para unificar a los asesores */
+  .tabla { width: 100%; max-width: 520px; border-collapse: collapse; }
+  .tabla th { padding: 0 0 6px; text-align: left; font-size: 12.5px; font-weight: 500; color: var(--ink-3); border-bottom: 1px solid var(--line-strong); }
+  .tabla td { padding: 8px 0; border-bottom: 1px solid var(--line); color: var(--ink); }
+  .tabla td + td, .tabla th + th { padding-left: 24px; }
+
+  /* 3 y 9: el vector, en esquema */
+  .vector { display: flex; align-items: center; gap: 2px; height: 70px; max-width: 520px; }
+  .vector i { flex: 1; min-width: 1px; background: var(--ink); }
+  .vector-n { margin-top: 6px; font-size: 12.5px; color: var(--ink-3); }
+
+  /* 4: las más parecidas */
+  .similares { list-style: none; margin: 0; padding: 0; max-width: 600px; }
+  .similares li { display: grid; grid-template-columns: minmax(0, 1fr) 110px; gap: 16px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line); }
+  .similares li:first-child { border-top: 1px solid var(--line-strong); }
+  .similares .t { color: var(--ink); line-height: 1.4; }
+  .similares .t small { margin-left: 6px; font-size: 12.5px; color: var(--ink-3); }
+  .similares .s { display: grid; grid-template-columns: 38px minmax(0, 1fr); gap: 8px; align-items: center; color: var(--ink); }
+  .similares .s i { display: block; height: 6px; background: var(--ink-2); }
+
+  /* 5, 6 y 7: los colores son los de los campos del mapa */
+  .leyenda { display: flex; flex-wrap: wrap; gap: 4px 18px; margin-top: 8px; font-size: 12.5px; color: var(--ink-2); }
+  .leyenda span { display: inline-flex; align-items: center; gap: 6px; }
+  .leyenda i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; }
+  .arbol { list-style: none; margin: 0; padding: 0; max-width: 600px; }
+  .arbol li { display: grid; grid-template-columns: minmax(0, 220px) minmax(0, 1fr) 48px; gap: 12px; align-items: center; padding: 3px 0; color: var(--ink-2); }
+  .arbol li.sub { grid-template-columns: 18px minmax(0, 202px) minmax(0, 1fr) 48px; }
+  .arbol li.sub::before { content: ''; align-self: stretch; margin-left: 6px; border-left: 1px solid var(--line-strong); }
+  .arbol .barra { height: 8px; background: var(--c); opacity: 0.35; }
+  .arbol .aqui { color: var(--ink); font-weight: 600; }
+  .arbol .aqui .barra { opacity: 1; }
+  .arbol .num { text-align: right; color: var(--ink-3); }
+  .arbol .campo { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; font-weight: 700; color: var(--ink); }
+  .arbol .campo i { width: 4px; height: 16px; background: var(--c); }
+
+  /* 8: de palabras clave a nombre */
+  .palabras { display: grid; grid-template-columns: max-content 36px max-content; gap: 0 18px; align-items: center; }
+  .palabras ol { margin: 0; padding-left: 22px; color: var(--ink-2); line-height: 1.7; }
+  .palabras ol li:nth-child(-n+2) { color: var(--ink); font-weight: 600; }
+  .palabras .nombre { font-size: 16px; font-weight: 700; color: var(--ink); }
+
+  /* 9 a 11: el Laboratorio */
+  .entrada { padding: 12px 14px; border: 1px solid var(--line-strong); max-width: 560px; margin-bottom: 12px; }
+  .entrada p { margin: 0 0 6px; color: var(--ink); line-height: 1.45; }
+  .entrada p:last-child { margin: 0; color: var(--ink-2); }
+  .barras { list-style: none; margin: 0; padding: 0; max-width: 560px; }
+  .barras li { display: grid; grid-template-columns: minmax(0, 220px) minmax(0, 1fr) 44px; gap: 12px; align-items: center; padding: 5px 0; color: var(--ink); }
+  .barras i { display: block; height: 10px; background: var(--ink); }
+  .barras li + li i { background: var(--ink-3); }
+  .barras .num { text-align: right; }
+  .ia { list-style: none; margin: 0; padding: 0; max-width: 600px; }
+  .ia li { padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .ia li:first-child { border-top: 1px solid var(--line-strong); }
+  .ia b { display: block; margin-bottom: 2px; }
+  .ia q { color: var(--ink); quotes: '«' '»'; }
+
+  .ac-proyecto { margin: 44px 0 0; max-width: 72ch; font-size: 15px; line-height: 1.7; color: var(--ink-2); }
+  @media (max-width: 860px) {
+    .paso { grid-template-columns: minmax(0, 1fr); gap: 18px; }
   }
   @media (max-width: 640px) {
     .page { padding: 20px 16px 56px; }
-    .ac-banda { margin: 0 -16px; padding: 24px 16px 28px; }
-    .pasos { grid-template-columns: minmax(0, 1fr); }
-    .paso, .paso + .paso { padding: 16px 0 0; border-left: 0; }
-    .paso + .paso { margin-top: 16px; border-top: 1px solid var(--pie-linea); }
-    .paso + .paso::before { display: none; }
-    .ac-sec dl, .ac-cols { grid-template-columns: minmax(0, 1fr); gap: 0; }
-    .ac-sec dd { border-top: 0; padding-top: 0; }
+    .ac-banda { margin: 0 -16px; padding: 26px 16px 28px; }
+    .paso-txt p { margin-left: 0; }
+    .registro, .palabras { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+    .registro .flecha, .palabras .flecha { transform: rotate(90deg); margin: 0 auto; }
+    .arbol li { grid-template-columns: minmax(0, 150px) minmax(0, 1fr) 44px; }
+    .arbol li.sub { grid-template-columns: 14px minmax(0, 136px) minmax(0, 1fr) 44px; }
+    .barras li { grid-template-columns: minmax(0, 150px) minmax(0, 1fr) 40px; }
   }
-  /* el libro en un círculo, junto al título: abre la tesis en TESIUNAM (en blanco sobre la banda) */
-  .leer { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; margin-left: 8px; border: 1px solid var(--pie-tinta-2); border-radius: 50%; color: var(--pie-tinta); vertical-align: -4px; text-decoration: none !important; }
-  .leer:hover { border-color: var(--pie-tinta); }
-  .leer:focus-visible, .ej-tit:focus-visible { outline: 2px solid var(--pie-tinta); outline-offset: 2px; }
-  .leer svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linejoin: round; }
-  a.ej-tit:hover { text-decoration: underline; text-underline-offset: 3px; }
   .pie-pag { background: var(--pie-fondo); color: var(--pie-tinta-2); font-size: 14px; line-height: 1.45; }
   .pie-in { max-width: 1280px; margin: 0 auto; padding: 44px 24px 44px 92px; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0 44px; align-items: center; }
   .pie-logo { width: 112px; height: auto; display: block; fill: var(--pie-tinta); fill-rule: evenodd; }
@@ -157,100 +186,117 @@
 <main class="page">
   <section class="ac-banda" aria-labelledby="ac-titulo">
     <h1 id="ac-titulo">Acerca de NodOS</h1>
-    <p class="lead">Un mapa de las 609,154 tesis de la UNAM ordenadas por lo que dicen sus títulos, y un laboratorio para contrastar tu propia tesis con ellas.</p>
-    <ol class="pasos" aria-label="Cómo se hizo el mapa, con una tesis del catálogo">
-      <li class="paso">
-        <h2>1 <span>Título</span></h2>
-        <div class="fig"><div><a class="ej-tit" id="ej-tit" href="#">…</a></div><div class="ej-meta" id="ej-meta"></div></div>
-        <p>Del catálogo público TESIUNAM, sin el nombre de quien la escribió.</p>
-      </li>
-      <li class="paso">
-        <h2>2 <span>Vector</span></h2>
-        <div class="fig"><div class="vector" id="vector" aria-hidden="true"></div><div class="vector-n">1,024 números</div></div>
-        <p>Un modelo de lenguaje resume el significado del título en números. Títulos parecidos dan números parecidos.</p>
-      </li>
-      <li class="paso">
-        <h2>3 <span>Grupos</span></h2>
-        <div class="fig"><ul class="niveles" id="ej-niveles"></ul></div>
-        <p>Los títulos cercanos forman grupos en tres niveles: 130 campos, unos 440 temas y 513 subtemas.</p>
-      </li>
-      <li class="paso">
-        <h2>4 <span>Mapa</span></h2>
-        <div class="fig"><svg class="mini" id="mini" role="img" aria-label="Los 130 campos del mapa, con el de la tesis de ejemplo marcado"></svg></div>
-        <p>Los números se proyectan a dos dimensiones: cada tesis queda junto a las que tratan temas parecidos.</p>
-      </li>
-    </ol>
+    <p>Mapa semántico del catálogo de tesis de la Universidad Nacional Autónoma de México.</p>
   </section>
 
-  <section class="ac-sec" id="mapa" aria-labelledby="h-mapa">
-    <h2 id="h-mapa">El mapa</h2>
-    <h3>Datos</h3>
-    <p>Títulos, año, plantel, programa, nivel y asesores del catálogo público TESIUNAM de la Dirección General de Bibliotecas. El mapa no muestra el nombre de quien escribió la tesis: se retira del título cuando el catálogo lo incluye. Sí muestra a los asesores. Cada tesis enlaza a su registro en TESIUNAM, donde se puede consultar.</p>
-    <h3>Del texto al mapa</h3>
-    <dl>
-      <dt>Representación</dt><dd>Cada título se convierte en un vector de 1,024 números con el modelo de lenguaje multilingual-e5-large.</dd>
-      <dt>Agrupamiento</dt><dd>HDBSCAN encuentra grupos densos de títulos parecidos y el método de Ward los organiza en tres niveles: campo, tema y subtema.</dd>
-      <dt>Proyección</dt><dd>PaCMAP lleva los vectores a dos dimensiones para dibujarlos.</dd>
-      <dt>Asesores</dt><dd>El catálogo escribe a una misma persona de varias formas: con y sin acentos, «Ma.» por María, con el nombre incompleto o con errores de captura. Las 117,482 formas se agruparon en 81,151 asesores con reglas conservadoras. Ante la duda se dejan separadas, así que alguna persona puede aparecer con dos nombres.</dd>
-      <dt>Tesis similares</dt><dd>Las 30 similares de una tesis son las de título más parecido en todo el catálogo. Dentro de un subtema, cada tesis se une a sus tres más parecidas.</dd>
-    </dl>
-    <h3>Cómo leerlo</h3>
-    <ul>
-      <li>Las posiciones no tienen unidad: importa quién está cerca de quién, no las coordenadas ni las distancias largas.</li>
-      <li>El 67% de las tesis no quedó en ningún grupo claro. Se dibujan en gris tenue en lugar de ocultarse.</li>
-      <li>Los nombres de los 130 campos son un borrador curado a mano, pendiente de revisión. Los de temas y subtemas son las palabras que más distinguen a cada grupo; sus acentos y siglas se restituyen con un diccionario aprendido del catálogo, así que puede haber alguna palabra mal escrita.</li>
-      <li>Las áreas administrativas vienen del catálogo, no del algoritmo. Sirven para comparar; no son la estructura del mapa.</li>
-    </ul>
-  </section>
+  <h2 class="ac-parte" id="mapa">El mapa</h2>
 
-  <section class="ac-sec" id="laboratorio" aria-labelledby="h-lab">
-    <h2 id="h-lab">El Laboratorio</h2>
-    <p>Escribes el título, el planteamiento, los objetivos y las palabras clave de tu tesis, y el Laboratorio los contrasta con el catálogo completo. Está en beta.</p>
-    <div class="ac-cols">
-      <div>
-        <h3>Lo que sale del catálogo</h3>
-        <p>Tu título, tu planteamiento y tus palabras clave se convierten en un vector con el mismo modelo que el mapa, y se comparan con los títulos de las 609,154 tesis. De ahí salen, sin inteligencia artificial generativa:</p>
-        <ul>
-          <li>tu ubicación en el mapa y el campo en que se inscribe;</li>
-          <li>las 100 tesis más parecidas;</li>
-          <li>los asesores de esas tesis.</li>
-        </ul>
-      </div>
-      <div>
-        <h3>Lo que escribe una IA</h3>
-        <p>Tres textos los redacta un modelo de lenguaje (gpt-oss-120b, en Groq o en Cloudflare Workers AI), a partir de lo que escribiste y de las tesis parecidas:</p>
-        <ul>
-          <li>una lectura del planteamiento;</li>
-          <li>la revisión de los objetivos según la taxonomía de Bloom;</li>
-          <li>preguntas de investigación sugeridas.</li>
-        </ul>
+  <section class="paso" aria-labelledby="p1">
+    <div class="paso-txt"><h3 id="p1"><span class="n">1</span>Catálogo</h3>
+      <p>Se parte del catálogo público TESIUNAM: título, año, programa, nivel y asesores de cada tesis. El nombre de quien la escribió se retira.</p></div>
+    <div class="fig">
+      <div class="registro">
+        <div><span class="lbl">Catálogo TESIUNAM</span><div class="caja">
+          <p id="ej-titulo-1"></p>
+          <p>Autor: <span class="tachado" role="img" aria-label="nombre retirado"></span><br><span id="ej-meta-1"></span></p>
+        </div></div>
+        <svg class="flecha" viewBox="0 0 36 14" aria-hidden="true"><path d="M6 7h24M25 2l5 5-5 5"/></svg>
+        <div><span class="lbl">Mapa</span><div class="caja">
+          <p id="ej-titulo-2"></p>
+          <p id="ej-meta-2"></p>
+        </div></div>
       </div>
     </div>
-    <h3>Límites</h3>
-    <ul>
-      <li>La IA puede equivocarse. Sus textos son una orientación para conversar con tu asesor, no una evaluación.</li>
-      <li>De las tesis del catálogo solo se conoce el título: el Laboratorio no lee su texto completo.</li>
-      <li>Cada cuenta puede hacer 2 análisis al día y guardar 2.</li>
-    </ul>
   </section>
 
-  <section class="ac-sec" id="privacidad" aria-labelledby="h-priv">
-    <h2 id="h-priv">Privacidad</h2>
-    <ul>
-      <li>El mapa no pide cuenta. Tus preferencias, como el modo claro u oscuro, se guardan solo en tu navegador.</li>
-      <li>Para el Laboratorio y Mi espacio entras con Google, GitHub o tu correo. Se guardan tu correo, tus análisis y lo que guardas del mapa. Desde Mi espacio puedes borrar tu cuenta y todo lo asociado.</li>
-      <li>Lo que escribes en el Laboratorio se envía al proveedor de IA solo para generar tu análisis. En Groq está activada la retención cero: no guarda el texto.</li>
-      <li>De las tesis no se muestra el nombre de quien las escribió.</li>
-    </ul>
-    <p><a href="privacidad.html">Aviso de privacidad completo</a></p>
+  <section class="paso" aria-labelledby="p2">
+    <div class="paso-txt"><h3 id="p2"><span class="n">2</span>Asesores</h3>
+      <p>Una misma persona aparece escrita de varias formas. Las formas se unifican con reglas conservadoras: ante la duda, se mantienen separadas.</p></div>
+    <div class="fig">
+      <table class="tabla">
+        <thead><tr><th>En el catálogo</th><th>En el mapa</th></tr></thead>
+        <tbody>
+          <tr><td>Ma.</td><td>María</td></tr>
+          <tr><td>Perez</td><td>Pérez</td></tr>
+          <tr><td>Dra., Mtro., Ing.</td><td>se omiten</td></tr>
+          <tr><td>Apellidos, Nombre</td><td>Nombre Apellidos</td></tr>
+        </tbody>
+      </table>
+    </div>
   </section>
 
-  <section class="ac-sec" id="proyecto" aria-labelledby="h-proy">
-    <h2 id="h-proy">El proyecto</h2>
-    <p>NodOS es un proyecto independiente de <strong>Sebastián Díaz</strong>. No es un sitio oficial de la UNAM ni de la Dirección General de Bibliotecas, y no usa su escudo ni su identidad. Los datos de las tesis son del catálogo público TESIUNAM; cada una enlaza a su registro original.</p>
-    <p>El <a href="https://github.com/zvastian/nodo-unam" rel="noopener">código</a> es software libre con licencia MIT. La licencia no cubre los datos del catálogo ni el nombre y el logo de NodOS.</p>
-    <p><a href="#" data-pendiente="contacto">Contacto</a></p>
+  <section class="paso" aria-labelledby="p3">
+    <div class="paso-txt"><h3 id="p3"><span class="n">3</span>Vector</h3>
+      <p>El modelo de lenguaje multilingual-e5-large convierte cada título en un vector que resume su significado.</p></div>
+    <div class="fig"><div class="vector" id="vector" aria-hidden="true"></div><div class="vector-n">1,024 números por título</div></div>
   </section>
+
+  <section class="paso" aria-labelledby="p4">
+    <div class="paso-txt"><h3 id="p4"><span class="n">4</span>Similitud</h3>
+      <p>Dos títulos se parecen cuando sus vectores apuntan en direcciones cercanas. Para cada tesis se calculan las treinta más parecidas del catálogo.</p></div>
+    <div class="fig"><ol class="similares" id="similares"></ol></div>
+  </section>
+
+  <section class="paso" aria-labelledby="p5">
+    <div class="paso-txt"><h3 id="p5"><span class="n">5</span>Grupos</h3>
+      <p>HDBSCAN reúne los títulos que forman zonas densas. Los que no pertenecen a ninguna quedan sin grupo y se dibujan en gris.</p></div>
+    <div class="fig"><svg id="grupos" role="img" aria-label="Una muestra de las tesis del mapa: en color las que forman grupo, en gris las que no"></svg><div class="leyenda" id="grupos-ley"></div></div>
+  </section>
+
+  <section class="paso" aria-labelledby="p6">
+    <div class="paso-txt"><h3 id="p6"><span class="n">6</span>Jerarquía</h3>
+      <p>El método de Ward organiza los grupos en tres niveles: campo, tema y subtema.</p></div>
+    <div class="fig"><div id="arbol"></div></div>
+  </section>
+
+  <section class="paso" aria-labelledby="p7">
+    <div class="paso-txt"><h3 id="p7"><span class="n">7</span>Proyección</h3>
+      <p>PaCMAP lleva los vectores a dos dimensiones. Se conservan las vecindades; las posiciones no tienen unidad.</p></div>
+    <div class="fig"><svg id="mini" role="img" aria-label="Los campos del mapa en el plano, con el de la tesis de ejemplo marcado"></svg></div>
+  </section>
+
+  <section class="paso" aria-labelledby="p8">
+    <div class="paso-txt"><h3 id="p8"><span class="n">8</span>Nombres</h3>
+      <p>Cada tema y subtema toma su nombre de las palabras que más lo distinguen (c-TF-IDF). Los nombres de los campos se redactaron a mano.</p></div>
+    <div class="fig">
+      <div class="palabras">
+        <ol id="palabras"></ol>
+        <svg class="flecha" viewBox="0 0 36 14" aria-hidden="true"><path d="M6 7h24M25 2l5 5-5 5"/></svg>
+        <div class="nombre" id="nombre-sub"></div>
+      </div>
+    </div>
+  </section>
+
+  <h2 class="ac-parte" id="laboratorio">El Laboratorio</h2>
+
+  <section class="paso" aria-labelledby="p9">
+    <div class="paso-txt"><h3 id="p9"><span class="n">9</span>Propuesta</h3>
+      <p>El título, el planteamiento y las palabras clave de una tesis en curso se convierten en un vector con el mismo modelo.</p></div>
+    <div class="fig">
+      <div class="entrada"><p><b id="lab-titulo"></b></p><p id="lab-claves"></p></div>
+      <div class="vector" id="vector-lab" aria-hidden="true"></div>
+    </div>
+  </section>
+
+  <section class="paso" aria-labelledby="p10">
+    <div class="paso-txt"><h3 id="p10"><span class="n">10</span>Ubicación</h3>
+      <p>Las cincuenta tesis más parecidas votan el campo en que se inscribe la propuesta. Este cálculo no usa inteligencia artificial generativa.</p></div>
+    <div class="fig"><ul class="barras" id="votos"></ul></div>
+  </section>
+
+  <section class="paso" aria-labelledby="p11">
+    <div class="paso-txt"><h3 id="p11"><span class="n">11</span>Análisis</h3>
+      <p>Un modelo de lenguaje (gpt-oss-120b) redacta tres textos a partir de la propuesta y de las tesis parecidas. Son una orientación, no una evaluación.</p></div>
+    <div class="fig">
+      <ul class="ia">
+        <li><b>Lectura del planteamiento</b><span id="ia-nota"></span></li>
+        <li><b>Revisión de los objetivos</b>según la taxonomía de Bloom</li>
+        <li><b>Preguntas de investigación</b><q id="ia-pregunta"></q></li>
+      </ul>
+    </div>
+  </section>
+
+  <p class="ac-proyecto" id="proyecto">NodOS es un proyecto independiente de Sebastián Díaz; no es un sitio oficial de la Universidad Nacional Autónoma de México. El <a href="https://github.com/zvastian/nodo-unam" rel="noopener">código</a> se publica con licencia MIT, que no cubre los datos del catálogo ni el nombre y el logo de NodOS.</p>
 </main>
 <footer class="pie-pag">
   <div class="pie-in">
@@ -292,60 +338,117 @@
   function $(id) { return document.getElementById(id); }
   function esc(t) { return String(t == null ? '' : t).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function noche() { return document.body.classList.contains('noche'); }
+  function capital(t) { t = String(t || ''); return t.charAt(0).toUpperCase() + t.slice(1); }
+  function fmt(n) { return Number(n).toLocaleString('es-MX'); }
 
-  // la tesis del ejemplo, tal como la muestra el mapa (campo, tema y subtema de v4.26)
-  var EJ = {
-    id: 'TH_0462868', catalogo: 760141, macroId: 53,
-    titulo: 'Análisis de la expresión de catalasas de Debaryomyces hansenii en Saccharomyces cerevisiae',
-    meta: 'Maestría en Ciencias Biológicas, 2017',
-    niveles: [['Campo', 'Biología molecular'], ['Tema', 'Coli – Escherichia'], ['Subtema', 'Cerevisiae – Saccharomyces']]
-  };
-  var ICO_LEER = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 4.6C6.6 3.6 4.8 3.1 2.6 3.1v8.8c2.2 0 4 .5 5.4 1.5 1.4-1 3.2-1.5 5.4-1.5V3.1c-2.2 0-4 .5-5.4 1.5zM8 4.6v8.8"/></svg>';
-  $('ej-tit').textContent = EJ.titulo;
-  $('ej-tit').href = 'index.html?tesis=' + EJ.id;
-  $('ej-tit').title = 'Ver la tesis en el mapa';
-  $('ej-tit').insertAdjacentHTML('afterend', '&#8288;<a class="leer" href="https://tesiunam.dgb.unam.mx/cgi-bin/koha/opac-detail.pl?biblionumber=' + EJ.catalogo + '" target="_blank" rel="noopener" title="Leer en TESIUNAM" aria-label="Leer la tesis en TESIUNAM">' + ICO_LEER + '</a>');
-  $('ej-meta').textContent = EJ.meta;
-  $('ej-niveles').innerHTML = EJ.niveles.map(function (n) { return '<li><span>' + n[0] + '</span><b>' + esc(n[1]) + '</b></li>'; }).join('');
+  // la tesis de ejemplo (TH_0462868), tal como la muestra el mapa
+  var EJ = { titulo: 'Análisis de la expresión de catalasas de Debaryomyces hansenii en Saccharomyces cerevisiae', meta: 'Maestría en Ciencias Biológicas, 2017', asesora: 'Claudia Andrea Segal Kischinevzky' };
+  $('ej-titulo-1').textContent = EJ.titulo;
+  $('ej-meta-1').innerHTML = esc(EJ.meta) + '<br>Asesora: ' + esc(EJ.asesora);
+  $('ej-titulo-2').innerHTML = '<b>' + esc(EJ.titulo) + '</b>';
+  $('ej-meta-2').innerHTML = esc(EJ.meta) + '<br>Asesora: ' + esc(EJ.asesora);
 
-  // el vector: un esquema de barras (los 1,024 valores reales no se publican)
-  var v = '';
-  for (var i = 0; i < 64; i++) { var h = 18 + 78 * Math.abs(Math.sin(i * 12.9898 + 4.1) * Math.cos(i * 0.73)); v += '<i style="height:' + h.toFixed(0) + '%"></i>'; }
-  $('vector').innerHTML = v;
+  // el vector: un esquema de barras (los valores reales no se publican)
+  function vector(el, semilla, n) {
+    var v = '';
+    for (var i = 0; i < n; i++) { var h = 14 + 84 * Math.abs(Math.sin(i * 12.9898 + semilla) * Math.cos(i * 0.73 + semilla)); v += '<i style="height:' + h.toFixed(0) + '%"></i>'; }
+    el.innerHTML = v;
+  }
+  vector($('vector'), 4.1, 72);
+  vector($('vector-lab'), 9.7, 72);
 
-  // el mapa: los 130 campos en su posición, del tamaño de sus tesis y con los colores de buildPalette (index.html)
-  var campos = null;
-  function dibujar() {
-    if (!campos) return;
-    var W = 240, H = 130, pad = 10, mx = 0, my = 0;
-    var q = function (v, f) { v = v.slice().sort(function (a, b) { return a - b; }); return v[Math.round(f * (v.length - 1))]; };
-    var xs = campos.map(function (c) { return c.position.x; }), ys = campos.map(function (c) { return c.position.y; });
-    var x0 = q(xs, 0.03), x1 = q(xs, 0.97), y0 = q(ys, 0.03), y1 = q(ys, 0.97);
+  // la paleta de campos: la misma fórmula que buildPalette (index.html)
+  var campos = null, nombres = {}, D = null;
+  function paleta() {
+    var mx = 0, my = 0, col = {};
     campos.forEach(function (c) { mx += c.position.x; my += c.position.y; });
     mx /= campos.length; my /= campos.length;
-    var k = Math.min((W - 2 * pad) / (x1 - x0), (H - 2 * pad) / (y1 - y0)), ox = (W - k * (x1 - x0)) / 2, oy = (H - k * (y1 - y0)) / 2;
-    var X = function (x) { return ox + (x - x0) * k; }, Y = function (y) { return H - (oy + (y - y0) * k); };
-    var orden = campos.map(function (c, i) { return { i: i, a: Math.atan2(c.position.y - my, c.position.x - mx) }; }).sort(function (a, b) { return a.a - b.a; });
-    var L = noche() ? [0.66, 0.73, 0.80] : [0.50, 0.60, 0.69], C = noche() ? [0.14, 0.13, 0.115] : [0.13, 0.135, 0.12], color = [];
-    orden.forEach(function (o, r) { color[o.i] = 'oklch(' + L[r % 3] + ' ' + C[r % 3] + ' ' + ((o.a * 180 / Math.PI + 360 + 150 + [0, 14, -14][r % 3]) % 360).toFixed(1) + ')'; });
-    var s = '', aqui = null;
-    campos.forEach(function (c, i) {
-      var r = Math.max(2, Math.sqrt(c.size) * 0.075);
-      if (c.macroId === EJ.macroId) aqui = { x: X(c.position.x), y: Y(c.position.y), r: r };
-      else s += '<circle cx="' + X(c.position.x).toFixed(1) + '" cy="' + Y(c.position.y).toFixed(1) + '" r="' + r.toFixed(1) + '" fill="' + color[i] + '"/>';
-    });
-    if (aqui) s += '<circle class="aqui" cx="' + aqui.x.toFixed(1) + '" cy="' + aqui.y.toFixed(1) + '" r="' + Math.max(4, aqui.r).toFixed(1) + '"/>';
-    $('mini').setAttribute('viewBox', '0 0 ' + W + ' ' + H);
-    $('mini').innerHTML = s;
+    var L = noche() ? [0.66, 0.73, 0.80] : [0.50, 0.60, 0.69], C = noche() ? [0.14, 0.13, 0.115] : [0.13, 0.135, 0.12];
+    campos.map(function (c) { return { id: c.macroId, a: Math.atan2(c.position.y - my, c.position.x - mx) }; })
+      .sort(function (a, b) { return a.a - b.a; })
+      .forEach(function (o, r) { col[o.id] = 'oklch(' + L[r % 3] + ' ' + C[r % 3] + ' ' + ((o.a * 180 / Math.PI + 360 + 150 + [0, 14, -14][r % 3]) % 360).toFixed(1) + ')'; });
+    return col;
   }
-  fetch('data/atlas_macro_graph.v1.json').then(function (r) { return r.json(); }).then(function (g) {
-    campos = g.nodes.filter(function (n) { return n.level === 'macro'; });
-    dibujar();
-  }).catch(function () { $('mini').closest('.paso').querySelector('.fig').hidden = true; });
+
+  function pintar() {
+    if (!D || !campos) return;
+    var col = paleta(), m = D.ejemplo.macro, cm = col[m], nombreCampo = nombres[m] || '';
+
+    // 4: las más parecidas
+    $('similares').innerHTML = D.vecinas.map(function (v) {
+      var w = Math.max(4, (v.sim - 0.8) / 0.2 * 100);
+      return '<li><span class="t">' + esc(capital(v.titulo)) + '<small>' + v.anio + '</small></span><span class="s">' + v.sim.toFixed(2) + '<i style="width:' + w.toFixed(0) + '%"></i></span></li>';
+    }).join('');
+
+    // 5: puntos reales alrededor de la tesis de ejemplo
+    // una muestra de todo el mapa: en color, las tesis con campo; en gris tenue y debajo, las que no tienen grupo
+    var W = D.ejemplo.ancho, H = D.ejemplo.alto, s = '', sg = '', sin = 'var(--ink-3)';
+    var XP = function (p) { return p[0]; }, YP = function (p) { return H - p[1]; };
+    D.puntos.forEach(function (p) {
+      if (p[2] < 0) s += '<circle cx="' + XP(p) + '" cy="' + YP(p) + '" r="2.2" fill="' + sin + '" fill-opacity="0.22"/>';
+      else sg += '<circle cx="' + XP(p) + '" cy="' + YP(p) + '" r="2.6" fill="' + col[p[2]] + '" fill-opacity="0.85"/>';
+    });
+    s += sg + '<circle cx="' + XP(D.ejemplo.xy) + '" cy="' + YP(D.ejemplo.xy) + '" r="9" fill="var(--ink)" stroke="var(--paper)" stroke-width="2.5"/>';
+    $('grupos').setAttribute('viewBox', '0 0 ' + W + ' ' + H); $('grupos').style.width = '100%'; $('grupos').style.maxWidth = '560px';
+    $('grupos').innerHTML = s;
+    $('grupos-ley').innerHTML = '<span><i style="background:var(--ink)"></i>Tesis de ejemplo</span><span><i style="background:' + cm + '"></i>Con grupo, en el color de su campo</span><span><i style="background:' + sin + ';opacity:.5"></i>Sin grupo</span>';
+
+    // 6: el campo, sus temas y los subtemas del tema de la tesis
+    var maxT = D.temas[0].tesis, h = '<div class="arbol" style="--c:' + cm + '"><div class="campo"><i></i>' + esc(nombreCampo) + '</div><ol class="arbol">';
+    D.temas.forEach(function (t) {
+      var aqui = t.id === D.ejemplo.meso;
+      h += '<li' + (aqui ? ' class="aqui"' : '') + '><span>' + esc(t.nombre) + '</span><span class="barra" style="width:' + (t.tesis / maxT * 100).toFixed(1) + '%"></span><span class="num">' + fmt(t.tesis) + '</span></li>';
+      if (aqui) D.subtemas.forEach(function (u) {
+        h += '<li class="sub' + (u.id === D.ejemplo.micro ? ' aqui' : '') + '"><span>' + esc(u.nombre) + '</span><span class="barra" style="width:' + (u.tesis / maxT * 100).toFixed(1) + '%"></span><span class="num">' + fmt(u.tesis) + '</span></li>';
+      });
+    });
+    $('arbol').innerHTML = h + '</ol></div>';
+
+    // 7: los campos en el plano
+    var W2 = 560, H2 = 300, pad = 16, xs = campos.map(function (c) { return c.position.x; }), ys = campos.map(function (c) { return c.position.y; });
+    var q = function (v, f) { v = v.slice().sort(function (a, b) { return a - b; }); return v[Math.round(f * (v.length - 1))]; };
+    var x0 = q(xs, 0.01), x1 = q(xs, 0.99), y0 = q(ys, 0.01), y1 = q(ys, 0.99);
+    var k = Math.min((W2 - 2 * pad) / (x1 - x0), (H2 - 2 * pad) / (y1 - y0)), ox = (W2 - k * (x1 - x0)) / 2, oy = (H2 - k * (y1 - y0)) / 2;
+    var X = function (x) { return ox + (x - x0) * k; }, Y = function (y) { return H2 - (oy + (y - y0) * k); };
+    var s2 = '', aqui = null;
+    campos.forEach(function (c) {
+      var r = Math.max(2.5, Math.sqrt(c.size) * 0.13), cx = X(c.position.x), cy = Y(c.position.y);
+      if (c.macroId === m) aqui = { x: cx, y: cy, r: r };
+      else s2 += '<circle cx="' + cx.toFixed(1) + '" cy="' + cy.toFixed(1) + '" r="' + r.toFixed(1) + '" fill="' + col[c.macroId] + '" fill-opacity="0.55"/>';
+    });
+    if (aqui) {
+      var der = aqui.x < W2 * 0.6, tx = aqui.x + (der ? aqui.r + 10 : -aqui.r - 10);
+      s2 += '<circle cx="' + aqui.x.toFixed(1) + '" cy="' + aqui.y.toFixed(1) + '" r="' + aqui.r.toFixed(1) + '" fill="' + cm + '" stroke="var(--ink)" stroke-width="1.5"/>' +
+        '<text x="' + tx.toFixed(1) + '" y="' + (aqui.y + 4).toFixed(1) + '" text-anchor="' + (der ? 'start' : 'end') + '" font-size="12" font-weight="700" fill="var(--ink)">' + esc(nombreCampo.toUpperCase()) + '</text>';
+    }
+    $('mini').setAttribute('viewBox', '0 0 ' + W2 + ' ' + H2); $('mini').style.width = '100%'; $('mini').style.maxWidth = W2 + 'px';
+    $('mini').innerHTML = s2;
+  }
+
+  fetch('data/acerca.v1.json').then(function (r) { return r.json(); }).then(function (d) {
+    D = d;
+    // 8: palabras clave del subtema y su nombre
+    $('palabras').innerHTML = d.palabras.map(function (w) { return '<li>' + esc(w) + '</li>'; }).join('');
+    var sub = d.subtemas.filter(function (u) { return u.id === d.ejemplo.micro; })[0];
+    $('nombre-sub').textContent = sub ? sub.nombre : '';
+    // 9 a 11: el ejemplo del Laboratorio
+    var L = d.laboratorio;
+    $('lab-titulo').textContent = L.titulo;
+    $('lab-claves').textContent = 'Palabras clave: ' + L.palabras.join(', ');
+    $('votos').innerHTML = L.votos.map(function (v) { return '<li><span>' + esc(v.campo) + '</span><i style="width:' + (v.peso / L.votos[0].peso * 100).toFixed(1) + '%"></i><span class="num">' + Math.round(v.peso * 100) + '%</span></li>'; }).join('');
+    $('ia-nota').textContent = 'Enfoque ' + L.enfoque.toLowerCase();
+    $('ia-pregunta').textContent = L.pregunta;
+    pintar();
+  });
+  Promise.all([fetch('data/atlas_macro_graph.v1.json').then(function (r) { return r.json(); }), fetch('data/macro_nombres.v1.json').then(function (r) { return r.json(); })]).then(function (r) {
+    campos = r[0].nodes.filter(function (n) { return n.level === 'macro'; });
+    Object.keys(r[1].macros).forEach(function (k) { nombres[k] = r[1].macros[k].nombre; });
+    pintar();
+  });
 
   // Ajustes: la misma ventana que en el mapa, el Laboratorio y Mi espacio
   if (NodosAjustes.oscuro()) document.body.classList.add('noche');
-  NodosAjustes.montar({ boton: $('btn-ajustes'), modo: noche, alModo: function (oscuro) { document.body.classList.toggle('noche', oscuro); dibujar(); } });
+  NodosAjustes.montar({ boton: $('btn-ajustes'), modo: noche, alModo: function (oscuro) { document.body.classList.toggle('noche', oscuro); pintar(); } });
 })();
 </script>
 </body>

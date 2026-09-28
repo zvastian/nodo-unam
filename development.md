@@ -4050,3 +4050,41 @@ Pasos hacia el lanzamiento del atlas solo (v0), según «Orden propuesto», punt
 **Por qué:** lo pidió el usuario: «debe verse más como texto legal, no como UI atractiva», con el responsable abajo, antes de los cambios al aviso. Las páginas legales quedan fuera de la regla de «demasiado blanco» (PRODUCT.md, n.º 25).
 
 **Verificación:** Chrome headless, escritorio y móvil, con la consola limpia. `prueba_humo.mjs` pasa.
+
+## v4.30.0: Acerca de, el método paso a paso con ilustraciones de datos reales (2026-09-28)
+
+**Qué cambió:** `acerca.html` se rehízo como una sola secuencia de once pasos. Cada paso lleva un número, un nombre y una o dos frases; a su lado, una ilustración hecha con datos reales.
+- **El mapa:**
+  1. **Catálogo:** el registro de TESIUNAM de la tesis de ejemplo (`TH_0462868`), con el autor tachado, junto a lo que queda en el mapa.
+  2. **Asesores:** las reglas de unificación. Son patrones, sin nombres de personas.
+  3. **Vector:** un esquema de barras.
+  4. **Similitud:** sus 3 vecinas reales, con similitud 0.97, 0.94 y 0.94.
+  5. **Grupos:** una muestra al azar de 9,000 puntos de todo el mapa, en el color de su campo o en gris si no tienen grupo, con la tesis marcada.
+  6. **Jerarquía:** el campo Biología molecular, sus 10 temas y los 4 subtemas del tema de la tesis, con barras.
+  7. **Proyección:** los 130 campos en el plano.
+  8. **Nombres:** las 8 palabras c-TF-IDF del subtema y el nombre que resulta.
+- **El Laboratorio**, con el ejemplo real de «repartidores»:
+  9. **Propuesta:** su entrada.
+  10. **Ubicación:** el voto de las 50 más parecidas por campo.
+  11. **Análisis:** el enfoque y una pregunta generados por la IA.
+- Al final, una línea sobre el proyecto y la licencia.
+- Subtítulo: «Mapa semántico del catálogo de tesis de la Universidad Nacional Autónoma de México.» Sin la cifra de tesis y sin «atlas».
+- **Datos:** `pipeline/generar_acerca.py` escribe `data/acerca.v1.json` (116 KB). Los nombres de tema y subtema son los que muestra el mapa, verificados en él.
+
+**Por qué:** el usuario pidió que Acerca de fuera un paso a paso con ilustraciones de cómo se hizo la parte técnica, «algo así como el primer diagrama pero más expandido»:
+- formal, profesional y simple;
+- sin subtítulos innecesarios ni verborrea;
+- sin la cifra exacta de tesis («suena amateur»);
+- llamando al producto «mapa», nunca «atlas».
+
+La lista de pasos se acordó antes de codificar.
+
+**Hallazgo:**
+- La primera versión del paso 5 mostraba los puntos alrededor de la tesis, primero por campo y luego por subtema. En ambos casos parecía confeti: aun en el centro de un subtema, ~68 % de los puntos no tiene grupo.
+- HDBSCAN agrupa en 1,024 dimensiones y, a escala local, el plano mezcla el ruido con los grupos.
+- La estructura se ve a escala del mapa completo, y eso es lo que muestra ahora.
+
+**Verificación:**
+- Chrome headless, escritorio (1600×900) y móvil (390×844), en claro y oscuro.
+- Consola limpia.
+- `prueba_humo.mjs` pasa las 6 páginas.
