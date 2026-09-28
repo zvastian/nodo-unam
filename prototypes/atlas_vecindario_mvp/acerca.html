@@ -130,7 +130,17 @@
   .ia b { display: block; margin-bottom: 2px; }
   .ia q { color: var(--ink); quotes: '«' '»'; }
 
-  .ac-proyecto { margin: 44px 0 0; max-width: 72ch; font-size: 15px; line-height: 1.7; color: var(--ink-2); }
+  .ac-proyecto { display: grid; grid-template-columns: 92px minmax(0, 72ch); gap: 24px; align-items: center; margin: 44px 0 0; font-size: 15px; line-height: 1.7; color: var(--ink-2); }
+  .ac-proyecto p { margin: 0; }
+  .paso-txt strong, .ac-proyecto strong { font-weight: 700; color: var(--ink); }
+  .mit { display: block; width: 92px; color: var(--ink); }
+  .mit svg { display: block; width: 92px; height: 36px; }
+  .mit rect { fill: none; stroke: currentColor; stroke-width: 1.5; }
+  .mit text { fill: currentColor; font-family: inherit; }
+  .mit-a { font-size: 13px; font-weight: 800; letter-spacing: 0.08em; }
+  .mit-b { font-size: 8.5px; font-weight: 600; letter-spacing: 0.16em; }
+  .mit:hover { color: var(--link); }
+  @media (max-width: 640px) { .ac-proyecto { grid-template-columns: minmax(0, 1fr); gap: 14px; } }
   @media (max-width: 860px) {
     .paso { grid-template-columns: minmax(0, 1fr); gap: 18px; }
   }
@@ -193,7 +203,7 @@
 
   <section class="paso" aria-labelledby="p1">
     <div class="paso-txt"><h3 id="p1"><span class="n">1</span>Catálogo</h3>
-      <p>Se parte del catálogo público TESIUNAM: título, año, programa, nivel y asesores de cada tesis. El nombre de quien la escribió se retira.</p></div>
+      <p>Se parte del catálogo público TESIUNAM: título, año, programa, nivel y asesores de cada tesis. La mención de autor se retira del título con expresiones regulares, y una prueba automática verifica en cada publicación que no quede ninguna.</p></div>
     <div class="fig">
       <div class="registro">
         <div><span class="lbl">Catálogo TESIUNAM</span><div class="caja">
@@ -211,7 +221,7 @@
 
   <section class="paso" aria-labelledby="p2">
     <div class="paso-txt"><h3 id="p2"><span class="n">2</span>Asesores</h3>
-      <p>Una misma persona aparece escrita de varias formas. Las formas se unifican con reglas conservadoras: ante la duda, se mantienen separadas.</p></div>
+      <p>Los nombres se normalizan (abreviaturas, acentos, grados y orden) y las variantes se unifican con reglas conservadoras: ante la duda, se mantienen separadas.</p></div>
     <div class="fig">
       <table class="tabla">
         <thead><tr><th>En el catálogo</th><th>En el mapa</th></tr></thead>
@@ -227,37 +237,37 @@
 
   <section class="paso" aria-labelledby="p3">
     <div class="paso-txt"><h3 id="p3"><span class="n">3</span>Vector</h3>
-      <p>El modelo de lenguaje multilingual-e5-large convierte cada título en un vector que resume su significado.</p></div>
+      <p>Cada título se convierte en un <strong>embedding</strong>: un vector de 1,024 dimensiones calculado con multilingual-e5-large y normalizado, de modo que títulos con significado parecido quedan cerca.</p></div>
     <div class="fig"><div class="vector" id="vector" aria-hidden="true"></div><div class="vector-n">1,024 números por título</div></div>
   </section>
 
   <section class="paso" aria-labelledby="p4">
     <div class="paso-txt"><h3 id="p4"><span class="n">4</span>Similitud</h3>
-      <p>Dos títulos se parecen cuando sus vectores apuntan en direcciones cercanas. Para cada tesis se calculan las treinta más parecidas del catálogo.</p></div>
+      <p>La similitud es el coseno entre dos <strong>embeddings</strong>. Las treinta vecinas de cada tesis se buscan en un índice FAISS IVF-SQ8 y se reordenan con el producto interno exacto.</p></div>
     <div class="fig"><ol class="similares" id="similares"></ol></div>
   </section>
 
   <section class="paso" aria-labelledby="p5">
     <div class="paso-txt"><h3 id="p5"><span class="n">5</span>Grupos</h3>
-      <p>HDBSCAN reúne los títulos que forman zonas densas. Los que no pertenecen a ninguna quedan sin grupo y se dibujan en gris.</p></div>
+      <p>Los <strong>embeddings</strong> se reducen a cinco dimensiones con UMAP. <strong>HDBSCAN</strong> estima la densidad alrededor de cada punto, construye un árbol de agrupamientos y conserva las hojas estables de al menos 150 tesis; los puntos que no alcanzan esa densidad quedan como ruido, en gris.</p></div>
     <div class="fig"><svg id="grupos" role="img" aria-label="Una muestra de las tesis del mapa: en color las que forman grupo, en gris las que no"></svg><div class="leyenda" id="grupos-ley"></div></div>
   </section>
 
   <section class="paso" aria-labelledby="p6">
     <div class="paso-txt"><h3 id="p6"><span class="n">6</span>Jerarquía</h3>
-      <p>El método de Ward organiza los grupos en tres niveles: campo, tema y subtema.</p></div>
+      <p>Sobre los centroides de los subtemas, el enlace de <strong>Ward</strong> une en cada paso los dos grupos que menos aumentan la varianza interna. El árbol se corta en tres niveles: campo, tema y subtema.</p></div>
     <div class="fig"><div id="arbol"></div></div>
   </section>
 
   <section class="paso" aria-labelledby="p7">
     <div class="paso-txt"><h3 id="p7"><span class="n">7</span>Proyección</h3>
-      <p>PaCMAP lleva los vectores a dos dimensiones. Se conservan las vecindades; las posiciones no tienen unidad.</p></div>
+      <p><strong>PaCMAP</strong> proyecta los <strong>embeddings</strong> al plano preservando la estructura local y global. Importan las vecindades; las coordenadas no tienen unidad.</p></div>
     <div class="fig"><svg id="mini" role="img" aria-label="Los campos del mapa en el plano, con el de la tesis de ejemplo marcado"></svg></div>
   </section>
 
   <section class="paso" aria-labelledby="p8">
     <div class="paso-txt"><h3 id="p8"><span class="n">8</span>Nombres</h3>
-      <p>Cada tema y subtema toma su nombre de las palabras que más lo distinguen (c-TF-IDF). Los nombres de los campos se redactaron a mano.</p></div>
+      <p>Cada tema y subtema toma su nombre de sus términos con mayor <strong>c-TF-IDF</strong>: frecuentes dentro del grupo y raros en los demás. Los nombres de los campos se redactaron a mano.</p></div>
     <div class="fig">
       <div class="palabras">
         <ol id="palabras"></ol>
@@ -271,7 +281,7 @@
 
   <section class="paso" aria-labelledby="p9">
     <div class="paso-txt"><h3 id="p9"><span class="n">9</span>Propuesta</h3>
-      <p>El título, el planteamiento y las palabras clave de una tesis en curso se convierten en un vector con el mismo modelo.</p></div>
+      <p>El título, el planteamiento y las palabras clave de una tesis en curso se convierten en un <strong>embedding</strong> con el mismo modelo, comparable con todo el catálogo.</p></div>
     <div class="fig">
       <div class="entrada"><p><b id="lab-titulo"></b></p><p id="lab-claves"></p></div>
       <div class="vector" id="vector-lab" aria-hidden="true"></div>
@@ -280,13 +290,13 @@
 
   <section class="paso" aria-labelledby="p10">
     <div class="paso-txt"><h3 id="p10"><span class="n">10</span>Ubicación</h3>
-      <p>Las cincuenta tesis más parecidas votan el campo en que se inscribe la propuesta. Este cálculo no usa inteligencia artificial generativa.</p></div>
+      <p>Las cincuenta tesis más parecidas votan el campo de la propuesta, con un peso igual al cuadrado de su similitud. Este cálculo no usa inteligencia artificial generativa.</p></div>
     <div class="fig"><ul class="barras" id="votos"></ul></div>
   </section>
 
   <section class="paso" aria-labelledby="p11">
     <div class="paso-txt"><h3 id="p11"><span class="n">11</span>Análisis</h3>
-      <p>Un modelo de lenguaje (gpt-oss-120b) redacta tres textos a partir de la propuesta y de las tesis parecidas. Son una orientación, no una evaluación.</p></div>
+      <p>Un modelo de lenguaje (gpt-oss-120b) redacta tres textos a partir de la propuesta y de las tesis parecidas. Cada salida se valida contra un esquema JSON. Son una orientación, no una evaluación.</p></div>
     <div class="fig">
       <ul class="ia">
         <li><b>Lectura del planteamiento</b><span id="ia-nota"></span></li>
@@ -296,7 +306,10 @@
     </div>
   </section>
 
-  <p class="ac-proyecto" id="proyecto">NodOS es un proyecto independiente de Sebastián Díaz; no es un sitio oficial de la Universidad Nacional Autónoma de México. El <a href="https://github.com/zvastian/nodo-unam" rel="noopener">código</a> se publica con licencia MIT, que no cubre los datos del catálogo ni el nombre y el logo de NodOS.</p>
+  <div class="ac-proyecto" id="proyecto">
+    <a class="mit" href="https://opensource.org/license/mit" rel="noopener" aria-label="Licencia MIT"><svg viewBox="0 0 92 36" aria-hidden="true"><rect x="0.75" y="0.75" width="90.5" height="34.5"/><text x="46" y="16" text-anchor="middle" class="mit-a">MIT</text><text x="46" y="28" text-anchor="middle" class="mit-b">LICENSE</text></svg></a>
+    <p>NodOS es un proyecto independiente de Sebastián Díaz; no es un sitio oficial de la Universidad Nacional Autónoma de México. El <a href="https://github.com/zvastian/nodo-unam" rel="noopener">código</a> se publica con licencia MIT, lo que hace de NodOS un <strong>proyecto open source</strong>. La licencia no cubre los datos del catálogo ni el nombre y el logo de NodOS.</p>
+  </div>
 </main>
 <footer class="pie-pag">
   <div class="pie-in">

@@ -4088,3 +4088,48 @@ La lista de pasos se acordó antes de codificar.
 - Chrome headless, escritorio (1600×900) y móvil (390×844), en claro y oscuro.
 - Consola limpia.
 - `prueba_humo.mjs` pasa las 6 páginas.
+
+## v4.30.0: Acerca de, el método paso a paso con ilustraciones de datos reales (2026-09-28)
+
+**Qué cambió:** `acerca.html` se rehízo como una sola secuencia de once pasos. Cada paso lleva un número, un nombre y un texto técnico breve; a su lado, una ilustración hecha con datos reales.
+- **El mapa:**
+  1. **Catálogo:** el registro de TESIUNAM de la tesis de ejemplo (`TH_0462868`), con el autor tachado, junto a lo que queda en el mapa.
+  2. **Asesores:** las reglas de normalización. Son patrones, sin nombres de personas.
+  3. **Embedding:** un esquema de barras; e5-large, 1,024 dimensiones, normalizado.
+  4. **Similitud:** coseno, con índice FAISS IVF-SQ8 y reordenamiento exacto; sus 3 vecinas reales (0.97, 0.94 y 0.94).
+  5. **Grupos:** UMAP a 5 dimensiones y HDBSCAN, hojas estables de al menos 150 tesis. La ilustración es una muestra al azar de 9,000 puntos de todo el mapa, en el color de su campo o en gris si son ruido.
+  6. **Jerarquía:** enlace de Ward sobre los centroides de los subtemas. La ilustración muestra el campo Biología molecular, sus 10 temas y los 4 subtemas del tema de la tesis.
+  7. **Proyección:** PaCMAP; los 130 campos en el plano.
+  8. **Nombres:** c-TF-IDF; las 8 palabras del subtema y el nombre que resulta.
+- **El Laboratorio**, con el ejemplo real de «repartidores»:
+  9. **Propuesta:** su entrada, convertida en embedding.
+  10. **Ubicación:** el voto de las 50 más parecidas, ponderado por sim².
+  11. **Análisis:** gpt-oss-120b con salida validada contra un esquema JSON; se muestran el enfoque y una pregunta reales.
+- «Embedding», los métodos (HDBSCAN, Ward, PaCMAP, c-TF-IDF) y «proyecto open source» van en negritas.
+- Al final, una insignia «MIT License» dibujada en SVG (la licencia MIT no tiene logo oficial), que enlaza al texto de la licencia en opensource.org, y una línea sobre el proyecto: «lo que hace de NodOS un proyecto open source».
+- Subtítulo: «Mapa semántico del catálogo de tesis de la Universidad Nacional Autónoma de México.» Sin la cifra de tesis y sin «atlas».
+- **Datos:** `pipeline/generar_acerca.py` escribe `data/acerca.v1.json` (116 KB). Los nombres de tema y subtema son los que muestra el mapa, verificados en él.
+- Cada afirmación técnica se verificó contra el código:
+  - `clustering_hdbscan.py`: UMAP 5d, `min_cluster_size` 150, `min_samples` 5, selección `leaf`;
+  - `construir_jerarquia_macro_meso.py`: Ward sobre los centroides de 1,024 dimensiones;
+  - `vecinas.v1.json`: IVF4096-SQ8 con reordenamiento;
+  - `contexto.py`: K_VOTO 50, peso sim².
+
+**Por qué:** el usuario pidió que Acerca de fuera un paso a paso con ilustraciones de cómo se hizo la parte técnica:
+- formal, profesional y simple, sin subtítulos innecesarios ni verborrea;
+- con explicaciones técnicas dignas de un ingeniero de datos;
+- sin la cifra exacta de tesis («suena amateur»);
+- llamando al producto «mapa», nunca «atlas»;
+- con el logo de la licencia MIT.
+
+La lista de pasos se acordó antes de codificar.
+
+**Hallazgo:**
+- La primera versión del paso 5 mostraba los puntos alrededor de la tesis, primero por campo y luego por subtema. En ambos casos parecía confeti: aun en el centro de un subtema, ~68 % de los puntos no tiene grupo.
+- HDBSCAN agrupa en otro espacio y, a escala local, el plano mezcla el ruido con los grupos.
+- La estructura se ve a escala del mapa completo, y eso es lo que muestra ahora.
+
+**Verificación:**
+- Chrome headless, escritorio (1600×900) y móvil (390×844), en claro y oscuro.
+- Consola limpia.
+- `prueba_humo.mjs` pasa las 6 páginas.
