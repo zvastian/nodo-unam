@@ -4256,3 +4256,20 @@ El nombre de cada uno queda en `aria-label` y `title`. Entrar y Mi espacio los p
 - Consola limpia.
 
 **Riesgo antes de publicar el dataset:** el esquema de ADR-0011 incluye `titulo_original`, «la cadena bibliográfica cruda». En el catálogo, esa cadena a veces trae la mención de autor que el mapa retira del título. Hay que pasarle `limpiar_autores_atlas.py` (o su criterio) antes de subirlo a Kaggle, o excluir la columna.
+
+## v4.33.3: dominio `nodosmap.com` y correo de contacto (2026-09-28)
+
+**Qué cambió:**
+- **Dominio:** se registró `nodosmap.com` en Cloudflare Registrar el 28-sep-2026 (vence el 28-sep-2027). Los contactos del titular llevan el correo personal, no el de la UNAM, y el correo personal es Super Administrator de la cuenta de Cloudflare.
+- **Contacto:** los enlaces que apuntaban a `#` (`data-pendiente="contacto"`) llevan ahora a `mailto:contacto@nodosmap.com`: el pie de Acerca de, Mi espacio, Laboratorio y el aviso de privacidad. El aviso escribe la dirección completa en sus dos menciones.
+
+**Por qué:** faltaba el correo del proyecto para lanzar el mapa. `contacto@` se reenvía con Cloudflare Email Routing a un Gmail, sin buzón propio.
+
+**Pendiente:**
+- activar Email Routing (MX y SPF) y el Auto-renew del dominio;
+- publicar `dist/` en Pages y conectar el dominio;
+- poner el Worker en `nodosmap.com/api/*`;
+- actualizar las URL de Supabase y de OAuth (Google y GitHub);
+- cerrar RFC-0002 como ADR.
+
+**Verificación:** `grep` sin ningún `data-pendiente="contacto"` restante.
