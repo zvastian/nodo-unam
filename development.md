@@ -4225,3 +4225,15 @@ El nombre de cada uno queda en `aria-label` y `title`. Entrar y Mi espacio los p
 - La nota abre y cierra.
 - En el taller de «freud», el filtro Humanidades y Artes deja 36 de 125 tesis.
 - Consola limpia.
+
+## v4.33.1: el dataset abierto, en Acerca de y en la nota de la cifra (2026-09-28)
+
+**Qué cambió:**
+- **Acerca de:** antes del párrafo de la licencia hay uno nuevo: «El catálogo depurado con el que se construyó el mapa se publica como dataset abierto en Kaggle: una fila por tesis, con título, año, programa, plantel, nivel, área administrativa y asesores, sin el nombre de quien la escribió.» (ADR-0011).
+- **Mapa:** la nota del «?» junto a la cifra de tesis termina con la misma mención y el mismo enlace.
+- **El enlace a Kaggle queda pendiente** en los dos lugares (`href="#"`, `data-pendiente="kaggle"`) hasta publicar el dataset. Ya abre en otra pestaña.
+- No se da la cifra de filas, que es 609,156 en el dataset frente a 609,154 en el mapa, ni la licencia del dataset, que aún no está decidida.
+
+**Por qué:** lo pidió el usuario: faltaba la información del dataset público.
+
+**Verificación:** Chrome headless, escritorio y móvil. Consola limpia.

@@ -130,8 +130,9 @@
   .ia b { display: block; margin-bottom: 2px; }
   .ia q { color: var(--ink); quotes: '«' '»'; }
 
-  .ac-proyecto { display: grid; grid-template-columns: 80px minmax(0, 72ch); gap: 24px; align-items: center; margin: 44px 0 0; font-size: 15px; line-height: 1.7; color: var(--ink-2); }
+  .ac-proyecto { display: grid; grid-template-columns: 80px minmax(0, 72ch); gap: 24px; align-items: center; margin: 24px 0 0; font-size: 15px; line-height: 1.7; color: var(--ink-2); }
   .ac-proyecto p { margin: 0; }
+  .ac-dataset { margin: 44px 0 0; max-width: 72ch; font-size: 15px; line-height: 1.7; color: var(--ink-2); }
   .paso-txt strong, .ac-proyecto strong { font-weight: 700; color: var(--ink); }
   .mit { display: block; width: 80px; }
   .mit img { display: block; width: 80px; height: auto; }
@@ -313,6 +314,8 @@
     </div>
   </section>
 
+  <!-- PENDIENTE: el enlace al dataset en Kaggle, cuando se publique -->
+  <p class="ac-dataset" id="dataset">El catálogo depurado con el que se construyó el mapa se publica como <a href="#" data-pendiente="kaggle" target="_blank" rel="noopener">dataset abierto en Kaggle</a>: una fila por tesis, con título, año, programa, plantel, nivel, área administrativa y asesores, sin el nombre de quien la escribió.</p>
   <div class="ac-proyecto" id="proyecto">
     <a class="mit" href="https://opensource.org/license/mit" target="_blank" rel="noopener"><img src="mit-license.png" width="641" height="477" alt="MIT License"></a>
     <p>NodOS es un proyecto independiente; no es un sitio oficial de la Universidad Nacional Autónoma de México. El <a href="https://github.com/zvastian/nodo-unam" target="_blank" rel="noopener">código</a> se publica con licencia MIT, lo que hace de NodOS un proyecto <strong>open source</strong>. La licencia no cubre los datos del catálogo ni el nombre y el logo de NodOS.</p>
