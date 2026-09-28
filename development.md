@@ -4178,3 +4178,16 @@ El nombre de cada uno queda en `aria-label` y `title`. Entrar y Mi espacio los p
 **Por qué:** lo pidió el usuario.
 
 **Verificación:** Chrome headless, el mapa y el Laboratorio. Consola limpia.
+
+## v4.31.2: los tres iconos de la barra, del mismo tamaño y alineados (2026-09-28)
+
+**Qué cambió:**
+- **Tamaños:** antes la tuerca ocupaba 22 de las 24 unidades del lienzo, y la casa y la persona unas 17. Ahora los tres ocupan unas 19 y están centrados en (12, 12).
+  - Se redibujaron la casa y la persona.
+  - La tuerca se reduce al 88 % sobre su centro, con el trazo compensado (1.82 = 1.6 / 0.88) para que se vea igual de grueso.
+  - Los iconos pasan de 20 a 22 px.
+- **Alineación:** la casa y la persona tenían un borde inferior de 2 px y la tuerca no, así que quedaban desfasadas. Ahora los tres comparten el mismo contenedor: 32 px de alto, centrado, con bordes transparentes de 2 px arriba y abajo.
+
+**Por qué:** lo pidió el usuario: la casa se veía chica y desalineada.
+
+**Verificación:** Chrome headless, el mapa y Acerca de. Consola limpia.
