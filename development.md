@@ -4144,3 +4144,14 @@ La lista de pasos se acordó antes de codificar.
 **Por qué:** lo pidió el usuario.
 
 **Verificación:** Chrome headless, escritorio. Consola limpia. `prueba_humo.mjs` pasa.
+
+## v4.30.2: el autor al final de Acerca de (2026-09-28)
+
+**Qué cambió:**
+- **Párrafo del proyecto:** ya no lleva el nombre del autor, y solo «open source» va en negritas.
+- **Al final de la página:** **Sebastián Díaz**, «Founder» debajo, y los iconos de GitHub, LinkedIn, correo e Instagram, en tinta y adaptados al modo oscuro. Los enlaces quedan en `#` (`data-pendiente`) hasta que el usuario los pase.
+- **Nota:** «Founder» va en inglés porque así lo pidió el usuario; el resto de la interfaz sigue en español.
+
+**Por qué:** lo pidió el usuario: el nombre en el párrafo «se ve de más».
+
+**Verificación:** Chrome headless, claro y oscuro, con la consola limpia. `prueba_humo.mjs` pasa.
