@@ -271,6 +271,7 @@
   .co-tesis .y { color: var(--ink-3); }
   .co-tesis a { color: var(--ink); text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 3px; }
   .co-tesis a:hover { text-decoration-color: var(--ink); }
+  .co-tesis.sola { margin-left: 0; }
   .cs-list button:disabled:hover .n { color: inherit; text-decoration: none; }
   .cs-list .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--c); margin-left: 1px; }
   #panel .panel-body { padding: 16px 22px 24px; overflow-y: auto; flex: 1; }
@@ -785,7 +786,7 @@
 
   <footer>
     <span>Proyecto independiente, no oficial. Datos del catálogo público TESIUNAM.</span>
-    <span><button type="button" id="foot-metodo">Cómo se hizo el mapa</button><span class="foot-sep"></span>versión <span id="app-version">4.24.3</span></span>
+    <span><button type="button" id="foot-metodo">Cómo se hizo el mapa</button><span class="foot-sep"></span>versión <span id="app-version">4.25.0</span></span>
   </footer>
 </div>
 
@@ -2259,12 +2260,12 @@
   var taller = { node: null, rows: [], idx: [], m: [], tab: 'tesis', flat: [], shown: 0, q: '', sort: 'az', grp: '', fnv: 0, fpr: '', fpl: '', fas: '', masPr: false, masPl: false, masAs: false };
   function openTaller(n, rows) {
     cerrarFichaTesis();
-    Object.assign(taller, { node: n, rows: rows, q: '', sort: n.similares ? 'sim' : 'az', grp: '', fnv: 0, fpr: '', fpl: '', fas: '', masPr: false, masPl: false, masAs: false });
+    Object.assign(taller, { node: n, rows: rows, q: '', sort: n.similares ? 'sim' : n.orden || 'az', grp: '', fnv: 0, fpr: '', fpl: '', fas: '', masPr: false, masPl: false, masAs: false });
     var lvl = n.level || 'macro';
     $('taller').style.setProperty('--c', colorNodo(n));
-    $('tl-crumb').textContent = n.similares ? 'Las ' + rows.length + ' tesis más similares a' : '';
+    $('tl-crumb').textContent = n.crumb || '';
     $('tl-title').textContent = n.name;
-    $('tl-kw').innerHTML = n.similares ? '' : rangoHtml(n, false);
+    $('tl-kw').innerHTML = n.lista ? '' : rangoHtml(n, false);
     var yr = yearRange(rows);
     $('tl-kpis').textContent = ''; // v4.10: el conteo ya va en la pestaña y el rango en el Perfil
     var nAs = {}; rows.forEach(function (r) { r.as.forEach(function (a) { nAs[a] = 1; }); });
@@ -2944,6 +2945,8 @@
   $('ms-tags').addEventListener('click', function (ev) {
     var co = ev.target.closest && ev.target.closest('[data-co]');
     if (co && grupoCo) { grupoCo(+co.getAttribute('data-co')); return; }
+    var tg = ev.target.closest && ev.target.closest('[data-taller]');
+    if (tg && tallerGrupo) { tallerGrupo(tg); return; }
     var b = ev.target.closest && ev.target.closest('[data-aid]');
     if (b) { verAsesor(+b.getAttribute('data-aid')); return; }
     var mb = ev.target.closest && ev.target.closest('[data-macro]');
@@ -3193,7 +3196,7 @@
     encuadrar(idxs);
   }
   // v4.20: codirector abierto en la ficha del asesor (su lista de tesis en comun, en la misma ficha)
-  var grupoCo = null;
+  var grupoCo = null, tallerGrupo = null;
   function fichaGrupo(idxs, titulo, opts) {
     ultimaFicha = function () { fichaGrupo(idxs, titulo, opts); };
     var abierto = null, pedido = {};
@@ -3237,20 +3240,35 @@
           return '<button type="button" data-co="' + k + '" aria-expanded="' + on + '" title="' + (on ? 'Cerrar la lista' : 'Ver las tesis que codirigieron') + '"><span class="ring"></span><span class="n">' + escapeHtml(ases.nombres[k]) + '</span><b>' + fmtNum(co[k]) + '</b></button>' +
             (on ? coTesisHtml(opts.aid, +k) : '');
         }).join('') + '</div></div>';
+        // v4.25: sus tesis, de la mas reciente a la mas antigua, y el paso al taller con todas
+        var rec = idxs.slice().sort(function (x, y) { return (ases.anio[y] || 0) - (ases.anio[x] || 0); }).slice(0, 10);
+        h += '<div class="cs"><h3>' + (idxs.length > 10 ? 'Tesis recientes' : 'Tesis') + '</h3>' + listaTesisHtml(rec, 'rec', 'co-tesis sola') +
+          '<button type="button" class="cs-link" data-taller>Ver ' + (idxs.length === 1 ? 'la tesis' : 'las ' + fmtNum(idxs.length) + ' tesis') + ' y su análisis' + ICO_R + '</button></div>';
       }
       $('ms-tags').innerHTML = h;
     };
-    // tesis de los dos, de la mas reciente a la mas antigua; los titulos que falten se piden y se repinta
-    function coTesisHtml(a, b) {
-      var l = idxs.filter(function (i) { var t = false; for (var j = ases.off[i]; j < ases.off[i + 1]; j++) if (ases.ids[j] === b) t = true; return t; })
-        .sort(function (x, y) { return (ases.anio[y] || 0) - (ases.anio[x] || 0); });
+    // lista compacta: año, título al catálogo y marcador; los títulos que falten se piden una vez y se repinta
+    function listaTesisHtml(l, clave, clase) {
       var faltan = l.filter(function (i) { return pointInfo(i) === undefined; });
-      // una sola peticion por codirector: si un archivo falla, no se reintenta en cada repintado
-      if (!pedido[b]) { pedido[b] = true; Promise.all(faltan.map(titleTileFor).concat(catalogo ? [] : [loadCatalogo()])).then(pinta); }
-      return '<ol class="co-tesis">' + l.map(function (i) {
+      if (!pedido[clave]) { pedido[clave] = true; Promise.all(faltan.map(titleTileFor).concat(catalogo ? [] : [loadCatalogo()])).then(pinta); }
+      return '<ol class="' + clase + '">' + l.map(function (i) {
         var info = pointInfo(i), t = info ? info.t : (info === null ? 'Título sin registro' : 'Cargando título…');
         return '<li><span class="y">' + (ases.anio[i] || '') + '</span><a href="' + ligaCatalogo(i) + '" target="_blank" rel="noopener" title="Ver el registro en el catálogo TESIUNAM">' + escapeHtml(t) + '</a>' + btnGuardar(i) + '</li>';
       }).join('') + '</ol>';
+    }
+    // el taller del asesor: todas sus tesis con Perfil y Asesores, como un campo o un tema
+    tallerGrupo = function (b) {
+      b.disabled = true; b.textContent = 'Cargando tesis…';
+      Promise.all(idxs.map(titleTileFor).concat([loadTesisMeta(), loadAsesores().catch(function () {})])).then(function () {
+        var rows = idxs.map(filaTesis);
+        openTaller({ id: 'as' + opts.aid, lista: true, crumb: 'Tesis dirigidas por', orden: 'new', name: titulo, color: c, rows: rows }, rows);
+      }).catch(function (e) { dlog('taller asesor ' + e.message); }).then(function () { if (b.isConnected) pinta(); });
+    };
+    // tesis de los dos, de la mas reciente a la mas antigua
+    function coTesisHtml(a, b) {
+      var l = idxs.filter(function (i) { var t = false; for (var j = ases.off[i]; j < ases.off[i + 1]; j++) if (ases.ids[j] === b) t = true; return t; })
+        .sort(function (x, y) { return (ases.anio[y] || 0) - (ases.anio[x] || 0); });
+      return listaTesisHtml(l, 'co' + b, 'co-tesis'); // una sola peticion por codirector: si un archivo falla, no se reintenta en cada repintado
     }
     grupoCo = function (k) { abierto = abierto === k ? null : k; pinta(); };
     pinta();
@@ -3880,7 +3898,7 @@
       byIdx[idx] = filaTesis(idx);
       vs.forEach(function (v) { idxs.push(v.i); byIdx[v.i] = filaTesis(v.i); rows.push(byIdx[v.i]); edges.push([idx, v.i, v.s]); });
       var info = byIdx[idx];
-      var n = { id: 'sim' + idx, similares: true, focal: idx, name: info.t, color: colorTesis(idx), rows: rows };
+      var n = { id: 'sim' + idx, similares: true, lista: true, crumb: 'Las ' + vs.length + ' tesis más similares a', focal: idx, name: info.t, color: colorTesis(idx), rows: rows };
       // radio segun la similitud, relativa a la lista (la de e5 esta comprimida: 0.85-0.95)
       var smax = vs.length ? vs[0].s : 1, smin = vs.length ? vs[vs.length - 1].s : 0, rango = Math.max(0.01, smax - smin);
       var dists = vs.map(function (v) { return Math.hypot(X0[v.i] - cx, Y0[v.i] - cy); }).sort(function (a, b) { return a - b; });

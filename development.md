@@ -3872,3 +3872,23 @@ El Laboratorio pasó a usarlo: se quitaron su sesión, su ventana y sus estilos 
 **Verificación:** del clic al final pasan 2.3 s, antes 4.1 s. Consola limpia.
 
 **Pendiente (propuesto, no hecho):** en el sitio publicado, mostrar 30 títulos descarga unos 15 archivos de títulos (~1.3 MB) además del bloque de vecinas. Guardar los títulos junto con las vecinas lo haría un solo archivo, a cambio de unos 100 a 150 MB más en el repositorio.
+
+## v4.25.0: la ficha del asesor lista sus tesis y abre su análisis (2026-09-27)
+
+**Qué cambió:**
+- **Al final de la ficha del asesor, «Tesis recientes»:** sus 10 tesis más recientes (o todas, si son 10 o menos). Usa la lista de «Codirigió con»: año, título al catálogo TESIUNAM y marcador para guardar. El código de esa lista se unificó en `listaTesisHtml`.
+- **«Ver las N tesis y su análisis»** abre el taller con todas sus tesis, igual que un campo o un tema:
+  - la pestaña Tesis, con facetas y ordenada de la más reciente a la más antigua;
+  - la pestaña Perfil;
+  - la pestaña Asesores, con sus codirectores y la red.
+  - El encabezado dice «Tesis dirigidas por» y el nombre.
+- **El taller acepta listas que no son del mapa** (`lista`, `crumb`, `orden` en el nodo). Las similares usan lo mismo.
+
+**Por qué:** el usuario pidió que la ficha de un asesor desplegara sus tesis y permitiera analizarlas.
+
+**Verificación:** Chrome headless, 1600×900, con Araceli Lámbarri Rodríguez (39 tesis).
+- La ficha muestra 10 filas, de 2017 hacia atrás, y el enlace «Ver las 39 tesis y su análisis».
+- El taller carga 39 tesis, cada una con marcador, con sus pestañas Perfil y Asesores.
+- Las similares siguen igual («Las 30 tesis más similares a», «Guardar las 30»).
+- Consola limpia.
+- No se revisó en móvil.
