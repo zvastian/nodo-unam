@@ -458,7 +458,7 @@
      asesoria), reglas finas entre secciones. Tres pestanas: Tesis (lista de fichas compactas con
      facetas de catalogo), Perfil (las graficas de la ficha del cluster, en grande) y Asesores
      (transbordos ordenados + red de codireccion). Se retiro la vista analitica. */
-  #taller, #metodo { position: fixed; inset: 0; z-index: 36; background: var(--paper); display: flex; flex-direction: column; }
+  #taller { position: fixed; inset: 0; z-index: 36; background: var(--paper); display: flex; flex-direction: column; }
   #taller .tl-head { position: relative; padding: 18px 32px 0; }
   #taller .tl-top > .loc { flex-shrink: 0; margin-right: 4px; }
   #taller .tl-top > div { flex: 1; min-width: 0; }
@@ -592,23 +592,10 @@
   #tl-net svg .nd:hover { stroke: var(--link); }
   #tl-net svg text { font-family: "Libre Franklin", sans-serif; font-size: 12.5px; fill: var(--ink); paint-order: stroke; stroke: var(--paper); stroke-width: 3.5px; stroke-linejoin: round; pointer-events: none; }
 
-  /* ---------- pagina Metodo [18]: aqui vive la informacion tecnica ---------- */
-  #metodo { overflow-y: auto; }
-  #metodo article { position: relative; max-width: 720px; margin: 0 auto; padding: 40px 24px 64px; }
-  #metodo h2 { font-size: 30px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.15; margin: 0 0 8px; }
-  #metodo .lead { font-size: 17px; color: var(--ink-2); line-height: 1.6; margin: 0 0 28px; }
-  #metodo h3 { font-size: 18px; font-weight: 600; margin: 32px 0 8px; }
-  #metodo p, #metodo li { font-size: 15.5px; line-height: 1.7; color: var(--ink-2); }
-  #metodo ul { padding-left: 20px; }
-  #metodo dl { display: grid; grid-template-columns: 200px 1fr; gap: 6px 20px; font-size: 15px; margin: 12px 0; }
-  #metodo dt { color: var(--ink-3); }
-  #metodo dd { margin: 0; color: var(--ink); }
-  #metodo .page-close { top: 20px; right: 0; }
-
   /* ---------- pie [18]: sin jerga ---------- */
   footer { border-top: 1px solid var(--line); background: var(--paper); padding: 7px 24px; font-size: 12.5px; color: var(--ink-3); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px; position: relative; z-index: 12; flex-shrink: 0; }
-  footer button { border: none; background: none; padding: 0; color: var(--link); font: inherit; cursor: pointer; }
-  footer button:hover { text-decoration: underline; }
+  footer a { color: var(--link); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
   footer .foot-sep { display: inline-block; width: 1px; height: 11px; background: var(--line-strong); margin: 0 10px; vertical-align: -1px; }
   .loading-note { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 12px; font-size: 15px; color: var(--ink-3); z-index: 10; background: var(--paper); transition: opacity 400ms ease; }
   /* v4.22: carga con el logo; los tres puntos se encienden por turnos, como nodos que se conectan */
@@ -645,7 +632,6 @@
     .as-row, .as-head { grid-template-columns: 14px minmax(0, 1fr) 44px; }
     .as-row svg, .as-head span:nth-child(3) { display: none; }
     #taller h2 { font-size: 21px; }
-    #metodo dl { grid-template-columns: 1fr; }
   }
   @media (prefers-reduced-motion: reduce) {
     .anode, .alabel, aside#panel, #tint { transition: none; }
@@ -673,7 +659,7 @@
     <nav class="navlinks" aria-label="Secciones">
       <button type="button" id="nav-map" class="active">Mapa</button>
       <a id="nav-lab" href="laboratorio.html">Laboratorio<span class="nav-beta">beta</span></a>
-      <button type="button" id="nav-metodo">Acerca de</button>
+      <a id="nav-metodo" href="acerca.html">Acerca de</a>
     </nav>
       <div id="debug-bar">
         <span class="kbd" id="zoom-readout"></span>
@@ -771,7 +757,7 @@
 
   <footer>
     <span>Proyecto independiente, no oficial. Datos del catálogo público TESIUNAM.</span>
-    <span><button type="button" id="foot-metodo">Cómo se hizo el mapa</button><span class="foot-sep"></span>versión <span id="app-version">4.26.0</span></span>
+    <span><a id="foot-metodo" href="acerca.html#mapa">Cómo se hizo el mapa</a><span class="foot-sep"></span>versión <span id="app-version">4.27.0</span></span>
   </footer>
 </div>
 
@@ -785,33 +771,6 @@
 </div>
 
 <div id="vtooltip" class="tip"></div>
-
-<section id="metodo" hidden aria-label="Método">
-  <article>
-    <button class="page-close" id="metodo-close" type="button" aria-label="Volver al mapa"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg></button>
-    <h2>Cómo se hizo el mapa</h2>
-    <p class="lead">El mapa ordena 609,154 tesis de la UNAM por lo que dicen sus títulos. Dos tesis quedan cerca cuando tratan temas parecidos, aunque vengan de facultades distintas.</p>
-    <h3>Datos</h3>
-    <p>Títulos, año, plantel, programa, nivel y asesores del catálogo público TESIUNAM. El mapa no muestra el nombre de quien escribió la tesis: se retira del título cuando el catálogo lo incluye. Sí muestra a los asesores.</p>
-    <h3>Del texto al mapa</h3>
-    <dl>
-      <dt>Representación</dt><dd>Cada título se convierte en un vector numérico con el modelo de lenguaje e5-large.</dd>
-      <dt>Agrupamiento</dt><dd>HDBSCAN encuentra grupos densos de títulos parecidos; Ward los organiza en tres niveles: 130 campos, unos 440 temas y 513 subtemas.</dd>
-      <dt>Proyección</dt><dd>PaCMAP lleva los vectores a dos dimensiones para dibujarlos.</dd>
-      <dt>Asesores</dt><dd>El catálogo escribe a una misma persona de varias formas (con y sin acentos, «Ma.» por María, nombre incompleto, errores de captura). Las 117,482 formas se agruparon en 81,151 asesores con reglas conservadoras: ante la duda se dejan separadas, así que alguna persona puede aparecer con dos nombres.</dd>
-      <dt>Vecindarios</dt><dd>Para una tesis, sus 30 similares son las de título más parecido en todo el corpus. Dentro de un subtema, cada tesis se une a sus tres más parecidas.</dd>
-    </dl>
-    <h3>Cómo leerlo</h3>
-    <ul>
-      <li>Las posiciones no tienen unidad: importa quién está cerca de quién, no las coordenadas ni las distancias largas.</li>
-      <li>El 67% de las tesis no quedó en ningún grupo claro. Se dibujan en gris tenue en lugar de ocultarse.</li>
-      <li>Los nombres de los 130 campos son un borrador curado a mano y está pendiente su revisión. Los de temas y subtemas son las palabras que más distinguen a cada grupo; sus acentos, siglas y nombres propios se restituyen con un diccionario aprendido de los títulos del catálogo, así que puede haber alguna palabra mal escrita.</li>
-      <li>Las áreas administrativas vienen del catálogo, no del algoritmo; sirven para comparar, no son la estructura del mapa.</li>
-    </ul>
-    <h3>Sobre el proyecto</h3>
-    <p>Proyecto independiente de tesis (NODO UNAM). No es un sitio oficial de la UNAM ni de la Dirección General de Bibliotecas. Primera edición, versión <span id="metodo-version">4.2.0</span>.</p>
-  </article>
-</section>
 
 <section id="taller" hidden aria-label="Modo taller">
   <div class="tl-head">
@@ -836,6 +795,7 @@
 
 <!-- supabase-js 2.117.2 (UMD), versión exacta con SRI, y la sesión compartida (compartido/sesion.js) -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js" integrity="sha384-Rj26LVGvoeRVR6+mwQmFfcR3QOBEwT+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok" crossorigin="anonymous"></script>
+<script>if (location.hash === '#metodo') location.replace('acerca.html');</script>
 <script src="compartido/sesion.js?v=4.23.2"></script>
 <script src="compartido/ajustes.js?v=4.26.0"></script>
 <script>
@@ -1047,12 +1007,9 @@
 
     var seen = false;
     try { seen = localStorage.getItem('nodo_atlas_intro_v3') === '1'; } catch (e) { /* almacenamiento bloqueado: se muestra la intro */ }
-    // index.html#metodo (desde el Laboratorio): abre Método sin la intro
-    var aMetodo = location.hash === '#metodo';
     var ir = new URLSearchParams(location.search), irLugar = ir.get('lugar'), irTesis = ir.get('tesis'), irAsesor = ir.get('asesor');
     var aGuardado = !!(irLugar || irTesis || irAsesor);
-    if (seen || DEBUG || aMetodo || aGuardado) finishSemantic(false); else startIntro();
-    if (aMetodo) showMetodo(true);
+    if (seen || DEBUG || aGuardado) finishSemantic(false); else startIntro();
     if (irLugar) irALugar(irLugar); else if (irTesis) irATesis(irTesis); else if (irAsesor) irAAsesor(irAsesor);
   }
 
@@ -2636,7 +2593,7 @@
   }
   function enlazarTitulo(idx) {
     var tt = $('ms-title');
-    tt.innerHTML = tituloAlMapa(idx, tt.textContent) + '&#8288;' + btnLeer(idx);
+    tt.innerHTML = tituloAlMapa(idx, tt.textContent.replace(/\u2060/g, '')) + '&#8288;' + btnLeer(idx);
   }
   document.addEventListener('click', function (ev) {
     var a = ev.target.closest && ev.target.closest('a[data-ir], a[data-leer]');
@@ -4077,17 +4034,7 @@
   function vmMove(ev) { $('vtooltip').style.transform = 'translate(' + (ev.clientX + 14) + 'px,' + (ev.clientY + 14) + 'px)'; }
   function vmHide() { var tt = $('vtooltip'); tt.style.opacity = '0'; tt.style.transform = 'translate(-9999px,-9999px)'; }
 
-  // ==================== pagina Metodo (v4) ====================
-  function showMetodo(on) {
-    $('metodo').hidden = !on;
-    $('metodo').style.top = document.querySelector('header.nav').offsetHeight + 'px'; // Metodo es una seccion: la navegacion queda visible
-    $('nav-metodo').classList.toggle('active', on); $('nav-map').classList.toggle('active', !on);
-    if (on) { $('metodo').scrollTop = 0; $('metodo-close').focus(); }
-  }
-  $('nav-metodo').addEventListener('click', function () { showMetodo(true); });
-  $('foot-metodo').addEventListener('click', function () { showMetodo(true); });
-  $('metodo-close').addEventListener('click', function () { showMetodo(false); });
-  $('nav-map').addEventListener('click', function () { showMetodo(false); if (!$('taller').hidden) closeTaller(); });
+  $('nav-map').addEventListener('click', function () { if (!$('taller').hidden) closeTaller(); });
 
   // ==================== teclado, resize, debug ====================
   document.addEventListener('keydown', function (ev) {
@@ -4098,7 +4045,6 @@
       if (NodosAjustes.abierto()) NodosAjustes.abrir(false);
       else if (!$('search').hidden) closeSearch();
       else if (!$('taller').hidden) closeTaller();
-      else if (!$('metodo').hidden) showMetodo(false);
       else if (!$('story').hidden) closeStory();
       else if (!$('taller').hidden) closeTaller();
       else if (!$('map-selection').hidden) $('map-selection-close').click(); // la ficha antes que el subtema aislado

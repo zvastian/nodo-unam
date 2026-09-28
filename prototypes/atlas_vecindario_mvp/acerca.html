@@ -3,19 +3,19 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Mi espacio · NodOS</title>
+<title>Acerca de NodOS</title>
+<meta name="description" content="Cómo se hizo el mapa de las 609,154 tesis de la UNAM, qué hace el Laboratorio, privacidad y quién hace NodOS.">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="compartido/cuenta.css?v=4.23.2">
 <link rel="stylesheet" href="compartido/ajustes.css?v=4.26.0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-  /* Mi espacio (27-sep-2026): lo guardado de cada cuenta. Tokens idénticos a laboratorio.html. */
+  /* Acerca de (v4.27): tokens idénticos a laboratorio.html y espacio.html */
   :root {
     --bg: #ffffff; --paper: #ffffff;
     --ink: #1a1a1a; --ink-2: #4d4d4d; --ink-3: #6e6e6e;
     --line: #e0e0e0; --line-strong: #c2c2c2; --link: #1d4f91;
-    --m: #8c96a8;            /* la mascota, gris: todavía no hay nada guardado */
     --pie-fondo: #12294d; --pie-tinta: #ffffff; --pie-tinta-2: rgba(255, 255, 255, 0.7); --pie-linea: rgba(255, 255, 255, 0.18); --marca-ocre: #d9a04a;
     --nav-h: 56px; color-scheme: light;
   }
@@ -44,68 +44,77 @@
   .linkbtn { background: none; border: none; padding: 2px 0; cursor: pointer; color: var(--ink-2); font-size: 14px; }
   .linkbtn:hover { color: var(--ink); }
 
+  /* Acerca de (v4.27): página propia. Banda marina con el método en cuatro pasos, con una tesis real */
+  .navlinks a[aria-current="page"] { color: var(--ink); font-weight: 600; border-bottom-color: var(--ink); }
   .page { max-width: 1080px; margin: 0 auto; padding: 32px 24px 72px; }
-  /* la banda: marino pleno, como la portada del Laboratorio */
-  .esp-banda { padding: 26px 32px 28px; background: color-mix(in oklch, var(--pie-fondo) 72%, black); color: var(--pie-tinta); }
-  body.noche .esp-banda { background: color-mix(in oklch, var(--pie-fondo) 55%, black); }
-  .esp-banda .lamina { display: flex; justify-content: space-between; gap: 16px; border-top: 3px solid var(--pie-tinta); padding-top: 9px; font-size: 12.5px; color: var(--pie-tinta-2); margin: 0 0 14px; }
-  .esp-banda .lamina b { color: var(--pie-tinta); font-weight: 700; }
-  .esp-banda h1 { font-size: clamp(28px, 2.7vw, 38px); line-height: 1.15; font-weight: 400; letter-spacing: -0.005em; margin: 0; } /* el Titular del Laboratorio: el 800 es solo para títulos de tesis */
-  /* sin sesión: la mascota gris junto a su caja vacía, y la pantalla de acceso */
-  .esp-vacio { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 400px); gap: 48px; align-items: center; padding: 36px 0 0; }
-  .esp-vacio .mascota { width: 240px; height: auto; display: block; margin: 0 0 12px; }
-  .esp-vacio h2 { font-size: 24px; line-height: 1.25; font-weight: 700; margin: 0 0 8px; }
-  .esp-vacio p { color: var(--ink-2); margin: 0 0 8px; max-width: 46ch; }
-  .esp-vacio .esp-acc h3 { font-size: 17px; font-weight: 700; margin: 0 0 12px; }
-  /* con sesión: las cuatro secciones */
-  .esp-sec { padding: 36px 0 0; }
-  .esp-sec h2 { display: flex; align-items: baseline; gap: 12px; font-size: 22px; font-weight: 700; margin: 0 0 10px; padding-bottom: 8px; border-bottom: 2px solid var(--ink); }
-  .esp-n { font-size: 14px; font-weight: 500; color: var(--ink-3); }
-  .esp-lista { list-style: none; margin: 0; padding: 0; }
-  .esp-lista li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 24px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line); }
-  .esp-tit { font-size: 16px; font-weight: 600; color: var(--ink); overflow-wrap: anywhere; }
-  a.esp-tit:hover { text-decoration: underline; text-underline-offset: 3px; }
-  /* v4.26: el libro en un círculo, junto al título: abre la tesis en TESIUNAM */
-  .leer { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; margin-left: 8px; border: 1px solid var(--line-strong); border-radius: 50%; color: var(--ink-2); vertical-align: -4px; text-decoration: none !important; }
-  .leer:hover { border-color: var(--ink); color: var(--ink); }
-  .leer:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+  .ac-banda { padding: 30px 32px 34px; background: color-mix(in oklch, var(--pie-fondo) 72%, black); color: var(--pie-tinta); }
+  body.noche .ac-banda { background: color-mix(in oklch, var(--pie-fondo) 55%, black); }
+  .ac-banda h1 { font-size: clamp(30px, 3vw, 42px); line-height: 1.12; font-weight: 400; letter-spacing: -0.005em; margin: 0 0 10px; }
+  .ac-banda .lead { max-width: 60ch; margin: 0 0 30px; font-size: 17px; line-height: 1.55; color: var(--pie-tinta-2); }
+  /* los cuatro pasos: una fila con flechas; cada paso, su número, su nombre, su imagen y una línea */
+  .pasos { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; border-top: 1px solid var(--pie-linea); }
+  .paso { position: relative; padding: 18px 26px 0 0; display: flex; flex-direction: column; gap: 10px; }
+  .paso + .paso { padding-left: 26px; border-left: 1px solid var(--pie-linea); }
+  .paso + .paso::before { content: ''; position: absolute; left: -7px; top: 22px; width: 12px; height: 12px; background: color-mix(in oklch, var(--pie-fondo) 72%, black); border-top: 1px solid var(--pie-tinta-2); border-right: 1px solid var(--pie-tinta-2); transform: rotate(45deg); }
+  body.noche .paso + .paso::before { background: color-mix(in oklch, var(--pie-fondo) 55%, black); }
+  .paso h2 { display: flex; align-items: baseline; gap: 8px; margin: 0; font-size: 15px; font-weight: 700; color: var(--pie-tinta); }
+  .paso h2 span { font-weight: 400; color: var(--pie-tinta-2); }
+  .paso p { margin: 0; font-size: 13.5px; line-height: 1.5; color: var(--pie-tinta-2); }
+  .paso .fig { min-height: 130px; display: flex; flex-direction: column; justify-content: center; }
+  .ej-tit { font-size: 16px; font-weight: 700; line-height: 1.3; color: var(--pie-tinta); }
+  .ej-meta { margin-top: 6px; font-size: 13px; color: var(--pie-tinta-2); }
+  .vector { display: flex; align-items: center; gap: 2px; height: 72px; }
+  .vector i { flex: 1; min-width: 1px; background: var(--pie-tinta); opacity: 0.85; }
+  .vector-n { margin-top: 6px; font-size: 13px; color: var(--pie-tinta-2); }
+  .niveles { list-style: none; margin: 0; padding: 0; font-size: 13.5px; }
+  .niveles li { display: grid; grid-template-columns: 62px minmax(0, 1fr); gap: 8px; padding: 4px 0; border-bottom: 1px solid var(--pie-linea); }
+  .niveles li:last-child { border-bottom: 0; }
+  .niveles span { color: var(--pie-tinta-2); }
+  .niveles b { font-weight: 600; color: var(--pie-tinta); }
+  .mini { display: block; width: 100%; height: 130px; }
+  .mini circle { fill-opacity: 0.8; }
+  .mini .aqui { fill: var(--pie-tinta); fill-opacity: 1; stroke: color-mix(in oklch, var(--pie-fondo) 72%, black); stroke-width: 1.5; }
+  .mini text { fill: var(--pie-tinta); font-size: 11px; font-weight: 600; }
+
+  /* secciones: la regla gruesa de Mi espacio */
+  .ac-sec { padding: 44px 0 0; }
+  .ac-sec > h2 { margin: 0 0 18px; padding-bottom: 8px; border-bottom: 2px solid var(--ink); font-size: 24px; font-weight: 700; }
+  .ac-sec h3 { margin: 26px 0 8px; font-size: 17px; font-weight: 700; }
+  .ac-sec > h2 + h3 { margin-top: 0; }
+  .ac-sec ul + p { margin-top: 14px; }
+  .ac-sec p, .ac-sec li { max-width: 72ch; font-size: 15.5px; line-height: 1.7; color: var(--ink-2); }
+  .ac-sec p { margin: 0 0 10px; }
+  .ac-sec ul { margin: 0; padding-left: 20px; }
+  .ac-sec li + li { margin-top: 6px; }
+  .ac-sec dl { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 0 24px; margin: 6px 0 0; max-width: 860px; }
+  .ac-sec dt, .ac-sec dd { padding: 10px 0; border-top: 1px solid var(--line); }
+  .ac-sec dt { font-weight: 600; color: var(--ink); }
+  .ac-sec dd { margin: 0; color: var(--ink-2); line-height: 1.6; }
+  .ac-cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 36px; }
+  .ac-cols h3 { margin-top: 0; }
+  .ac-sec strong { color: var(--ink); font-weight: 600; }
+  @media (max-width: 900px) {
+    .pasos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .paso:nth-child(3) { padding-left: 0; border-left: 0; }
+    .paso:nth-child(3)::before { display: none; }
+    .paso:nth-child(n+3) { margin-top: 18px; border-top: 1px solid var(--pie-linea); }
+  }
+  @media (max-width: 640px) {
+    .page { padding: 20px 16px 56px; }
+    .ac-banda { margin: 0 -16px; padding: 24px 16px 28px; }
+    .pasos { grid-template-columns: minmax(0, 1fr); }
+    .paso, .paso + .paso { padding: 16px 0 0; border-left: 0; }
+    .paso + .paso { margin-top: 16px; border-top: 1px solid var(--pie-linea); }
+    .paso + .paso::before { display: none; }
+    .ac-sec dl, .ac-cols { grid-template-columns: minmax(0, 1fr); gap: 0; }
+    .ac-sec dd { border-top: 0; padding-top: 0; }
+  }
+  /* el libro en un círculo, junto al título: abre la tesis en TESIUNAM (en blanco sobre la banda) */
+  .leer { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; margin-left: 8px; border: 1px solid var(--pie-tinta-2); border-radius: 50%; color: var(--pie-tinta); vertical-align: -4px; text-decoration: none !important; }
+  .leer:hover { border-color: var(--pie-tinta); }
+  .leer:focus-visible, .ej-tit:focus-visible { outline: 2px solid var(--pie-tinta); outline-offset: 2px; }
   .leer svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linejoin: round; }
-  .esp-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px; font-size: 13.5px; color: var(--ink-2); margin-top: 3px; }
-  .esp-meta i { display: inline-block; width: 3px; height: 13px; margin-right: 6px; vertical-align: -2px; background: var(--c, var(--ink-3)); }
-  .esp-acciones { display: flex; gap: 18px; }
-  .btn-txt { background: none; border: 0; border-bottom: 2px solid transparent; padding: 0 0 2px; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--ink); white-space: nowrap; }
-  .btn-txt:hover { border-bottom-color: var(--ink); }
-  /* quitar: un tache; pregunta antes (compartido/sesion.js, NodOS.confirmar) */
-  .esp-x { display: inline-flex; border: 0; background: none; padding: 4px; color: var(--ink-3); cursor: pointer; }
-  .esp-x:hover { color: var(--ink); }
-  .esp-x:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
-  .esp-x svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.6; stroke-linecap: round; }
-  .esp-acciones { align-items: center; }
-  .esp-pref { background: none; border: 0; padding: 0; cursor: pointer; font-size: 15px; color: var(--ink); }
-  .esp-pref::after { content: 'No'; color: var(--ink-3); }
-  .esp-pref[aria-checked="true"]::after { content: 'Sí'; color: var(--ink); font-weight: 600; }
-  .esp-pref:hover { text-decoration: underline; text-underline-offset: 3px; }
-  .esp-nada { color: var(--ink-2); padding: 12px 0; margin: 0; }
-  .esp-cuenta { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 10px 24px; align-items: baseline; margin: 0; }
-  .esp-cuenta dt { color: var(--ink-3); font-size: 14px; }
-  .esp-cuenta dd { margin: 0; }
-  .esp-borrar { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line); }
-  .esp-borrar p { margin: 0 0 10px; color: var(--ink-2); max-width: 64ch; }
-  .btn-peligro { background: none; border: 1px solid var(--ink); border-radius: 4px; padding: 8px 14px; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--ink); }
-  .esp-aviso { margin: 10px 0 0; font-size: 13.5px; color: var(--ink); min-height: 1em; }
-  .esp-cargando { color: var(--ink-3); padding: 24px 0; }
-  /* mascota (las mismas piezas del Laboratorio) */
-  .mascota { --m-line: color-mix(in oklch, var(--m) 55%, black); --m-back: color-mix(in oklch, var(--m) 78%, black); overflow: visible; }
-  .mascota .cuerpo { fill: var(--m); stroke: var(--m-line); stroke-width: 2.5; }
-  .mascota .borde { fill: none; stroke: var(--m-line); stroke-linecap: round; stroke-linejoin: round; }
-  .mascota .relleno { fill: none; stroke: var(--m); stroke-linecap: round; stroke-linejoin: round; }
-  .mascota .atras { stroke: var(--m-back); }
-  .mascota .pie { fill: var(--m); stroke: var(--m-line); stroke-width: 2.5; }
-  .mascota .ojo { fill: #fff; stroke: var(--m-line); stroke-width: 2; }
-  .mascota .pupila { fill: #1a1a1a; }
-  .mascota .trazo { fill: none; stroke: #1a1a1a; stroke-width: 3; stroke-linecap: round; }
-  .mascota .caja { fill: var(--paper); stroke: var(--ink-2); stroke-width: 2.5; stroke-linejoin: round; }
-  .mascota .caja-dentro { fill: var(--line); stroke: var(--ink-2); stroke-width: 2.5; stroke-linejoin: round; }
+  a.ej-tit:hover { text-decoration: underline; text-underline-offset: 3px; }
   .pie-pag { background: var(--pie-fondo); color: var(--pie-tinta-2); font-size: 14px; line-height: 1.45; }
   .pie-in { max-width: 1280px; margin: 0 auto; padding: 44px 24px 44px 92px; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0 44px; align-items: center; }
   .pie-logo { width: 112px; height: auto; display: block; fill: var(--pie-tinta); fill-rule: evenodd; }
@@ -117,14 +126,7 @@
   .pie-pag .apoya .ico { width: 15px; height: 15px; stroke: var(--marca-ocre); stroke-width: 1.7; }
   .pie-legal { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 24px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--pie-linea); font-size: 12.5px; }
   .pie-legal p { margin: 0; }
-  @media (max-width: 860px) { .esp-vacio { grid-template-columns: minmax(0, 1fr); gap: 24px; } }
-  @media (max-width: 640px) {
-    header.nav { gap: 14px; padding: 0 16px; }
-    .page { padding: 20px 16px 56px; }
-    .esp-banda { margin: 0 -16px; padding: 22px 16px; }
-    .esp-lista li { grid-template-columns: minmax(0, 1fr); }
-    .esp-cuenta { grid-template-columns: minmax(0, 1fr); }
-  }
+  @media (max-width: 640px) { header.nav { gap: 14px; padding: 0 16px; } }
   /* v4.27: la barra como en el mapa. Ajustes lleva su icono; en móvil queda solo el icono y las secciones bajan a una segunda fila */
   #btn-ajustes { display: inline-flex; align-items: center; gap: 6px; }
   #btn-ajustes .ico { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; }
@@ -144,7 +146,7 @@
   <nav class="navlinks" aria-label="Secciones">
     <a href="index.html">Mapa</a>
     <a href="laboratorio.html">Laboratorio<span class="nav-beta">beta</span></a>
-    <a href="acerca.html">Acerca de</a>
+    <a href="acerca.html" aria-current="page">Acerca de</a>
   </nav>
   <div class="nav-right">
     <button type="button" class="linkbtn" id="btn-ajustes" title="Ajustes"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h11"/><circle cx="10" cy="4.5" r="1.6"/><circle cx="5.5" cy="8" r="1.6"/><circle cx="11" cy="11.5" r="1.6"/></svg><span>Ajustes</span></button>
@@ -153,40 +155,101 @@
 </header>
 
 <main class="page">
-  <section class="esp-banda">
-    <p class="lamina"><span><b>NodOS</b> Tu cuenta</span><span id="esp-correo-banda"></span></p>
-    <h1>Mi espacio</h1>
+  <section class="ac-banda" aria-labelledby="ac-titulo">
+    <h1 id="ac-titulo">Acerca de NodOS</h1>
+    <p class="lead">Un mapa de las 609,154 tesis de la UNAM ordenadas por lo que dicen sus títulos, y un laboratorio para contrastar tu propia tesis con ellas.</p>
+    <ol class="pasos" aria-label="Cómo se hizo el mapa, con una tesis del catálogo">
+      <li class="paso">
+        <h2>1 <span>Título</span></h2>
+        <div class="fig"><div><a class="ej-tit" id="ej-tit" href="#">…</a></div><div class="ej-meta" id="ej-meta"></div></div>
+        <p>Del catálogo público TESIUNAM, sin el nombre de quien la escribió.</p>
+      </li>
+      <li class="paso">
+        <h2>2 <span>Vector</span></h2>
+        <div class="fig"><div class="vector" id="vector" aria-hidden="true"></div><div class="vector-n">1,024 números</div></div>
+        <p>Un modelo de lenguaje resume el significado del título en números. Títulos parecidos dan números parecidos.</p>
+      </li>
+      <li class="paso">
+        <h2>3 <span>Grupos</span></h2>
+        <div class="fig"><ul class="niveles" id="ej-niveles"></ul></div>
+        <p>Los títulos cercanos forman grupos en tres niveles: 130 campos, unos 440 temas y 513 subtemas.</p>
+      </li>
+      <li class="paso">
+        <h2>4 <span>Mapa</span></h2>
+        <div class="fig"><svg class="mini" id="mini" role="img" aria-label="Los 130 campos del mapa, con el de la tesis de ejemplo marcado"></svg></div>
+        <p>Los números se proyectan a dos dimensiones: cada tesis queda junto a las que tratan temas parecidos.</p>
+      </li>
+    </ol>
   </section>
 
-  <p class="esp-cargando" id="esp-cargando">Cargando…</p>
+  <section class="ac-sec" id="mapa" aria-labelledby="h-mapa">
+    <h2 id="h-mapa">El mapa</h2>
+    <h3>Datos</h3>
+    <p>Títulos, año, plantel, programa, nivel y asesores del catálogo público TESIUNAM de la Dirección General de Bibliotecas. El mapa no muestra el nombre de quien escribió la tesis: se retira del título cuando el catálogo lo incluye. Sí muestra a los asesores. Cada tesis enlaza a su registro en TESIUNAM, donde se puede consultar.</p>
+    <h3>Del texto al mapa</h3>
+    <dl>
+      <dt>Representación</dt><dd>Cada título se convierte en un vector de 1,024 números con el modelo de lenguaje multilingual-e5-large.</dd>
+      <dt>Agrupamiento</dt><dd>HDBSCAN encuentra grupos densos de títulos parecidos y el método de Ward los organiza en tres niveles: campo, tema y subtema.</dd>
+      <dt>Proyección</dt><dd>PaCMAP lleva los vectores a dos dimensiones para dibujarlos.</dd>
+      <dt>Asesores</dt><dd>El catálogo escribe a una misma persona de varias formas: con y sin acentos, «Ma.» por María, con el nombre incompleto o con errores de captura. Las 117,482 formas se agruparon en 81,151 asesores con reglas conservadoras. Ante la duda se dejan separadas, así que alguna persona puede aparecer con dos nombres.</dd>
+      <dt>Tesis similares</dt><dd>Las 30 similares de una tesis son las de título más parecido en todo el catálogo. Dentro de un subtema, cada tesis se une a sus tres más parecidas.</dd>
+    </dl>
+    <h3>Cómo leerlo</h3>
+    <ul>
+      <li>Las posiciones no tienen unidad: importa quién está cerca de quién, no las coordenadas ni las distancias largas.</li>
+      <li>El 67% de las tesis no quedó en ningún grupo claro. Se dibujan en gris tenue en lugar de ocultarse.</li>
+      <li>Los nombres de los 130 campos son un borrador curado a mano, pendiente de revisión. Los de temas y subtemas son las palabras que más distinguen a cada grupo; sus acentos y siglas se restituyen con un diccionario aprendido del catálogo, así que puede haber alguna palabra mal escrita.</li>
+      <li>Las áreas administrativas vienen del catálogo, no del algoritmo. Sirven para comparar; no son la estructura del mapa.</li>
+    </ul>
+  </section>
 
-  <!-- sin sesión: la mascota gris con su caja vacía y la invitación a entrar o crear la cuenta -->
-  <div class="esp-vacio" id="esp-vacio" hidden>
-    <div>
-      <svg class="mascota" id="m-vacio" viewBox="0 -20 260 260" aria-hidden="true"></svg>
-      <h2>Aquí se guardan tus análisis, tus tesis, tus asesores y tus temas</h2>
-      <p>Guarda los campos, temas, tesis y asesores que encuentres en el mapa o en un análisis, y vuelve a ellos o a tus análisis del Laboratorio cuando quieras.</p>
-      <p>Si es tu primera vez, tu cuenta se crea al entrar.</p>
-    </div>
-    <div class="esp-acc"><h3>Entra o crea tu cuenta</h3><div id="esp-acceso"></div></div>
-  </div>
-
-  <!-- con sesión -->
-  <div id="esp-lleno" hidden>
-    <section class="esp-sec"><h2>Mis análisis <span class="esp-n" id="n-analisis"></span></h2><ol class="esp-lista" id="l-analisis"></ol></section>
-    <section class="esp-sec"><h2>Campos y temas <span class="esp-n" id="n-lugares"></span></h2><ol class="esp-lista" id="l-lugares"></ol></section>
-    <section class="esp-sec"><h2>Tesis guardadas <span class="esp-n" id="n-tesis"></span></h2><ol class="esp-lista" id="l-tesis"></ol></section>
-    <section class="esp-sec"><h2>Asesores guardados <span class="esp-n" id="n-asesores"></span></h2><ol class="esp-lista" id="l-asesores"></ol></section>
-    <section class="esp-sec"><h2>Cuenta</h2>
-      <dl class="esp-cuenta"><dt>Correo</dt><dd id="esp-correo"></dd><dt>Sesión</dt><dd><button type="button" class="btn-txt" id="esp-salir">Cerrar sesión</button></dd>
-        <dt>Preguntar antes de quitar algo guardado</dt><dd><button type="button" class="esp-pref" id="esp-preguntar" role="switch" aria-checked="true" aria-label="Preguntar antes de quitar algo guardado"></button></dd></dl>
-      <div class="esp-borrar">
-        <p>Borrar tu cuenta elimina tus análisis y todo lo que guardaste: campos, temas, tesis y asesores. No se puede deshacer.</p>
-        <button type="button" class="btn-peligro" id="esp-borrar">Borrar mi cuenta</button>
-        <p class="esp-aviso" id="esp-aviso" aria-live="polite"></p>
+  <section class="ac-sec" id="laboratorio" aria-labelledby="h-lab">
+    <h2 id="h-lab">El Laboratorio</h2>
+    <p>Escribes el título, el planteamiento, los objetivos y las palabras clave de tu tesis, y el Laboratorio los contrasta con el catálogo completo. Está en beta.</p>
+    <div class="ac-cols">
+      <div>
+        <h3>Lo que sale del catálogo</h3>
+        <p>Tu título, tu planteamiento y tus palabras clave se convierten en un vector con el mismo modelo que el mapa, y se comparan con los títulos de las 609,154 tesis. De ahí salen, sin inteligencia artificial generativa:</p>
+        <ul>
+          <li>tu ubicación en el mapa y el campo en que se inscribe;</li>
+          <li>las 100 tesis más parecidas;</li>
+          <li>los asesores de esas tesis.</li>
+        </ul>
       </div>
-    </section>
-  </div>
+      <div>
+        <h3>Lo que escribe una IA</h3>
+        <p>Tres textos los redacta un modelo de lenguaje (gpt-oss-120b, en Groq o en Cloudflare Workers AI), a partir de lo que escribiste y de las tesis parecidas:</p>
+        <ul>
+          <li>una lectura del planteamiento;</li>
+          <li>la revisión de los objetivos según la taxonomía de Bloom;</li>
+          <li>preguntas de investigación sugeridas.</li>
+        </ul>
+      </div>
+    </div>
+    <h3>Límites</h3>
+    <ul>
+      <li>La IA puede equivocarse. Sus textos son una orientación para conversar con tu asesor, no una evaluación.</li>
+      <li>De las tesis del catálogo solo se conoce el título: el Laboratorio no lee su texto completo.</li>
+      <li>Cada cuenta puede hacer 2 análisis al día y guardar 2.</li>
+    </ul>
+  </section>
+
+  <section class="ac-sec" id="privacidad" aria-labelledby="h-priv">
+    <h2 id="h-priv">Privacidad</h2>
+    <ul>
+      <li>El mapa no pide cuenta. Tus preferencias, como el modo claro u oscuro, se guardan solo en tu navegador.</li>
+      <li>Para el Laboratorio y Mi espacio entras con Google, GitHub o tu correo. Se guardan tu correo, tus análisis y lo que guardas del mapa. Desde Mi espacio puedes borrar tu cuenta y todo lo asociado.</li>
+      <li>Lo que escribes en el Laboratorio se envía al proveedor de IA solo para generar tu análisis. En Groq está activada la retención cero: no guarda el texto.</li>
+      <li>De las tesis no se muestra el nombre de quien las escribió.</li>
+    </ul>
+    <p><a href="privacidad.html">Aviso de privacidad completo</a></p>
+  </section>
+
+  <section class="ac-sec" id="proyecto" aria-labelledby="h-proy">
+    <h2 id="h-proy">El proyecto</h2>
+    <p>NodOS es un proyecto independiente de <strong>Sebastián Díaz</strong>. No es un sitio oficial de la UNAM ni de la Dirección General de Bibliotecas, y no usa su escudo ni su identidad. Los datos de las tesis son del catálogo público TESIUNAM; cada una enlaza a su registro original.</p>
+    <p><a href="#" data-pendiente="contacto">Contacto</a></p>
+  </section>
 </main>
 <footer class="pie-pag">
   <div class="pie-in">
@@ -228,160 +291,60 @@
   function $(id) { return document.getElementById(id); }
   function esc(t) { return String(t == null ? '' : t).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function noche() { return document.body.classList.contains('noche'); }
-  var AREA_DIA = { 0: '#9a9a9a', 1: '#3566a8', 2: '#0f7d5c', 3: '#c98a2e', 4: '#b8412f' };
-  var AREA_NOCHE = { 0: '#8c93a3', 1: '#5b93e6', 2: '#27a97c', 3: '#b0801c', 4: '#e0567a' };
-  function areaHex(a) { return (noche() ? AREA_NOCHE : AREA_DIA)[a || 0]; }
-  // programas del catálogo en minúsculas y sin acentos: se escriben con el diccionario del mapa
-  var ESCRITURA = {};
-  fetch('data/escritura.v1.json').then(function (r) { return r.json(); }).then(function (j) { ESCRITURA = j.v || {}; if (ultimo) pintar(ultimo); }).catch(function () {});
-  function escribir(t) { return String(t || '').replace(/[a-z0-9ñü]+/g, function (w) { return ESCRITURA[w] || w; }); }
-  function capital(t) { t = String(t || ''); return t.charAt(0).toUpperCase() + t.slice(1); }
-  function fecha(iso) { var d = new Date(iso); return isNaN(d) ? '' : d.toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' }); }
 
-  // mascota: las piezas del Laboratorio; gris, junto a una caja abierta y vacía, mira adentro
-  function limb(d, w, atras) { return '<path class="borde" d="' + d + '" stroke-width="' + (w + 4) + '"/><path class="relleno' + (atras ? ' atras' : '') + '" d="' + d + '" stroke-width="' + w + '"/>'; }
-  function mano(x, y, atras) { return '<circle cx="' + x + '" cy="' + y + '" r="7.5" class="pie"' + (atras ? ' style="fill:var(--m-back)"' : '') + '/>'; }
-  function piernas() { return limb('M82 160 L79 218', 8) + limb('M110 162 L114 218', 8) + '<ellipse cx="88" cy="223" rx="14" ry="6.5" class="pie"/><ellipse cx="124" cy="223" rx="14" ry="6.5" class="pie"/>'; }
-  function ojo(x, y, px, py) { return '<ellipse cx="' + x + '" cy="' + y + '" rx="9" ry="12.5" class="ojo"/><circle cx="' + (x + px) + '" cy="' + (y + py) + '" r="5" class="pupila"/>'; }
-  var CAJA_VACIA = limb('M40 120 Q26 140 30 162', 7, true) + mano(30, 164, true) + piernas() + '<circle cx="95" cy="95" r="68" class="cuerpo"/>' +
-    ojo(126, 96, 3, 5) + ojo(150, 96, 3, 5) + '<path class="trazo" d="M128 124 q10 -5 20 0"/>' +
-    '<path class="caja-dentro" d="M170 150 L244 150 L232 166 L182 166 Z"/>' +
-    '<path class="caja" d="M182 166 L232 166 L232 222 L182 222 Z"/><path class="caja" d="M232 166 L244 150 L244 206 L232 222 Z"/>' +
-    '<path class="caja" d="M170 150 L182 166 L160 176 L150 158 Z"/><path class="caja" d="M244 150 L232 166 L252 178 L258 160 Z"/>' +
-    limb('M150 136 Q168 142 178 156', 7) + mano(180, 158);
-
-  var ultimo = null;
-  function pintarVacio() {
-    $('esp-cargando').hidden = true; $('esp-lleno').hidden = true; $('esp-vacio').hidden = false; $('esp-correo-banda').textContent = '';
-    $('m-vacio').innerHTML = CAJA_VACIA;
-    if (!$('esp-acceso').firstChild && window.NodOS) NodOS.pintarAcceso($('esp-acceso'), null);
-  }
-  var ICO_X = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 4.5l7 7M11.5 4.5l-7 7"/></svg>';
-  function tache(attr, titulo) { return '<button type="button" class="esp-x" ' + attr + ' data-titulo="' + esc(titulo) + '" aria-label="Quitar ' + esc(titulo) + '" title="Quitar">' + ICO_X + '</button>'; }
-  var NIVEL = { macro: 'Campo', meso: 'Tema', micro: 'Subtema' };
-  // v4.26: como en el mapa y el Laboratorio, el título lleva al mapa y el libro en un círculo, a TESIUNAM
-  var CATALOGO = 'https://tesiunam.dgb.unam.mx/';
+  // la tesis del ejemplo, tal como la muestra el mapa (campo, tema y subtema de v4.26)
+  var EJ = {
+    id: 'TH_0462868', catalogo: 760141, macroId: 53,
+    titulo: 'Análisis de la expresión de catalasas de Debaryomyces hansenii en Saccharomyces cerevisiae',
+    meta: 'Maestría en Ciencias Biológicas, 2017',
+    niveles: [['Campo', 'Biología molecular'], ['Tema', 'Coli – Escherichia'], ['Subtema', 'Cerevisiae – Saccharomyces']]
+  };
   var ICO_LEER = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 4.6C6.6 3.6 4.8 3.1 2.6 3.1v8.8c2.2 0 4 .5 5.4 1.5 1.4-1 3.2-1.5 5.4-1.5V3.1c-2.2 0-4 .5-5.4 1.5zM8 4.6v8.8"/></svg>';
-  function ligaCatalogo(n) { return n ? CATALOGO + 'cgi-bin/koha/opac-detail.pl?biblionumber=' + n : CATALOGO; }
-  function btnLeer(tid, n) {
-    return '&#8288;<a class="leer" href="' + ligaCatalogo(n) + '"' + (n ? '' : ' data-leer="' + esc(tid) + '"') + ' target="_blank" rel="noopener" title="Leer en TESIUNAM" aria-label="Leer la tesis en TESIUNAM">' + ICO_LEER + '</a>';
-  }
-  // lo guardado antes de v4.26 no trae el número: se busca en los datos del mapa la primera vez
-  var numerosP = null;
-  function numeroCatalogo(tid) {
-    if (!numerosP) numerosP = fetch('data/atlas_chaos_mode.v1.json').then(function (r) { return r.json(); }).then(function (m) {
-      return Promise.all([fetch('data/atlas_chaos_mode.v1.bin').then(function (r) { return r.arrayBuffer(); }), fetch('data/tesis_catalogo.v1.bin').then(function (r) { return r.arrayBuffer(); })]).then(function (b) {
-        var f = m.fields.thesisIdsBlob, ids = new TextDecoder('utf-8').decode(new Uint8Array(b[0], f.byteOffset, f.byteLength)).split('\n');
-        return { ids: new Map(ids.map(function (id, i) { return [id, i]; })), cat: new Uint32Array(b[1]) };
-      });
-    }).catch(function (e) { numerosP = null; throw e; });
-    return numerosP.then(function (d) { var i = d.ids.get(tid); return i != null ? d.cat[i] : 0; });
-  }
-  document.addEventListener('click', function (e) {
-    var a = e.target.closest('a.leer[data-leer]');
-    if (!a || e.ctrlKey || e.metaKey || e.shiftKey || e.button) return;
-    e.preventDefault();
-    var w = window.open('', '_blank'); if (w) w.opener = null; // se abre ya: si no, el navegador la bloquea
-    numeroCatalogo(a.dataset.leer).catch(function () { return 0; }).then(function (n) {
-      a.href = ligaCatalogo(n); if (n) a.removeAttribute('data-leer');
-      if (w) w.location.href = a.href; else window.open(a.href, '_blank', 'noopener');
-    });
-  });
-  function fila(titulo, href, meta, acciones, tras) {
-    return '<li><div>' + (href ? '<a class="esp-tit" href="' + href + '">' + esc(titulo) + '</a>' : '<span class="esp-tit">' + esc(titulo) + '</span>') + (tras || '') +
-      '<div class="esp-meta">' + meta + '</div></div><div class="esp-acciones">' + acciones + '</div></li>';
-  }
-  function pintar(d) {
-    ultimo = d;
-    $('esp-cargando').hidden = true; $('esp-vacio').hidden = true; $('esp-lleno').hidden = false;
-    var u = NodOS.usuario();
-    $('esp-correo').textContent = u ? u.email : ''; $('esp-correo-banda').textContent = u ? u.email : '';
-    // análisis
-    var lim = (d.yo && d.yo.analisis_guardados && d.yo.analisis_guardados.limite) || 2;
-    $('n-analisis').textContent = d.analisis.length + ' de ' + lim;
-    $('l-analisis').innerHTML = d.analisis.length ? d.analisis.map(function (a) {
-      return fila(a.titulo, 'laboratorio.html?analisis=' + encodeURIComponent(a.id), '<span>' + fecha(a.creado) + '</span>',
-        tache('data-borrar-analisis="' + esc(a.id) + '"', a.titulo));
-    }).join('') : '<li class="esp-nada">Todavía no tienes análisis. <a href="laboratorio.html">Analiza tu tesis en el Laboratorio</a>.</li>';
-    // campos, temas y subtemas del mapa
-    d.lugares = d.lugares || [];
-    $('n-lugares').textContent = d.lugares.length ? String(d.lugares.length) : '';
-    $('l-lugares').innerHTML = d.lugares.length ? d.lugares.map(function (l) {
-      var x = l.datos || {}, nv = l.lugar.split(':')[0], meta = ['<span style="--c:' + esc(x.color || '') + '"><i></i>' + (NIVEL[nv] || '') + '</span>'];
-      if (x.campo) meta.push('<span>en ' + esc(x.campo) + '</span>');
-      if (x.tesis) meta.push('<span>' + Number(x.tesis).toLocaleString('es-MX') + ' tesis</span>');
-      return fila(x.nombre || 'Sin nombre', 'index.html?lugar=' + encodeURIComponent(l.lugar), meta.join(''), tache('data-quitar-lugar="' + esc(l.lugar) + '"', x.nombre || 'este tema'));
-    }).join('') : '<li class="esp-nada">Guarda un campo, un tema o un subtema desde su ficha en el mapa.</li>';
-    // tesis
-    $('n-tesis').textContent = d.tesis.length ? String(d.tesis.length) : '';
-    $('l-tesis').innerHTML = d.tesis.length ? d.tesis.map(function (t) {
-      var x = t.datos || {}, meta = [];
-      if (x.programa) meta.push('<span style="--c:' + areaHex(x.area) + '"><i></i>' + esc(capital(escribir(x.programa))) + '</span>');
-      if (x.nivel) meta.push('<span>' + esc(capital(escribir(x.nivel))) + '</span>');
-      if (x.anio) meta.push('<span>' + x.anio + '</span>');
-      var tit = x.titulo ? capital(x.titulo) : 'Tesis guardada';
-      return fila(tit, 'index.html?tesis=' + encodeURIComponent(t.tesis), meta.join(''), tache('data-quitar-tesis="' + esc(t.tesis) + '"', tit), btnLeer(t.tesis, x.catalogo));
-    }).join('') : '<li class="esp-nada">Guarda tesis desde el mapa o desde un análisis con el marcador de cada una.</li>';
-    // asesores
-    $('n-asesores').textContent = d.asesores.length ? String(d.asesores.length) : '';
-    $('l-asesores').innerHTML = d.asesores.length ? d.asesores.map(function (a) {
-      var x = a.datos || {}, meta = [];
-      if (x.programa) meta.push('<span style="--c:' + areaHex(x.area) + '"><i></i>' + esc(capital(escribir(x.programa))) + '</span>');
-      if (x.total) meta.push('<span>' + x.total + ' tesis dirigidas</span>');
-      if (x.ultimo) meta.push('<span>la última en ' + x.ultimo + '</span>');
-      return fila(x.nombre || a.asesor, 'index.html?asesor=' + encodeURIComponent(x.nombre || a.asesor), meta.join(''), tache('data-quitar-asesor="' + esc(x.nombre || a.asesor) + '"', x.nombre || a.asesor));
-    }).join('') : '<li class="esp-nada">Guarda asesores desde su ficha en el mapa o desde un análisis.</li>';
-  }
-  function cargar() {
-    var u = window.NodOS && NodOS.usuario();
-    if (!u) { pintarVacio(); return; }
-    if (!ultimo) { $('esp-cargando').hidden = false; $('esp-vacio').hidden = true; }
-    Promise.all([NodOS.api('/api/yo'), NodOS.api('/api/analisis'), NodOS.listaGuardados()])
-      .then(function (r) { pintar({ yo: r[0], analisis: (r[1] && r[1].analisis) || [], tesis: r[2].tesis, asesores: r[2].asesores, lugares: r[2].lugares }); })
-      .catch(function (err) { $('esp-cargando').hidden = false; $('esp-cargando').textContent = err.status === 401 ? 'Tu sesión terminó. Entra de nuevo.' : 'No se pudo cargar tu espacio. Revisa tu conexión e inténtalo de nuevo.'; });
-  }
+  $('ej-tit').textContent = EJ.titulo;
+  $('ej-tit').href = 'index.html?tesis=' + EJ.id;
+  $('ej-tit').title = 'Ver la tesis en el mapa';
+  $('ej-tit').insertAdjacentHTML('afterend', '&#8288;<a class="leer" href="https://tesiunam.dgb.unam.mx/cgi-bin/koha/opac-detail.pl?biblionumber=' + EJ.catalogo + '" target="_blank" rel="noopener" title="Leer en TESIUNAM" aria-label="Leer la tesis en TESIUNAM">' + ICO_LEER + '</a>');
+  $('ej-meta').textContent = EJ.meta;
+  $('ej-niveles').innerHTML = EJ.niveles.map(function (n) { return '<li><span>' + n[0] + '</span><b>' + esc(n[1]) + '</b></li>'; }).join('');
 
-  // acciones: borrar un análisis, quitar una tesis o un asesor, cerrar sesión y borrar la cuenta
-  // un análisis siempre pregunta (rehacerlo cuesta un análisis del día); lo demás, según la preferencia
-  function quitar(b, recordar, accion) {
-    NodOS.confirmar({ titulo: b.dataset.titulo, recordar: recordar }).then(function (si) {
-      if (!si) return;
-      b.disabled = true; pintarPref();
-      var li = b.closest('li'); if (li) li.style.opacity = '0.4';
-      accion().then(cargar).catch(function () { if (li) li.style.opacity = ''; b.disabled = false; cargar(); });
-    });
-  }
-  document.addEventListener('click', function (e) {
-    var b = e.target.closest('[data-borrar-analisis]');
-    if (b) { quitar(b, false, function () { return NodOS.api('/api/analisis/' + encodeURIComponent(b.dataset.borrarAnalisis), { metodo: 'DELETE' }); }); return; }
-    var l = e.target.closest('[data-quitar-lugar]');
-    if (l) { quitar(l, true, function () { return NodOS.guardarLugar(l.dataset.quitarLugar, null, false); }); return; }
-    var t = e.target.closest('[data-quitar-tesis]');
-    if (t) { quitar(t, true, function () { return NodOS.guardarTesis(t.dataset.quitarTesis, null, false); }); return; }
-    var a = e.target.closest('[data-quitar-asesor]');
-    if (a) quitar(a, true, function () { return NodOS.guardarAsesor(a.dataset.quitarAsesor, null, false); });
-  });
-  function pintarPref() { if (window.NodOS) $('esp-preguntar').setAttribute('aria-checked', String(NodOS.preguntar())); }
-  $('esp-preguntar').addEventListener('click', function () { NodOS.fijarPreguntar(!NodOS.preguntar()); pintarPref(); });
-  pintarPref();
-  $('esp-salir').addEventListener('click', function () { if (window.NodOS) NodOS.salir(); });
-  $('esp-borrar').addEventListener('click', function () {
-    var b = this;
-    NodOS.confirmar({ pregunta: '¿Deseas borrar tu cuenta?', nota: 'Se borran tus análisis y todo lo que guardaste. No se puede deshacer.', si: 'Sí, borrar' }).then(function (si) {
-      if (!si) return;
-      b.disabled = true; $('esp-aviso').textContent = 'Borrando…';
-      NodOS.borrarCuenta().then(function () { $('esp-aviso').textContent = ''; }).catch(function (err) {
-        b.disabled = false; $('esp-aviso').textContent = 'No se pudo borrar la cuenta (' + (err.codigo || err.message) + '). Inténtalo de nuevo.';
-      });
-    });
-  });
+  // el vector: un esquema de barras (los 1,024 valores reales no se publican)
+  var v = '';
+  for (var i = 0; i < 64; i++) { var h = 18 + 78 * Math.abs(Math.sin(i * 12.9898 + 4.1) * Math.cos(i * 0.73)); v += '<i style="height:' + h.toFixed(0) + '%"></i>'; }
+  $('vector').innerHTML = v;
 
-  // Ajustes: la misma ventana que en el mapa y el Laboratorio (compartido/ajustes.js)
+  // el mapa: los 130 campos en su posición, del tamaño de sus tesis y con los colores de buildPalette (index.html)
+  var campos = null;
+  function dibujar() {
+    if (!campos) return;
+    var W = 240, H = 130, pad = 10, mx = 0, my = 0;
+    var q = function (v, f) { v = v.slice().sort(function (a, b) { return a - b; }); return v[Math.round(f * (v.length - 1))]; };
+    var xs = campos.map(function (c) { return c.position.x; }), ys = campos.map(function (c) { return c.position.y; });
+    var x0 = q(xs, 0.03), x1 = q(xs, 0.97), y0 = q(ys, 0.03), y1 = q(ys, 0.97);
+    campos.forEach(function (c) { mx += c.position.x; my += c.position.y; });
+    mx /= campos.length; my /= campos.length;
+    var k = Math.min((W - 2 * pad) / (x1 - x0), (H - 2 * pad) / (y1 - y0)), ox = (W - k * (x1 - x0)) / 2, oy = (H - k * (y1 - y0)) / 2;
+    var X = function (x) { return ox + (x - x0) * k; }, Y = function (y) { return H - (oy + (y - y0) * k); };
+    var orden = campos.map(function (c, i) { return { i: i, a: Math.atan2(c.position.y - my, c.position.x - mx) }; }).sort(function (a, b) { return a.a - b.a; });
+    var L = noche() ? [0.66, 0.73, 0.80] : [0.50, 0.60, 0.69], C = noche() ? [0.14, 0.13, 0.115] : [0.13, 0.135, 0.12], color = [];
+    orden.forEach(function (o, r) { color[o.i] = 'oklch(' + L[r % 3] + ' ' + C[r % 3] + ' ' + ((o.a * 180 / Math.PI + 360 + 150 + [0, 14, -14][r % 3]) % 360).toFixed(1) + ')'; });
+    var s = '', aqui = null;
+    campos.forEach(function (c, i) {
+      var r = Math.max(2, Math.sqrt(c.size) * 0.075);
+      if (c.macroId === EJ.macroId) aqui = { x: X(c.position.x), y: Y(c.position.y), r: r };
+      else s += '<circle cx="' + X(c.position.x).toFixed(1) + '" cy="' + Y(c.position.y).toFixed(1) + '" r="' + r.toFixed(1) + '" fill="' + color[i] + '"/>';
+    });
+    if (aqui) s += '<circle class="aqui" cx="' + aqui.x.toFixed(1) + '" cy="' + aqui.y.toFixed(1) + '" r="' + Math.max(4, aqui.r).toFixed(1) + '"/>';
+    $('mini').setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+    $('mini').innerHTML = s;
+  }
+  fetch('data/atlas_macro_graph.v1.json').then(function (r) { return r.json(); }).then(function (g) {
+    campos = g.nodes.filter(function (n) { return n.level === 'macro'; });
+    dibujar();
+  }).catch(function () { $('mini').closest('.paso').querySelector('.fig').hidden = true; });
+
+  // Ajustes: la misma ventana que en el mapa, el Laboratorio y Mi espacio
   if (NodosAjustes.oscuro()) document.body.classList.add('noche');
-  NodosAjustes.montar({ boton: $('btn-ajustes'), modo: noche, alModo: function (oscuro) { document.body.classList.toggle('noche', oscuro); if (ultimo) pintar(ultimo); } });
-
-  window.__debugEspacio = { cargar: cargar, pintar: pintar }; // para las pruebas
-  if (window.NodOS) { NodOS.listo.then(cargar); NodOS.alCambiar(function () { cargar(); }); } else pintarVacio();
+  NodosAjustes.montar({ boton: $('btn-ajustes'), modo: noche, alModo: function (oscuro) { document.body.classList.toggle('noche', oscuro); dibujar(); } });
 })();
 </script>
 </body>

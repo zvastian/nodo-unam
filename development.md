@@ -3936,3 +3936,45 @@ El Laboratorio pasó a usarlo: se quitaron su sesión, su ventana y sus estilos 
 **Pendiente:**
 - Probar guardar con una sesión real, para confirmar que `catalogo` llega a D1.
 - Ver el Laboratorio con un análisis completo en pantalla: en headless no llegó a pintar las listas a tiempo.
+
+## v4.27.0: página «Acerca de» propia, y la barra en móvil igual en todas las páginas (2026-09-28)
+
+**Qué cambió:**
+- **`acerca.html`, página propia.** Sustituye al panel «Método» que se abría encima del mapa (`#metodo`, retirado de `index.html` con sus estilos y su código).
+  - Arriba, una banda marina con el método en cuatro pasos, con una tesis real del catálogo:
+    - «Análisis de la expresión de catalasas de Debaryomyces hansenii en Saccharomyces cerevisiae» (Maestría en Ciencias Biológicas, 2017; `TH_0462868`);
+    - **título:** lleva al mapa, y el libro, a TESIUNAM;
+    - **vector:** es un esquema de barras, porque los 1,024 valores reales no se publican;
+    - **grupos:** campo Biología molecular, tema «Coli – Escherichia» y subtema «Cerevisiae – Saccharomyces», tal como los muestra el mapa;
+    - **mapa:** los 130 campos reales (`atlas_macro_graph.v1.json`), con la paleta de `buildPalette`, en claro y oscuro, y el campo de la tesis marcado.
+  - Secciones:
+    - **El mapa:** datos, del texto al mapa y cómo leerlo; es el texto del panel viejo, puesto al día.
+    - **El Laboratorio:** lo que sale del catálogo, lo que escribe una IA y sus límites.
+    - **Privacidad:** un resumen, con enlace a `privacidad.html` (pendiente).
+    - **El proyecto:** proyecto independiente de Sebastián Díaz.
+  - Se quitaron «NODO UNAM» y la versión vieja (4.2.0).
+- **Enlaces:** «Acerca de» (en la barra, el Laboratorio y Mi espacio) y «Cómo se hizo el mapa» (en el pie del mapa) llevan a `acerca.html`. Los enlaces viejos a `index.html#metodo` redirigen ahí antes de cargar el mapa.
+- **La barra en móvil**, en el Laboratorio, Mi espacio y Acerca de, como en el mapa. Antes los enlaces se partían en dos renglones («Acerca / de», «Mi / espacio»).
+  - Ajustes lleva el icono de controles; en móvil queda solo el icono.
+  - Las secciones bajan a una segunda fila y «beta» va junto a «Laboratorio».
+
+**Por qué:**
+- El usuario pidió la página Acerca de como paso hacia el lanzamiento del atlas.
+- Eligió, antes de codificar, una página propia (con URL propia, sin cargar los 16 MB del mapa), la banda con el diagrama del método y su nombre como autor.
+- El panel viejo no mencionaba el Laboratorio ni la privacidad.
+
+**Qué dice la página, verificado contra el código:**
+- El Laboratorio convierte en vector el título, el planteamiento y las palabras clave (`services/lab/app/contexto.py`).
+- La IA es gpt-oss-120b, en Groq o en Workers AI (`proveedores.js`).
+- La cuota es de 2 análisis al día y 2 guardados (`wrangler.jsonc`).
+
+**Verificación:** Chrome headless.
+- Acerca de, en escritorio (1600×900) y en móvil (390×844), en claro y oscuro.
+- La barra en móvil del Laboratorio, Mi espacio y Acerca de.
+- Consola limpia.
+
+**Arreglo de paso:** la ficha de la tesis acumulaba un carácter de unión (U+2060) en el título cada vez que se repintaba (v4.26). Ahora se quita antes de volver a enlazarlo.
+
+**Pendiente:**
+- La página `privacidad.html` y el correo de contacto (el enlace sigue en `#`).
+- El tema del ejemplo, «Coli – Escherichia», muestra que los nombres de tema salen de palabras clave: entra en la revisión humana de nombres.

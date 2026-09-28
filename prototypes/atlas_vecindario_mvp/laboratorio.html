@@ -682,6 +682,17 @@
     .cs-donut { grid-template-columns: 110px 1fr; gap: 18px; }
       .pasos span { width: 16px; }
   }
+  /* v4.27: la barra como en el mapa. Ajustes lleva su icono; en móvil queda solo el icono y las secciones bajan a una segunda fila */
+  #btn-ajustes { display: inline-flex; align-items: center; gap: 6px; }
+  #btn-ajustes .ico { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; }
+  #btn-ajustes .ico circle { fill: var(--paper); }
+  @media (max-width: 640px) {
+    header.nav { flex-wrap: wrap; height: auto; row-gap: 0; column-gap: 16px; padding-top: 8px; }
+    header.nav .navlinks { order: 3; width: 100%; height: 38px; align-items: center; gap: 18px; overflow-x: auto; }
+    .navlinks a { white-space: nowrap; }
+    #btn-ajustes span { display: none; }
+    .nav-beta { position: static; margin-left: 3px; vertical-align: 5px; }
+  }
 </style>
 </head>
 <body class="escribiendo">
@@ -690,12 +701,12 @@
   <nav class="navlinks" aria-label="Secciones">
     <a href="index.html">Mapa</a>
     <a href="laboratorio.html?presenta" class="active" aria-current="page">Laboratorio<span class="nav-beta">beta</span></a>
-    <a href="index.html#metodo">Acerca de</a>
+    <a href="acerca.html">Acerca de</a>
   </nav>
   <div class="nav-right">
     <button type="button" class="linkbtn solo-analisis" id="repetir">Repetir</button>
     <div class="ajustes-lab">
-      <button type="button" class="linkbtn" id="btn-ajustes" aria-haspopup="true" aria-expanded="false">Ajustes</button>
+      <button type="button" class="linkbtn" id="btn-ajustes" title="Ajustes"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h11"/><circle cx="10" cy="4.5" r="1.6"/><circle cx="5.5" cy="8" r="1.6"/><circle cx="11" cy="11.5" r="1.6"/></svg><span>Ajustes</span></button>
     </div>
     <div data-nds-cuenta></div>
   </div>
@@ -862,7 +873,7 @@
         <nav aria-label="Explorar"><ul>
           <li><a href="index.html">Mapa</a></li>
           <li><a href="#" aria-current="page">Laboratorio</a></li>
-          <li><a href="index.html#metodo">Acerca de</a></li>
+          <li><a href="acerca.html">Acerca de</a></li>
         </ul></nav>
         <nav aria-label="El proyecto"><ul>
           <!-- PENDIENTE: página del aviso de privacidad, correo de contacto y usuario de Buy Me a Coffee -->
