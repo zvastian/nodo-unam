@@ -48,6 +48,9 @@ def limpiar(t):
 
 
 CAMPOS_PROHIBIDOS = {'author', 'autor', 'autores', 'authors', 'sustentante', 'title_raw'}
+# solo cuentan los registros de tesis y los esquemas de columnas: en el índice de búsqueda
+# (busqueda/titulos/*.json) las claves son palabras de los títulos, como «autor» en «derechos de autor»
+CLAVES_DE_REGISTRO = {'title', 'titulo', 'thesisId', 'thesis_id', 'anio', 'year'}
 
 
 def main(dry, verificar=False):
@@ -55,7 +58,10 @@ def main(dry, verificar=False):
 
     def walk(o, rel):
         if isinstance(o, dict):
-            campos.extend((rel, k) for k in o if isinstance(k, str) and k.lower() in CAMPOS_PROHIBIDOS)
+            if CLAVES_DE_REGISTRO & set(o):
+                campos.extend((rel, k) for k in o if isinstance(k, str) and k.lower() in CAMPOS_PROHIBIDOS)
+            if isinstance(o.get('fields'), list):
+                campos.extend((rel, k) for k in o['fields'] if isinstance(k, str) and k.lower() in CAMPOS_PROHIBIDOS)
         if isinstance(o, list):
             for i, x in enumerate(o):
                 if isinstance(x, str) and len(x) > 25:
