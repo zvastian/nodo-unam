@@ -12,7 +12,7 @@ RAIZ = os.path.join(os.path.dirname(__file__), '..')
 SITIO = os.path.join(RAIZ, 'prototypes', 'atlas_vecindario_mvp')
 DIST = os.path.join(RAIZ, 'dist')
 ARCHIVOS = ['index.html', 'laboratorio.html', 'espacio.html', 'acerca.html', 'privacidad.html',
-            'favicon.svg', 'ventanas-dia.svg', 'ventanas-noche.svg', '_headers']
+            'favicon.svg', 'ventanas-dia.svg', 'ventanas-noche.svg', 'mit-license.png', '_headers']
 CARPETAS = ['compartido', 'vendor', 'lab', 'data']
 FUERA = {'LEEME.md'}
 LIMITE_ARCHIVO = 25 * 1024 * 1024  # Cloudflare Pages

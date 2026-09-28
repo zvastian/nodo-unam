@@ -130,16 +130,12 @@
   .ia b { display: block; margin-bottom: 2px; }
   .ia q { color: var(--ink); quotes: '«' '»'; }
 
-  .ac-proyecto { display: grid; grid-template-columns: 92px minmax(0, 72ch); gap: 24px; align-items: center; margin: 44px 0 0; font-size: 15px; line-height: 1.7; color: var(--ink-2); }
+  .ac-proyecto { display: grid; grid-template-columns: 80px minmax(0, 72ch); gap: 24px; align-items: center; margin: 44px 0 0; font-size: 15px; line-height: 1.7; color: var(--ink-2); }
   .ac-proyecto p { margin: 0; }
   .paso-txt strong, .ac-proyecto strong { font-weight: 700; color: var(--ink); }
-  .mit { display: block; width: 92px; color: var(--ink); }
-  .mit svg { display: block; width: 92px; height: 36px; }
-  .mit rect { fill: none; stroke: currentColor; stroke-width: 1.5; }
-  .mit text { fill: currentColor; font-family: inherit; }
-  .mit-a { font-size: 13px; font-weight: 800; letter-spacing: 0.08em; }
-  .mit-b { font-size: 8.5px; font-weight: 600; letter-spacing: 0.16em; }
-  .mit:hover { color: var(--link); }
+  .mit { display: block; width: 80px; }
+  .mit img { display: block; width: 80px; height: auto; }
+  .mit:hover img { opacity: 0.85; }
   @media (max-width: 640px) { .ac-proyecto { grid-template-columns: minmax(0, 1fr); gap: 14px; } }
   @media (max-width: 860px) {
     .paso { grid-template-columns: minmax(0, 1fr); gap: 18px; }
@@ -237,19 +233,19 @@
 
   <section class="paso" aria-labelledby="p3">
     <div class="paso-txt"><h3 id="p3"><span class="n">3</span>Vector</h3>
-      <p>Cada título se convierte en un <strong>embedding</strong>: un vector de 1,024 dimensiones calculado con multilingual-e5-large y normalizado, de modo que títulos con significado parecido quedan cerca.</p></div>
+      <p>Cada título se convierte en un <strong>embedding</strong>: un vector de 1,024 dimensiones calculado con un modelo de lenguaje que representa textos de unos cien idiomas en un mismo espacio (multilingual-e5-large), y normalizado, de modo que títulos con significado parecido quedan cerca.</p></div>
     <div class="fig"><div class="vector" id="vector" aria-hidden="true"></div><div class="vector-n">1,024 números por título</div></div>
   </section>
 
   <section class="paso" aria-labelledby="p4">
     <div class="paso-txt"><h3 id="p4"><span class="n">4</span>Similitud</h3>
-      <p>La similitud es el coseno entre dos <strong>embeddings</strong>. Las treinta vecinas de cada tesis se buscan en un índice FAISS IVF-SQ8 y se reordenan con el producto interno exacto.</p></div>
+      <p>La similitud es el coseno entre dos embeddings. Las treinta vecinas de cada tesis se buscan en un índice FAISS IVF-SQ8 y se reordenan con el producto interno exacto.</p></div>
     <div class="fig"><ol class="similares" id="similares"></ol></div>
   </section>
 
   <section class="paso" aria-labelledby="p5">
     <div class="paso-txt"><h3 id="p5"><span class="n">5</span>Grupos</h3>
-      <p>Los <strong>embeddings</strong> se reducen a cinco dimensiones con UMAP. <strong>HDBSCAN</strong> estima la densidad alrededor de cada punto, construye un árbol de agrupamientos y conserva las hojas estables de al menos 150 tesis; los puntos que no alcanzan esa densidad quedan como ruido, en gris.</p></div>
+      <p>Los embeddings se reducen a cinco dimensiones con UMAP. <strong>HDBSCAN</strong> estima la densidad alrededor de cada punto, construye un árbol de agrupamientos y conserva las hojas estables de al menos 150 tesis; los puntos que no alcanzan esa densidad quedan como ruido, en gris.</p></div>
     <div class="fig"><svg id="grupos" role="img" aria-label="Una muestra de las tesis del mapa: en color las que forman grupo, en gris las que no"></svg><div class="leyenda" id="grupos-ley"></div></div>
   </section>
 
@@ -261,7 +257,7 @@
 
   <section class="paso" aria-labelledby="p7">
     <div class="paso-txt"><h3 id="p7"><span class="n">7</span>Proyección</h3>
-      <p><strong>PaCMAP</strong> proyecta los <strong>embeddings</strong> al plano preservando la estructura local y global. Importan las vecindades; las coordenadas no tienen unidad.</p></div>
+      <p><strong>PaCMAP</strong> proyecta los embeddings al plano preservando la estructura local y global. Importan las vecindades; las coordenadas no tienen unidad.</p></div>
     <div class="fig"><svg id="mini" role="img" aria-label="Los campos del mapa en el plano, con el de la tesis de ejemplo marcado"></svg></div>
   </section>
 
@@ -281,7 +277,7 @@
 
   <section class="paso" aria-labelledby="p9">
     <div class="paso-txt"><h3 id="p9"><span class="n">9</span>Propuesta</h3>
-      <p>El título, el planteamiento y las palabras clave de una tesis en curso se convierten en un <strong>embedding</strong> con el mismo modelo, comparable con todo el catálogo.</p></div>
+      <p>El título, el planteamiento y las palabras clave de una tesis en curso se convierten en un embedding con el mismo modelo, comparable con todo el catálogo.</p></div>
     <div class="fig">
       <div class="entrada"><p><b id="lab-titulo"></b></p><p id="lab-claves"></p></div>
       <div class="vector" id="vector-lab" aria-hidden="true"></div>
@@ -307,7 +303,7 @@
   </section>
 
   <div class="ac-proyecto" id="proyecto">
-    <a class="mit" href="https://opensource.org/license/mit" rel="noopener" aria-label="Licencia MIT"><svg viewBox="0 0 92 36" aria-hidden="true"><rect x="0.75" y="0.75" width="90.5" height="34.5"/><text x="46" y="16" text-anchor="middle" class="mit-a">MIT</text><text x="46" y="28" text-anchor="middle" class="mit-b">LICENSE</text></svg></a>
+    <a class="mit" href="https://opensource.org/license/mit" rel="noopener"><img src="mit-license.png" width="641" height="477" alt="MIT License"></a>
     <p>NodOS es un proyecto independiente de Sebastián Díaz; no es un sitio oficial de la Universidad Nacional Autónoma de México. El <a href="https://github.com/zvastian/nodo-unam" rel="noopener">código</a> se publica con licencia MIT, lo que hace de NodOS un <strong>proyecto open source</strong>. La licencia no cubre los datos del catálogo ni el nombre y el logo de NodOS.</p>
   </div>
 </main>

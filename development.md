@@ -4133,3 +4133,14 @@ La lista de pasos se acordó antes de codificar.
 - Chrome headless, escritorio (1600×900) y móvil (390×844), en claro y oscuro.
 - Consola limpia.
 - `prueba_humo.mjs` pasa las 6 páginas.
+
+## v4.30.1: logo de la licencia MIT y ajustes de texto en Acerca de (2026-09-28)
+
+**Qué cambió:**
+- **Logo de la licencia MIT:** la insignia dibujada en SVG se reemplaza por el logo rojo «MIT License» que subió el usuario, en `mit-license.png` (7 KB; se agregó a `tools/construir_sitio.py`). Enlaza al texto de la licencia en opensource.org.
+- **Paso 3:** antes de nombrar el modelo se explica qué es: «un modelo de lenguaje que representa textos de unos cien idiomas en un mismo espacio (multilingual-e5-large)».
+- **Negritas:** «embedding» solo va en negritas la primera vez (paso 3); las otras cinco menciones quedan en texto normal.
+
+**Por qué:** lo pidió el usuario.
+
+**Verificación:** Chrome headless, escritorio. Consola limpia. `prueba_humo.mjs` pasa.
