@@ -4207,3 +4207,21 @@ El nombre de cada uno queda en `aria-label` y `title`. Entrar y Mi espacio los p
 - «Ver su análisis» abre el taller con 125 filas y la ruta «Búsqueda en títulos».
 - Al cerrarlo, la ficha termina en «Ver las 125 tesis y su análisis».
 - Consola limpia.
+
+## v4.33.0: filtro por área en el taller y una aclaración sobre la cifra de tesis (2026-09-28)
+
+**Qué cambió:**
+- **El taller** (campo, tema, subtema, asesor, búsqueda o similares) tiene una faceta nueva, **Área**, entre Nivel y Programa.
+  - Muestra las cuatro áreas administrativas y «Sin área», con su color y su conteo, en los nombres cortos de la leyenda del mapa.
+  - Se combina con las otras facetas, cuenta en «Filtrar y ordenar» y se borra con «Quitar filtros».
+- **La barra de filtros** conserva «130 campos» y la cifra de tesis. Junto a la cifra hay ahora un «?» en círculo que abre una nota: son las tesis de la copia del catálogo TESIUNAM que se procesó para construir el mapa, y el catálogo en línea puede tener registros más recientes o registros que no se incluyeron.
+  - La nota se cierra con Esc o con un clic fuera.
+  - En móvil se oculta, como la cifra.
+  - No da la fecha de la copia porque la bitácora no la registra. Conviene anotarla.
+
+**Por qué:** lo pidió el usuario. En lugar de quitar las cifras, prefirió aclararlas; además, en el análisis faltaba poder filtrar por área administrativa.
+
+**Verificación:** Chrome headless, 1600×900.
+- La nota abre y cierra.
+- En el taller de «freud», el filtro Humanidades y Artes deja 36 de 125 tesis.
+- Consola limpia.

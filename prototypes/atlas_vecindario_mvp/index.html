@@ -120,6 +120,12 @@
   .filterbar .navsearch { margin-left: auto; height: 32px; }
   .fb-label { font-size: 14px; color: var(--ink-3); }
   .fb-count { font-size: 13px; color: var(--ink-3); }
+  /* v4.33: aclaración de la cifra de tesis, en un «?» en círculo */
+  .fb-info { position: relative; display: inline-flex; align-items: center; margin-left: -18px; }
+  .fb-q { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; padding: 0; border: 1px solid var(--ink-3); border-radius: 50%; background: none; font: inherit; font-size: 10.5px; font-weight: 700; line-height: 1; color: var(--ink-3); cursor: pointer; }
+  .fb-q:hover, .fb-q[aria-expanded="true"] { border-color: var(--ink); color: var(--ink); }
+  .fb-q:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+  .fb-nota { position: absolute; top: calc(100% + 10px); left: -10px; z-index: 40; width: 320px; padding: 12px 14px; background: var(--paper); border: 1px solid var(--line-strong); font-size: 13px; line-height: 1.5; color: var(--ink-2); }
   /* [3] la ruta deja de flotar sobre el mapa: vive en la barra */
   #crumbs { position: static; display: flex; align-items: center; flex-wrap: wrap; gap: 6px; min-width: 0; }
   #crumbs .sep { color: var(--line-strong); }
@@ -616,7 +622,7 @@
     .navsearch span { display: none; }
     .navajustes span { display: none; }
     .filterbar { padding: 6px 14px; gap: 12px; }
-    .fb-count { display: none; }
+    .fb-count, .fb-info { display: none; }
     .navguardados { margin-left: -4px; }
     #guardados-menu { right: 14px; }
     #minimap, #mm-show { display: none !important; }
@@ -676,7 +682,7 @@
        año, nivel -- cada filtro nuevo es otro .fb-group aqui. -->
   <div class="filterbar" id="filterbar" role="toolbar" aria-label="Filtros del mapa">
     <nav id="crumbs" aria-label="Ubicación en el mapa" hidden></nav>
-    <span class="fb-count" id="fb-count"></span>
+    <span class="fb-count" id="fb-count"></span><span class="fb-info"><button type="button" class="fb-q" id="fb-q" aria-expanded="false" aria-controls="fb-nota" aria-label="Sobre esta cifra" title="Sobre esta cifra">?</button><span class="fb-nota" id="fb-nota" role="note" hidden>Tesis del catálogo público TESIUNAM incluidas en NodOS, según la copia del catálogo que se procesó para construir el mapa. El catálogo en línea puede tener registros más recientes o registros que no se incluyeron.</span></span>
     <button type="button" class="navsearch" id="btn-search" aria-label="Buscar (Ctrl+K)"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5"/><path d="M10.4 10.4L14 14"/></svg><span>Buscar tema, título o asesor</span></button>
     <button type="button" class="navguardados" id="btn-guardados" aria-haspopup="true" aria-expanded="false" aria-controls="guardados-menu" title="Lo que guardaste"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5h8v11l-4-3-4 3z"/></svg></button>
     <div id="guardados-menu" hidden role="region" aria-label="Lo que guardaste"></div>
@@ -758,7 +764,7 @@
 
   <footer>
     <span>Proyecto independiente, no oficial. Datos del catálogo público TESIUNAM.</span>
-    <span><a id="foot-metodo" href="acerca.html#mapa">Cómo se hizo el mapa</a><span class="foot-sep"></span><a href="privacidad.html">Privacidad</a><span class="foot-sep"></span>versión <span id="app-version">4.32.0</span></span>
+    <span><a id="foot-metodo" href="acerca.html#mapa">Cómo se hizo el mapa</a><span class="foot-sep"></span><a href="privacidad.html">Privacidad</a><span class="foot-sep"></span>versión <span id="app-version">4.33.0</span></span>
   </footer>
 </div>
 
@@ -993,6 +999,11 @@
     // dispX/dispY: donde esta DIBUJADO cada punto ahora (difiere en modo aislado).
     state.rawX = xs; state.rawY = ys; state.dispX = state.ndcX; state.dispY = state.ndcY;
     $('fb-count').textContent = fmtNum(n) + ' tesis';
+    // el «?» de la cifra: abre y cierra la nota; se cierra con Esc o con un clic fuera
+    var notaCifra = function (on) { $('fb-nota').hidden = !on; $('fb-q').setAttribute('aria-expanded', String(on)); };
+    $('fb-q').addEventListener('click', function (ev) { ev.stopPropagation(); notaCifra($('fb-nota').hidden); });
+    document.addEventListener('click', function (ev) { if (!$('fb-nota').hidden && !ev.target.closest('.fb-info')) notaCifra(false); });
+    document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape' && !$('fb-nota').hidden) notaCifra(false); });
     loadTitleManifest();
 
     buildMembership();
@@ -2181,10 +2192,10 @@
   // Tesis (fichas compactas + facetas de catalogo; absorbe la antigua vista analitica como
   // «agrupar por»), Perfil (las graficas de la ficha del cluster, en grande; cada barra filtra
   // Tesis) y Asesores (transbordos ordenados con su linea de tiempo + red de codireccion).
-  var taller = { node: null, rows: [], idx: [], m: [], tab: 'tesis', flat: [], shown: 0, q: '', sort: 'az', grp: '', fnv: 0, fpr: '', fpl: '', fas: '', masPr: false, masPl: false, masAs: false };
+  var taller = { node: null, rows: [], idx: [], m: [], tab: 'tesis', flat: [], shown: 0, q: '', sort: 'az', grp: '', fnv: 0, far: '', fpr: '', fpl: '', fas: '', masPr: false, masPl: false, masAs: false };
   function openTaller(n, rows) {
     cerrarFichaTesis();
-    Object.assign(taller, { node: n, rows: rows, q: '', sort: n.similares ? 'sim' : n.orden || 'az', grp: '', fnv: 0, fpr: '', fpl: '', fas: '', masPr: false, masPl: false, masAs: false });
+    Object.assign(taller, { node: n, rows: rows, q: '', sort: n.similares ? 'sim' : n.orden || 'az', grp: '', fnv: 0, far: '', fpr: '', fpl: '', fas: '', masPr: false, masPl: false, masAs: false });
     var lvl = n.level || 'macro';
     $('taller').style.setProperty('--c', colorNodo(n));
     $('tl-crumb').textContent = n.crumb || '';
@@ -2221,7 +2232,7 @@
   }
   // filtros que llegan desde Perfil o Asesores
   function filtrarTesis(f) {
-    Object.assign(taller, { q: '', fnv: 0, fpr: '', fpl: '', fas: '' }, f);
+    Object.assign(taller, { q: '', fnv: 0, far: '', fpr: '', fpl: '', fas: '' }, f);
     setTab('tesis');
   }
 
@@ -2252,6 +2263,11 @@
     h += '<div class="fc"><h4>Nivel</h4><div class="fc-list">' + nvc.map(function (n, k) {
       return n ? fila('fnv', k + 1, taller.fnv === k + 1, '<i style="--g:' + NIVEL_COLOR[k] + '"></i>', NIVELES[k], n) : '';
     }).join('') + '</div></div>';
+    // v4.33: area administrativa del catalogo, en su color; las cuatro areas y al final «sin area»
+    var arc = [0, 0, 0, 0, 0]; M.forEach(function (m) { arc[m.ar]++; });
+    h += '<div class="fc"><h4>Área</h4><div class="fc-list">' + [1, 2, 3, 4, 0].map(function (a) {
+      return arc[a] ? fila('far', a, taller.far === String(a), '<i style="--g:' + AREA_HEX[a] + '"></i>', AREA_CORTO[a], arc[a]) : '';
+    }).join('') + '</div></div>';
     // programa: anillo del color de su area dominante (la gramatica de la ficha)
     var prog = {}; rows.forEach(function (r, k) { if (!r.pr) return; var e = prog[r.pr] || (prog[r.pr] = { n: 0, a: [0, 0, 0, 0, 0] }); e.n++; e.a[M[k].ar]++; });
     var prs = Object.keys(prog).sort(function (a, b) { return prog[b].n - prog[a].n; });
@@ -2263,9 +2279,9 @@
     h += '<div class="fc"><h4>Plantel</h4><div class="fc-list">' + pls.slice(0, taller.masPl ? 80 : 6).map(function (e) {
       return fila('fpl', e[0], taller.fpl === e[0], '<i style="--g:var(--ink-2)"></i>', e[0], e[1]);
     }).join('') + '</div>' + (pls.length > 6 ? '<button type="button" class="fc-more" data-mas="masPl">' + (taller.masPl ? 'Ver menos' : 'Ver los ' + fmtNum(pls.length)) + '</button>' : '') + '</div>';
-    if (taller.q || taller.fnv || taller.fpr || taller.fpl || taller.fas) h += '<button type="button" class="fc-clear" data-clear>Quitar filtros</button>';
+    if (taller.q || taller.fnv || taller.far || taller.fpr || taller.fpl || taller.fas) h += '<button type="button" class="fc-clear" data-clear>Quitar filtros</button>';
     // en movil las facetas se pliegan para que la lista quede a la vista
-    var movil = window.matchMedia('(max-width: 860px)').matches, act = [taller.q, taller.fnv, taller.fpr, taller.fpl, taller.fas].filter(Boolean).length;
+    var movil = window.matchMedia('(max-width: 860px)').matches, act = [taller.q, taller.fnv, taller.far, taller.fpr, taller.fpl, taller.fas].filter(Boolean).length;
     h = '<details id="tl-det"' + (!movil || taller.facOpen ? ' open' : '') + '><summary>Filtrar y ordenar' + (act ? ' (' + act + (act === 1 ? ' filtro)' : ' filtros)') : '') + '</summary>' + h + '</details>';
     var fac = $('tl-fac'); fac.innerHTML = h;
     $('tl-det').addEventListener('toggle', function (e) { taller.facOpen = e.target.open; });
@@ -2275,7 +2291,7 @@
     var t = ev.target.closest ? ev.target : null; if (!t) return;
     var b = t.closest('#tl-fac button');
     if (b) {
-      if (b.hasAttribute('data-clear')) { Object.assign(taller, { q: '', fnv: 0, fpr: '', fpl: '', fas: '' }); }
+      if (b.hasAttribute('data-clear')) { Object.assign(taller, { q: '', fnv: 0, far: '', fpr: '', fpl: '', fas: '' }); }
       else if (b.getAttribute('data-mas')) { var k = b.getAttribute('data-mas'); taller[k] = !taller[k]; }
       else if (b.getAttribute('data-o')) { taller[b.getAttribute('data-o')] = b.getAttribute('data-v'); }
       else if (b.getAttribute('data-f')) {
@@ -2299,6 +2315,7 @@
     var ks = [];
     rows.forEach(function (r, k) {
       if (taller.fnv && M[k].nv !== taller.fnv) return;
+      if (taller.far !== '' && String(M[k].ar) !== taller.far) return;
       if (taller.fpr && r.pr !== taller.fpr) return;
       if (taller.fpl && r.pl !== taller.fpl) return;
       if (taller.fas && r.as.indexOf(taller.fas) < 0) return;
