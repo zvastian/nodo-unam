@@ -1,0 +1,59 @@
+/* Ajustes de NodOS (v4.26): la misma ventana en el mapa, el Laboratorio y Mi espacio.
+   Banda marina arriba (como Mi espacio), y cada opción con su botón de selección al lado. */
+.aj-capa { position: fixed; inset: 0; z-index: 45; background: color-mix(in srgb, var(--bg, var(--paper)) 35%, transparent); -webkit-backdrop-filter: blur(7px); backdrop-filter: blur(7px); }
+.aj { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 46; width: min(420px, calc(100vw - 32px)); max-height: calc(100vh - 32px); overflow-y: auto; background: var(--paper); color: var(--ink); border: 1px solid var(--line-strong); font-family: "Libre Franklin", "Helvetica Neue", Arial, sans-serif; }
+.aj[hidden], .aj-capa[hidden] { display: none !important; }
+.aj button { font: inherit; color: inherit; }
+
+.aj-banda { position: relative; padding: 20px 28px 18px; background: color-mix(in oklch, var(--pie-fondo) 72%, black); color: var(--pie-tinta); }
+body.noche .aj-banda { background: color-mix(in oklch, var(--pie-fondo) 55%, black); }
+.aj-banda h3 { margin: 0; font-size: 26px; line-height: 1.15; font-weight: 400; letter-spacing: -0.005em; }
+.aj-cerrar { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); display: inline-flex; border: 0; background: none; padding: 4px; cursor: pointer; color: var(--pie-tinta) !important; opacity: 0.75; }
+.aj-cerrar:hover { opacity: 1; }
+.aj-cerrar:focus-visible { outline: 2px solid var(--pie-tinta); outline-offset: 2px; }
+.aj-cerrar svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; }
+
+.aj-sec { padding: 20px 28px 22px; }
+.aj-sec + .aj-sec { border-top: 1px solid var(--line); }
+.aj-sec h4 { margin: 0 0 14px; padding-bottom: 8px; border-bottom: 2px solid var(--ink); font-size: 15px; font-weight: 700; }
+
+/* el botón de selección: un círculo; elegido, con su punto en tinta */
+.aj-radio { flex-shrink: 0; width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--ink-3); display: inline-grid; place-items: center; }
+.aj-radio::after { content: ''; width: 9px; height: 9px; border-radius: 50%; background: var(--ink); transform: scale(0); transition: transform 140ms ease; }
+.aj [aria-checked="true"] .aj-radio { border-color: var(--ink); }
+.aj [aria-checked="true"] .aj-radio::after { transform: scale(1); }
+.aj [role="radio"]:hover .aj-radio { border-color: var(--ink); }
+.aj [role="radio"]:focus-visible { outline: 2px solid var(--link); outline-offset: 3px; }
+
+/* apariencia: las ventanas de ónix de la Biblioteca Central (v4.18) */
+.aj-modos { display: flex; gap: 28px; }
+.aj-modos button { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; padding: 0; border: 0; background: none; cursor: pointer; }
+.aj-modos img { display: block; width: 96px; height: 96px; outline: 1px solid var(--line); outline-offset: 2px; opacity: 0.55; transition: opacity 150ms ease; }
+.aj-modos button:hover img { opacity: 0.85; }
+.aj-modos button[aria-checked="true"] img { opacity: 1; outline: 2px solid var(--ink); }
+.aj-op { display: inline-flex; align-items: center; gap: 8px; font-size: 14.5px; color: var(--ink-2); }
+.aj-modos button[aria-checked="true"] .aj-op { color: var(--ink); font-weight: 600; }
+
+/* color de los puntos: una fila por opción, con su muestra de colores */
+.aj-lentes { display: flex; flex-direction: column; }
+.aj-lentes button { display: flex; align-items: flex-start; gap: 12px; width: 100%; padding: 12px 0; border: 0; background: none; text-align: left; cursor: pointer; }
+.aj-lentes button + button { border-top: 1px solid var(--line); }
+.aj-lentes .aj-radio { margin-top: 1px; }
+.aj-txt { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.aj-txt b { font-size: 14.5px; font-weight: 600; color: var(--ink-2); }
+.aj-lentes button[aria-checked="true"] .aj-txt b { color: var(--ink); }
+.aj-txt small { font-size: 13px; color: var(--ink-3); }
+.aj-tira { display: flex; gap: 2px; margin-top: 6px; }
+.aj-tira i { display: block; width: 12px; height: 12px; }
+.aj-tira-areas i { width: 26px; }
+/* los tonos de buildPalette (index.html): tres luminosidades que se alternan, de día y de noche */
+.aj-c0 { background: oklch(0.50 0.13 var(--h)); } .aj-c1 { background: oklch(0.60 0.135 var(--h)); } .aj-c2 { background: oklch(0.69 0.12 var(--h)); }
+body.noche .aj-c0 { background: oklch(0.66 0.14 var(--h)); } body.noche .aj-c1 { background: oklch(0.73 0.13 var(--h)); } body.noche .aj-c2 { background: oklch(0.80 0.115 var(--h)); }
+.aj-a1 { background: #3566a8; } .aj-a2 { background: #0f7d5c; } .aj-a3 { background: #c98a2e; } .aj-a4 { background: #b8412f; }
+body.noche .aj-a1 { background: #5b93e6; } body.noche .aj-a2 { background: #27a97c; } body.noche .aj-a3 { background: #b0801c; } body.noche .aj-a4 { background: #e0567a; }
+
+@media (max-width: 640px) {
+  .aj-banda { padding: 18px 20px 16px; }
+  .aj-sec { padding: 18px 20px 20px; }
+  .aj-cerrar { right: 12px; }
+}

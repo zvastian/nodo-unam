@@ -3892,3 +3892,47 @@ El Laboratorio pasó a usarlo: se quitaron su sesión, su ventana y sus estilos 
 - Las similares siguen igual («Las 30 tesis más similares a», «Guardar las 30»).
 - Consola limpia.
 - No se revisó en móvil.
+
+## v4.26.0: el título lleva al mapa, el libro a TESIUNAM, y Ajustes es una sola ventana (2026-09-28)
+
+**Qué cambió:**
+- **Título y catálogo, igual en todas las páginas.** Antes, el título de una tesis llevaba al mapa en Mi espacio, pero a TESIUNAM en el mapa y en el Laboratorio.
+  - Ahora el título **siempre lleva a la tesis en el mapa**.
+    - En el mapa, abre su ficha y vuela a ella.
+    - En el Laboratorio abre el mapa en otra pestaña, para no perder el análisis.
+    - Con Ctrl o Cmd, se abre en otra pestaña.
+  - Junto al título, **un libro abierto en un círculo** (`.leer`) abre el registro en TESIUNAM.
+  - Dónde aparece:
+    - la ficha de la tesis, la lista de tesis del asesor, las filas del taller y la lista de lo guardado junto al buscador;
+    - las listas del Laboratorio;
+    - Mi espacio.
+  - Un carácter de unión (U+2060) evita que el libro quede solo en un renglón.
+  - De paso, en el Laboratorio vuelve a funcionar el resaltado del punto al pasar por un título: esperaba `tesis=` en el enlace.
+- **Lo guardado lleva su número de catálogo.** El Worker acepta `catalogo` en la lista blanca de datos de una tesis (`services/puerta/src/index.js`).
+  - El mapa y el Laboratorio lo mandan al guardar.
+  - Para lo guardado antes, Mi espacio busca el número en los datos del mapa la primera vez que se pulsa el libro. Abre la pestaña al instante para que el navegador no la bloquee.
+- **Ajustes, la misma ventana en el mapa, el Laboratorio y Mi espacio** (`compartido/ajustes.js` y `compartido/ajustes.css`).
+  - Arriba, una banda marina con el título, sin subtítulo.
+  - **Apariencia:** Claro y Oscuro (antes Día y Noche), con las ventanas de ónix y un botón de selección al lado de cada nombre.
+  - **Color de los puntos del mapa:** Campos y Áreas administrativas, cada una en su fila con botón de selección, una línea que la explica y una muestra de sus colores reales. La paleta de campos sale de la fórmula de `buildPalette`; la de áreas, de `AREA_DIA` y `AREA_NOCHE`.
+  - Se maneja con teclado: flechas dentro de cada grupo y Esc para cerrar.
+  - La elección de color se guarda (`nodo_lente`): si se cambia desde el Laboratorio o Mi espacio, el mapa la aplica al abrirse.
+  - El Laboratorio y Mi espacio pierden su menú desplegable de «Modo noche».
+
+**Por qué:** lo pidió el usuario. El clic en el título llevaba a lugares distintos según la página. Además, Ajustes necesitaba más diseño, nombres de modo claros, botones de selección visibles y ser la misma ventana en el Laboratorio. El formato (banda marina y filas) se eligió con el usuario antes de codificar.
+
+**Verificación:** Chrome headless.
+- **Mapa (1600×900):**
+  - el título de la ficha no cambia de página y conserva la tesis;
+  - el libro apunta al registro de Koha (`biblionumber=176851`);
+  - en la lista del asesor, el título abre la ficha de esa tesis.
+- **Mi espacio:** con datos simulados, una tesis sin número se resuelve a `769172`, el mismo del mapa.
+- **Ajustes:**
+  - en el mapa, en claro y oscuro, cambia el modo y el color, y Esc la cierra;
+  - en el Laboratorio cambia el modo;
+  - en móvil (390×844) cabe sin desbordar.
+- Consola limpia.
+
+**Pendiente:**
+- Probar guardar con una sesión real, para confirmar que `catalogo` llega a D1.
+- Ver el Laboratorio con un análisis completo en pantalla: en headless no llegó a pintar las listas a tiempo.

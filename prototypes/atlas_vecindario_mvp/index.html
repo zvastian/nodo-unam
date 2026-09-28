@@ -108,17 +108,6 @@
   /* v4.16: Ajustes. Panel anclado bajo la barra (no una tarjeta flotante con sombra) */
   .navajustes { display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 2px; border: 0; background: none; font: inherit; font-size: 14px; color: var(--ink-2); cursor: pointer; }
   .navajustes:hover, .navajustes[aria-expanded="true"] { color: var(--ink); }
-  #ajustes { position: absolute; top: 100%; right: 24px; z-index: 30; width: 320px; background: var(--paper); border: 1px solid var(--line-strong); border-top: 0; padding: 14px 18px 16px; }
-  #ajustes h4 { margin: 0 0 8px; font-size: 13.5px; font-weight: 600; color: var(--ink); }
-  #ajustes h4 + * { margin-bottom: 16px; }
-  #ajustes > :last-child { margin-bottom: 0; }
-  /* las ventanas de onix de la Biblioteca Central, de dia y de noche */
-  #modo-mapa { display: flex; gap: 14px; }
-  #modo-mapa button { display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 0; border: 0; background: none; font: inherit; font-size: 13px; color: var(--ink-3); cursor: pointer; }
-  #modo-mapa img { display: block; outline: 1px solid var(--line); outline-offset: 2px; opacity: 0.55; transition: opacity 150ms ease; }
-  #modo-mapa button:hover img { opacity: 0.85; }
-  #modo-mapa button.active { color: var(--ink); font-weight: 600; }
-  #modo-mapa button.active img { opacity: 1; outline: 2px solid var(--ink); }
   .navsearch span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
   #debug-bar { display: none; }
   body.debug #debug-bar { display: flex; gap: 6px; align-items: center; }
@@ -269,8 +258,8 @@
   .co-tesis { list-style: none; margin: 2px 0 10px 22px; padding: 0; font-size: 13px; line-height: 1.4; }
   .co-tesis li { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; column-gap: 8px; padding: 5px 0; border-top: 1px solid var(--line); }
   .co-tesis .y { color: var(--ink-3); }
-  .co-tesis a { color: var(--ink); text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 3px; }
-  .co-tesis a:hover { text-decoration-color: var(--ink); }
+  .co-tesis a.al-mapa { color: var(--ink); text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 3px; }
+  .co-tesis a.al-mapa:hover { text-decoration-color: var(--ink); }
   .co-tesis.sola { margin-left: 0; }
   .cs-list button:disabled:hover .n { color: inherit; text-decoration: none; }
   .cs-list .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--c); margin-left: 1px; }
@@ -304,9 +293,15 @@
   #map-selection .ms-head { display: flex; flex-direction: column; }
   #map-selection .close-btn-mini { z-index: 1; }
   #map-selection .ms-title { font-size: 18px; font-weight: 700; line-height: 1.3; margin-bottom: 6px; padding-right: 30px; letter-spacing: -0.005em; }
-  /* v4.19: el titulo de una tesis abre su registro en TESIUNAM; en tinta, con subrayado fino que se marca al pasar */
-  #map-selection .ms-title a { color: var(--ink); text-decoration: underline; text-decoration-color: var(--line-strong); text-decoration-thickness: 1px; text-underline-offset: 4px; }
-  #map-selection .ms-title a:hover { text-decoration-color: var(--ink); }
+  /* v4.26: el titulo lleva a la tesis en el mapa (en tinta, subrayado fino que se marca al pasar); el libro en un circulo, a TESIUNAM */
+  .leer { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; margin-left: 6px; border: 1px solid var(--line-strong); border-radius: 50%; color: var(--ink-2); vertical-align: -4px; flex-shrink: 0; text-decoration: none !important; }
+  .leer:hover { border-color: var(--ink); color: var(--ink); }
+  .leer:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+  .leer svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linejoin: round; }
+  #map-selection .ms-title .leer { width: 24px; height: 24px; vertical-align: -3px; }
+  .tt-fila .leer { align-self: start; margin: 10px 0 0; }
+  #map-selection .ms-title a.al-mapa { color: var(--ink); text-decoration: underline; text-decoration-color: var(--line-strong); text-decoration-thickness: 1px; text-underline-offset: 4px; }
+  #map-selection .ms-title a.al-mapa:hover { text-decoration-color: var(--ink); }
   #map-selection .ms-meta { font-size: 13.5px; color: var(--ink-3); margin-bottom: 10px; }
   #map-selection .ms-note { font-size: 14px; color: var(--ink-2); line-height: 1.55; }
   /* v4.4: la tesis en dos tamanos con una sola gramatica, la del plano de metro de Vignelli
@@ -512,7 +507,7 @@
   /* ficha compacta de tesis: la gramatica del hover, a tamano de lista */
   .tt { display: block; width: 100%; padding: 12px 0 11px; border: 0; border-bottom: 1px solid var(--line); background: none; font: inherit; text-align: left; cursor: pointer; }
   /* v4.21: la fila de una tesis lleva su boton de guardar al lado (un boton no puede ir dentro de otro) */
-  .tt-fila { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 8px; border-bottom: 1px solid var(--line); }
+  .tt-fila { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; column-gap: 8px; border-bottom: 1px solid var(--line); }
   .tt-fila .tt { border-bottom: 0; }
   .tt-fila .guardar { padding-top: 12px; }
   #panel .tt-fila .guardar { padding-top: 10px; }
@@ -532,7 +527,8 @@
   #guardados-menu .gd-cab h4 { margin: 0; font-size: 14px; font-weight: 700; color: var(--ink); }
   #guardados-menu .gd-cab a { font-size: 13px; color: var(--link); }
   #guardados-menu .s-sec span { font-weight: 400; color: var(--ink-3); }
-  .gd-fila { display: grid; grid-template-columns: 4px minmax(0, 1fr) auto; gap: 12px; align-items: stretch; padding: 6px 12px 6px 18px; }
+  .gd-fila .leer { align-self: start; margin: 0; }
+  .gd-fila { display: grid; grid-template-columns: 4px minmax(0, 1fr) auto auto; gap: 12px; align-items: stretch; padding: 6px 12px 6px 18px; }
   .gd-fila .sr-bar { display: block; width: 4px; }
   .gd-ir { border: 0; background: none; padding: 0; text-align: left; font: inherit; font-size: 14px; line-height: 1.35; color: var(--ink); cursor: pointer; min-width: 0; overflow-wrap: anywhere; }
   .gd-ir small { display: block; font-size: 12.5px; color: var(--ink-3); margin-top: 1px; }
@@ -666,20 +662,9 @@
     aside#panel.peek { display: none; }
     #map-selection, body.iso #map-selection { --msy: 14px; --msx: 16px; top: auto; max-height: 46%; border-left: none; border-top: 1px solid var(--line-strong); }
   }
-  /* v4.18: Ajustes al centro, con el fondo difuminado; las ventanas en grande */
-  #ajustes-capa { position: fixed; inset: 0; z-index: 45; background: color-mix(in srgb, var(--bg) 35%, transparent); -webkit-backdrop-filter: blur(7px); backdrop-filter: blur(7px); }
-  #ajustes { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 46; width: min(400px, calc(100vw - 32px)); max-height: calc(100vh - 32px); overflow-y: auto; background: var(--paper); border: 1px solid var(--line-strong); padding: 24px 28px 26px; }
-  #ajustes .aj-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
-  #ajustes .aj-head h3 { margin: 0; font-size: 20px; font-weight: 700; color: var(--ink); }
-  #ajustes .aj-head button { border: 0; background: none; padding: 4px; color: var(--ink-2); cursor: pointer; display: inline-flex; }
-  #ajustes .aj-head button:hover { color: var(--ink); }
-  #ajustes h4 { margin: 0 0 12px; font-size: 14px; font-weight: 600; color: var(--ink); }
-  #ajustes section + section { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--line); }
-  #modo-mapa { display: flex; gap: 22px; }
-  #modo-mapa button { gap: 10px; font-size: 14px; }
-  #modo-mapa img { width: 96px; height: 96px; }
 </style>
 <link rel="stylesheet" href="compartido/cuenta.css?v=4.23.2">
+<link rel="stylesheet" href="compartido/ajustes.css?v=4.26.0">
 </head>
 <body>
 <div class="app">
@@ -786,7 +771,7 @@
 
   <footer>
     <span>Proyecto independiente, no oficial. Datos del catálogo público TESIUNAM.</span>
-    <span><button type="button" id="foot-metodo">Cómo se hizo el mapa</button><span class="foot-sep"></span>versión <span id="app-version">4.25.0</span></span>
+    <span><button type="button" id="foot-metodo">Cómo se hizo el mapa</button><span class="foot-sep"></span>versión <span id="app-version">4.26.0</span></span>
   </footer>
 </div>
 
@@ -799,23 +784,6 @@
   </div>
 </div>
 
-<div id="ajustes-capa" hidden></div>
-<div id="ajustes" hidden role="dialog" aria-modal="true" aria-labelledby="aj-titulo">
-  <div class="aj-head"><h3 id="aj-titulo">Ajustes</h3><button type="button" id="aj-cerrar" aria-label="Cerrar ajustes"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg></button></div>
-  <section>
-    <h4>Modo</h4>
-    <div id="modo-mapa" role="group" aria-label="Día o noche">
-      <button type="button" data-modo="dia" class="active"><img src="ventanas-dia.svg" width="96" height="96" alt=""><span>Día</span></button>
-      <button type="button" data-modo="noche"><img src="ventanas-noche.svg" width="96" height="96" alt=""><span>Noche</span></button>
-    </div>
-  </section>
-  <section>
-    <h4>Color de los puntos del mapa</h4>
-    <div class="seg" id="lens" role="group" aria-label="Color de los puntos">
-      <button type="button" data-lens="territory" class="active">Campos</button><button type="button" data-lens="area">Áreas administrativas</button>
-    </div>
-  </section>
-</div>
 <div id="vtooltip" class="tip"></div>
 
 <section id="metodo" hidden aria-label="Método">
@@ -869,6 +837,7 @@
 <!-- supabase-js 2.117.2 (UMD), versión exacta con SRI, y la sesión compartida (compartido/sesion.js) -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js" integrity="sha384-Rj26LVGvoeRVR6+mwQmFfcR3QOBEwT+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok" crossorigin="anonymous"></script>
 <script src="compartido/sesion.js?v=4.23.2"></script>
+<script src="compartido/ajustes.js?v=4.26.0"></script>
 <script>
 (function () {
   'use strict';
@@ -1858,14 +1827,13 @@
     if (lens === state.lens && !force) return;
     state.lens = lens;
     leyendaAreas();
-    document.querySelectorAll('#lens button').forEach(function (b) { b.classList.toggle('active', b.getAttribute('data-lens') === lens); });
+    if (window.NodosAjustes) NodosAjustes.pintar();
     state.highlightKey = '';
     if (state.iso) recolorIsolation();
     if (!state.introActive) restoreView();
     live.forEach(function (rec) { if (rec.dot) { rec.dot.firstChild.setAttribute('fill', nodeColor(rec.n)); rec.dot.firstChild.style.setProperty('--c', nodeColor(rec.n)); } });
     paintMinimap();
   }
-  document.querySelectorAll('#lens button').forEach(function (b) { b.addEventListener('click', function () { if (!state.introActive) setLens(b.getAttribute('data-lens')); }); });
   // Dia / noche del mapa. Se guarda en el navegador; el claro es el predeterminado.
   function setNoche(on, inicial) {
     state.noche = !!on;
@@ -1873,7 +1841,6 @@
     document.body.classList.toggle('noche', state.noche);
     Object.assign(AREA_HEX, state.noche ? AREA_NOCHE : AREA_DIA);
     (state.noche ? NIVEL_NOCHE : NIVEL_DIA).forEach(function (c, k) { NIVEL_COLOR[k] = c; });
-    document.querySelectorAll('#modo-mapa button').forEach(function (b) { b.classList.toggle('active', (b.getAttribute('data-modo') === 'noche') === state.noche); });
     tintasMapa();
     if (inicial || !state.scatterplot || !state.macros.length) return;
     buildPalette();
@@ -1898,15 +1865,14 @@
     }
   }
   function nocheGuardada() { try { return localStorage.getItem('nodo_noche') === '1'; } catch (e) { return false; } }
-  document.querySelectorAll('#modo-mapa button').forEach(function (b) { b.addEventListener('click', function () { setNoche(b.getAttribute('data-modo') === 'noche'); }); });
-  function ajustes(abrir) {
-    var a = $('ajustes'), on = abrir === undefined ? a.hidden : abrir;
-    a.hidden = !on; $('ajustes-capa').hidden = !on; $('btn-ajustes').setAttribute('aria-expanded', String(on));
-    if (on) $('aj-cerrar').focus();
-  }
-  $('btn-ajustes').addEventListener('click', function (ev) { ev.stopPropagation(); ajustes(); });
-  $('ajustes-capa').addEventListener('click', function () { ajustes(false); });
-  $('aj-cerrar').addEventListener('click', function () { ajustes(false); });
+  // v4.26: Ajustes es la misma ventana en todas las páginas (compartido/ajustes.js)
+  NodosAjustes.montar({
+    boton: $('btn-ajustes'),
+    modo: function () { return !!state.noche; },
+    lente: function () { return state.lens; },
+    alModo: function (oscuro) { setNoche(oscuro); },
+    alLente: function (l) { if (!state.introActive) setLens(l); }
+  });
   // ==================== datos por tema (v3.1) ====================
   // tesis_por_micro/{clusterId}.json: TODAS las tesis de cada tema fino (199,623 en
   // 513 archivos, sin autor). Territorio y subtema se arman juntando sus temas finos.
@@ -2453,7 +2419,7 @@
       '<span>' + (r.y || 'Año sin registro') + '</span></span>' +
       '<span class="tt-t">' + resaltarHtml(r.t, tk) + '</span>' +
       '<span class="tc" style="--c:' + AREA_HEX[m.ar] + '"><span class="tc-r" title="' + escapeHtml(AREA_NAMES[m.ar]) + '"></span>' +
-      item('tc-p', r.pr, 'Programa') + item('tc-l', r.pl ? plantelCorto(r.pl) : '', 'Plantel') + item('tc-a', r.as.join(', '), 'Asesoría') + '</span></button>' + btnGuardar(state.thesisIdToIndex.get(r.id)) + '</div>';
+      item('tc-p', r.pr, 'Programa') + item('tc-l', r.pl ? plantelCorto(r.pl) : '', 'Plantel') + item('tc-a', r.as.join(', '), 'Asesoría') + '</span></button>' + btnLeer(state.thesisIdToIndex.get(r.id)) + btnGuardar(state.thesisIdToIndex.get(r.id)) + '</div>';
   }
 
   // v4.24: las similares de una tesis se guardan todas de una vez (una por una, como en el Laboratorio)
@@ -2469,7 +2435,7 @@
     var idxs = taller.rows.map(function (r) { return state.thesisIdToIndex.get(r.id); }).filter(function (i) { return i != null && !tesisGuardada(i); });
     if (!idxs.length) return;
     b.disabled = true; b.innerHTML = ICO_GUARDAR + 'Guardando…';
-    if (!tmeta) await loadTesisMeta();
+    await Promise.all([tmeta || loadTesisMeta(), catalogo || loadCatalogo()]);
     for (var k = 0; k < idxs.length; k++) {
       var i = idxs[k];
       try {
@@ -2658,11 +2624,30 @@
     var n = catalogo && catalogo[idx];
     return n ? CATALOGO + 'cgi-bin/koha/opac-detail.pl?biblionumber=' + n : CATALOGO;
   }
-  function enlazarTitulo(idx) {
-    var tt = $('ms-title'), n = catalogo && catalogo[idx];
-    tt.innerHTML = '<a href="' + ligaCatalogo(idx) + '" target="_blank" rel="noopener" title="' +
-      (n ? 'Ver el registro en el catálogo TESIUNAM' : 'Sin registro directo: se abre el buscador del catálogo TESIUNAM') + '">' + escapeHtml(tt.textContent) + '</a>';
+  // v4.26: en todas las páginas, el título lleva a la tesis en el mapa y el botón del libro, a TESIUNAM
+  var ICO_LEER = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 4.6C6.6 3.6 4.8 3.1 2.6 3.1v8.8c2.2 0 4 .5 5.4 1.5 1.4-1 3.2-1.5 5.4-1.5V3.1c-2.2 0-4 .5-5.4 1.5zM8 4.6v8.8"/></svg>';
+  function btnLeer(idx) {
+    if (idx == null) return '';
+    var n = catalogo && catalogo[idx];
+    return '<a class="leer" href="' + ligaCatalogo(idx) + '" data-leer="' + idx + '" target="_blank" rel="noopener" title="' + (catalogo && !n ? 'Sin registro directo: abre el buscador de TESIUNAM' : 'Leer en TESIUNAM') + '" aria-label="Leer la tesis en TESIUNAM">' + ICO_LEER + '</a>';
   }
+  function tituloAlMapa(idx, texto) {
+    return '<a class="al-mapa" href="?tesis=' + encodeURIComponent(state.thesisIds[idx]) + '" data-ir="' + idx + '" title="Ver la tesis en el mapa">' + escapeHtml(texto) + '</a>';
+  }
+  function enlazarTitulo(idx) {
+    var tt = $('ms-title');
+    tt.innerHTML = tituloAlMapa(idx, tt.textContent) + '&#8288;' + btnLeer(idx);
+  }
+  document.addEventListener('click', function (ev) {
+    var a = ev.target.closest && ev.target.closest('a[data-ir], a[data-leer]');
+    if (!a || ev.ctrlKey || ev.metaKey || ev.shiftKey || ev.button) return;
+    if (a.hasAttribute('data-ir')) { ev.preventDefault(); onPointClick(+a.getAttribute('data-ir'), 1 / (K_MICRO * 1.2)); return; }
+    // sin el número todavía: la pestaña se abre ya (si no, el navegador la bloquea) y se dirige al llegar
+    if (catalogo) { a.href = ligaCatalogo(+a.getAttribute('data-leer')); return; }
+    ev.preventDefault();
+    var w = window.open('', '_blank'); if (w) w.opener = null;
+    loadCatalogo().then(function () { var u = ligaCatalogo(+a.getAttribute('data-leer')); if (w) w.location.href = u; else window.open(u, '_blank', 'noopener'); });
+  });
   // v4.21: guardar una tesis. Donde se muestre una tesis concreta hay un boton de guardar.
   // PENDIENTE: sin cuenta, el boton es la invitacion a crearla: abrira una pagina propia
   // (como Ajustes, con el fondo desenfocado) y, ya con cuenta, guardara la tesis.
@@ -2689,6 +2674,7 @@
       if (nv) d.nivel = tmeta.m.niveles[nv - 1];
       if (pl && tmeta.m.planteles) d.plantel = tmeta.m.planteles[pl - 1];
     }
+    if (catalogo && catalogo[idx]) d.catalogo = catalogo[idx];
     return d;
   }
   function guardarTesis(idx, boton) {
@@ -2696,7 +2682,7 @@
     if (!NodOS.usuario()) { NodOS.abrirEntrar(boton); return; }
     var id = state.thesisIds[idx], on = !tesisGuardada(idx);
     pintarGuardada(idx, on); NodOS.animarGuardado(boton, on);
-    (tmeta ? Promise.resolve() : loadTesisMeta()).then(function () { return NodOS.guardarTesis(id, on ? datosTesisMapa(idx) : null, on); })
+    Promise.all([tmeta || loadTesisMeta(), catalogo || loadCatalogo()]).then(function () { return NodOS.guardarTesis(id, on ? datosTesisMapa(idx) : null, on); })
       .catch(function (err) { pintarGuardada(idx, !on); dlog('guardar tesis: ' + (err.codigo || err.message)); });
   }
   // asesor: el mismo marcador en su ficha del mapa
@@ -2796,6 +2782,7 @@
           var i = filas.push(f) - 1;
           html += '<div class="gd-fila"><i class="sr-bar" style="background:' + escapeHtml(f.color || 'var(--line-strong)') + '"></i>' +
             '<button type="button" class="gd-ir" data-gd="' + i + '"><span>' + escapeHtml(f.nombre) + '</span>' + (f.sub ? '<small>' + escapeHtml(f.sub) + '</small>' : '') + '</button>' +
+            (f.tipo === 'tesis' ? btnLeer(state.thesisIdToIndex.get(f.clave)) || '<span></span>' : '<span></span>') +
             '<button type="button" class="gd-x" data-gdx="' + i + '" aria-label="Quitar ' + escapeHtml(f.nombre) + '" title="Quitar">' + ICO_X + '</button></div>';
         });
       }
@@ -3253,7 +3240,7 @@
       if (!pedido[clave]) { pedido[clave] = true; Promise.all(faltan.map(titleTileFor).concat(catalogo ? [] : [loadCatalogo()])).then(pinta); }
       return '<ol class="' + clase + '">' + l.map(function (i) {
         var info = pointInfo(i), t = info ? info.t : (info === null ? 'Título sin registro' : 'Cargando título…');
-        return '<li><span class="y">' + (ases.anio[i] || '') + '</span><a href="' + ligaCatalogo(i) + '" target="_blank" rel="noopener" title="Ver el registro en el catálogo TESIUNAM">' + escapeHtml(t) + '</a>' + btnGuardar(i) + '</li>';
+        return '<li><span class="y">' + (ases.anio[i] || '') + '</span><span>' + tituloAlMapa(i, t) + '&#8288;' + btnLeer(i) + '</span>' + btnGuardar(i) + '</li>';
       }).join('') + '</ol>';
     }
     // el taller del asesor: todas sus tesis con Perfil y Asesores, como un campo o un tema
@@ -3403,7 +3390,7 @@
     try { localStorage.setItem('nodo_atlas_intro_v3', '1'); } catch (e) { /* sin almacenamiento: la intro reaparece la proxima vez */ }
     if (state.introActive) setChromeForIntro(false);
     state.highlightKey = '';
-    setLens('territory', true);
+    setLens(NodosAjustes.lente(), true);
     applyMinimapPref();
     syncOverlay(); updateCrumbs(); drawMinimapView();
   }
@@ -4108,7 +4095,7 @@
     if ((ev.ctrlKey || ev.metaKey) && k.toLowerCase() === 'k') { ev.preventDefault(); openSearch(); return; }
     if (k === '/' && !typing) { ev.preventDefault(); openSearch(); return; }
     if (k === 'Escape') {
-      if (!$('ajustes').hidden) ajustes(false);
+      if (NodosAjustes.abierto()) NodosAjustes.abrir(false);
       else if (!$('search').hidden) closeSearch();
       else if (!$('taller').hidden) closeTaller();
       else if (!$('metodo').hidden) showMetodo(false);

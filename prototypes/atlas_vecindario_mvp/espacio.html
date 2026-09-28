@@ -6,6 +6,7 @@
 <title>Mi espacio · NodOS</title>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="compartido/cuenta.css?v=4.23.2">
+<link rel="stylesheet" href="compartido/ajustes.css?v=4.26.0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -42,11 +43,6 @@
   .nav-right { margin-left: auto; display: flex; align-items: center; gap: 20px; }
   .linkbtn { background: none; border: none; padding: 2px 0; cursor: pointer; color: var(--ink-2); font-size: 14px; }
   .linkbtn:hover { color: var(--ink); }
-  .ajustes { position: relative; }
-  .ajustes-menu { position: absolute; right: 0; top: calc(100% + 14px); z-index: 60; min-width: 200px; background: var(--paper); border: 1px solid var(--line-strong); border-top: 3px solid var(--ink); padding: 8px 14px; }
-  .ajustes-menu button { display: flex; justify-content: space-between; gap: 16px; width: 100%; background: none; border: 0; padding: 6px 0; font-size: 14px; color: var(--ink); cursor: pointer; }
-  .ajustes-menu button::after { content: 'No'; color: var(--ink-3); }
-  .ajustes-menu button[aria-checked="true"]::after { content: 'Sí'; color: var(--ink); font-weight: 600; }
 
   .page { max-width: 1080px; margin: 0 auto; padding: 32px 24px 72px; }
   /* la banda: marino pleno, como la portada del Laboratorio */
@@ -69,6 +65,11 @@
   .esp-lista li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 24px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line); }
   .esp-tit { font-size: 16px; font-weight: 600; color: var(--ink); overflow-wrap: anywhere; }
   a.esp-tit:hover { text-decoration: underline; text-underline-offset: 3px; }
+  /* v4.26: el libro en un círculo, junto al título: abre la tesis en TESIUNAM */
+  .leer { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; margin-left: 8px; border: 1px solid var(--line-strong); border-radius: 50%; color: var(--ink-2); vertical-align: -4px; text-decoration: none !important; }
+  .leer:hover { border-color: var(--ink); color: var(--ink); }
+  .leer:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+  .leer svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linejoin: round; }
   .esp-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px; font-size: 13.5px; color: var(--ink-2); margin-top: 3px; }
   .esp-meta i { display: inline-block; width: 3px; height: 13px; margin-right: 6px; vertical-align: -2px; background: var(--c, var(--ink-3)); }
   .esp-acciones { display: flex; gap: 18px; }
@@ -135,10 +136,7 @@
     <a href="index.html#metodo">Acerca de</a>
   </nav>
   <div class="nav-right">
-    <div class="ajustes">
-      <button type="button" class="linkbtn" id="btn-ajustes" aria-haspopup="true" aria-expanded="false">Ajustes</button>
-      <div class="ajustes-menu" id="ajustes-menu" hidden><button type="button" id="modo" role="menuitemcheckbox" aria-checked="false">Modo noche</button></div>
-    </div>
+    <button type="button" class="linkbtn" id="btn-ajustes">Ajustes</button>
     <div data-nds-cuenta></div>
   </div>
 </header>
@@ -212,6 +210,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js" integrity="sha384-Rj26LVGvoeRVR6+mwQmFfcR3QOBEwT+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok" crossorigin="anonymous"></script>
 <script src="compartido/sesion.js?v=4.23.2"></script>
+<script src="compartido/ajustes.js?v=4.26.0"></script>
 <script>
 (function () {
   'use strict';
@@ -249,8 +248,36 @@
   var ICO_X = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 4.5l7 7M11.5 4.5l-7 7"/></svg>';
   function tache(attr, titulo) { return '<button type="button" class="esp-x" ' + attr + ' data-titulo="' + esc(titulo) + '" aria-label="Quitar ' + esc(titulo) + '" title="Quitar">' + ICO_X + '</button>'; }
   var NIVEL = { macro: 'Campo', meso: 'Tema', micro: 'Subtema' };
-  function fila(titulo, href, meta, acciones) {
-    return '<li><div>' + (href ? '<a class="esp-tit" href="' + href + '">' + esc(titulo) + '</a>' : '<span class="esp-tit">' + esc(titulo) + '</span>') +
+  // v4.26: como en el mapa y el Laboratorio, el título lleva al mapa y el libro en un círculo, a TESIUNAM
+  var CATALOGO = 'https://tesiunam.dgb.unam.mx/';
+  var ICO_LEER = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 4.6C6.6 3.6 4.8 3.1 2.6 3.1v8.8c2.2 0 4 .5 5.4 1.5 1.4-1 3.2-1.5 5.4-1.5V3.1c-2.2 0-4 .5-5.4 1.5zM8 4.6v8.8"/></svg>';
+  function ligaCatalogo(n) { return n ? CATALOGO + 'cgi-bin/koha/opac-detail.pl?biblionumber=' + n : CATALOGO; }
+  function btnLeer(tid, n) {
+    return '&#8288;<a class="leer" href="' + ligaCatalogo(n) + '"' + (n ? '' : ' data-leer="' + esc(tid) + '"') + ' target="_blank" rel="noopener" title="Leer en TESIUNAM" aria-label="Leer la tesis en TESIUNAM">' + ICO_LEER + '</a>';
+  }
+  // lo guardado antes de v4.26 no trae el número: se busca en los datos del mapa la primera vez
+  var numerosP = null;
+  function numeroCatalogo(tid) {
+    if (!numerosP) numerosP = fetch('data/atlas_chaos_mode.v1.json').then(function (r) { return r.json(); }).then(function (m) {
+      return Promise.all([fetch('data/atlas_chaos_mode.v1.bin').then(function (r) { return r.arrayBuffer(); }), fetch('data/tesis_catalogo.v1.bin').then(function (r) { return r.arrayBuffer(); })]).then(function (b) {
+        var f = m.fields.thesisIdsBlob, ids = new TextDecoder('utf-8').decode(new Uint8Array(b[0], f.byteOffset, f.byteLength)).split('\n');
+        return { ids: new Map(ids.map(function (id, i) { return [id, i]; })), cat: new Uint32Array(b[1]) };
+      });
+    }).catch(function (e) { numerosP = null; throw e; });
+    return numerosP.then(function (d) { var i = d.ids.get(tid); return i != null ? d.cat[i] : 0; });
+  }
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest('a.leer[data-leer]');
+    if (!a || e.ctrlKey || e.metaKey || e.shiftKey || e.button) return;
+    e.preventDefault();
+    var w = window.open('', '_blank'); if (w) w.opener = null; // se abre ya: si no, el navegador la bloquea
+    numeroCatalogo(a.dataset.leer).catch(function () { return 0; }).then(function (n) {
+      a.href = ligaCatalogo(n); if (n) a.removeAttribute('data-leer');
+      if (w) w.location.href = a.href; else window.open(a.href, '_blank', 'noopener');
+    });
+  });
+  function fila(titulo, href, meta, acciones, tras) {
+    return '<li><div>' + (href ? '<a class="esp-tit" href="' + href + '">' + esc(titulo) + '</a>' : '<span class="esp-tit">' + esc(titulo) + '</span>') + (tras || '') +
       '<div class="esp-meta">' + meta + '</div></div><div class="esp-acciones">' + acciones + '</div></li>';
   }
   function pintar(d) {
@@ -282,7 +309,7 @@
       if (x.nivel) meta.push('<span>' + esc(capital(escribir(x.nivel))) + '</span>');
       if (x.anio) meta.push('<span>' + x.anio + '</span>');
       var tit = x.titulo ? capital(x.titulo) : 'Tesis guardada';
-      return fila(tit, 'index.html?tesis=' + encodeURIComponent(t.tesis), meta.join(''), tache('data-quitar-tesis="' + esc(t.tesis) + '"', tit));
+      return fila(tit, 'index.html?tesis=' + encodeURIComponent(t.tesis), meta.join(''), tache('data-quitar-tesis="' + esc(t.tesis) + '"', tit), btnLeer(t.tesis, x.catalogo));
     }).join('') : '<li class="esp-nada">Guarda tesis desde el mapa o desde un análisis con el marcador de cada una.</li>';
     // asesores
     $('n-asesores').textContent = d.asesores.length ? String(d.asesores.length) : '';
@@ -338,15 +365,9 @@
     });
   });
 
-  // Ajustes: el modo noche, compartido con el mapa y el Laboratorio
-  try { if (localStorage.getItem('nodo_noche') === '1') { document.body.classList.add('noche'); $('modo').setAttribute('aria-checked', 'true'); } } catch (e) { /* sin almacenamiento */ }
-  $('modo').addEventListener('click', function () {
-    document.body.classList.toggle('noche'); this.setAttribute('aria-checked', String(noche()));
-    try { localStorage.setItem('nodo_noche', noche() ? '1' : '0'); } catch (e) { /* sin almacenamiento */ }
-    if (ultimo) pintar(ultimo);
-  });
-  $('btn-ajustes').addEventListener('click', function (ev) { ev.stopPropagation(); var abrir = $('ajustes-menu').hidden; $('ajustes-menu').hidden = !abrir; this.setAttribute('aria-expanded', String(abrir)); });
-  document.addEventListener('click', function (ev) { if (!$('ajustes-menu').hidden && !ev.target.closest('.ajustes')) { $('ajustes-menu').hidden = true; $('btn-ajustes').setAttribute('aria-expanded', 'false'); } });
+  // Ajustes: la misma ventana que en el mapa y el Laboratorio (compartido/ajustes.js)
+  if (NodosAjustes.oscuro()) document.body.classList.add('noche');
+  NodosAjustes.montar({ boton: $('btn-ajustes'), modo: noche, alModo: function (oscuro) { document.body.classList.toggle('noche', oscuro); if (ultimo) pintar(ultimo); } });
 
   window.__debugEspacio = { cargar: cargar, pintar: pintar }; // para las pruebas
   if (window.NodOS) { NodOS.listo.then(cargar); NodOS.alCambiar(function () { cargar(); }); } else pintarVacio();

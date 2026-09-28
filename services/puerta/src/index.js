@@ -19,7 +19,7 @@ const RE_ASESOR = /^[a-z0-9 .'-]{2,160}$/;   // nombre normalizado: minúsculas,
 const RE_LUGAR = /^(macro|meso|micro):[A-Za-z0-9_.-]{1,80}$/; // campo, tema o subtema del mapa
 const TOPE_DATOS = 2 * 1024;                  // bytes de los datos de una tesis o un asesor guardado
 // Lo que se muestra de lo guardado: lista blanca de campos y tipos; lo demás se descarta.
-const CAMPOS_TESIS = { titulo: 's', anio: 'n', programa: 's', nivel: 's', plantel: 's', area: 'n' };
+const CAMPOS_TESIS = { titulo: 's', anio: 'n', programa: 's', nivel: 's', plantel: 's', area: 'n', catalogo: 'n' };
 const CAMPOS_ASESOR = { nombre: 's', programa: 's', plantel: 's', total: 'n', ultimo: 'n', area: 'n' };
 const CAMPOS_LUGAR = { nombre: 's', nivel: 's', campo: 's', tesis: 'n', color: 's' };
 function limpiarDatos(d, campos) {
