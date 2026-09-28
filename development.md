@@ -4155,3 +4155,16 @@ La lista de pasos se acordó antes de codificar.
 **Por qué:** lo pidió el usuario: el nombre en el párrafo «se ve de más».
 
 **Verificación:** Chrome headless, claro y oscuro, con la consola limpia. `prueba_humo.mjs` pasa.
+
+## v4.31.0: Ajustes, Entrar y Mi espacio como iconos (2026-09-28)
+
+**Qué cambió:** en la barra de todas las páginas, los tres botones de la derecha son iconos de trazo sin texto:
+- **Ajustes:** una tuerca, en lugar de los controles deslizantes;
+- **Entrar:** la silueta de una persona;
+- **Mi espacio:** una casa, subrayada cuando es la página actual.
+
+El nombre de cada uno queda en `aria-label` y `title`. Entrar y Mi espacio los pinta `compartido/sesion.js`, y los estilos (`.ico-nav`) viven en `compartido/cuenta.css`. Ambos archivos suben a `?v=4.31.0` para que el navegador no use la copia vieja.
+
+**Por qué:** lo pidió el usuario.
+
+**Verificación:** Chrome headless: el mapa, Acerca de y Mi espacio en escritorio, y el Laboratorio en móvil. Consola limpia.

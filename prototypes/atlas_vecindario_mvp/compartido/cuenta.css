@@ -13,6 +13,10 @@ body.noche { --guardado: #86b3ec; }
 .nds-entrar:hover, .nds-espacio:hover { color: var(--ink); text-decoration: none; }
 .nds-espacio.activo { color: var(--ink); font-weight: 600; border-bottom-color: var(--ink); }
 .nds-entrar:focus-visible, .nds-espacio:focus-visible { outline: 2px solid var(--link); outline-offset: 3px; }
+/* v4.31: Ajustes, Entrar y Mi espacio son iconos sin texto (tuerca, persona y casa); el nombre va en aria-label */
+.ico-nav { display: block; width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.nds-entrar, .nds-espacio { display: inline-flex; align-items: center; padding: 4px 0; }
+#btn-ajustes { display: inline-flex; align-items: center; padding: 4px 0; }
 .nds-cuenta { position: relative; }
 .nds-ini { width: 28px; height: 28px; border-radius: 50%; border: 0; padding: 0; cursor: pointer; background: var(--pie-fondo); color: var(--pie-tinta); font: inherit; font-size: 13px; font-weight: 700; }
 .nds-ini:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
