@@ -97,16 +97,16 @@
     if (desde && desde.focus) desde.focus();
   }
 
-  // ---------- la barra: «Entrar» o la inicial con su menú, y «Mi espacio» ----------
+  // ---------- la barra: «Mi espacio» y luego «Entrar» o la inicial con su menú (v4.31.1) ----------
   function pintarNav() {
     var c = document.querySelector('[data-nds-cuenta]'); if (!c) return;
     var enEspacio = /espacio\.html$/.test(location.pathname);
     if (!c.dataset.hecho) {
       c.dataset.hecho = '1';
-      c.innerHTML = '<button type="button" class="nds-entrar" id="nds-btn-entrar" aria-haspopup="dialog" aria-label="Entrar" title="Entrar" hidden><svg class="ico-nav" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.2 3.6-7 8-7s8 2.8 8 7"/></svg></button>' +
+      c.innerHTML = '<a class="nds-espacio' + (enEspacio ? ' activo' : '') + '" href="espacio.html" aria-label="Mi espacio" title="Mi espacio"' + (enEspacio ? ' aria-current="page"' : '') + '><svg class="ico-nav" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9v11.5h4.75V14.5h3.5v6h4.75V9"/></svg></a>' +
+        '<button type="button" class="nds-entrar" id="nds-btn-entrar" aria-haspopup="dialog" aria-label="Entrar" title="Entrar" hidden><svg class="ico-nav" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.2 3.6-7 8-7s8 2.8 8 7"/></svg></button>' +
         '<div class="nds-cuenta" id="nds-cuenta" hidden><button type="button" class="nds-ini" id="nds-ini" aria-haspopup="menu" aria-expanded="false"></button>' +
-          '<div class="nds-menu" id="nds-menu" role="menu" hidden><p class="nds-correo" id="nds-correo"></p><button type="button" role="menuitem" id="nds-salir">Salir</button></div></div>' +
-        '<a class="nds-espacio' + (enEspacio ? ' activo' : '') + '" href="espacio.html" aria-label="Mi espacio" title="Mi espacio"' + (enEspacio ? ' aria-current="page"' : '') + '><svg class="ico-nav" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9v11.5h4.75V14.5h3.5v6h4.75V9"/></svg></a>';
+          '<div class="nds-menu" id="nds-menu" role="menu" hidden><p class="nds-correo" id="nds-correo"></p><button type="button" role="menuitem" id="nds-salir">Salir</button></div></div>';
       $('nds-btn-entrar').addEventListener('click', function () { abrirEntrar(this); });
       $('nds-ini').addEventListener('click', function (e) { e.stopPropagation(); menu($('nds-menu').hidden); });
       $('nds-salir').addEventListener('click', function () { menu(false); if (sb) sb.auth.signOut(); });

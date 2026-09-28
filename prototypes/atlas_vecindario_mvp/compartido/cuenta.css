@@ -103,3 +103,5 @@ body .guardar.on svg, body .guardar-as.on svg, body .guardar-lugar.on svg, body 
 .conf-recordar input:checked + .conf-switch::after { transform: translateX(12px); background: var(--paper); }
 .conf-recordar input:focus-visible + .conf-switch { outline: 2px solid var(--link); outline-offset: 2px; }
 .conf-recordar:hover { color: var(--ink); }
+/* en el mapa la barra separa sus hijos 28px; la tuerca queda a 20px de la cuenta, como en las demás páginas */
+header.nav > [data-nds-cuenta] + .navajustes { margin-left: -8px; }

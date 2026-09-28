@@ -4168,3 +4168,13 @@ El nombre de cada uno queda en `aria-label` y `title`. Entrar y Mi espacio los p
 **Por qué:** lo pidió el usuario.
 
 **Verificación:** Chrome headless: el mapa, Acerca de y Mi espacio en escritorio, y el Laboratorio en móvil. Consola limpia.
+
+## v4.31.1: orden de los iconos de la barra (2026-09-28)
+
+**Qué cambió:** a la derecha de la barra, el orden es ahora Mi espacio (casa), Entrar o la inicial (persona) y Ajustes (tuerca).
+- El orden se cambió en el HTML, no con `order` de CSS, para que el tabulador los recorra en el mismo orden en que se ven.
+- En el mapa, `margin-left:auto` pasó de la tuerca al contenedor de la cuenta, y la tuerca queda a 20 px, como en las demás páginas.
+
+**Por qué:** lo pidió el usuario.
+
+**Verificación:** Chrome headless, el mapa y el Laboratorio. Consola limpia.
