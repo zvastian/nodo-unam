@@ -4433,3 +4433,10 @@ Sección de traspaso: la sesión se cortó porque la terminal dejó de responder
 
 - **Qué cambió:** en Ajustes, las dos opciones de apariencia se llaman «Día» y «Noche» (antes «Claro» y «Oscuro»), como el resto del proyecto. Solo cambia el texto de `compartido/ajustes.js`; los valores internos (`data-modo`) y lo guardado en el navegador siguen igual, así que nadie pierde su elección.
 - **Cómo se verificó:** búsqueda de «Claro» y «Oscuro» en las cinco páginas y en `compartido/`: no queda ninguna etiqueta visible con esos nombres (el resto son comentarios de código y palabras como «azul oscuro»). No abrí el panel en el navegador.
+
+### v4.36.3: fecha de última actualización en la nota del «?» (2026-09-28)
+
+- **Qué cambió:** la nota que abre el «?» junto a la cifra de tesis dice ahora «Última actualización de los registros: 5 de junio de 2026», la misma fecha que el README del dataset de Kaggle.
+- **De dónde sale la fecha:** el máximo de `downloaded_at_unix` en `pipeline/recovery/processed/marc_recovered_all.parquet`: la última descarga MARC fue el 5-jun-2026 a las 00:58 (hora de México); las 46,945 descargas están entre el 4 y el 5 de junio.
+- **Limitación:** solo fecha la parte MARC (46,945 de 609,156). Los 562,211 registros de `base6` no traen marca de tiempo, y no hay registro de cuándo se descargaron; si son más antiguos, la fecha describe la recuperación MARC y no todo el corpus.
+- **Cómo se verificó:** búsqueda del texto en `index.html`. No abrí la nota en el navegador.
