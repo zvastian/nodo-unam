@@ -4447,3 +4447,8 @@ Sección de traspaso: la sesión se cortó porque la terminal dejó de responder
 - **Respaldo:** el aviso de privacidad ya dice que los datos no se usan para entrenar modelos de IA y que Groq tiene la retención desactivada; en la bitácora (26-sep) el usuario confirmó *Zero Data Retention* global en su consola de Groq.
 - **Límite:** el respaldo es de Groq. ADR-0015 prevé Workers AI (Cloudflare) como proveedor de reserva con el mismo modelo; si llega a usarse, hay que comprobar sus condiciones de retención y entrenamiento antes de seguir afirmándolo, y ajustar este texto y el aviso de privacidad.
 - **Cómo se verificó:** búsqueda del texto en `acerca.html`. No abrí la página en el navegador.
+
+### v4.36.5: redacción impersonal de la aclaración sobre el modelo (2026-09-28)
+
+- **Qué cambió:** en el paso del modelo de lenguaje de Acerca de, la aclaración pasa a un registro impersonal: «El modelo no utiliza la información proporcionada para su entrenamiento, y el proveedor no la conserva: la retención de datos se encuentra desactivada.» El sentido y el respaldo son los de la v4.36.4.
+- **Cómo se verificó:** búsqueda del texto en `acerca.html`. No abrí la página en el navegador.
