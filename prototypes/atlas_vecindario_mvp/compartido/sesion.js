@@ -8,7 +8,9 @@
   var SUPABASE_URL = 'https://vujmkcpxsdrmrwsijnlz.supabase.co', SUPABASE_KEY = 'sb_publishable_R75esEpJeDH4QopgUKWoXg_DF9ocOYE';
   var PARAM = new URLSearchParams(location.search);
   var LOCAL = /^(127\.0\.0\.1|localhost)$/.test(location.hostname);
-  var PUERTA = PARAM.get('puerta') || (LOCAL ? 'http://127.0.0.1:8787' : '');
+  // ?puerta= solo en local: en producción, un enlace con ?puerta=https://otro-sitio mandaría ahí
+  // el token de sesión. Publicado, la API está en el mismo origen.
+  var PUERTA = LOCAL ? (PARAM.get('puerta') || 'http://127.0.0.1:8787') : '';
   var sb = null, usuario = null, oyentes = [], listoOk = null, primera = true;
   var listo = new Promise(function (r) { listoOk = r; });
   try {
@@ -172,6 +174,27 @@
     return api('/api/tesis/' + encodeURIComponent(id), si ? { metodo: 'PUT', cuerpo: datos || {} } : { metodo: 'DELETE' })
       .then(function () { if (si) guardados.tesis.add(id); else guardados.tesis.delete(id); });
   }
+  // «Guardar las N»: bloques de 100 por petición (PUT /api/tesis), no una petición por tesis, que
+  // chocaba con el límite por IP. items: [{ id, datos }]. alBloque(ids) marca cada bloque al llegar.
+  // Resuelve con los ids guardados; si se llegó al límite, rechaza con codigo «limite_de_tesis»
+  // después de marcar los que sí entraron.
+  var LOTE = 100;
+  function guardarTesisLote(items, alBloque) {
+    var guardadas = [], i = 0;
+    function siguiente() {
+      if (i >= items.length) return Promise.resolve(guardadas);
+      var bloque = items.slice(i, i + LOTE); i += LOTE;
+      return api('/api/tesis', { metodo: 'PUT', cuerpo: { tesis: bloque.map(function (t) { return { id: t.id, datos: t.datos || {} }; }) } })
+        .then(function (j) {
+          var ids = (j && j.guardadas) || [];
+          ids.forEach(function (id) { guardados.tesis.add(id); guardadas.push(id); });
+          if (alBloque) alBloque(ids);
+          if (j && j.error) { var e = new Error(j.error); e.codigo = j.error; e.datos = j; throw e; }
+          return siguiente();
+        });
+    }
+    return siguiente();
+  }
   function guardarAsesor(nombre, datos, si) {
     var k = claveAsesor(nombre);
     return api('/api/asesores/' + encodeURIComponent(k), si ? { metodo: 'PUT', cuerpo: Object.assign({ nombre: nombre }, datos || {}) } : { metodo: 'DELETE' })
@@ -250,7 +273,7 @@
     abrirEntrar: abrirEntrar, cerrarEntrar: cerrarEntrar,
     pintarAcceso: pintarAcceso, aviso: aviso,
     api: api,
-    guardados: guardados, claveAsesor: claveAsesor, guardarTesis: guardarTesis, guardarAsesor: guardarAsesor,
+    guardados: guardados, claveAsesor: claveAsesor, guardarTesis: guardarTesis, guardarTesisLote: guardarTesisLote, guardarAsesor: guardarAsesor,
     guardarLugar: guardarLugar, listaGuardados: listaGuardados, animarGuardado: animarGuardado,
     confirmar: confirmar, preguntar: preguntar, fijarPreguntar: fijarPreguntar,
     salir: function () { if (sb) return sb.auth.signOut(); },

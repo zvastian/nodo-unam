@@ -1,8 +1,11 @@
 // Piezas comunes del Worker puerta: errores, respuestas, topes, Turnstile, cuotas y la llamada al
 // servicio de datos. Ni el texto de la tesis ni el cuerpo de ninguna petición van a los logs.
 
+import { CABECERAS_API, turnstileValido } from './seguridad.js';
+
 export const TOPE_ENTRADA = 16 * 1024;     // bytes de la entrada del análisis
 const ESPERA_LAB_MS = 90 * 1000;           // incluye el arranque en frío del servicio
+const ESPERA_TURNSTILE_MS = 10 * 1000;
 
 export class ErrorApi extends Error {
   constructor(status, codigo, extra) { super(codigo); this.status = status; this.extra = extra; }
@@ -13,24 +16,86 @@ export const hoy = () => new Date(Date.now() - 6 * 3600 * 1000).toISOString().sl
 export const entero = (v, def) => (Number.isFinite(+v) && v !== '' && v !== undefined ? +v : def);
 
 export function responder(cuerpo, status, extra) {
-  const h = { 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff', ...extra };
+  const h = { 'Cache-Control': 'no-store', ...CABECERAS_API, ...extra };
   if (cuerpo === null) return new Response(null, { status, headers: h });
   h['Content-Type'] = 'application/json; charset=utf-8';
   return new Response(typeof cuerpo === 'string' ? cuerpo : JSON.stringify(cuerpo), { status, headers: h });
 }
 
-/** Lee el cuerpo como JSON sin pasar de `tope` bytes. Nunca registra el contenido. */
+/**
+ * Lee el cuerpo como JSON sin pasar de `tope` bytes. Nunca registra el contenido.
+ * Lee por partes y corta en cuanto pasa el tope: un cuerpo sin Content-Length (chunked) no llega
+ * entero a memoria antes de medirse.
+ */
 export async function leerJson(request, tope) {
   const declarado = +request.headers.get('Content-Length');
   if (declarado > tope) throw new ErrorApi(413, 'entrada_demasiado_grande');
-  const texto = await request.text();
-  if (new TextEncoder().encode(texto).length > tope) throw new ErrorApi(413, 'entrada_demasiado_grande');
+  const partes = [];
+  let total = 0;
+  if (request.body) {
+    const lector = request.body.getReader();
+    for (;;) {
+      const { done, value } = await lector.read();
+      if (done) break;
+      total += value.byteLength;
+      if (total > tope) { lector.cancel().catch(() => {}); throw new ErrorApi(413, 'entrada_demasiado_grande'); }
+      partes.push(value);
+    }
+  }
+  const bytes = new Uint8Array(total);
+  let i = 0;
+  for (const p of partes) { bytes.set(p, i); i += p.byteLength; }
+  let texto;
+  try { texto = new TextDecoder('utf-8', { fatal: true }).decode(bytes); } catch { throw new ErrorApi(400, 'json_invalido'); }
   try {
     const v = JSON.parse(texto);
     if (!v || typeof v !== 'object' || Array.isArray(v)) throw 0;
     return v;
   } catch { throw new ErrorApi(400, 'json_invalido'); }
 }
+
+/**
+ * Forma de la entrada del análisis, con los mismos topes que el servicio de datos (services/lab,
+ * clase Entrada). Se revisa aquí, antes del léxico, de Turnstile y de la cuota: una entrada con
+ * tipos cambiados (objetivos como texto) tiraba el Worker con un 500, y una con 5,000 objetivos
+ * recorría el léxico antes de que el servicio la rechazara. Devuelve solo los campos conocidos.
+ */
+export function validarEntrada(e) {
+  const mal = [];
+  const texto = (k, min, max, obligatorio) => {
+    const v = e[k];
+    if (v === undefined || v === null) { if (obligatorio) mal.push(k); return obligatorio ? '' : undefined; }
+    if (typeof v !== 'string' || v.length < min || v.length > max) { mal.push(k); return ''; }
+    return v;
+  };
+  const lista = (k, maxItems, maxLargo) => {
+    const v = e[k];
+    if (v === undefined || v === null) return [];
+    if (!Array.isArray(v) || v.length > maxItems || v.some((x) => typeof x !== 'string' || x.length > maxLargo)) { mal.push(k); return []; }
+    return v;
+  };
+  const o = {
+    title: texto('title', 3, 400, true),
+    problematiza: texto('problematiza', 0, 2000),
+    keywords: lista('keywords', 12, 200),
+    objectives: lista('objectives', 8, 1000),
+    program: texto('program', 0, 160),
+    degree: texto('degree', 0, 40),
+  };
+  const p = e.study_period;
+  if (p !== undefined && p !== null) {
+    const anio = (x) => x === null || x === undefined || (Number.isInteger(x) && x >= 0 && x <= 3000);
+    if (typeof p !== 'object' || Array.isArray(p) || (p.applies !== undefined && typeof p.applies !== 'boolean')
+      || !anio(p.start_year) || !anio(p.end_year) || (p.label !== undefined && (typeof p.label !== 'string' || p.label.length > 40))) mal.push('study_period');
+    else o.study_period = { applies: !!p.applies, start_year: p.start_year ?? null, end_year: p.end_year ?? null, label: p.label || '' };
+  }
+  if (mal.length) throw new ErrorApi(400, 'entrada_invalida', { campos: mal });
+  for (const k of Object.keys(o)) if (o[k] === undefined) delete o[k];
+  return o;
+}
+
+// El widget del Laboratorio se renderiza con esta acción; un token de otra acción no sirve aquí.
+export const ACCION_TURNSTILE = 'analisis';
 
 export async function verificarTurnstile(request, env) {
   const token = request.headers.get('X-Turnstile');
@@ -41,9 +106,17 @@ export async function verificarTurnstile(request, env) {
   f.append('response', token);
   const ip = request.headers.get('CF-Connecting-IP');
   if (ip) f.append('remoteip', ip);
-  const r = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', { method: 'POST', body: f });
-  const v = await r.json().catch(() => ({}));
-  if (!v.success) throw new ErrorApi(403, 'turnstile_invalido');
+  let v = {};
+  try {
+    const r = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', { method: 'POST', body: f, signal: AbortSignal.timeout(ESPERA_TURNSTILE_MS) });
+    v = await r.json().catch(() => ({}));
+  } catch (e) {
+    console.log(JSON.stringify({ evento: 'turnstile_inalcanzable', nombre: e.name }));
+    throw new ErrorApi(503, 'servicio_no_disponible');
+  }
+  // Las claves de prueba responden con action y hostname fijos: la acción solo se exige en producción.
+  const accion = env.ENTORNO === 'produccion' ? ACCION_TURNSTILE : null;
+  if (!turnstileValido(v, env, accion)) throw new ErrorApi(403, 'turnstile_invalido');
 }
 
 // --- Cuotas: un solo UPSERT atómico que solo suma si no se llegó al límite. ---
@@ -79,10 +152,13 @@ export async function devolverCuota(env, usuario, dia) {
  */
 export async function pedirContexto(env, entrada, usuario, dia) {
   let r;
+  const cab = { 'Content-Type': 'application/json', 'X-Lab-Clave': env.LAB_CLAVE || '' };
+  // Token de proxy de Modal: Modal rechaza en su borde, sin despertar el contenedor, lo que no lo trae.
+  if (env.MODAL_KEY && env.MODAL_SECRET) { cab['Modal-Key'] = env.MODAL_KEY; cab['Modal-Secret'] = env.MODAL_SECRET; }
   try {
     r = await fetch(env.LAB_URL.replace(/\/$/, '') + '/v1/contexto', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Lab-Clave': env.LAB_CLAVE || '' },
+      headers: cab,
       body: JSON.stringify(entrada),
       signal: AbortSignal.timeout(ESPERA_LAB_MS),
     });

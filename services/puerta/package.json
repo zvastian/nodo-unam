@@ -8,7 +8,8 @@
     "claves": "node pruebas/claves.mjs",
     "prueba": "node --test pruebas/puerta.test.mjs",
     "prueba:bloom": "node --test pruebas/bloom.test.mjs",
-    "prueba:inyeccion": "node --test pruebas/inyeccion.test.mjs"
+    "prueba:inyeccion": "node --test pruebas/inyeccion.test.mjs",
+    "prueba:seguridad": "node --test pruebas/seguridad.test.mjs"
   },
   "devDependencies": {
     "wrangler": "4.141.0"

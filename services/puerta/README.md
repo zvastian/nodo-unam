@@ -9,22 +9,34 @@ JavaScript sin build, como el resto del proyecto; `wrangler` solo empaqueta y co
 
 ## Qué revisa, en orden
 
+0. **Configuración** (`src/seguridad.js`). Con `ENTORNO = "produccion"`, si hay `JWKS_LOCAL`, la
+   clave de prueba de Turnstile, una `LAB_CLAVE` de menos de 32 caracteres, algo sin https, falta
+   `TURNSTILE_HOSTS` o falta un límite por IP, responde 503 a todo y registra qué variable falla.
 1. **CORS** con orígenes explícitos (`ORIGENES`). Sin credenciales de navegador: la sesión va en
    `Authorization: Bearer`, así que no hay CSRF que cuidar.
-2. **Sesión.** JWT de Supabase Auth verificado con WebCrypto contra su JWKS, que se guarda 10 minutos
+2. **Límite por IP**, antes de la sesión (binding de Rate Limiting): 120 peticiones por minuto a
+   toda la API y 10 por minuto al análisis. Es por ubicación de Cloudflare: frena ráfagas, no es
+   una cuota. IPv6 cuenta por su /64. La IP no se guarda. Después de la sesión, **30 escrituras
+   por minuto por usuario** (guardar y borrar), para cuidar las 100,000 filas escritas al día de D1.
+3. **Sesión.** JWT de Supabase Auth verificado con WebCrypto contra su JWKS, que se guarda 10 minutos
    en caché:
    - solo acepta ES256 o RS256;
    - emisor, audiencia y rol tienen que ser `authenticated`, con 30 s de holgura en `exp` y `nbf`;
+   - un usuario anónimo de Supabase (`is_anonymous`) no cuenta como sesión;
    - un `kid` desconocido vuelve a pedir el JWKS, a lo más una vez por minuto;
    - la clave `anon` de Supabase no sirve como sesión.
-3. **Tope de tamaño:** 16 KB la entrada del análisis y 512 KB un análisis guardado.
-4. **Turnstile** en la cabecera `X-Turnstile`, solo en `POST /api/lab/contexto`, que es lo costoso.
-5. **Cuota.** Dos UPSERT atómicos: primero el tope del sitio (`TOPE_SITIO_DIA`), luego el del
+4. **Tope de tamaño:** 16 KB la entrada del análisis y 512 KB un análisis guardado. El cuerpo se lee
+   por partes y se corta al pasar el tope. La **forma** de la entrada (tipos y topes de cada campo,
+   los mismos del servicio) se revisa aquí: `400 entrada_invalida` con `campos`, sin gastar cuota.
+5. **Turnstile** en la cabecera `X-Turnstile`, en `POST /api/lab/analisis` y `/api/lab/contexto`.
+   En producción exige además la acción `analisis` y un dominio de `TURNSTILE_HOSTS`.
+6. **Cuota.** Dos UPSERT atómicos: primero el tope del sitio (`TOPE_SITIO_DIA`), luego el del
    usuario (`CUOTA_USUARIO_DIA`).
    - Si el servicio falla o responde 422, la cuota se devuelve.
    - El día es el de la Ciudad de México.
-6. **Servicio de datos**, con la clave compartida en `X-Lab-Clave` y 90 s de espera, que cubren el
-   arranque en frío.
+7. **Servicio de datos**, con la clave compartida en `X-Lab-Clave` y 90 s de espera, que cubren el
+   arranque en frío. En Modal lleva además el token de proxy (`Modal-Key` y `Modal-Secret`), que
+   Modal revisa en su borde, sin despertar el contenedor.
    - Un 422 del servicio llega al cliente solo con los nombres de los campos inválidos. El detalle
      de FastAPI repite el texto enviado.
 
@@ -47,6 +59,7 @@ Todas, salvo `salud`, piden `Authorization: Bearer <jwt de Supabase>`. Los error
 | `GET` y `DELETE /api/analisis/:id` | Uno de los análisis propios; si es ajeno, 404 |
 | `GET /api/tesis` | Tesis del atlas guardadas |
 | `PUT` y `DELETE /api/tesis/:id` | Guarda o quita una tesis. Es idempotente y admite hasta `MAX_TESIS_GUARDADAS` |
+| `PUT /api/tesis` | «Guardar las N»: `{tesis: [{id, datos}]}`, hasta 100. Solo inserta las nuevas. Responde `{guardadas}` y, si se llegó al límite, `error: "limite_de_tesis"` |
 | `DELETE /api/cuenta` | Borra los datos del usuario en D1 y, con `SUPABASE_SERVICE_KEY`, su identidad en Supabase |
 
 Códigos: 401 `sin_sesion` (con `motivo`), 403 `turnstile_*`, 413, 422 `entrada_invalida` (con
@@ -132,6 +145,7 @@ npm run migrar    # D1 local, en .wrangler/
 npm run dev       # http://127.0.0.1:8787
 npm run prueba    # 8 pruebas de integración contra el Worker y el servicio
 npm run prueba:bloom   # 12 pruebas del léxico de Bloom (sin Worker)
+npm run prueba:seguridad   # 8 pruebas de sesión, límites, entrada, configuración y Turnstile (sin Worker)
 ```
 
 - `npm run claves` escribe `.dev.vars` con:
@@ -160,6 +174,10 @@ npm run prueba:bloom   # 12 pruebas del léxico de Bloom (sin Worker)
 | `TOPE_IA_DIA` | var | Análisis con IA al día en todo el sitio: 55, la capacidad gratuita medida en la evaluación |
 | `GROQ_TOKENS_DIA`, `WORKERS_AI_NEURONAS_DIA` | var | Presupuesto diario de cada proveedor (180,000 y 9,000) |
 | `IA_MODELO_GROQ`, `IA_MODELO_WORKERS` | var | Opcionales; por defecto, `gpt-oss-120b` en los dos |
+| `ENTORNO` | var | `local` o `produccion`; en producción activa la revisión de configuración |
+| `TURNSTILE_HOSTS` | var | Dominios donde se resuelve el widget (`nodosmap.com,www.nodosmap.com`); obligatorio en producción |
+| `MODAL_KEY`, `MODAL_SECRET` | secreto | Token de proxy de Modal para el servicio de datos |
+| `LIMITE_IP`, `LIMITE_IP_LAB`, `LIMITE_USUARIO` | binding | Límites por IP y de escrituras por usuario (`ratelimits` en `wrangler.jsonc`); cada entorno los declara |
 
 ## Pendiente
 
@@ -175,6 +193,5 @@ npm run prueba:bloom   # 12 pruebas del léxico de Bloom (sin Worker)
   a la base.
 - Crear la base D1 remota (`wrangler d1 create nodos`) y poner su `database_id`. Va con el despliegue
   (paso 4).
-- Límite de tasa por IP (binding de Rate Limiting de Workers) para las rutas sin Turnstile.
 - Interfaz: inicio de sesión, estados sin sesión y cuota agotada, y «mis análisis». Es trabajo de
   diseño, y la estrategia visual se acuerda antes de codificar.

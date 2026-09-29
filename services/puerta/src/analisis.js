@@ -13,11 +13,12 @@
 // mandar nada. Si falla la IA, la cuota no se devuelve: los datos ya se entregaron.
 
 import { clasificarObjetivo, clasificarObjetivos } from '../../../prototypes/atlas_vecindario_mvp/compartido/bloom.js';
-import { TOPE_ENTRADA, hoy, leerJson, pedirContexto, tomarCuota, verificarTurnstile } from './comun.js';
+import { TOPE_ENTRADA, hoy, leerJson, pedirContexto, tomarCuota, validarEntrada, verificarTurnstile } from './comun.js';
 import { ESQUEMAS } from './ia/esquemas.js';
 import { contarInyeccion, limpiarEntrada } from './ia/limpieza.js';
 import { entradaUsuario, promptBloom, promptNota, promptPreguntas, senalesCorpus } from './ia/prompts.js';
 import { IAAgotada, IAInvalida, pedirIA, tomarCupoIA } from './ia/proveedores.js';
+import { CABECERAS_API } from './seguridad.js';
 
 // --- Revisiones que el esquema no puede expresar ---
 
@@ -73,7 +74,7 @@ function prepararBloom(d, lexico) {
 
 export async function analisisSSE(request, env, ctx, u, h) {
   // Limpia antes de todo: el léxico, el servicio de datos y los 3 prompts reciben el mismo texto.
-  const entrada = limpiarEntrada(await leerJson(request, TOPE_ENTRADA));
+  const entrada = limpiarEntrada(validarEntrada(await leerJson(request, TOPE_ENTRADA)));
   await verificarTurnstile(request, env);
   const sospechas = contarInyeccion(entrada);
   if (sospechas) console.log(JSON.stringify({ evento: 'posible_inyeccion', patrones: sospechas }));
@@ -129,6 +130,6 @@ export async function analisisSSE(request, env, ctx, u, h) {
 
   return new Response(readable, {
     status: 200,
-    headers: { ...h, 'Content-Type': 'text/event-stream; charset=utf-8', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff', 'X-Cuota-Restante': String(restante) },
+    headers: { ...CABECERAS_API, ...h, 'Content-Type': 'text/event-stream; charset=utf-8', 'Cache-Control': 'no-store', 'X-Cuota-Restante': String(restante) },
   });
 }

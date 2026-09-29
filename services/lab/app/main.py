@@ -12,6 +12,8 @@ Configuración por variables de entorno:
   LAB_NPROBE       listas del índice IVF que se recorren por búsqueda (por defecto 768)
   LAB_CLAVE        clave compartida con el Worker puerta; si está puesta, /v1/* exige la cabecera
                    X-Lab-Clave (en local puede ir vacía para que el boceto llame directo)
+  LAB_EXIGIR_CLAVE «1» en cualquier despliegue (Modal lo pone): sin una LAB_CLAVE de 32+ caracteres,
+                   el servicio no arranca, en lugar de quedar abierto a cualquiera
 
 Privacidad: ningún texto de la tesis va a los logs; solo tiempos y tamaños.
 """
@@ -50,6 +52,9 @@ async def ciclo(app):
 app = FastAPI(title="NodOS: servicio de datos del Laboratorio", lifespan=ciclo, docs_url=None, redoc_url=None)
 origenes = [o.strip() for o in os.getenv("LAB_ORIGENES", "").split(",") if o.strip()]
 CLAVE = os.getenv("LAB_CLAVE", "")
+# Falla cerrado: un despliegue sin la clave (p. ej., el secreto de Modal sin LAB_CLAVE) no arranca.
+if os.getenv("LAB_EXIGIR_CLAVE") == "1" and len(CLAVE) < 32:
+    raise RuntimeError("LAB_EXIGIR_CLAVE=1 y falta LAB_CLAVE (32+ caracteres)")
 
 
 @app.middleware("http")

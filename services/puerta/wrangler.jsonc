@@ -5,6 +5,11 @@
 //   SUPABASE_SERVICE_KEY   opcional: permite que «borrar mi cuenta» borre también en Supabase
 //   JWKS_LOCAL             solo desarrollo: JWKS en JSON en lugar de pedirlo a Supabase
 //   GROQ_API_KEY           clave de Groq (con Zero Data Retention activado en su consola)
+//   MODAL_KEY, MODAL_SECRET  token de proxy de Modal (el servicio de datos lo exige en su borde)
+//
+// En producción, ENTORNO = "produccion" activa la revisión de configuración (src/seguridad.js):
+// sin JWKS_LOCAL, con Turnstile real, LAB_CLAVE de 32+ caracteres, todo en https, TURNSTILE_HOSTS y
+// los dos límites por IP. Si algo falta, la API responde 503 a todo y lo registra.
 {
   "name": "nodos-puerta",
   "main": "src/index.js",
@@ -15,7 +20,19 @@
   "ai": { "binding": "AI" },
   "triggers": { "crons": ["17 9 * * *"] },
   "observability": { "enabled": true },
+  // Límite por IP (plan gratuito): ráfagas por ubicación de Cloudflare, no una cuota global.
+  // 120 peticiones por minuto a toda la API; 10 por minuto a lo costoso (análisis), que ya pide
+  // sesión, Turnstile y cuota: el tope es generoso porque en un campus muchos comparten IP.
+  "ratelimits": [
+    { "name": "LIMITE_IP", "namespace_id": "1001", "simple": { "limit": 120, "period": 60 } },
+    { "name": "LIMITE_IP_LAB", "namespace_id": "1002", "simple": { "limit": 10, "period": 60 } },
+    // Escrituras por usuario (guardar y borrar): 30 por minuto. Guardar una por una a mano no llega;
+    // «Guardar las N» va en lotes de 100 por petición.
+    { "name": "LIMITE_USUARIO", "namespace_id": "1003", "simple": { "limit": 30, "period": 60 } }
+  ],
   "vars": {
+    "ENTORNO": "local",
+    "TURNSTILE_HOSTS": "",
     "ORIGENES": "http://127.0.0.1:8765,http://localhost:8765",
     "LAB_URL": "http://127.0.0.1:8770",
     "SUPABASE_URL": "https://vujmkcpxsdrmrwsijnlz.supabase.co",

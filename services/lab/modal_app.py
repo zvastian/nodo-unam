@@ -5,7 +5,13 @@ volumen «nodos-lab-artefactos» y se montan en /artefactos; la imagen lleva sol
 
   modal deploy modal_app.py        # publica en https://<workspace>--nodos-lab-servicio.modal.run
 
-La clave compartida con el Worker puerta sale del secreto «nodos-lab» (variable LAB_CLAVE).
+La clave compartida con el Worker puerta sale del secreto «nodos-lab» (variable LAB_CLAVE); sin
+ella el servicio no arranca (LAB_EXIGIR_CLAVE).
+
+Además, el endpoint exige un token de proxy de Modal (cabeceras Modal-Key y Modal-Secret; se crea en
+el panel de Modal, Settings > Proxy Auth Tokens, y va al Worker como MODAL_KEY y MODAL_SECRET). Modal
+rechaza en su borde lo que no lo trae, sin despertar el contenedor: sin esto, cualquiera podía
+mantenerlo despierto con peticiones sin clave y gastar el crédito.
 Topes de gasto: un solo contenedor y 1 minuto despierto tras la última petición (la espera del
 arranque en frío, 12 a 16 s, se acepta: decisión del usuario, 26-sep-2026).
 """
@@ -18,7 +24,7 @@ AQUI = Path(__file__).parent
 imagen = (
     modal.Image.debian_slim(python_version="3.12")
     .pip_install_from_requirements(str(AQUI / "requirements.txt"))
-    .env({"LAB_ARTEFACTOS": "/artefactos", "LAB_HILOS": "2"})
+    .env({"LAB_ARTEFACTOS": "/artefactos", "LAB_HILOS": "2", "LAB_EXIGIR_CLAVE": "1"})
     .add_local_python_source("app")
 )
 volumen = modal.Volume.from_name("nodos-lab-artefactos", create_if_missing=True)
@@ -36,7 +42,7 @@ app = modal.App("nodos-lab")
     timeout=120,
 )
 @modal.concurrent(max_inputs=4)
-@modal.asgi_app()
+@modal.asgi_app(requires_proxy_auth=True)
 def servicio():
     from app.main import app as fastapi_app
     return fastapi_app

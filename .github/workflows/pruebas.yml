@@ -54,3 +54,5 @@ jobs:
         run: node --test services/puerta/pruebas/bloom.test.mjs
       - name: Casos de inyección de prompt
         run: node --test services/puerta/pruebas/inyeccion.test.mjs
+      - name: Defensas del Worker (sesión, límite por IP, configuración, Turnstile)
+        run: node --test services/puerta/pruebas/seguridad.test.mjs

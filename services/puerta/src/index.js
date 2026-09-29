@@ -10,7 +10,8 @@
 
 import { analisisSSE } from './analisis.js';
 import { limpiarEntrada } from './ia/limpieza.js';
-import { ErrorApi, TOPE_ENTRADA, entero, hoy, leerJson, pedirContexto, responder, tomarCuota, verificarTurnstile } from './comun.js';
+import { ErrorApi, TOPE_ENTRADA, entero, hoy, leerJson, pedirContexto, responder, tomarCuota, validarEntrada, verificarTurnstile } from './comun.js';
+import { limitarEscrituras, limitarPorIp, problemasDeConfig } from './seguridad.js';
 import { SinSesion, usuarioDe } from './sesion.js';
 
 const TOPE_GUARDADO = 512 * 1024;     // bytes de un análisis guardado (el contexto pesa ~55 KB)
@@ -22,7 +23,9 @@ const TOPE_DATOS = 2 * 1024;                  // bytes de los datos de una tesis
 // Lo que se muestra de lo guardado: lista blanca de campos y tipos; lo demás se descarta.
 const CAMPOS_TESIS = { titulo: 's', anio: 'n', programa: 's', nivel: 's', plantel: 's', area: 'n', catalogo: 'n' };
 const CAMPOS_ASESOR = { nombre: 's', programa: 's', plantel: 's', total: 'n', ultimo: 'n', area: 'n' };
-const CAMPOS_LUGAR = { nombre: 's', nivel: 's', campo: 's', tesis: 'n', color: 's' };
+// color: solo hexadecimal, porque las páginas lo ponen dentro de un style
+const CAMPOS_LUGAR = { nombre: 's', nivel: 's', campo: 's', tesis: 'n', color: 'c' };
+const RE_COLOR = /^#[0-9a-f]{3,8}$/i;
 function limpiarDatos(d, campos) {
   const o = {};
   if (!d || typeof d !== 'object') return o;
@@ -30,6 +33,7 @@ function limpiarDatos(d, campos) {
     const v = d[k];
     if (tipo === 'n' && v !== null && v !== '' && Number.isFinite(+v)) o[k] = Math.round(+v);
     else if (tipo === 's' && typeof v === 'string' && v.trim()) o[k] = v.trim().slice(0, 300);
+    else if (tipo === 'c' && typeof v === 'string' && RE_COLOR.test(v.trim())) o[k] = v.trim();
   }
   return o;
 }
@@ -77,7 +81,7 @@ async function yo(env, u) {
 }
 
 async function contexto(request, env, u, h) {
-  const entrada = limpiarEntrada(await leerJson(request, TOPE_ENTRADA));
+  const entrada = limpiarEntrada(validarEntrada(await leerJson(request, TOPE_ENTRADA)));
   await verificarTurnstile(request, env);
   const dia = hoy();
   const restante = await tomarCuota(env, u.id, dia);
@@ -106,7 +110,8 @@ async function guardarTesis(env, u, tesis, datos = null) {
   const r = await env.DB.prepare(
     `INSERT INTO tesis_guardadas (usuario, tesis, datos) SELECT ?1, ?2, ?4
      WHERE (SELECT count(*) FROM tesis_guardadas WHERE usuario = ?1) < ?3
-     ON CONFLICT (usuario, tesis) DO UPDATE SET datos = coalesce(excluded.datos, tesis_guardadas.datos)`,
+     ON CONFLICT (usuario, tesis) DO UPDATE SET datos = excluded.datos
+     WHERE excluded.datos IS NOT NULL AND excluded.datos IS NOT tesis_guardadas.datos`,
   ).bind(u.id, tesis, limite, datos).run();
   if (!r.meta.changes) {
     const ya = await env.DB.prepare('SELECT 1 FROM tesis_guardadas WHERE usuario = ?1 AND tesis = ?2').bind(u.id, tesis).first();
@@ -114,12 +119,45 @@ async function guardarTesis(env, u, tesis, datos = null) {
   }
 }
 
+// «Guardar las N»: hasta LOTE_TESIS por petición, en un solo batch de D1 (antes eran N peticiones,
+// que chocaban con el límite por IP). Cada fila lleva la misma condición de límite que una sola,
+// y el batch corre en orden dentro de una transacción: dos lotes simultáneos no rebasan el límite.
+// Devuelve cuáles quedaron guardadas; si faltan, es que se llegó al límite.
+const LOTE_TESIS = 100;
+const TOPE_LOTE = LOTE_TESIS * (TOPE_DATOS + 256);
+async function guardarTesisLote(request, env, u) {
+  const { tesis } = await leerJson(request, TOPE_LOTE);
+  if (!Array.isArray(tesis) || !tesis.length || tesis.length > LOTE_TESIS) throw new ErrorApi(400, 'lote_invalido', { maximo: LOTE_TESIS });
+  const filas = new Map();
+  for (const t of tesis) {
+    if (!t || typeof t.id !== 'string' || !RE_TESIS.test(t.id)) throw new ErrorApi(400, 'id_de_tesis_invalido');
+    const o = limpiarDatos(t.datos, CAMPOS_TESIS);
+    const datos = Object.keys(o).length ? JSON.stringify(o) : null;
+    if (datos && datos.length > TOPE_DATOS) throw new ErrorApi(413, 'entrada_demasiado_grande');
+    filas.set(t.id, datos);
+  }
+  const limite = entero(env.MAX_TESIS_GUARDADAS, 500);
+  const ids = [...filas.keys()];
+  // Solo filas nuevas (DO NOTHING): repetir un lote no vuelve a escribir las que ya estaban.
+  await env.DB.batch(ids.map((id) => env.DB.prepare(
+    `INSERT INTO tesis_guardadas (usuario, tesis, datos) SELECT ?1, ?2, ?4
+     WHERE (SELECT count(*) FROM tesis_guardadas WHERE usuario = ?1) < ?3
+     ON CONFLICT (usuario, tesis) DO NOTHING`,
+  ).bind(u.id, id, limite, filas.get(id))));
+  // Un solo parámetro con la lista: D1 admite a lo más 100 por sentencia.
+  const r = await env.DB.prepare('SELECT tesis FROM tesis_guardadas WHERE usuario = ?1 AND tesis IN (SELECT value FROM json_each(?2))')
+    .bind(u.id, JSON.stringify(ids)).all();
+  const guardadas = r.results.map((f) => f.tesis);
+  return guardadas.length < ids.length ? { guardadas, error: 'limite_de_tesis', limite } : { guardadas };
+}
+
 async function guardarAsesor(env, u, asesor, datos) {
   const limite = entero(env.MAX_ASESORES_GUARDADOS, 200);
   const r = await env.DB.prepare(
     `INSERT INTO asesores_guardados (usuario, asesor, datos) SELECT ?1, ?2, ?4
      WHERE (SELECT count(*) FROM asesores_guardados WHERE usuario = ?1) < ?3
-     ON CONFLICT (usuario, asesor) DO UPDATE SET datos = coalesce(excluded.datos, asesores_guardados.datos)`,
+     ON CONFLICT (usuario, asesor) DO UPDATE SET datos = excluded.datos
+     WHERE excluded.datos IS NOT NULL AND excluded.datos IS NOT asesores_guardados.datos`,
   ).bind(u.id, asesor, limite, datos).run();
   if (!r.meta.changes) {
     const ya = await env.DB.prepare('SELECT 1 FROM asesores_guardados WHERE usuario = ?1 AND asesor = ?2').bind(u.id, asesor).first();
@@ -132,7 +170,8 @@ async function guardarLugar(env, u, lugar, datos) {
   const r = await env.DB.prepare(
     `INSERT INTO lugares_guardados (usuario, lugar, datos) SELECT ?1, ?2, ?4
      WHERE (SELECT count(*) FROM lugares_guardados WHERE usuario = ?1) < ?3
-     ON CONFLICT (usuario, lugar) DO UPDATE SET datos = coalesce(excluded.datos, lugares_guardados.datos)`,
+     ON CONFLICT (usuario, lugar) DO UPDATE SET datos = excluded.datos
+     WHERE excluded.datos IS NOT NULL AND excluded.datos IS NOT lugares_guardados.datos`,
   ).bind(u.id, lugar, limite, datos).run();
   if (!r.meta.changes) {
     const ya = await env.DB.prepare('SELECT 1 FROM lugares_guardados WHERE usuario = ?1 AND lugar = ?2').bind(u.id, lugar).first();
@@ -158,9 +197,15 @@ async function rutear(request, env, ctx, h) {
   const p = url.pathname.replace(/\/+$/, '');
   const m = request.method;
 
+  // Antes que la sesión: un token falso también gasta verificación y, con un kid nuevo, el JWKS.
+  const costoso = m === 'POST' && (p === '/api/lab/analisis' || p === '/api/lab/contexto');
+  await limitarPorIp(request, env, costoso);
+
   if (p === '/api/salud' && m === 'GET') return responder({ ok: true }, 200, h);
 
   const u = await usuarioDe(request, env);
+  // guardar y borrar (el análisis ya lleva cuota diaria)
+  if ((m === 'PUT' || m === 'DELETE' || m === 'POST') && !costoso) await limitarEscrituras(env, u.id);
   const ok = (v) => responder(v, 200, h);
   const vacio = () => responder(null, 204, h);
   let x;
@@ -193,6 +238,7 @@ async function rutear(request, env, ctx, h) {
     const r = await env.DB.prepare('SELECT tesis, datos, creado FROM tesis_guardadas WHERE usuario = ?1 ORDER BY creado DESC').bind(u.id).all();
     return ok({ tesis: conDatos(r.results, 'tesis') });
   }
+  if (p === '/api/tesis' && m === 'PUT') return ok(await guardarTesisLote(request, env, u));
   if ((x = /^\/api\/tesis\/([^/]+)$/.exec(p))) {
     if (!RE_TESIS.test(x[1])) throw new ErrorApi(400, 'id_de_tesis_invalido');
     if (m === 'PUT') { await guardarTesis(env, u, x[1], await datosOpcionales(request, CAMPOS_TESIS)); return vacio(); }
@@ -240,6 +286,12 @@ async function rutear(request, env, ctx, h) {
 export default {
   async fetch(request, env, ctx) {
     const h = cors(request, env);
+    // Falla cerrado: en producción, una configuración de desarrollo no atiende a nadie.
+    const mal = problemasDeConfig(env);
+    if (mal.length) {
+      console.error(JSON.stringify({ evento: 'configuracion_insegura', variables: mal }));
+      return responder({ error: 'servicio_no_disponible' }, 503, h);
+    }
     if (request.method === 'OPTIONS') return responder(null, h['Access-Control-Allow-Origin'] ? 204 : 403, h);
     try {
       return await rutear(request, env, ctx, h);

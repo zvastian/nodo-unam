@@ -69,10 +69,15 @@ test('contexto: turnstile, topes, validación y cuota diaria', async () => {
   assert.equal((await api('/api/lab/contexto', { tk, metodo: 'POST', cuerpo: { ...ENTRADA, problematiza: 'x'.repeat(17000) }, cab: TURNSTILE })).status, 413);
   assert.equal((await api('/api/lab/contexto', { tk, metodo: 'POST', cuerpo: '{no es json', cab: TURNSTILE })).status, 400);
 
+  // la forma se revisa en el Worker (v4.37.1), antes de Turnstile y de la cuota
   const invalida = await api('/api/lab/contexto', { tk, metodo: 'POST', cuerpo: { ...ENTRADA, title: 'a' }, cab: TURNSTILE });
-  assert.equal(invalida.status, 422);
+  assert.equal(invalida.status, 400);
+  assert.equal(invalida.json.error, 'entrada_invalida');
   assert.deepEqual(invalida.json.campos, ['title']);
-  assert.ok(!JSON.stringify(invalida.json).includes('bancario'), 'el 422 no repite el texto enviado');
+  assert.ok(!JSON.stringify(invalida.json).includes('bancario'), 'el error no repite el texto enviado');
+  const tipos = await api('/api/lab/contexto', { tk, metodo: 'POST', cuerpo: { ...ENTRADA, objectives: 'Analizar algo', keywords: { a: 1 } }, cab: TURNSTILE });
+  assert.equal(tipos.status, 400, 'tipos cambiados: 400, no 500');
+  assert.deepEqual(tipos.json.campos.sort(), ['keywords', 'objectives']);
 
   const r1 = await api('/api/lab/contexto', { tk, metodo: 'POST', cuerpo: ENTRADA, cab: TURNSTILE });
   assert.equal(r1.status, 200);
@@ -122,6 +127,40 @@ test('tesis guardadas: idempotente, id validado y sin acceso cruzado', async () 
   assert.equal((await api('/api/tesis', { tk: b })).json.tesis.length, 0);
   await api('/api/tesis/TH_000123', { tk: b, metodo: 'DELETE' });
   assert.equal((await api('/api/tesis', { tk: a })).json.tesis.length, 1, 'B no borra las de A');
+});
+
+test('guardar las N: lotes de 100, límite respetado, sin reescribir y sin acceso cruzado', async () => {
+  const [a, b] = [await token(), await token()];
+  const lote = (n, desde = 0) => Array.from({ length: n }, (_, i) => ({ id: 'TH_L' + String(desde + i).padStart(5, '0'), datos: { titulo: 'Tesis ' + (desde + i), anio: 2000 } }));
+  const r = await api('/api/tesis', { tk: a, metodo: 'PUT', cuerpo: { tesis: lote(100) } });
+  assert.equal(r.status, 200);
+  assert.equal(r.json.guardadas.length, 100);
+  assert.equal(r.json.error, undefined);
+  // repetir el mismo lote no falla ni duplica
+  assert.equal((await api('/api/tesis', { tk: a, metodo: 'PUT', cuerpo: { tesis: lote(100) } })).json.guardadas.length, 100);
+  assert.equal((await api('/api/tesis', { tk: a })).json.tesis.length, 100);
+  assert.equal((await api('/api/tesis', { tk: b })).json.tesis.length, 0, 'B no ve las de A');
+  // topes del lote
+  assert.equal((await api('/api/tesis', { tk: a, metodo: 'PUT', cuerpo: { tesis: lote(101) } })).status, 400);
+  assert.equal((await api('/api/tesis', { tk: a, metodo: 'PUT', cuerpo: { tesis: [] } })).status, 400);
+  assert.equal((await api('/api/tesis', { tk: a, metodo: 'PUT', cuerpo: { tesis: [{ id: "x' OR 1=1" }] } })).status, 400);
+  assert.equal((await api('/api/tesis', { tk: a, metodo: 'PUT', cuerpo: { tesis: 'TH_1' } })).status, 400);
+  // hasta MAX_TESIS_GUARDADAS (500): del sexto lote no entra ninguna y se dice por qué
+  for (let k = 1; k < 5; k++) assert.equal((await api('/api/tesis', { tk: a, metodo: 'PUT', cuerpo: { tesis: lote(100, k * 100) } })).json.guardadas.length, 100);
+  const lleno = await api('/api/tesis', { tk: a, metodo: 'PUT', cuerpo: { tesis: lote(10, 900) } });
+  assert.equal(lleno.status, 200);
+  assert.equal(lleno.json.error, 'limite_de_tesis');
+  assert.equal(lleno.json.guardadas.length, 0);
+  assert.equal((await api('/api/tesis', { tk: a })).json.tesis.length, 500);
+});
+
+test('lugares: el color solo se guarda si es hexadecimal', async () => {
+  const a = await token();
+  await api('/api/lugares/' + encodeURIComponent('macro:31'), { tk: a, metodo: 'PUT', cuerpo: { nombre: 'Uno', color: '#1f77b4' } });
+  await api('/api/lugares/' + encodeURIComponent('macro:32'), { tk: a, metodo: 'PUT', cuerpo: { nombre: 'Dos', color: 'red;background:url(//x)' } });
+  const l = Object.fromEntries((await api('/api/lugares', { tk: a })).json.lugares.map((x) => [x.lugar, x.datos]));
+  assert.equal(l['macro:31'].color, '#1f77b4');
+  assert.equal(l['macro:32'].color, undefined);
 });
 
 test('mi espacio: datos de tesis y asesores en lista blanca, sin acceso cruzado', async () => {

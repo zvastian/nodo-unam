@@ -3,7 +3,8 @@ paridad con una referencia local.
 
   python services/lab/medir_remoto.py URL [--referencia http://127.0.0.1:8770] [--frio]
 
-Lee la clave compartida de services/puerta/pruebas/claves.local.json (o de LAB_CLAVE). Con
+Lee la clave compartida de services/puerta/pruebas/claves.local.json (o de LAB_CLAVE), y el token
+de proxy de Modal de MODAL_KEY y MODAL_SECRET. Con
 --frio espera a que el contenedor se apague (scaledown de 2 min) y mide un segundo arranque.
 Solo usa urllib: corre con cualquier Python.
 """
@@ -20,6 +21,9 @@ AQUI = Path(__file__).parent
 
 def pedir(url, cuerpo=None, clave="", espera=180):
     h = {"Content-Type": "application/json", "X-Lab-Clave": clave}
+    # token de proxy de Modal (modal_app.py lo exige); en local no hace falta
+    if os.getenv("MODAL_KEY") and os.getenv("MODAL_SECRET"):
+        h.update({"Modal-Key": os.environ["MODAL_KEY"], "Modal-Secret": os.environ["MODAL_SECRET"]})
     datos = None if cuerpo is None else json.dumps(cuerpo).encode()
     r = urllib.request.Request(url, data=datos, headers=h, method="POST" if datos else "GET")
     t0 = time.perf_counter()

@@ -4466,7 +4466,7 @@ Revisión de todo lo pendiente, de lo más crítico (seguridad, fila) a lo menos
 - ninguna página trae `og:*`, ni hay `robots.txt`, `sitemap.xml` ni 404.
 
 **Orden:**
-1. **Blindar la API:** inyección (hecho), límite por IP, Turnstile real, revisión de seguridad de la sesión y de la API (JWT `iss`/`aud`, CORS de producción, XSS, `SUPABASE_SERVICE_KEY`, RLS de Supabase) y rotación de secretos.
+1. **Blindar la API** (código hecho en la v4.37.0; faltan los pasos de panel que ahí se listan): inyección (hecho), límite por IP, Turnstile real, revisión de seguridad de la sesión y de la API (JWT `iss`/`aud`, CORS de producción, XSS, `SUPABASE_SERVICE_KEY`, RLS de Supabase) y rotación de secretos.
 2. **Fila:** Durable Object `Fila` (plan gratuito, SQLite), N = 2 análisis a la vez hacia Modal, posición en vivo por SSE, largo máximo, cuota devuelta si se abandona, tope mensual ligado al crédito de Modal.
 3. **Staging:** D1 remoto con migraciones, Worker en un entorno `staging`, artefactos nuevos en Modal y decisión de la tarjeta.
 4. **Estrés y CI:** 50 análisis simultáneos contra staging; topes de IA; respaldo de Groq a Workers AI; pruebas del Worker en el CI; Dependabot.
@@ -4491,4 +4491,86 @@ Revisión de todo lo pendiente, de lo más crítico (seguridad, fila) a lo menos
 - **Qué cambió:** «Contacto» del pie (Acerca de, Laboratorio, Mi espacio y Aviso de privacidad) ya no abre la app de correo: lleva a `contacto.html`, que dice «¿Tienes dudas, comentarios o sugerencias? Escríbenos a contacto@nodosmap.com. Leemos todos los mensajes y respondemos lo antes posible.», con el nombre y «Founder» debajo, con el mismo bloque de Acerca de. Se quitó el icono de correo de las redes del autor en Acerca de.
 - **Además:** `contacto.html` entra en `construir_sitio.py`, en `_headers` (CSP propia) y en `prueba_humo.mjs`.
 - **Cómo se verificó:** `prueba_humo.mjs` pasa las 7 páginas. No vi la página en una captura.
-- **Pendiente:** el pie del mapa (`index.html`) no tiene enlace a Contacto; solo Privacidad.
+- **Pendiente:** el pie del mapa (`index.html`) no tiene enlace a Contacto; solo Privacidad. (Resuelto en la v4.36.7.)
+
+### v4.36.7: «Contacto» en el pie del mapa; sitio de prueba actualizado (2026-09-29)
+
+- **Qué cambió:** el pie del mapa (`index.html`) enlaza a `contacto.html`, junto a Privacidad.
+- **Publicado:** `dist/` reconstruido (3,419 archivos) y subido al Worker `nodosmap` (versión `a6ea7c7a-2d04-4c54-beed-34d9b1e3cec9`) en `nodosmap.sebastian-diaz-prado.workers.dev`. Se subieron 6 archivos: `index`, `acerca`, `laboratorio`, `espacio`, `privacidad` y `contacto`. Esa copia ya trae la v4.36.6 y la 4.36.7, sin la intro y con la isla de «Notas al programa» movida. El dominio `nodosmap.com` sigue sin conectarse.
+- **Cómo se verificó:** el resultado de `wrangler deploy` (subida correcta). No abrí el sitio publicado ni corrí `prueba_humo.mjs` contra él.
+
+### v4.36.8 y v4.36.9: redes en Contacto; «Apoya este proyecto» conectado en todas las páginas (2026-09-29)
+
+- **v4.36.8:** `contacto.html` lleva GitHub, LinkedIn e Instagram bajo «Founder», como Acerca de y sin el icono de correo. `prueba_humo.mjs` exige 3 enlaces de redes y ninguno de correo. Publicado en el sitio de prueba (versión `66ff5eb9`).
+- **v4.36.9:** el enlace de Stripe **de prueba** (`https://buy.stripe.com/test_7sYfZb1hpc3ifE8aQMafS00`, el de la sección «Apoyos») vivía solo en `laboratorio.html`, así que «Apoya este proyecto» seguía en `#` en Acerca de, Mi espacio, Privacidad y Contacto. Ahora está en `compartido/apoyo.js`, que las cinco páginas cargan; lo lee cada enlace `data-pendiente="cafe"` y lo abre en otra pestaña. El mapa no tiene ese enlace en el pie. Al activar Stripe, el enlace real se cambia **solo** en `apoyo.js`.
+- **Cómo se verificó:** nada todavía. La verificación local y la publicación están pendientes.
+
+### v4.37.0: API blindada (punto 1 de la lista de lanzamiento) (2026-09-29)
+
+Revisión de seguridad del Worker `puerta`, del servicio de datos y de las páginas que hablan con ellos. La hizo Opus 5.5, a pedido del usuario.
+
+**Hallazgos y qué se hizo:**
+- **El token de sesión se podía robar con un enlace.** `compartido/sesion.js` tomaba la URL de la API de `?puerta=` en cualquier dominio: un enlace a `nodosmap.com/laboratorio.html?puerta=https://otro-sitio` mandaba ahí el `Authorization: Bearer`. En producción la CSP (`connect-src 'self'`) lo habría frenado, pero era la única barrera. Ahora `?puerta=` solo se lee en local.
+- **Límite por IP** (no existía). Usa el binding de Rate Limiting (`ratelimits` en `wrangler.jsonc`, plan gratuito): 120 peticiones por minuto a toda la API y 10 por minuto al análisis. Corre **antes** de la sesión, así que un token falso también cuenta. Es por ubicación de Cloudflare: frena ráfagas y no es una cuota. Es generoso porque en un campus muchos comparten IP. La IP no se guarda. Responde 429 `demasiadas_peticiones`.
+- **Turnstile real.** El Laboratorio mandaba un token falso (`TURNSTILE_PRUEBA`). Ahora carga el widget de Cloudflare al primer análisis, con la acción `analisis` y el modo `interaction-only`: no se ve, salvo que Cloudflare pida una prueba, y entonces aparece junto a «Analizar mi tesis». Pide un token nuevo por análisis. Si falla, dice «No pudimos comprobar que eres una persona…» y el borrador queda intacto. El Worker, en producción, exige además la acción y un dominio de `TURNSTILE_HOSTS`: sin eso, un token resuelto en otro sitio con la misma clave pasaba. siteverify tiene 10 s de espera.
+- **Configuración que falla cerrada.** Con `ENTORNO = "produccion"`, el Worker responde 503 a todo si ve `JWKS_LOCAL` (aceptaría tokens firmados por cualquiera), la clave de prueba de Turnstile (aprueba a todos), una `LAB_CLAVE` corta, URLs sin https, o si faltan `TURNSTILE_HOSTS` o los límites. Registra solo los nombres de las variables. `sesion.js` rechaza `JWKS_LOCAL` en producción por su cuenta.
+- **Usuarios anónimos de Supabase.** Tienen rol `authenticated`; si alguien activara ese método, cada visita sería una cuenta con su propia cuota. El Worker los rechaza (`usuario_anonimo`).
+- **El servicio de datos quedaba abierto sin `LAB_CLAVE`.** Con `LAB_EXIGIR_CLAVE=1`, que Modal pone, no arranca sin una clave de 32 o más caracteres. Además, `modal_app.py` pide un **token de proxy de Modal** (`requires_proxy_auth`): Modal rechaza en su borde lo que no lo trae, **sin despertar el contenedor**. Antes, cualquiera podía mantenerlo despierto con peticiones sin clave y gastar el crédito. El Worker manda `Modal-Key` y `Modal-Secret` si existen `MODAL_KEY` y `MODAL_SECRET`; `medir_remoto.py` también.
+- **Cuerpo sin `Content-Length`.** `leerJson` leía todo antes de medirlo. Ahora lee por partes, corta al pasar el tope y rechaza UTF-8 inválido.
+- **Cabeceras de la API:** `Content-Security-Policy: default-src 'none'; frame-ancestors 'none'`, `Referrer-Policy: no-referrer` y `Cross-Origin-Resource-Policy: same-site`, también en el SSE.
+- **XSS en atributos.** `esc()` del Laboratorio y `escapeHtml()` del mapa no escapaban comillas y se usan dentro de atributos (`data-tid`, `data-as`, `data-v`, `title` y el `value` del buscador de la lista). Ahora escapan `& < > " '`, como el de Mi espacio. No encontré un vector explotable hoy (los datos vienen del catálogo o de lo que guarda el mismo usuario), pero la función era incorrecta.
+- **Revisado sin cambios:** la sesión ya verificaba firma, `iss`, `aud`, `role`, `exp` y `nbf`; toda consulta a D1 filtra por el `sub` del token; `SUPABASE_SERVICE_KEY` solo se usa para borrar la identidad, con el id validado como UUID; CORS con lista explícita. El historial de git no tiene claves (busqué patrones de Groq, Stripe y Supabase).
+- `sesion.js?v=` pasa a 4.37.0 en las seis páginas.
+
+**Cómo se verificó:**
+- `pruebas/seguridad.test.mjs` (nuevo, en el CI): 6 pruebas sin wrangler. Cubren tokens alterados (emisor, audiencia, rol, caducado, anónimo, HS256, `alg: none` y carga cambiada tras firmar), la configuración de producción (incluido el 503), el límite por IP antes de la sesión, la acción y el dominio de Turnstile, el corte del cuerpo por partes y las cabeceras. Pasan las 6. La prueba de configuración atrapó un error mío en la expresión de las claves de prueba de Turnstile, ya corregido.
+- `puerta.test.mjs` contra `wrangler dev` y el servicio de datos local con `LAB_EXIGIR_CLAVE=1`: **9 de 9**. Pasan también las 19 de Bloom e inyección.
+- En `wrangler dev`, 12 análisis seguidos: el límite corta con 429 y `/api/yo` sigue en 401 (no lo toca). El servicio sin `X-Lab-Clave` responde 401. `wrangler deploy --dry-run` muestra los dos límites.
+- `prueba_humo.mjs`: las 7 páginas cargan sin errores.
+- **No verificado:** el widget de Turnstile con una sesión real en el navegador (hace falta entrar con Supabase), ni el token de proxy de Modal (hace falta volver a desplegar). `wrangler dev` necesitó `CLOUDFLARE_ACCOUNT_ID` porque hay dos cuentas; usé la de gmail (`fc4e…`), solo como variable de esa corrida.
+
+**Lo que tiene que hacer el usuario** (paneles, no código):
+1. **Turnstile:** crear el widget en Cloudflare (dominios `nodosmap.com` y `www.nodosmap.com`, modo *Managed*), poner su clave de sitio en `TURNSTILE_SITIO` de `laboratorio.html` y la secreta con `wrangler secret put TURNSTILE_SECRET`. Sin clave de sitio, publicado, el Laboratorio no deja analizar (falla cerrado).
+2. **Modal:** crear un *Proxy Auth Token* (Settings), guardarlo en el Worker (`MODAL_KEY`, `MODAL_SECRET`) y volver a desplegar `modal_app.py`. Desde ese despliegue, el servicio no responde sin el token.
+3. **Supabase:** comprobar que *Anonymous sign-ins* está apagado; confirmar que no hay tablas en el esquema `public` (los datos viven en D1), o que tienen RLS activado; usar una clave secreta nueva (`sb_secret_…`, que se puede revocar) como `SUPABASE_SERVICE_KEY`, y no la `service_role` vieja.
+4. **Rotar** las 4 claves de `app/AI Pipeline/Scripts/` (Groq y Cerebras), pendientes desde el 23-sep, y usar claves nuevas y propias en producción (Groq, `LAB_CLAVE` con `openssl rand -base64 32`).
+
+**Para el paso 3 (staging):** el entorno de producción de `wrangler.jsonc` tiene que declarar `ENTORNO = "produccion"`, `TURNSTILE_HOSTS` y los `ratelimits`, porque no se heredan. Además, en `sesion.js`, `PUERTA` queda vacío fuera de local, y con eso las páginas publicadas no llaman a la API. Al publicar con la API en el mismo origen, debe ser `location.origin`.
+
+### v4.37.1: segunda pasada de seguridad, con ataques simulados y el flujo normal probado de punta a punta (2026-09-29)
+
+Pedida por el usuario: imaginar casos maliciosos y bordes, y comprobar que las defensas no estorben el uso normal. La lista de [vibe-security](https://github.com/astoj/vibe-security) (17 áreas, solo Markdown, sin código) se usó como guía de cobertura. No se agregó al repo: no aporta nada que instalar, y sus puntos concretos ya estaban cubiertos o quedan abajo como pendientes.
+
+**Hallazgos y qué se hizo:**
+- **`?api=` y `?sesion=local` del Laboratorio, en cualquier dominio** (el mismo error que `?puerta=` en la v4.37.0). Un enlace `laboratorio.html?sesion=local&api=https://otro-sitio` saltaba el inicio de sesión, mandaba ahí el borrador de la tesis y pintaba lo que el otro sitio respondiera. Varios números de esa respuesta se insertan sin escapar, así que era XSS en nuestro dominio, con la sesión de Supabase a la mano en `localStorage`. En producción lo frenaba la CSP, pero era la única barrera. Ahora los dos parámetros solo se leen en local; `?demo` sigue igual (solo usa los ejemplos guardados).
+- **El límite por IP rompía «Guardar las N».** El Laboratorio y la lista de similares del mapa hacían un PUT por tesis: 100 peticiones seguidas. Con 120 por minuto, dos estudiantes del mismo campus se quedaban a medias. Ahora existe `PUT /api/tesis` (hasta 100 por petición, en un solo batch de D1) y `NodOS.guardarTesisLote` parte las listas largas en bloques de 100. El lote solo inserta las nuevas (`DO NOTHING`): repetirlo no reescribe nada. Consulta cuáles quedaron con `json_each` (un solo parámetro, porque D1 admite 100 por sentencia) y avisa si se llegó a las 500.
+- **Las escrituras de D1 se podían agotar para todo el sitio.** El plan gratuito da 100,000 filas escritas al día, y las cuotas del análisis también escriben: una cuenta con muchas IP podía agotarlas a punta de PUT y dejar el Laboratorio sin servicio. Hay un límite nuevo, `LIMITE_USUARIO`, de 30 escrituras por minuto por usuario; guardar a mano no llega ni cerca. Además, las rutas de uno ya no reescriben una fila si los datos no cambiaron.
+- **IPv6.** El límite contaba por dirección exacta, y una conexión doméstica tiene un /64 entero (18 trillones de direcciones). Ahora cuenta por /64.
+- **Entradas con tipos cambiados tiraban el Worker.** `objectives` como texto o como objeto daban un 500 (`.map is not a function`), y 5,000 objetivos recorrían el léxico antes de que el servicio los rechazara. `validarEntrada()` revisa tipos y topes con los mismos límites del servicio, antes de Turnstile y de la cuota: 400 `entrada_invalida` con `campos`, y solo pasan los campos conocidos.
+- **Color de lugares guardados:** el Worker solo lo guarda si es hexadecimal, porque las páginas lo ponen dentro de un `style`.
+- **Doble envío en el Laboratorio:** un segundo clic o Enter mientras Turnstile trabaja se ignora; antes reemplazaba el widget y dejaba una promesa colgada.
+
+**Ataques simulados que no encontraron nada:**
+- **Catálogo envenenado.** Un servidor local sirvió el sitio con **cada texto de los JSON** (títulos, asesores, programas, nombres de campo y los ejemplos del Laboratorio) terminado en `<img src=x onerror=…>` y `<svg onload=…>`, con comillas para salir de atributos. Recorrí en Chrome la ficha de una tesis, la vista de asesor, la lista de un asesor y el análisis de ejemplo completo del Laboratorio, donde se pintaron 255 textos envenenados. **Ninguna carga se ejecutó** (`window.__xss` = 0 y ningún elemento inyectado): todo aparece como texto. Es lo que más importaba, porque los títulos vienen de un catálogo externo (TESIUNAM) y la CSP permite scripts en línea.
+- **Parámetros del mapa** (`?tesis=`, `?lugar=`, `?asesor=`): solo buscan valores que ya existen en los datos, así que no hay inyección.
+- **Entradas raras:** con `__proto__` y `constructor` no hay contaminación de prototipos; ReDoS con 8,000 caracteres tarda 1 ms; 16 KB de entrada, 17 ms.
+- **Historial de git:** sin claves.
+
+**El flujo normal, probado de punta a punta en Chrome** con una sesión local firmada con las claves de prueba, contra `wrangler dev` y el servicio de datos:
+- **Laboratorio.** Se llena el formulario y se envía. Turnstile (clave de prueba de Cloudflare) carga y entrega su token sin mostrarse, el Worker lo acepta y el análisis llega por SSE con las 5 secciones, incluidas las dos de IA (una llamada real a Groq). «Guardar las 100» deja las 100 en una sola petición.
+- **Mapa.** En «Ver tesis similares», «Guardar las 30» cambia a «Las 30 están en Mi espacio» (130 en total).
+- **Mi espacio.** Lista las 130 tesis y el análisis, que se guardó solo (1 de 2), y borrar una funciona.
+- La consola quedó sin errores en las tres páginas.
+
+**Pruebas:**
+- `seguridad.test.mjs`: 8 (se añadieron el /64 y la validación de la entrada).
+- `puerta.test.mjs`: 11 de 11, con 2 nuevas. Una cubre lotes: 100 guardadas, repetir sin duplicar, lote de 101, vacío, id malicioso, `tesis` como texto, y llenar hasta 500 y ver `limite_de_tesis`. La otra, el color hexadecimal.
+- El caso del 422 del servicio ahora es un 400 del Worker, y hay uno nuevo con tipos cambiados.
+- Siguen pasando las 19 de Bloom e inyección.
+
+**Riesgos que quedan** (no se resuelven con código en este paso):
+- **Cuentas en masa.** Cada cuenta nueva trae 2 análisis al día. Con Turnstile y los límites cuesta, pero alguien decidido podría agotar el tope del sitio (500 al día, 55 con IA) y dejar sin Laboratorio a los demás ese día. Lo natural es resolverlo en la fila (paso 2): el Durable Object puede llevar un tope por red y por día sin guardar IP en D1, y el tope mensual ligado al crédito de Modal.
+- **Escrituras de D1.** El límite por usuario lo frena, pero muchas cuentas a la vez todavía podrían acercarse a las 100,000 filas al día. Opciones: el contador global en el Durable Object de la fila, o el plan Workers Paid (5 USD al mes, 50 millones de filas). Hace falta una alerta en cualquier caso.
+- **La sesión vive en `localStorage`** (supabase-js), y la CSP permite `'unsafe-inline'` porque las páginas llevan su código en línea. Cualquier XSS tendría acceso al token. Hoy el escape aguanta la prueba de arriba. La defensa de fondo es sacar los scripts en línea a archivos y usar una CSP con hashes, que es un cambio grande y conviene hacer antes de crecer.
+- **Un token sigue valiendo hasta que caduca** (1 hora en Supabase), aun después de «Salir» o de borrar la cuenta. Es aceptable para lo que se guarda; si se quiere cerrar, el Worker puede consultar `/auth/v1/user` solo en `DELETE /api/cuenta`.
+- **El enlace de apoyo de Stripe es de prueba** (`buy.stripe.com/test_…`): no es de seguridad, pero no puede salir así.

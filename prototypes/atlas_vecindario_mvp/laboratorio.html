@@ -479,6 +479,7 @@
   /* envío: remate de 2 px en tinta, como el pie de la lista de parecidas */
   .f-envio { display: flex; align-items: center; flex-wrap: wrap; gap: 18px 32px; padding: 22px 0 0; border-top: 2px solid var(--ink); }
   .f-envio .btn-cta { padding: 13px 22px; font-size: 16px; }
+  .f-turnstile:empty { display: none; }
   .dlg-aviso { width: min(600px, calc(100vw - 32px)); }
   .dlg-aviso .dlg-head { margin-bottom: 0; }
   .aviso-cuerpo { display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 24px; align-items: start; }
@@ -842,6 +843,7 @@
     </section>
     <div class="f-envio solo-escritura" id="f-envio">
       <button type="button" class="btn-cta" id="f-enviar">Analizar mi tesis</button>
+      <div id="f-turnstile" class="f-turnstile"></div>
       <p class="f-err" id="e-envio" hidden></p>
     </div>
     <div class="f-sesion solo-escritura" id="f-sesion" hidden>
@@ -913,20 +915,16 @@
 
 <!-- supabase-js 2.117.2 (UMD), versión exacta con SRI: inicio de sesión -->
 <script src="vendor/supabase-js-2.117.2.js" integrity="sha384-Rj26LVGvoeRVR6+mwQmFfcR3QOBEwT+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok"></script>
-<script src="compartido/sesion.js?v=4.31.2"></script>
+<script src="compartido/sesion.js?v=4.37.1"></script>
 <script src="compartido/ajustes.js?v=4.36.2"></script>
+<script src="compartido/apoyo.js?v=4.36.9"></script>
 <script>
 (function () {
   'use strict';
   var REDUCIDO = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   // modo noche compartido con el mapa (misma clave que index.html)
   try { if (localStorage.getItem('nodo_noche') === '1') document.body.classList.add('noche'); } catch (e) { /* sin almacenamiento */ }
-  // «Apoya este proyecto»: Payment Link de Stripe (MXN, monto libre; Apple Pay, Google Pay, tarjeta y OXXO).
-  // Mientras esté vacío, los enlaces siguen en «#».
-  var APOYO_URL = 'https://buy.stripe.com/test_7sYfZb1hpc3ifE8aQMafS00'; // PRUEBA (sandbox): cambiar por el enlace real al activar Stripe
-  if (APOYO_URL) document.querySelectorAll('a[data-pendiente="cafe"]').forEach(function (a) {
-    a.href = APOYO_URL; a.target = '_blank'; a.rel = 'noopener'; a.removeAttribute('data-pendiente');
-  });
+  // «Apoya este proyecto»: el enlace de Stripe está en compartido/apoyo.js (una sola vez para todas las páginas).
   var NIVELES = ['Recordar', 'Comprender', 'Aplicar', 'Analizar', 'Evaluar', 'Crear'];
   var AREA_DIA = { 0: '#9a9a9a', 1: '#3566a8', 2: '#0f7d5c', 3: '#c98a2e', 4: '#b8412f' };
   var AREA_NOCHE = { 0: '#8c93a3', 1: '#5b93e6', 2: '#27a97c', 3: '#b0801c', 4: '#e0567a' };
@@ -947,7 +945,8 @@
   var S = { datos: null, ia: null, macros: [], colorDia: {}, colorNoche: {}, escritura: {}, puntos: null };
 
   function $(id) { return document.getElementById(id); }
-  function esc(s) { var d = document.createElement('div'); d.textContent = s == null ? '' : String(s); return d.innerHTML; }
+  // también comillas: esc() se usa dentro de atributos (data-tid, title), no solo en texto
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function fmt(n) { return Number(n).toLocaleString('es-MX'); }
   function pct(f) { return Math.round(f * 100) + '%'; }
   function capital(t) { t = String(t || ''); return t.charAt(0).toUpperCase() + t.slice(1); }
@@ -1501,10 +1500,12 @@
       if (!usuarioActual()) { if (NDS) NDS.abrirEntrar(this); return; }
       var b = this, ids = filtradas().map(function (t) { return t.id; }), hechas = 0;
       b.disabled = true; b.querySelector('span').textContent = 'Guardando…';
-      for (var i = 0; i < ids.length; i++) {
-        try { await NDS.guardarTesis(ids[i], datosTesis(ids[i]), true); pintarGuardadoTesis(ids[i], true); document.querySelectorAll('.guardar[data-tid="' + ids[i] + '"]').forEach(function (x) { NDS.animarGuardado(x, true); }); hechas++; }
-        catch (err) { avisoGuardar(err); break; }
-      }
+      // en bloques de 100 por petición (NodOS.guardarTesisLote), no una por tesis
+      try {
+        await NDS.guardarTesisLote(ids.map(function (id) { return { id: id, datos: datosTesis(id) }; }), function (listas) {
+          listas.forEach(function (id) { pintarGuardadoTesis(id, true); document.querySelectorAll('.guardar[data-tid="' + id + '"]').forEach(function (x) { NDS.animarGuardado(x, true); }); hechas++; });
+        });
+      } catch (err) { avisoGuardar(err); }
       b.disabled = false; b.classList.toggle('hecho', hechas === ids.length);
       b.querySelector('span').textContent = hechas === ids.length ? (ids.length === 1 ? 'Guardada' : 'Las ' + ids.length + ' están') + ' en Mi espacio' : 'Guardar todas';
     };
@@ -1717,8 +1718,11 @@
   //   ?demo           ejemplo + sesión simulada + análisis automático (el recorrido de antes).
   // La lectura de IA del boceto (ia_ejemplo.json) solo se muestra para el caso de ejemplo.
   var PARAM = new URLSearchParams(location.search);
-  var API_LAB = PARAM.get('api') || (/^(127\.0\.0\.1|localhost)$/.test(location.hostname) ? 'http://127.0.0.1:8770' : '');
-  var SESION = PARAM.get('sesion') === 'local' || PARAM.has('demo');
+  // ?api= y ?sesion=local, solo en local: publicado, un enlace con ?sesion=local&api=https://otro-sitio
+  // mandaría ahí el borrador de la tesis y pintaría lo que ese sitio responda.
+  var EN_LOCAL = /^(127\.0\.0\.1|localhost)$/.test(location.hostname);
+  var API_LAB = EN_LOCAL ? (PARAM.get('api') || 'http://127.0.0.1:8770') : '';
+  var SESION = (EN_LOCAL && PARAM.get('sesion') === 'local') || PARAM.has('demo');
   var EJEMPLO = null;
   // análisis de ejemplo precargados (lab/ejemplos/<id>/: entrada, datos del servicio e IA, reales y guardados);
   // ?demo=<id> abre uno ya analizado; ?demo sin id, el de repartidores
@@ -2220,7 +2224,43 @@
   // La sesión, la barra y la pantalla de acceso son del módulo compartido. Aquí, lo del Lab: quien entra
   // desde la invitación del formulario vuelve y su análisis arranca solo; el análisis va al Worker (SSE).
   var NDS = window.NodOS || null;
-  var TURNSTILE_PRUEBA = 'XXXX.DUMMY.TOKEN.XXXX'; // en local; el widget real va con el despliegue
+  // Turnstile (Cloudflare): prueba de que quien analiza es una persona. El script se carga al primer
+  // análisis y el widget va con la acción «analisis», que el Worker exige. Con «interaction-only» no
+  // se ve, salvo que Cloudflare pida una prueba: entonces aparece junto al botón.
+  // La clave de sitio es pública por diseño. En local, la de prueba que siempre aprueba sin mostrarse.
+  var TURNSTILE_SITIO = /^(127\.0\.0\.1|localhost)$/.test(location.hostname) ? '1x00000000000000000000BB' : ''; // la real, al publicar
+  var ts = { carga: null, id: null };
+  function cargarTurnstile() {
+    if (ts.carga) return ts.carga;
+    ts.carga = new Promise(function (ok, mal) {
+      window.nodosTurnstile = function () { ok(window.turnstile); };
+      var s = document.createElement('script');
+      s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=nodosTurnstile';
+      s.async = true;
+      s.onerror = function () { ts.carga = null; s.remove(); mal(new Error('turnstile_no_cargo')); };
+      document.head.appendChild(s);
+    });
+    return ts.carga;
+  }
+  // un token nuevo por análisis: Cloudflare acepta cada token una sola vez
+  function tokenTurnstile() {
+    if (!TURNSTILE_SITIO) return Promise.reject(new Error('turnstile_sin_clave'));
+    return cargarTurnstile().then(function (t) {
+      return new Promise(function (ok, mal) {
+        if (ts.id !== null) { try { t.remove(ts.id); } catch (e) { /* ya no estaba */ } ts.id = null; }
+        ts.id = t.render($('f-turnstile'), {
+          sitekey: TURNSTILE_SITIO, action: 'analisis', appearance: 'interaction-only',
+          theme: noche() ? 'dark' : 'light', language: 'es',
+          callback: ok,
+          'error-callback': function (codigo) { mal(new Error('turnstile_' + codigo)); return true; },
+          'timeout-callback': function () { mal(new Error('turnstile_tiempo')); }
+        });
+      });
+    });
+  }
+  function avisoEnvio(txt) {
+    var p = $('e-envio'); p.hidden = !txt; p.innerHTML = txt ? ICO_ERR + '<span>' + txt + '</span>' : '';
+  }
   var PENDIENTE = 'nodo_lab_analizar_al_volver';
   var formListo = null, formListoOk = null;
   formListo = new Promise(function (r) { formListoOk = r; });
@@ -2241,13 +2281,13 @@
   });
 
   // análisis por el Worker: POST /api/lab/analisis, respuesta en SSE
-  function abrirFlujo(e) {
+  function abrirFlujo(e, turnstile) {
     var f = { iaAgotada: false }, ok = {}, falla = null;
     ['nota', 'preguntas', 'bloom', 'fin'].forEach(function (k) { f[k] = new Promise(function (r) { ok[k] = r; }); });
     f.datos = new Promise(function (r, rej) { ok.datos = r; falla = rej; });
     var cerrarTodo = function () { ['datos', 'nota', 'preguntas', 'bloom', 'fin'].forEach(function (k) { ok[k](null); }); };
     fetch(NDS.PUERTA + '/api/lab/analisis', { method: 'POST', body: JSON.stringify(e),
-      headers: { Authorization: 'Bearer ' + usuarioActual().token, 'Content-Type': 'application/json', 'X-Turnstile': TURNSTILE_PRUEBA } })
+      headers: { Authorization: 'Bearer ' + usuarioActual().token, 'Content-Type': 'application/json', 'X-Turnstile': turnstile } })
       .then(async function (x) {
         if (!x.ok || !(x.headers.get('content-type') || '').startsWith('text/event-stream')) {
           var j = await x.json().catch(function () { return {}; }), err = new Error(j.error || ('HTTP ' + x.status));
@@ -2288,8 +2328,19 @@
     if (!validar(true)) { estado('<b>Falta completar algo.</b> Está marcado debajo de cada campo.', 'senala'); return; }
     var e = leerForm();
     if (!haySesion()) { mostrarSesion(true); return; }
-    analizar(e);
+    avisoEnvio('');
+    if (!porPuerta()) { analizar(e); return; }
+    // el token se pide con el formulario a la vista: si Cloudflare pide una prueba, aquí se ve.
+    // Un segundo envío mientras tanto (doble toque, Enter) se ignora.
+    if (ts.pidiendo) return;
+    var b = $('f-enviar'); b.disabled = true; ts.pidiendo = true;
+    estado('<b>Comprobando</b> que eres una persona', 'investiga');
+    tokenTurnstile().then(function (tk) { ts.pidiendo = false; b.disabled = false; analizar(e, tk); }, function (err) {
+      ts.pidiendo = false; b.disabled = false; console.warn('Turnstile:', err.message); estadoForm();
+      avisoEnvio('No pudimos comprobar que eres una persona. Recarga la página e inténtalo de nuevo.');
+    });
   }
+  function porPuerta() { return !S.precargado && !EJ_ID && !!usuarioActual() && !!NDS && !!NDS.PUERTA; }
   function mostrarSesion(si) {
     $('f-envio').hidden = si; $('f-sesion').hidden = !si;
     if (si) { $('f-sesion').scrollIntoView({ behavior: REDUCIDO ? 'auto' : 'smooth', block: 'center' }); var gb = $('f-acceso').querySelector('.btn-google'); if (gb) gb.focus({ preventScroll: true }); estado('<b>Entra para analizar tu tesis.</b> Tu borrador está guardado.', 'senala'); }
@@ -2297,7 +2348,7 @@
   }
 
   // --- de escribir a analizar: la portada se queda y el análisis se despliega debajo ---
-  async function analizar(e) {
+  async function analizar(e, turnstile) {
     cerrarLista();
     corrida++; terminado = false; actual = -1;
     document.body.classList.remove('escribiendo');
@@ -2311,8 +2362,8 @@
     var datos; S.iaFlujo = null;
     var pre = S.precargado; S.precargado = null; // un análisis guardado se usa una sola vez
     if (pre) { datos = pre.datos; S.ia = pre.ia || null; S.fuente = 'guardado'; }
-    else if (!EJ_ID && usuarioActual() && NDS && NDS.PUERTA) {
-      var flujo = abrirFlujo(e);
+    else if (!EJ_ID && usuarioActual() && NDS && NDS.PUERTA && turnstile) {
+      var flujo = abrirFlujo(e, turnstile);
       try { datos = await flujo.datos; } catch (err) { errorFlujo(err); return; }
       if (!datos) { errorDatos(); return; }
       S.iaFlujo = flujo; S.fuente = 'puerta';

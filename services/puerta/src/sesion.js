@@ -33,6 +33,8 @@ async function cargarJwks(env, forzar) {
   cache.pedido = ahora;
   let jwks;
   if (env.JWKS_LOCAL) {
+    // Un JWKS local acepta tokens firmados con cualquier clave que alguien suba; en producción, nunca.
+    if (env.ENTORNO === 'produccion') throw new Error('JWKS_LOCAL en producción');
     jwks = JSON.parse(env.JWKS_LOCAL);
   } else {
     if (!env.SUPABASE_URL) throw new Error('falta SUPABASE_URL');
@@ -73,6 +75,9 @@ export async function usuarioDe(request, env) {
   const aud = Array.isArray(datos.aud) ? datos.aud : [datos.aud];
   if (!aud.includes('authenticated') || datos.role !== 'authenticated') throw new SinSesion('rol_incorrecto');
   if (typeof datos.sub !== 'string' || !/^[0-9a-f-]{36}$/i.test(datos.sub)) throw new SinSesion('sin_usuario');
+  // Un usuario anónimo de Supabase también tiene rol «authenticated»; si alguien activa ese
+  // método, cada visita sería una cuenta nueva con su propia cuota. Aquí no cuentan.
+  if (datos.is_anonymous === true) throw new SinSesion('usuario_anonimo');
 
   return { id: datos.sub.toLowerCase(), correo: datos.email || '' };
 }
