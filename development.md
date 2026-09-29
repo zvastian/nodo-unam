@@ -4376,3 +4376,22 @@ Sección de traspaso: la sesión se cortó porque la terminal dejó de responder
     - los secretos con `wrangler secret put`.
   - [ ] **Supabase:** Site URL y Redirect URLs a `https://nodosmap.com`. **Google OAuth:** dominio autorizado. **GitHub OAuth:** Homepage URL.
   - [ ] Cerrar RFC-0002 como ADR con el dominio y el hosting elegidos (Workers con archivos estáticos, no Pages).
+
+## v4.36.0: Acerca de con extracción animada y esquemas técnicos (2026-09-28)
+
+**Qué cambió (aprobado por el usuario el 28-sep; en `acerca.html` y `pipeline/generar_acerca.py`, más `#app-version`):**
+- **Paso 1, «Extracción»** (antes «Catálogo»): explica que la información se extrajo del catálogo con un script de Python, y lo muestra en una ilustración de trazo fija (no animación, sin robot): páginas del catálogo con el autor tachado entran por un embudo a una ventana de código (`extraer.py`) y salen como una tabla sin autor. Colores solo de tokens. No se usa la expresión «web scraping».
+- **Paso 3, «Vectores»** (antes «Vector»): las barras se sustituyen por un esquema en tres dimensiones (3 de las 1,024) con palabras de las tesis: levaduras, bacterias y derecho, en los colores de sus campos.
+- **Paso 4:** esquema de FAISS: el espacio en celdas (Voronoi), la consulta, las dos celdas revisadas (IVF) y sus tres vecinas; la lista de similares con cifras reales queda debajo. El texto explica IVF y SQ8.
+- **Paso 6, Ward:** el árbol de barras se sustituye por el esquema de dos grupos con el centro de cada uno y el centro de la unión, con palabras de los subtemas.
+- **Paso 8, c-TF-IDF:** explicación nueva («de» se repite cientos de veces y no dice nada; el puntaje baja lo común y sube lo propio) y una tabla con cifras **reales** del subtema de la tesis de ejemplo: veces en el subtema, en cuántos de los 513 subtemas aparece y su puntaje (`tf × log(1 + A / f_t)`, calculado en `generar_acerca.py`). «de»: 802 veces, en 512 de 513 subtemas, puntaje 12. «cerevisiae»: 136 veces, en 5 subtemas, puntaje 485.
+- **Paso 11:** se quitó la mención del esquema JSON y se añadió el diagrama entradas → modelo → tres textos.
+- Paso «Grupos» renombrado «Clustering».
+- **Paso «Asesores» borrado** a pedido del usuario; los pasos siguientes se renumeran (13 pasos pasan a 12).
+- `data/acerca.v1.json` trae ahora `ctfidf`.
+
+**Verificación:** capturas en escritorio (1280×800) y móvil (390×844) de los pasos 1, 3, 4, 6, 8 y 11, sin desborde horizontal y con la consola limpia.
+
+**Falta:** aprobación del usuario; subir a 4.36.0 en `#app-version`; commit, `dist/` y publicar. Los esquemas de los pasos 3, 4 y 6 son ilustrativos (posiciones dibujadas a mano), y así se dice en su nota.
+
+**Decisión del usuario (28-sep): `titulo_original` sale del dataset de Kaggle.** Casi todos sus valores traen la mención de autor, así que en vez de limpiarla se excluye la columna. Falta aplicarlo en `pipeline/generar_data_unam.py` y en su documentación antes de subir el dataset.

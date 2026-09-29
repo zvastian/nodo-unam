@@ -80,6 +80,61 @@
   .tabla td { padding: 8px 0; border-bottom: 1px solid var(--line); color: var(--ink); }
   .tabla td + td, .tabla th + th { padding-left: 24px; }
 
+  /* 1: la extracción, en una ilustración de trazo: páginas del catálogo, script y tabla */
+  svg.ext { display: block; width: 100%; max-width: 620px; height: auto; overflow: visible; fill: none; stroke: var(--ink); stroke-width: 1.6; stroke-linejoin: round; stroke-linecap: round; }
+  svg.ext text { stroke: none; fill: var(--ink); font-family: inherit; }
+  svg.ext .t2 { fill: var(--ink-2); }
+  svg.ext .t3 { fill: var(--ink-3); }
+  svg.ext .mancha { stroke: none; fill: color-mix(in oklch, var(--link) 9%, var(--paper)); }
+  svg.ext .pa { fill: var(--paper); }
+  svg.ext .ac { fill: color-mix(in oklch, var(--link) 24%, var(--paper)); }
+  svg.ext .pl { stroke-width: 1.2; }
+  svg.ext .tx { stroke: var(--ink-3); stroke-width: 1.2; }
+  svg.ext .pt { fill: var(--ink); stroke: none; }
+  svg.ext .au { fill: var(--ink); stroke: none; }
+  svg.ext .k1 { stroke: var(--ink-3); stroke-width: 3.4; }
+  svg.ext .k2 { stroke: var(--ink-2); stroke-width: 3.4; }
+  svg.ext .k3 { stroke: var(--link); stroke-width: 3.4; }
+  svg.ext .tub { stroke: var(--ink); stroke-width: 14; }
+  svg.ext .tubi { stroke: var(--paper); stroke-width: 10; }
+  svg.ext .fl { stroke: var(--ink-2); }
+
+  /* 3, 4 y 6: esquemas técnicos en SVG; los colores salen de los campos del mapa */
+  .esq { display: block; width: 100%; max-width: 560px; height: auto; overflow: visible; }
+  .esq text { font-family: inherit; fill: var(--ink); }
+  .esq .t2 { fill: var(--ink-2); }
+  .esq .t3 { fill: var(--ink-3); }
+  .esq .lin { stroke: var(--line); stroke-width: 1; fill: none; }
+  .esq .eje { stroke: var(--ink); stroke-width: 1.6; fill: none; }
+  .esq .celda { stroke: var(--line-strong); stroke-width: 1; }
+  .esq .punteada { stroke: var(--ink-2); stroke-width: 1.6; stroke-dasharray: 1 5; stroke-linecap: round; fill: none; }
+  .esq .grupo { fill: none; stroke: var(--ink); stroke-width: 1.6; }
+  .esq .centro { fill: var(--marca-ocre); }
+  .leyenda .tri { display: inline-block; width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-bottom: 9px solid var(--marca-ocre); background: none; border-radius: 0; }
+
+  /* 8: c-TF-IDF con cifras reales del subtema de la tesis de ejemplo */
+  .ctf { width: 100%; max-width: 600px; border-collapse: collapse; margin-bottom: 18px; }
+  .ctf th { padding: 0 0 6px; text-align: left; font-size: 12.5px; font-weight: 500; color: var(--ink-3); border-bottom: 1px solid var(--line-strong); vertical-align: bottom; }
+  .ctf td { padding: 7px 0; border-bottom: 1px solid var(--line); color: var(--ink); vertical-align: middle; }
+  .ctf th + th, .ctf td + td { padding-left: 16px; }
+  .ctf td.p { font-weight: 600; width: 116px; }
+  .ctf td.b { width: 34%; }
+  .ctf td.b i { display: block; height: 8px; background: var(--ink-3); }
+  .ctf td.b span, .ctf td.r span { display: block; margin-top: 2px; font-size: 12px; color: var(--ink-3); }
+  .ctf td.r { width: 34%; }
+  .ctf td.r i { display: block; height: 8px; background: var(--c, var(--ink)); }
+
+  /* 11: entradas, modelo y salidas */
+  .flujo { display: grid; grid-template-columns: minmax(0, 1fr) 30px 108px 30px minmax(0, 1.25fr); align-items: center; gap: 0; max-width: 640px; }
+  .flujo .flecha { width: 30px; }
+  .flujo .modelo { padding: 14px 8px; border: 1.5px solid var(--ink); text-align: center; color: var(--ink); font-weight: 600; line-height: 1.35; }
+  .flujo .modelo small { display: block; margin-top: 2px; font-size: 12px; font-weight: 400; color: var(--ink-3); }
+  .flujo .entradas { list-style: none; margin: 0; padding: 0; }
+  .flujo .entradas li { padding: 8px 0; border-bottom: 1px solid var(--line); color: var(--ink); line-height: 1.4; }
+  .flujo .entradas li:first-child { border-top: 1px solid var(--line-strong); }
+  .flujo .entradas small { display: block; color: var(--ink-3); font-size: 12px; }
+  .flujo .ia { max-width: none; }
+
   /* 3 y 9: el vector, en esquema */
   .vector { display: flex; align-items: center; gap: 2px; height: 70px; max-width: 520px; }
   .vector i { flex: 1; min-width: 1px; background: var(--ink); }
@@ -98,17 +153,6 @@
   .leyenda { display: flex; flex-wrap: wrap; gap: 4px 18px; margin-top: 8px; font-size: 12.5px; color: var(--ink-2); }
   .leyenda span { display: inline-flex; align-items: center; gap: 6px; }
   .leyenda i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; }
-  .arbol { list-style: none; margin: 0; padding: 0; max-width: 600px; }
-  .arbol li { display: grid; grid-template-columns: minmax(0, 220px) minmax(0, 1fr) 48px; gap: 12px; align-items: center; padding: 3px 0; color: var(--ink-2); }
-  .arbol li.sub { grid-template-columns: 18px minmax(0, 202px) minmax(0, 1fr) 48px; }
-  .arbol li.sub::before { content: ''; align-self: stretch; margin-left: 6px; border-left: 1px solid var(--line-strong); }
-  .arbol .barra { height: 8px; background: var(--c); opacity: 0.35; }
-  .arbol .aqui { color: var(--ink); font-weight: 600; }
-  .arbol .aqui .barra { opacity: 1; }
-  .arbol .num { text-align: right; color: var(--ink-3); }
-  .arbol .campo { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; font-weight: 700; color: var(--ink); }
-  .arbol .campo i { width: 4px; height: 16px; background: var(--c); }
-
   /* 8: de palabras clave a nombre */
   .palabras { display: grid; grid-template-columns: max-content 36px max-content; gap: 0 18px; align-items: center; }
   .palabras ol { margin: 0; padding-left: 22px; color: var(--ink-2); line-height: 1.7; }
@@ -163,10 +207,9 @@
     .page { padding: 20px 16px 56px; }
     .ac-banda { margin: 0 -16px; padding: 26px 16px 28px; }
     .paso-txt p { margin-left: 0; }
-    .registro, .palabras { grid-template-columns: minmax(0, 1fr); gap: 8px; }
-    .registro .flecha, .palabras .flecha { transform: rotate(90deg); margin: 0 auto; }
-    .arbol li { grid-template-columns: minmax(0, 150px) minmax(0, 1fr) 44px; }
-    .arbol li.sub { grid-template-columns: 14px minmax(0, 136px) minmax(0, 1fr) 44px; }
+    .registro, .palabras, .flujo { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+    .registro .flecha, .palabras .flecha, .flujo .flecha { transform: rotate(90deg); margin: 4px auto; }
+    .ctf td.p { width: 96px; }
     .barras li { grid-template-columns: minmax(0, 150px) minmax(0, 1fr) 40px; }
   }
   .pie-pag { background: var(--pie-fondo); color: var(--pie-tinta-2); font-size: 14px; line-height: 1.45; }
@@ -216,73 +259,52 @@
   <h2 class="ac-parte" id="mapa">El mapa</h2>
 
   <section class="paso" aria-labelledby="p1">
-    <div class="paso-txt"><h3 id="p1"><span class="n">1</span>Catálogo</h3>
-      <p>Se parte del catálogo público TESIUNAM: título, año, programa, nivel y asesores de cada tesis. La mención de autor se retira del título con expresiones regulares, y una prueba automática verifica en cada publicación que no quede ninguna.</p></div>
+    <div class="paso-txt"><h3 id="p1"><span class="n">1</span>Extracción</h3>
+      <p>La información se extrajo del catálogo público TESIUNAM con un script de Python. El programa recorre el catálogo registro por registro, lee los campos de cada tesis (título, año, programa, nivel y asesores) y los guarda en una tabla. La mención de autor se retira del título con expresiones regulares, y una prueba automática verifica en cada publicación que no quede ninguna.</p></div>
     <div class="fig">
-      <div class="registro">
-        <div><span class="lbl">Catálogo TESIUNAM</span><div class="caja">
-          <p id="ej-titulo-1"></p>
-          <p>Autor: <span class="tachado" role="img" aria-label="nombre retirado"></span><br><span id="ej-meta-1"></span></p>
-        </div></div>
-        <svg class="flecha" viewBox="0 0 36 14" aria-hidden="true"><path d="M6 7h24M25 2l5 5-5 5"/></svg>
-        <div><span class="lbl">Mapa</span><div class="caja">
-          <p id="ej-titulo-2"></p>
-          <p id="ej-meta-2"></p>
-        </div></div>
-      </div>
+      <svg class="ext" viewBox="0 0 640 280" role="img" aria-label="Ilustración: las páginas del catálogo TESIUNAM entran a un script de Python, que lee sus campos y los guarda como filas de una tabla; el nombre del autor no se guarda"><path class="mancha" d="M40 150C20 90 80 34 170 40C250 44 300 20 380 44C470 70 560 40 610 100C650 150 620 230 540 246C450 262 400 236 320 250C220 266 150 258 90 230C60 216 46 180 40 150Z"/><rect class="pa" x="92" y="74" width="96" height="80" rx="7"/><line class="pl" x1="92" y1="90" x2="188" y2="90"/><circle class="pt" cx="103" cy="82" r="2.2"/><circle class="pt" cx="112" cy="82" r="2.2"/><circle class="pt" cx="121" cy="82" r="2.2"/><line class="tx" x1="102" y1="102" x2="178" y2="102"/><line class="tx" x1="102" y1="113" x2="164" y2="113"/><line class="tx" x1="102" y1="124" x2="150" y2="124"/><line class="tx" x1="102" y1="135" x2="178" y2="135"/><path class="ac" d="M18 40h44l16 16v58h-60z"/><path class="pl" d="M62 40v16h16"/><line class="tx" x1="26" y1="66" x2="62" y2="66"/><line class="tx" x1="26" y1="76" x2="68" y2="76"/><line class="tx" x1="26" y1="86" x2="56" y2="86"/><rect class="au" x="26" y="94" width="24" height="5"/><path class="pa" d="M146 26h44l16 16v58h-60z"/><path class="pl" d="M190 26v16h16"/><line class="tx" x1="154" y1="52" x2="190" y2="52"/><line class="tx" x1="154" y1="62" x2="196" y2="62"/><line class="tx" x1="154" y1="72" x2="184" y2="72"/><rect class="au" x="154" y="80" width="24" height="5"/><path class="pa" d="M22 150h44l16 16v58h-60z"/><path class="pl" d="M66 150v16h16"/><line class="tx" x1="30" y1="176" x2="66" y2="176"/><line class="tx" x1="30" y1="186" x2="72" y2="186"/><line class="tx" x1="30" y1="196" x2="60" y2="196"/><rect class="au" x="30" y="204" width="24" height="5"/><path class="ac" d="M140 150h44l16 16v58h-60z"/><path class="pl" d="M184 150v16h16"/><line class="tx" x1="148" y1="176" x2="184" y2="176"/><line class="tx" x1="148" y1="186" x2="190" y2="186"/><line class="tx" x1="148" y1="196" x2="178" y2="196"/><rect class="au" x="148" y="204" width="24" height="5"/><path class="pa" d="M214 84L250 98Q262 102 262 114V166Q262 178 250 182L214 196Z"/><line class="tub" x1="262" y1="140" x2="330" y2="140"/><line class="tubi" x1="262" y1="140" x2="330" y2="140"/><rect class="pa" x="330" y="76" width="146" height="132" rx="8"/><line class="pl" x1="330" y1="98" x2="476" y2="98"/><circle class="pt" cx="344" cy="87" r="2.6"/><circle class="pt" cx="354" cy="87" r="2.6"/><circle class="pt" cx="364" cy="87" r="2.6"/><text class="t3" x="404" y="91" font-size="11">extraer.py</text><line class="k1" x1="344" y1="114" x2="406" y2="114"/><line class="k2" x1="356" y1="126" x2="440" y2="126"/><line class="k3" x1="356" y1="138" x2="422" y2="138"/><line class="k2" x1="356" y1="150" x2="448" y2="150"/><line class="k1" x1="344" y1="162" x2="394" y2="162"/><line class="k3" x1="356" y1="174" x2="434" y2="174"/><line class="k2" x1="356" y1="186" x2="414" y2="186"/><path class="fl" d="M478 140h30M502 133l8 7-8 7"/><rect class="pa" x="514" y="74" width="118" height="136" rx="8"/><path class="ac" d="M514 82a8 8 0 0 1 8-8h102a8 8 0 0 1 8 8v14h-118z"/><line class="pl" x1="553" y1="74" x2="553" y2="210"/><line class="pl" x1="596" y1="74" x2="596" y2="210"/><line class="pl" x1="514" y1="96" x2="632" y2="96"/><line class="tx" x1="522" y1="107.0" x2="542" y2="107.0"/><line class="tx" x1="561" y1="107.0" x2="589" y2="107.0"/><line class="tx" x1="604" y1="107.0" x2="622" y2="107.0"/><line class="pl" x1="514" y1="118" x2="632" y2="118"/><line class="tx" x1="522" y1="129.8" x2="539" y2="129.8"/><line class="tx" x1="561" y1="129.8" x2="586" y2="129.8"/><line class="tx" x1="604" y1="129.8" x2="619" y2="129.8"/><line class="pl" x1="514" y1="141" x2="632" y2="141"/><line class="tx" x1="522" y1="152.6" x2="536" y2="152.6"/><line class="tx" x1="561" y1="152.6" x2="583" y2="152.6"/><line class="tx" x1="604" y1="152.6" x2="616" y2="152.6"/><line class="pl" x1="514" y1="164" x2="632" y2="164"/><line class="tx" x1="522" y1="175.4" x2="541" y2="175.4"/><line class="tx" x1="561" y1="175.4" x2="588" y2="175.4"/><line class="tx" x1="604" y1="175.4" x2="621" y2="175.4"/><line class="pl" x1="514" y1="187" x2="632" y2="187"/><line class="tx" x1="522" y1="198.2" x2="538" y2="198.2"/><line class="tx" x1="561" y1="198.2" x2="585" y2="198.2"/><line class="tx" x1="604" y1="198.2" x2="618" y2="198.2"/><text class="t2" x="110" y="262" text-anchor="middle" font-size="12.5">Catálogo TESIUNAM</text><text class="t2" x="403" y="262" text-anchor="middle" font-size="12.5">Script de Python</text><text class="t2" x="573" y="262" text-anchor="middle" font-size="12.5">Tabla, sin autor</text></svg>
     </div>
   </section>
 
   <section class="paso" aria-labelledby="p2">
-    <div class="paso-txt"><h3 id="p2"><span class="n">2</span>Asesores</h3>
-      <p>Los nombres se normalizan (abreviaturas, acentos, grados y orden) y las variantes se unifican con reglas conservadoras: ante la duda, se mantienen separadas.</p></div>
-    <div class="fig">
-      <table class="tabla">
-        <thead><tr><th>En el catálogo</th><th>En el mapa</th></tr></thead>
-        <tbody>
-          <tr><td>Ma.</td><td>María</td></tr>
-          <tr><td>Perez</td><td>Pérez</td></tr>
-          <tr><td>Dra., Mtro., Ing.</td><td>se omiten</td></tr>
-          <tr><td>Apellidos, Nombre</td><td>Nombre Apellidos</td></tr>
-        </tbody>
-      </table>
-    </div>
+    <div class="paso-txt"><h3 id="p2"><span class="n">2</span>Vectores</h3>
+      <p>Cada título se convierte en un <strong>embedding</strong>: un vector de 1,024 dimensiones calculado con un modelo de lenguaje que representa textos de unos cien idiomas en un mismo espacio (multilingual-e5-large), y normalizado, de modo que títulos con significado parecido quedan cerca.</p></div>
+    <div class="fig"><svg class="esq" id="espacio" role="img" aria-label="Esquema en tres dimensiones: cada punto es un título; los de temas parecidos, como levaduras o bacterias, forman grupos y los de derecho quedan lejos"></svg><span class="lbl" style="margin-top:6px">Esquema: 3 de las 1,024 dimensiones</span></div>
   </section>
 
   <section class="paso" aria-labelledby="p3">
-    <div class="paso-txt"><h3 id="p3"><span class="n">3</span>Vector</h3>
-      <p>Cada título se convierte en un <strong>embedding</strong>: un vector de 1,024 dimensiones calculado con un modelo de lenguaje que representa textos de unos cien idiomas en un mismo espacio (multilingual-e5-large), y normalizado, de modo que títulos con significado parecido quedan cerca.</p></div>
-    <div class="fig"><div class="vector" id="vector" aria-hidden="true"></div><div class="vector-n">1,024 números por título</div></div>
+    <div class="paso-txt"><h3 id="p3"><span class="n">3</span>Similitud</h3>
+      <p>La similitud es el coseno entre dos embeddings. Comparar cada tesis con todas las demás sería lento, así que las treinta vecinas se buscan con <strong>FAISS</strong>: el índice divide el espacio en celdas y solo revisa las más cercanas a la consulta (IVF), y guarda cada número en un byte en lugar de cuatro (SQ8). Después se reordenan con el producto interno exacto.</p></div>
+    <div class="fig"><svg class="esq" id="faiss" role="img" aria-label="Esquema de la búsqueda: el espacio está dividido en celdas y solo se revisan las dos más cercanas a la tesis de ejemplo"></svg><div class="leyenda" id="faiss-ley"></div><span class="lbl" style="margin:14px 0 6px">Sus tres más parecidas, con su similitud</span><ol class="similares" id="similares"></ol></div>
   </section>
 
   <section class="paso" aria-labelledby="p4">
-    <div class="paso-txt"><h3 id="p4"><span class="n">4</span>Similitud</h3>
-      <p>La similitud es el coseno entre dos embeddings. Las treinta vecinas de cada tesis se buscan en un índice FAISS IVF-SQ8 y se reordenan con el producto interno exacto.</p></div>
-    <div class="fig"><ol class="similares" id="similares"></ol></div>
-  </section>
-
-  <section class="paso" aria-labelledby="p5">
-    <div class="paso-txt"><h3 id="p5"><span class="n">5</span>Grupos</h3>
+    <div class="paso-txt"><h3 id="p4"><span class="n">4</span>Clustering</h3>
       <p>Los embeddings se reducen a cinco dimensiones con UMAP. <strong>HDBSCAN</strong> estima la densidad alrededor de cada punto, construye un árbol de agrupamientos y conserva las hojas estables de al menos 150 tesis; los puntos que no alcanzan esa densidad quedan como ruido, en gris.</p></div>
     <div class="fig"><svg id="grupos" role="img" aria-label="Una muestra de las tesis del mapa: en color las que forman grupo, en gris las que no"></svg><div class="leyenda" id="grupos-ley"></div></div>
   </section>
 
-  <section class="paso" aria-labelledby="p6">
-    <div class="paso-txt"><h3 id="p6"><span class="n">6</span>Jerarquía</h3>
-      <p>Sobre los centroides de los subtemas, el enlace de <strong>Ward</strong> une en cada paso los dos grupos que menos aumentan la varianza interna. El árbol se corta en tres niveles: campo, tema y subtema.</p></div>
-    <div class="fig"><div id="arbol"></div></div>
+  <section class="paso" aria-labelledby="p5">
+    <div class="paso-txt"><h3 id="p5"><span class="n">5</span>Jerarquía</h3>
+      <p>El enlace de <strong>Ward</strong> une en cada paso los dos grupos cuya unión menos aumenta la varianza interna: mide cuánto se alejan los puntos del centro del grupo combinado (el triángulo central) y elige el par con menor aumento. El árbol resultante se corta en tres niveles: campo, tema y subtema.</p></div>
+    <div class="fig"><svg class="esq" id="ward" role="img" aria-label="Esquema del método Ward: dos grupos de tesis, uno de levaduras y otro de bacterias, con el centro de cada grupo y el centro de los dos unidos"></svg><div class="leyenda" id="ward-ley"></div></div>
   </section>
 
-  <section class="paso" aria-labelledby="p7">
-    <div class="paso-txt"><h3 id="p7"><span class="n">7</span>Proyección</h3>
+  <section class="paso" aria-labelledby="p6">
+    <div class="paso-txt"><h3 id="p6"><span class="n">6</span>Proyección</h3>
       <p><strong>PaCMAP</strong> proyecta los embeddings al plano preservando la estructura local y global. Importan las vecindades; las coordenadas no tienen unidad.</p></div>
     <div class="fig"><svg id="mini" role="img" aria-label="Los campos del mapa en el plano, con el de la tesis de ejemplo marcado"></svg></div>
   </section>
 
-  <section class="paso" aria-labelledby="p8">
-    <div class="paso-txt"><h3 id="p8"><span class="n">8</span>Nombres</h3>
-      <p>Cada tema y subtema toma su nombre de sus términos con mayor <strong>c-TF-IDF</strong>: frecuentes dentro del grupo y raros en los demás. Los nombres de los campos se redactaron a mano.</p></div>
+  <section class="paso" aria-labelledby="p7">
+    <div class="paso-txt"><h3 id="p7"><span class="n">7</span>Nombres</h3>
+      <p>Para nombrar un tema o un subtema se juntan los títulos de todas sus tesis como si fueran un solo texto y se cuenta cada palabra. Contar no basta: «de» se repite cientos de veces en todos los grupos y no dice nada. El puntaje <strong>c-TF-IDF</strong> baja las palabras que aparecen en casi todos los subtemas y sube las que se repiten en este y casi no aparecen en los demás. Las palabras con mayor puntaje dan el nombre. Los nombres de los campos se redactaron a mano.</p></div>
     <div class="fig">
+      <span class="lbl" id="ctf-titulo"></span>
+      <table class="ctf">
+        <thead><tr><th>Palabra</th><th>Veces en este subtema</th><th>Puntaje c-TF-IDF</th></tr></thead>
+        <tbody id="ctf"></tbody>
+      </table>
       <div class="palabras">
         <ol id="palabras"></ol>
         <svg class="flecha" viewBox="0 0 36 14" aria-hidden="true"><path d="M6 7h24M25 2l5 5-5 5"/></svg>
@@ -293,8 +315,8 @@
 
   <h2 class="ac-parte" id="laboratorio">El Laboratorio</h2>
 
-  <section class="paso" aria-labelledby="p9">
-    <div class="paso-txt"><h3 id="p9"><span class="n">9</span>Propuesta</h3>
+  <section class="paso" aria-labelledby="p8">
+    <div class="paso-txt"><h3 id="p8"><span class="n">8</span>Propuesta</h3>
       <p>El título, el planteamiento y las palabras clave de una tesis en curso se convierten en un embedding con el mismo modelo, comparable con todo el catálogo.</p></div>
     <div class="fig">
       <div class="entrada"><p><b id="lab-titulo"></b></p><p id="lab-claves"></p></div>
@@ -302,28 +324,37 @@
     </div>
   </section>
 
-  <section class="paso" aria-labelledby="p10">
-    <div class="paso-txt"><h3 id="p10"><span class="n">10</span>Ubicación</h3>
+  <section class="paso" aria-labelledby="p9">
+    <div class="paso-txt"><h3 id="p9"><span class="n">9</span>Ubicación</h3>
       <p>Las cincuenta tesis más parecidas votan el campo de la propuesta, con un peso igual al cuadrado de su similitud. Este cálculo no usa inteligencia artificial generativa.</p></div>
     <div class="fig"><ul class="barras" id="votos"></ul></div>
   </section>
 
-  <section class="paso" aria-labelledby="p11">
-    <div class="paso-txt"><h3 id="p11"><span class="n">11</span>Análisis</h3>
-      <p>Un modelo de lenguaje (gpt-oss-120b) redacta tres textos a partir de la propuesta y de las tesis parecidas. Cada salida se valida contra un esquema JSON. Son una orientación, no una evaluación.</p></div>
+  <section class="paso" aria-labelledby="p10">
+    <div class="paso-txt"><h3 id="p10"><span class="n">10</span>Análisis</h3>
+      <p>Un modelo de lenguaje (gpt-oss-120b) redacta tres textos a partir de la propuesta y de las tesis parecidas. Son una orientación, no una evaluación.</p></div>
     <div class="fig">
-      <ul class="ia">
-        <li><b>Lectura del planteamiento</b><span id="ia-nota"></span></li>
-        <li><b>Revisión de los objetivos</b>según la taxonomía de Bloom</li>
-        <li><b>Preguntas de investigación</b><q id="ia-pregunta"></q></li>
-      </ul>
+      <div class="flujo">
+        <ul class="entradas">
+          <li>La propuesta<small id="fl-propuesta"></small></li>
+          <li>Las tesis más parecidas<small>las que votaron el campo</small></li>
+        </ul>
+        <svg class="flecha" viewBox="0 0 36 14" aria-hidden="true"><path d="M6 7h24M25 2l5 5-5 5"/></svg>
+        <div class="modelo">Modelo de lenguaje<small>gpt-oss-120b</small></div>
+        <svg class="flecha" viewBox="0 0 36 14" aria-hidden="true"><path d="M6 7h24M25 2l5 5-5 5"/></svg>
+        <ul class="ia">
+          <li><b>Lectura del planteamiento</b><span id="ia-nota"></span></li>
+          <li><b>Revisión de los objetivos</b>según la taxonomía de Bloom</li>
+          <li><b>Preguntas de investigación</b><q id="ia-pregunta"></q></li>
+        </ul>
+      </div>
     </div>
   </section>
 
   <h2 class="ac-parte" id="publicacion">Publicación</h2>
 
-  <section class="paso" aria-labelledby="p12">
-    <div class="paso-txt"><h3 id="p12"><span class="n">12</span>Dataset</h3>
+  <section class="paso" aria-labelledby="p11">
+    <div class="paso-txt"><h3 id="p11"><span class="n">11</span>Dataset</h3>
       <!-- PENDIENTE: el enlace al dataset en Kaggle, cuando se publique -->
       <p>El catálogo depurado se publica como <a href="#" data-pendiente="kaggle" target="_blank" rel="noopener">dataset abierto en Kaggle</a>: una fila por tesis, sin el nombre de quien la escribió.</p></div>
     <div class="fig">
@@ -335,8 +366,8 @@
     </div>
   </section>
 
-  <section class="paso" aria-labelledby="p13">
-    <div class="paso-txt"><h3 id="p13"><span class="n">13</span>Licencia</h3>
+  <section class="paso" aria-labelledby="p12">
+    <div class="paso-txt"><h3 id="p12"><span class="n">12</span>Licencia</h3>
       <p>El <a href="https://github.com/zvastian/nodo-unam" target="_blank" rel="noopener">código</a> se publica con licencia MIT, lo que hace de NodOS un proyecto <strong>open source</strong>. La licencia no cubre los datos del catálogo ni el nombre y el logo de NodOS.</p></div>
     <div class="fig"><a class="mit" href="https://opensource.org/license/mit" target="_blank" rel="noopener"><img src="mit-license.png" width="641" height="477" alt="MIT License"></a></div>
   </section>
@@ -397,10 +428,6 @@
 
   // la tesis de ejemplo (TH_0462868), tal como la muestra el mapa
   var EJ = { titulo: 'Análisis de la expresión de catalasas de Debaryomyces hansenii en Saccharomyces cerevisiae', meta: 'Maestría en Ciencias Biológicas, 2017', asesora: 'Claudia Andrea Segal Kischinevzky' };
-  $('ej-titulo-1').textContent = EJ.titulo;
-  $('ej-meta-1').innerHTML = esc(EJ.meta) + '<br>Asesora: ' + esc(EJ.asesora);
-  $('ej-titulo-2').innerHTML = '<b>' + esc(EJ.titulo) + '</b>';
-  $('ej-meta-2').innerHTML = esc(EJ.meta) + '<br>Asesora: ' + esc(EJ.asesora);
 
   // el vector: un esquema de barras (los valores reales no se publican)
   function vector(el, semilla, n) {
@@ -408,7 +435,6 @@
     for (var i = 0; i < n; i++) { var h = 14 + 84 * Math.abs(Math.sin(i * 12.9898 + semilla) * Math.cos(i * 0.73 + semilla)); v += '<i style="height:' + h.toFixed(0) + '%"></i>'; }
     el.innerHTML = v;
   }
-  vector($('vector'), 4.1, 72);
   vector($('vector-lab'), 9.7, 72);
 
   // la paleta de campos: la misma fórmula que buildPalette (index.html)
@@ -422,6 +448,122 @@
       .sort(function (a, b) { return a.a - b.a; })
       .forEach(function (o, r) { col[o.id] = 'oklch(' + L[r % 3] + ' ' + C[r % 3] + ' ' + ((o.a * 180 / Math.PI + 360 + 150 + [0, 14, -14][r % 3]) % 360).toFixed(1) + ')'; });
     return col;
+  }
+
+
+  // números pseudoaleatorios con semilla: los esquemas se ven igual en cada visita
+  function rng(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; var t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+  function f1(n) { return n.toFixed(1); }
+  // dos colores más de la paleta de campos, lejos del campo de la tesis de ejemplo
+  function otros(col, m) {
+    var ids = Object.keys(col), i = ids.indexOf(String(m)), n = ids.length;
+    return [col[ids[(i + Math.floor(n / 3)) % n]], col[ids[(i + Math.floor(2 * n / 3)) % n]]];
+  }
+
+  // 3: el espacio de los embeddings, en esquema (3 de 1,024 dimensiones)
+  function espacio(col, m) {
+    var s0 = 190, ox = 280, oy = 250, co = otros(col, m), r = rng(11), g = '', t, ARR = [];
+    function P(x, y, z) { return [ox + (x - y) * 0.866 * s0, oy + (x + y) * 0.5 * s0 - z * s0]; }
+    function L(a, b, cl) { var p = P(a[0], a[1], a[2]), q = P(b[0], b[1], b[2]); return '<line class="' + cl + '" x1="' + f1(p[0]) + '" y1="' + f1(p[1]) + '" x2="' + f1(q[0]) + '" y2="' + f1(q[1]) + '"/>'; }
+    function flecha(b) {
+      var p = P(0, 0, 0), q = P(b[0], b[1], b[2]), a = Math.atan2(q[1] - p[1], q[0] - p[0]), h = '';
+      [-0.45, 0.45].forEach(function (d) { h += '<line class="eje" x1="' + f1(q[0]) + '" y1="' + f1(q[1]) + '" x2="' + f1(q[0] - 12 * Math.cos(a + d)) + '" y2="' + f1(q[1] - 12 * Math.sin(a + d)) + '"/>'; });
+      return L([0, 0, 0], b, 'eje') + h;
+    }
+    for (t = 0.25; t <= 1.001; t += 0.25) {
+      g += L([t, 0, 0], [t, 1, 0], 'lin') + L([0, t, 0], [1, t, 0], 'lin') + L([0, t, 0], [0, t, 1], 'lin') + L([0, 0, t], [0, 1, t], 'lin') + L([t, 0, 0], [t, 0, 1], 'lin') + L([0, 0, t], [1, 0, t], 'lin');
+    }
+    g += flecha([1.12, 0, 0]) + flecha([0, 1.12, 0]) + flecha([0, 0, 1.12]);
+    // los grupos: levaduras (campo de la tesis), bacterias y derecho
+    var GR = [{ c: [0.22, 0.30, 0.66], k: col[m] }, { c: [0.68, 0.22, 0.30], k: co[0] }, { c: [0.28, 0.74, 0.28], k: co[1] }];
+    GR.forEach(function (gr) {
+      for (var i = 0; i < 20; i++) {
+        var q = gr.c.map(function (v) { return v + (r() + r() + r() - 1.5) * 0.11; });
+        ARR.push({ q: q, k: gr.k, r: 1.6 + r() * 3, o: 0.6 });
+      }
+    });
+    for (var u = 0; u < 16; u++) ARR.push({ q: [r() * 0.95, r() * 0.95, r() * 0.95], k: GR[u % 3].k, r: 1.4 + r() * 2.4, o: 0.35 });
+    ARR.sort(function (a, b) { return (a.q[0] + a.q[1]) - (b.q[0] + b.q[1]); });
+    ARR.forEach(function (d) { var p = P(d.q[0], d.q[1], d.q[2]); g += '<circle cx="' + f1(p[0]) + '" cy="' + f1(p[1]) + '" r="' + f1(d.r) + '" fill="' + d.k + '" fill-opacity="' + d.o + '"/>'; });
+    var ET = [
+      { w: 'Saccharomyces', q: [0.22, 0.30, 0.66], k: GR[0].k, a: 'end', dx: -10 }, { w: 'Catalasas', q: [0.30, 0.22, 0.58], k: GR[0].k, a: 'start', dx: 10 }, { w: 'Levadura', q: [0.16, 0.38, 0.72], k: GR[0].k, a: 'end', dx: -10, dy: -12 },
+      { w: 'Escherichia', q: [0.68, 0.22, 0.30], k: GR[1].k, a: 'start', dx: 10 }, { w: 'Bacillus', q: [0.76, 0.30, 0.24], k: GR[1].k, a: 'start', dx: 10 },
+      { w: 'Amparo', q: [0.28, 0.74, 0.28], k: GR[2].k, a: 'end', dx: -10 }, { w: 'Contrato', q: [0.38, 0.80, 0.20], k: GR[2].k, a: 'start', dx: 10 }
+    ];
+    ET.forEach(function (d) {
+      var p = P(d.q[0], d.q[1], d.q[2]);
+      g += '<circle cx="' + f1(p[0]) + '" cy="' + f1(p[1]) + '" r="6" fill="' + d.k + '" stroke="var(--paper)" stroke-width="1.5"/><text x="' + f1(p[0] + d.dx) + '" y="' + f1(p[1] + 4 + (d.dy || 0)) + '" text-anchor="' + d.a + '" font-size="12.5">' + d.w + '</text>';
+    });
+    $('espacio').setAttribute('viewBox', '0 0 560 400'); $('espacio').innerHTML = g;
+  }
+
+  // 4: FAISS, el espacio en celdas y la búsqueda solo en las más cercanas
+  function faiss(col, m) {
+    var W = 560, H = 290, C = [[80, 55], [205, 45], [335, 65], [470, 55], [95, 185], [245, 170], [385, 185], [500, 205]], r = rng(5), g = '', cm = col[m];
+    var q = [262, 182], sondeo = C.map(function (c, i) { return { i: i, d: Math.hypot(c[0] - q[0], c[1] - q[1]) }; }).sort(function (a, b) { return a.d - b.d; }).slice(0, 2).map(function (o) { return o.i; });
+    function celda(i) {
+      var poli = [[0, 0], [W, 0], [W, H], [0, H]];
+      C.forEach(function (cj, j) {
+        if (j === i) return;
+        var ci = C[i], mx = (ci[0] + cj[0]) / 2, my = (ci[1] + cj[1]) / 2, nx = cj[0] - ci[0], ny = cj[1] - ci[1], out = [];
+        function d(p) { return (p[0] - mx) * nx + (p[1] - my) * ny; }
+        for (var k = 0; k < poli.length; k++) {
+          var a = poli[k], b = poli[(k + 1) % poli.length], da = d(a), db = d(b);
+          if (da <= 0) out.push(a);
+          if ((da < 0 && db > 0) || (da > 0 && db < 0)) { var t = da / (da - db); out.push([a[0] + t * (b[0] - a[0]), a[1] + t * (b[1] - a[1])]); }
+        }
+        poli = out;
+      });
+      return poli.map(function (p) { return f1(p[0]) + ',' + f1(p[1]); }).join(' ');
+    }
+    C.forEach(function (c, i) {
+      var vis = sondeo.indexOf(i) >= 0;
+      g += '<polygon class="celda" points="' + celda(i) + '" fill="' + (vis ? cm : 'none') + '" fill-opacity="' + (vis ? 0.13 : 0) + '"/>';
+    });
+    C.forEach(function (c, i) {
+      var vis = sondeo.indexOf(i) >= 0;
+      for (var k = 0; k < 16; k++) {
+        var x = c[0] + (r() + r() + r() - 1.5) * 44, y = c[1] + (r() + r() + r() - 1.5) * 36;
+        x = Math.max(6, Math.min(W - 6, x)); y = Math.max(6, Math.min(H - 6, y));
+        g += '<circle cx="' + f1(x) + '" cy="' + f1(y) + '" r="2.4" fill="' + (vis ? cm : 'var(--ink-3)') + '" fill-opacity="' + (vis ? 0.85 : 0.4) + '"/>';
+      }
+      g += '<path d="M' + (c[0] - 4) + ' ' + (c[1] - 4) + 'l8 8m0 -8l-8 8" stroke="var(--ink-2)" stroke-width="1.4" fill="none"/>';
+    });
+    [[276, 164], [240, 158], [284, 196]].forEach(function (n) {
+      g += '<line x1="' + q[0] + '" y1="' + q[1] + '" x2="' + n[0] + '" y2="' + n[1] + '" stroke="var(--ink)" stroke-width="1"/><circle cx="' + n[0] + '" cy="' + n[1] + '" r="4.2" fill="' + cm + '" stroke="var(--ink)" stroke-width="1.3"/>';
+    });
+    g += '<circle cx="' + q[0] + '" cy="' + q[1] + '" r="6.5" fill="var(--ink)" stroke="var(--paper)" stroke-width="2"/>';
+    $('faiss').setAttribute('viewBox', '0 0 ' + W + ' ' + H); $('faiss').innerHTML = g;
+    $('faiss-ley').innerHTML = '<span><i style="background:var(--ink)"></i>Tesis de ejemplo</span><span><i style="background:' + cm + ';border:1px solid var(--ink)"></i>Sus vecinas</span><span><i style="background:' + cm + ';opacity:.3;border-radius:0"></i>Celda revisada</span><span><i style="background:transparent;border:1px solid var(--line-strong);border-radius:0"></i>Celda omitida</span><span>Las celdas reales son muchas y viven en 1,024 dimensiones</span>';
+  }
+
+  // 6: el método de Ward, en esquema
+  function ward(col, m) {
+    var co = otros(col, m)[0], a = col[m], g = '';
+    var A = [[60, 62, 'Catalasas', 'start', 12, -9], [105, 122, 'Saccharomyces', 'middle', 0, -12], [70, 188, 'Levadura', 'start', 12, 4]];
+    var B = [[395, 58, 'Escherichia', 'start', 12, -9], [455, 122, 'Bacillus', 'start', 12, 4], [405, 190, 'Rhizobium', 'start', 12, 4]];
+    function media(P) { return [(P[0][0] + P[1][0] + P[2][0]) / 3, (P[0][1] + P[1][1] + P[2][1]) / 3]; }
+    var ca = media(A), cb = media(B), cc = [(ca[0] + cb[0]) / 2, (ca[1] + cb[1]) / 2];
+    function tri(c, s) { return '<path class="centro" d="M' + f1(c[0]) + ' ' + f1(c[1] - s) + 'L' + f1(c[0] + s * 1.05) + ' ' + f1(c[1] + s * 0.8) + 'L' + f1(c[0] - s * 1.05) + ' ' + f1(c[1] + s * 0.8) + 'Z"/>'; }
+    g += '<ellipse class="grupo" cx="120" cy="125" rx="105" ry="118"/><ellipse class="grupo" cx="440" cy="125" rx="105" ry="118"/>';
+    A.concat(B).forEach(function (p) { g += '<line class="punteada" x1="' + f1(cc[0]) + '" y1="' + f1(cc[1]) + '" x2="' + p[0] + '" y2="' + p[1] + '"/>'; });
+    A.forEach(function (p) { g += '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="9" fill="' + a + '"/>'; });
+    B.forEach(function (p) { g += '<rect x="' + (p[0] - 9) + '" y="' + (p[1] - 9) + '" width="18" height="18" fill="' + co + '"/>'; });
+    A.concat(B).forEach(function (p) { g += '<text x="' + (p[3] === 'middle' ? p[0] : p[0] + p[4]) + '" y="' + (p[1] + p[5] + (p[3] === 'middle' ? 0 : 4)) + '" text-anchor="' + p[3] + '" font-size="12.5">' + p[2] + '</text>'; });
+    g += tri(ca, 9) + tri(cb, 9) + tri(cc, 11) + '<text class="t2" x="' + f1(cc[0]) + '" y="' + f1(cc[1] - 26) + '" text-anchor="middle" font-size="13">Método Ward</text>';
+    $('ward').setAttribute('viewBox', '0 0 560 250'); $('ward').innerHTML = g;
+    $('ward-ley').innerHTML = '<span><i class="tri"></i>Centro de cada grupo y de los dos unidos</span><span>Cada punto es una tesis; se muestra una palabra de su título</span>';
+  }
+
+  // 8: c-TF-IDF con cifras reales
+  function ctf(cm) {
+    var C = D.ctfidf, ps = C.palabras.slice().sort(function (a, b) { return b.puntaje - a.puntaje; });
+    var mv = Math.max.apply(null, ps.map(function (p) { return p.veces; })), mp = ps[0].puntaje, sub = D.subtemas.filter(function (u) { return u.id === D.ejemplo.micro; })[0];
+    $('ctf-titulo').textContent = 'Subtema «' + (sub ? sub.nombre : '') + '»: los títulos de sus ' + fmt(C.tesis) + ' tesis, juntos';
+    $('ctf').innerHTML = ps.map(function (p) {
+      return '<tr><td class="p">' + esc(p.p) + '</td><td class="b"><i style="width:' + Math.max(2, p.veces / mv * 100).toFixed(1) + '%"></i><span><b>' + fmt(p.veces) + '</b> veces, en ' + p.subtemas + ' de ' + C.subtemas + ' subtemas</span></td>' +
+        '<td class="r" style="--c:' + cm + '"><i style="width:' + Math.max(2, p.puntaje / mp * 100).toFixed(1) + '%"></i><span><b>' + Math.round(p.puntaje) + '</b></span></td></tr>';
+    }).join('');
   }
 
   function pintar() {
@@ -447,16 +589,8 @@
     $('grupos').innerHTML = s;
     $('grupos-ley').innerHTML = '<span><i style="background:var(--ink)"></i>Tesis de ejemplo</span><span><i style="background:' + cm + '"></i>Con grupo, en el color de su campo</span><span><i style="background:' + sin + ';opacity:.5"></i>Sin grupo</span>';
 
-    // 6: el campo, sus temas y los subtemas del tema de la tesis
-    var maxT = D.temas[0].tesis, h = '<div class="arbol" style="--c:' + cm + '"><div class="campo"><i></i>' + esc(nombreCampo) + '</div><ol class="arbol">';
-    D.temas.forEach(function (t) {
-      var aqui = t.id === D.ejemplo.meso;
-      h += '<li' + (aqui ? ' class="aqui"' : '') + '><span>' + esc(t.nombre) + '</span><span class="barra" style="width:' + (t.tesis / maxT * 100).toFixed(1) + '%"></span><span class="num">' + fmt(t.tesis) + '</span></li>';
-      if (aqui) D.subtemas.forEach(function (u) {
-        h += '<li class="sub' + (u.id === D.ejemplo.micro ? ' aqui' : '') + '"><span>' + esc(u.nombre) + '</span><span class="barra" style="width:' + (u.tesis / maxT * 100).toFixed(1) + '%"></span><span class="num">' + fmt(u.tesis) + '</span></li>';
-      });
-    });
-    $('arbol').innerHTML = h + '</ol></div>';
+    // 3, 4, 6 y 8: esquemas técnicos y c-TF-IDF con cifras reales
+    espacio(col, m); faiss(col, m); ward(col, m); ctf(cm);
 
     // 7: los campos en el plano
     var W2 = 560, H2 = 300, pad = 16, xs = campos.map(function (c) { return c.position.x; }), ys = campos.map(function (c) { return c.position.y; });
@@ -490,6 +624,7 @@
     $('lab-titulo').textContent = L.titulo;
     $('lab-claves').textContent = 'Palabras clave: ' + L.palabras.join(', ');
     $('votos').innerHTML = L.votos.map(function (v) { return '<li><span>' + esc(v.campo) + '</span><i style="width:' + (v.peso / L.votos[0].peso * 100).toFixed(1) + '%"></i><span class="num">' + Math.round(v.peso * 100) + '%</span></li>'; }).join('');
+    $('fl-propuesta').textContent = L.titulo;
     $('ia-nota').textContent = 'Enfoque ' + L.enfoque.toLowerCase();
     $('ia-pregunta').textContent = L.pregunta;
     pintar();

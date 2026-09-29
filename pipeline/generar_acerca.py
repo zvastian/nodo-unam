@@ -99,6 +99,22 @@ out = {
     'subtemas': subtemas,
     'palabras': [w.strip() for w in micro_nodes[mi_micro]['label'].split('·')],
 }
+# c-TF-IDF (paso 8): cuantas veces aparece cada palabra en los titulos del subtema de la tesis y
+# en cuantos de todos los subtemas aparece al menos una vez. Cifras reales, contadas aqui.
+import collections, math, re
+_tf, _df, _tot, _nsub, _nw = None, collections.Counter(), collections.Counter(), 0, 0
+for p in glob.glob(os.path.join(D, 'tesis_por_micro', '*.json')):
+    d = json.load(open(p, encoding='utf-8'))
+    c = collections.Counter(w for r_ in d['rows'] for w in re.findall(r'[^\W\d_]+', r_[1].lower()))
+    _nsub += 1
+    _df.update(c.keys()); _tot.update(c); _nw += sum(c.values())
+    if d['clusterId'] == mi_micro:
+        _tf = c
+out['ctfidf'] = {'subtemas': _nsub, 'tesis': micro_nodes[mi_micro]['size'],
+                 'palabras': [{'p': w, 'veces': _tf[w], 'subtemas': _df[w],
+                               # c-TF-IDF: veces en el subtema x log(1 + palabras promedio por subtema / veces en todo el mapa)
+                               'puntaje': round(_tf[w] * math.log(1 + (_nw / _nsub) / _tot[w]), 1)}
+                              for w in ['cerevisiae', 'saccharomyces', 'levadura', 'análisis', 'de', 'la']]}
 # el ejemplo del Laboratorio: entrada, votos por campo y dos salidas reales de la IA
 L = os.path.join(D, '..', 'lab', 'ejemplos', 'repartidores')
 ent = json.load(open(os.path.join(L, 'entrada.json'), encoding='utf-8'))
