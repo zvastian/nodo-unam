@@ -136,7 +136,7 @@ Un Durable Object, uno solo para todo el sitio (plan gratuito, SQLite). Modal co
 - **Ocupa uno de los 2 guardados desde que entra:** con los 2 llenos, `409 limite_de_guardados` y la cuota se devuelve.
 - **Borrarlo antes de su turno** lo saca de la fila y devuelve la cuota; si el servicio de datos falla en segundo plano, se borra y la cuota vuelve.
 - **Sin largo máximo** (decisión del usuario): el freno es el tope diario del sitio.
-- **Tope del mes (`TOPE_MES`)**, ligado al crédito de Modal: al llegar, `429 mes_agotado` con `vuelve` (el día 1 del mes siguiente) y el Laboratorio se pausa. 200 sin tarjeta; unos 6,000 con tarjeta.
+- **Tope del mes (`TOPE_MES`)**, ligado al crédito de Modal: al llegar, `429 mes_agotado` con `vuelve` (el día 1 del mes siguiente) y el Laboratorio se pausa. 6,000 con los 30 USD de crédito de Modal (tarjeta registrada el 29-sep).
 - `POST /api/lab/contexto` (solo datos) no entra a la fila: sin lugar, `503 servicio_ocupado`, sin gastar cuota.
 - Un objeto que se reinicia a mitad de un análisis lo devuelve al frente de la fila en la siguiente alarma. Cada alarma dura a lo más 12 minutos y se reprograma.
 
@@ -195,7 +195,7 @@ npm run prueba:seguridad   # 8 pruebas de sesión, límites, entrada, configurac
 | `JWKS_LOCAL` | solo local | JWKS en JSON, en lugar de pedirlo a Supabase |
 | `GROQ_API_KEY` | secreto | Clave de Groq, con Zero Data Retention activado en su consola |
 | `FILA_SIMULTANEOS` | var | Análisis a la vez en el servicio de datos (2); el resto va a la fila |
-| `TOPE_MES` | var | Análisis al mes en todo el sitio; al llegar, el Laboratorio se pausa hasta el día 1. 200 sin tarjeta en Modal |
+| `TOPE_MES` | var | Análisis al mes en todo el sitio; al llegar, el Laboratorio se pausa hasta el día 1. 6,000: los 30 USD de crédito de Modal con tarjeta |
 | `FILA` | binding | Durable Object de la fila (`src/fila.js`); obligatorio en producción |
 | `TOPE_IA_DIA` | var | Análisis con IA al día en todo el sitio: 55, la capacidad gratuita medida en la evaluación |
 | `GROQ_TOKENS_DIA`, `WORKERS_AI_NEURONAS_DIA` | var | Presupuesto diario de cada proveedor (180,000 y 9,000) |

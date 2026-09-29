@@ -434,8 +434,9 @@ El servicio corre en **Modal** (`modal_app.py`) con la misma app de FastAPI, sin
   - la app exige además la clave compartida `X-Lab-Clave`;
   - con `LAB_EXIGIR_CLAVE=1`, que Modal pone, la app no arranca sin una clave de 32 o más
     caracteres.
-- **Costo:** 30 USD de crédito al mes con tarjeta (unos 6,000 análisis) o 1 USD sin ella. La
-  tarjeta se está registrando (29-sep).
+- **Costo:** 30 USD de crédito al mes con tarjeta registrada (29-sep), unos 6,000 análisis. El
+  Worker los topa con `TOPE_MES` = 6000; al llegar, el Laboratorio se pausa hasta el día 1 y
+  no cobra de más.
 
 Pendiente: registrar el cambio a Modal como enmienda a ADR-0015, y volver a desplegar con el
 token de proxy.
@@ -468,6 +469,7 @@ de los proveedores viven solo en el Worker.
 | Pieza | Estado |
 |---|---|
 | Sitio estático | **Publicado como copia de prueba** en `nodosmap.sebastian-diaz-prado.workers.dev` (v4.36.9). Cuenta de Cloudflare `98c2acfa…`, dueña del dominio. `nodosmap.com` está comprado y sin conectar |
+| Dominio y cuenta | `nodosmap.com` en Cloudflare Registrar, vence el 28-sep-2027. **Los cuatro contactos del registro** (titular, administrador, técnico y facturación) **están en el correo personal (gmail)**, no en el institucional, y la cuenta de gmail es Superadministradora de la cuenta `98c2acfa…` (revisado el 29-sep-2026). El nombre de la cuenta sigue diciendo «comunidad.unam.mx», pero solo es el nombre. `wrangler` opera con el inicio de sesión de gmail |
 | Worker `puerta` | **Solo en local** (`wrangler dev`). Falta staging: D1 remoto con migraciones, entorno de producción y secretos |
 | D1 | Local, con las migraciones 0001 a 0004 |
 | Fila (Durable Object) | Local, probada (§8.4) |

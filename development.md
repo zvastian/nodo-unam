@@ -4628,3 +4628,8 @@ Pedida por el usuario: imaginar casos maliciosos y bordes, y comprobar que las d
 - Con una fila larga, la espera puede ser de horas. El aviso dice «en cuanto se libere un lugar», sin prometer tiempo.
 - Si el servicio falla en segundo plano, el análisis desaparece de Mi espacio y la cuota vuelve, sin avisar. Se puede agregar un estado «no se pudo» si hace falta.
 - Staging (paso 3) tiene que declarar el Durable Object y aplicar la migración 0004 en D1 remoto.
+
+### Cuenta, dominio y Modal (2026-09-29)
+
+- **Dominio y cuenta de Cloudflare:** el usuario revisó el registro de `nodosmap.com`. Los cuatro contactos (titular, administrador, técnico y facturación) están en su correo personal (gmail), y gmail es Superadministradora de la cuenta `98c2acfa…`, dueña del dominio. `wrangler whoami` lo confirma: el inicio de sesión es el de gmail y ve las dos cuentas. Así, perder el correo institucional no deja el dominio sin dueño. Pendiente, a revisar por el usuario: que **Auto-renew** esté activo y que haya tarjeta en *Billing* (vence el 28-sep-2027). Quedó en `architecture.md`, §8.1, sin teléfono ni dirección.
+- **Modal con tarjeta:** 30 USD de crédito al mes. `TOPE_MES` pasa de 200 a **6,000** en `wrangler.jsonc`: al llegar, el Laboratorio se pausa hasta el día 1 y no cobra de más.
