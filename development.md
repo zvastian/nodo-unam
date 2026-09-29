@@ -4485,3 +4485,10 @@ Revisión de todo lo pendiente, de lo más crítico (seguridad, fila) a lo menos
 - **Por qué:** punto 2 de la lista de lanzamiento; lo pidió el usuario el 27-sep.
 - **Cómo se verificó:** `pruebas/inyeccion.test.mjs`, 6 pruebas (delimitadores falsos, también de ancho completo; texto invisible; repeticiones sin tocar cifras; una tesis normal queda idéntica; patrones en dos idiomas y repartidos, y dos falsos positivos que no cuentan; la forma de la entrada no cambia). Pasan las 6, y las 13 de Bloom. Se agregaron al CI (`npm run prueba:inyeccion`). `wrangler deploy --dry-run` empaqueta sin errores. No corrí `puerta.test.mjs`: necesita `wrangler dev` y el servicio de datos.
 - **Falta:** la misma limpieza en el formulario, al escribir y al pegar (comodidad).
+
+### v4.36.6: página de contacto (2026-09-29)
+
+- **Qué cambió:** «Contacto» del pie (Acerca de, Laboratorio, Mi espacio y Aviso de privacidad) ya no abre la app de correo: lleva a `contacto.html`, que dice «¿Tienes dudas, comentarios o sugerencias? Escríbenos a contacto@nodosmap.com. Leemos todos los mensajes y respondemos lo antes posible.», con el nombre y «Founder» debajo, con el mismo bloque de Acerca de. Se quitó el icono de correo de las redes del autor en Acerca de.
+- **Además:** `contacto.html` entra en `construir_sitio.py`, en `_headers` (CSP propia) y en `prueba_humo.mjs`.
+- **Cómo se verificó:** `prueba_humo.mjs` pasa las 7 páginas. No vi la página en una captura.
+- **Pendiente:** el pie del mapa (`index.html`) no tiene enlace a Contacto; solo Privacidad.

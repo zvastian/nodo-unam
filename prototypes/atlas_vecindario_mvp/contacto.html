@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Aviso de privacidad · NodOS</title>
-<meta name="description" content="Aviso de privacidad integral de NodOS.">
+<title>Contacto · NodOS</title>
+<meta name="description" content="Contacto de NodOS: dudas, comentarios y sugerencias.">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="compartido/cuenta.css?v=4.31.2">
 <link rel="stylesheet" href="compartido/ajustes.css?v=4.26.0">
@@ -59,6 +59,14 @@
   @media (max-width: 640px) {
     .legal { padding: 28px 16px 56px; }
   }
+  /* Contacto (v4.36.6): una columna corta; el bloque del autor es el de Acerca de */
+  .contacto { max-width: 760px; margin: 0 auto; padding: 48px 24px 96px; }
+  .contacto h1 { margin: 0 0 14px; font-size: 26px; line-height: 1.25; font-weight: 700; }
+  .contacto p { margin: 0; font-size: 16px; line-height: 1.7; color: var(--ink); }
+  .ac-autor { display: flex; flex-direction: column; gap: 2px; margin: 40px 0 0; padding-top: 22px; border-top: 1px solid var(--line); }
+  .ac-autor b { font-size: 17px; font-weight: 700; color: var(--ink); }
+  .ac-autor span { font-size: 14px; color: var(--ink-3); }
+  @media (max-width: 640px) { .contacto { padding: 28px 16px 64px; } }
   .pie-pag { background: var(--pie-fondo); color: var(--pie-tinta-2); font-size: 14px; line-height: 1.45; }
   .pie-in { max-width: 1280px; margin: 0 auto; padding: 44px 24px 44px 92px; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0 44px; align-items: center; }
   .pie-logo { width: 112px; height: auto; display: block; fill: var(--pie-tinta); fill-rule: evenodd; }
@@ -98,59 +106,13 @@
   </div>
 </header>
 
-<main class="legal" lang="es">
-  <h1>Aviso de privacidad integral</h1>
-  <p class="fecha">Última actualización: 28 de septiembre de 2026</p>
-
-  <p>En cumplimiento de la Ley Federal de Protección de Datos Personales en Posesión de los Particulares (en lo sucesivo, la «Ley»), Sebastián Díaz Prado (en lo sucesivo, el «Responsable»), cuya identidad y domicilio se señalan en el apartado VIII, pone a disposición del titular de los datos personales (en lo sucesivo, el «Titular») el presente aviso de privacidad, que regula el tratamiento de los datos personales recabados a través del sitio NodOS (en lo sucesivo, el «Sitio»), que comprende el mapa de tesis, el Laboratorio y Mi espacio.</p>
-
-  <h2 id="datos">I. Datos personales que se recaban</h2>
-  <p>El Responsable recaba y trata las siguientes categorías de datos personales:</p>
-  <ol class="incisos">
-    <li><strong>Datos de identificación y contacto:</strong> la dirección de correo electrónico del Titular y el identificador asignado por el servicio de autenticación, únicamente cuando el Titular crea una cuenta. Si el Titular inicia sesión mediante Google o GitHub, dichos servicios pueden proporcionar además su nombre y fotografía de perfil, los cuales el Responsable no utiliza ni muestra.</li>
-    <li><strong>Contenido proporcionado por el Titular:</strong> la información que el Titular captura en el Laboratorio (título, planteamiento, objetivos, palabras clave, programa, grado y periodo), los análisis que de ella resultan, y las tesis, asesores, campos y temas que el Titular guarda en Mi espacio.</li>
-    <li><strong>Datos técnicos de conexión:</strong> la dirección IP y el tipo de navegador, que los servicios de alojamiento registran por motivos de seguridad. Dichos registros no incluyen el contenido capturado por el Titular.</li>
-  </ol>
-  <p>El uso del mapa no requiere cuenta ni implica el tratamiento de datos personales. El Responsable no recaba datos personales sensibles. Se solicita al Titular abstenerse de incluir, en la información que captura en el Laboratorio, datos personales propios o de terceros distintos de la descripción de su investigación.</p>
-
-  <h2 id="finalidades">II. Finalidades del tratamiento</h2>
-  <p>Los datos personales se tratan exclusivamente para las siguientes finalidades, necesarias para la prestación del servicio:</p>
-  <ol class="incisos">
-    <li>crear y administrar la cuenta del Titular y permitir su autenticación;</li>
-    <li>generar los análisis solicitados por el Titular y conservar la información que éste decida guardar;</li>
-    <li>aplicar los límites de uso del servicio (dos análisis diarios y dos análisis guardados por cuenta) y prevenir su uso abusivo.</li>
-  </ol>
-  <p>El Responsable no trata los datos personales para finalidades secundarias. En particular, no los vende, no los utiliza con fines publicitarios ni para el entrenamiento de modelos de inteligencia artificial.</p>
-
-  <h2 id="encargados">III. Encargados y transferencias</h2>
-  <p>Para la prestación del servicio, el Responsable se apoya en los siguientes encargados, que tratan los datos personales por cuenta del Responsable y únicamente para los fines indicados:</p>
-  <ol class="incisos">
-    <li><strong>Supabase:</strong> administración de cuentas y autenticación.</li>
-    <li><strong>Cloudflare:</strong> alojamiento del Sitio, base de datos de Mi espacio y de los análisis, verificación contra accesos automatizados (Turnstile) y modelo de inteligencia artificial de respaldo (Workers AI).</li>
-    <li><strong>Groq:</strong> modelo de inteligencia artificial que redacta los textos del Laboratorio, con la retención de datos desactivada.</li>
-    <li><strong>Modal:</strong> procesamiento que convierte el título, el planteamiento y las palabras clave capturados por el Titular en una representación numérica para compararlos con el catálogo de tesis.</li>
-    <li><strong>Stripe:</strong> procesamiento de pagos, sólo en caso de que el Titular decida realizar una aportación voluntaria. El pago se efectúa en el sitio de Stripe; el Responsable no recibe los datos de la tarjeta.</li>
-  </ol>
-  <p>Algunos de estos encargados se ubican fuera del territorio nacional, principalmente en los Estados Unidos de América. Fuera de los supuestos anteriores, el Responsable no transfiere los datos personales a terceros.</p>
-
-  <h2 id="navegador">IV. Almacenamiento en el navegador</h2>
-  <p>El Sitio no utiliza cookies de rastreo ni herramientas de analítica. Almacena en el navegador del Titular sus preferencias (modo de visualización, color de los puntos del mapa y presentación de la introducción), el borrador del formulario del Laboratorio y la sesión iniciada. Esta información permanece en el dispositivo del Titular, quien puede eliminarla en cualquier momento desde la configuración de su navegador. El servicio Turnstile de Cloudflare puede emplear tecnologías propias para verificar que el acceso no es automatizado.</p>
-
-  <h2 id="conservacion">V. Plazo de conservación</h2>
-  <p>Los análisis y la información guardada se conservan mientras el Titular no los elimine. Al eliminar su cuenta desde Mi espacio, se suprimen de inmediato sus análisis y toda la información guardada. El registro de acceso (correo electrónico) en el servicio de autenticación se suprime a solicitud del Titular, conforme al apartado VI.</p>
-
-  <h2 id="derechos">VI. Derechos ARCO y revocación del consentimiento</h2>
-  <p>El Titular tiene derecho a acceder a sus datos personales, rectificarlos, cancelarlos u oponerse a su tratamiento (derechos ARCO), así como a revocar el consentimiento otorgado. El Titular puede consultar, eliminar la información guardada y cancelar su cuenta directamente desde Mi espacio.</p>
-  <p>Para cualquier otra solicitud, el Titular deberá enviar un correo electrónico a la dirección <a href="mailto:contacto@nodosmap.com">contacto@nodosmap.com</a> desde la cuenta de correo registrada, con la descripción clara de los datos y del derecho que desea ejercer. El Responsable dará respuesta en un plazo máximo de veinte días hábiles contados a partir de la recepción de la solicitud.</p>
-
-  <h2 id="tesis">VII. Datos contenidos en el catálogo de tesis</h2>
-  <p>Los títulos, años, programas, planteles, niveles y nombres de asesores que muestra el Sitio provienen del catálogo público TESIUNAM de la Universidad Nacional Autónoma de México. El Responsable suprime del título el nombre de la persona autora de cada tesis y no lo muestra en el Sitio. Los asesores que deseen rectificar la forma en que aparece su nombre, u oponerse a que aparezca, podrán solicitarlo en los términos del apartado VI.</p>
-
-  <h2 id="responsable">VIII. Identidad y domicilio del Responsable</h2>
-  <p>El responsable del tratamiento de los datos personales es Sebastián Díaz Prado, titular del proyecto independiente NodOS, con domicilio en la Ciudad de México y correo electrónico de contacto: <a href="mailto:contacto@nodosmap.com">contacto@nodosmap.com</a>. NodOS no es un sitio oficial de la Universidad Nacional Autónoma de México ni de su Dirección General de Bibliotecas.</p>
-
-  <h2 id="cambios">IX. Cambios al aviso de privacidad</h2>
-  <p>El Responsable podrá modificar el presente aviso de privacidad. Cualquier modificación se publicará en esta misma página, con indicación de la fecha de su última actualización.</p>
+<main class="contacto" lang="es">
+  <h1>Contacto</h1>
+  <p>¿Tienes dudas, comentarios o sugerencias? Escríbenos a <a href="mailto:contacto@nodosmap.com">contacto@nodosmap.com</a>. Leemos todos los mensajes y respondemos lo antes posible.</p>
+  <div class="ac-autor">
+    <b>Sebastián Díaz Prado</b>
+    <span>Founder</span>
+  </div>
 </main>
 <footer class="pie-pag">
   <div class="pie-in">
