@@ -4395,3 +4395,11 @@ Sección de traspaso: la sesión se cortó porque la terminal dejó de responder
 **Falta:** aprobación del usuario; subir a 4.36.0 en `#app-version`; commit, `dist/` y publicar. Los esquemas de los pasos 3, 4 y 6 son ilustrativos (posiciones dibujadas a mano), y así se dice en su nota.
 
 **Decisión del usuario (28-sep): `titulo_original` sale del dataset de Kaggle.** Casi todos sus valores traen la mención de autor, así que en vez de limpiarla se excluye la columna. Falta aplicarlo en `pipeline/generar_data_unam.py` y en su documentación antes de subir el dataset.
+
+### Dataset de Kaggle: sin `titulo_original` ni `titulo` (2026-09-28)
+
+- **Hallazgo:** `data_unam.parquet` ya no traía `titulo_original` (el generador la publicaba como `titulo_legible`, cortada), pero sí `titulo`, la versión normalizada de la **cadena cruda**: en 224 filas conservaba la mención de autor («… presenta NOMBRE …»). Era la misma fuga que el usuario quería evitar.
+- **Cambio:** `pipeline/generar_data_unam.py` ya no exporta `titulo`. Del título solo queda `titulo_legible`, sin mención de responsabilidad. El dataset pasa de 22 a 21 columnas.
+- **Verificación:** el resto de las columnas es idéntico a la versión anterior (609,156 filas, contra el parquet previo). En `titulo_legible`, las 191 filas que casan con «presenta» o «sustentante» seguido de una palabra con mayúscula son falsos positivos (por ejemplo «la enfermedad que presenta el paciente»).
+- **Acerca de:** la columna del ejemplo del paso 11 se llama ahora `titulo_legible`.
+- **Falta:** actualizar ADR-0011 (esquema de 25 columnas) y subir el dataset a Kaggle con su descripción y su licencia; después, poner el enlace en Acerca de y en la nota del «?».

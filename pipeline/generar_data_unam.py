@@ -10,6 +10,9 @@ Decisiones de esta sesion (2026-09-20, ver ADR-0011):
 - Fuera: texto_completo_url (URLs invalidas, proveedor cambio),
   thesis_id_old / ID_Aleph / source_record (no se usaran), flag_sin_asesor
   y flag_multiples_asesores (decision del usuario).
+- 2026-09-28: fuera tambien `titulo` (titulo_normalizado), que salia de la cadena
+  cruda y en 224 filas traia la mencion de autor ("... presenta NOMBRE"). Del titulo
+  solo se publica `titulo_legible`, ya sin la mencion de responsabilidad.
 - Renombrado general: se quitan sufijos internos de proceso (_v2, _norm,
   _estandarizado, _display) por nombres simples orientados a proposito.
 """
@@ -28,8 +31,7 @@ OUT_PATH = OUT_DIR / "data_unam.parquet"
 COLUMN_MAP = [
     ("thesis_id", "thesis_id"),
     ("Año", "anio"),
-    ("título", "titulo_original"),
-    ("titulo_normalizado", "titulo"),
+    ("título", "titulo_original"),  # solo de paso: se publica como titulo_legible, sin la cadena cruda
     ("num_autores", "num_autores"),
     ("asesor_display", "asesor"),
     ("asesores_display", "asesores"),
