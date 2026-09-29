@@ -4717,6 +4717,8 @@ Pedida por el usuario: imaginar casos maliciosos y bordes, y comprobar que las d
   - `wrangler dev` con `wrangler.ci.jsonc`, con `puerta.test.mjs` (11) y el estrés con 50;
   - luego `wrangler.fila.jsonc`, con `fila.test.mjs` (4).
   En local, las tres pasaron contra el simulado: 11/11, estrés bien y 4/4.
+  **En GitHub (corrida 36628214203, commit `68ed413`), los 4 jobs pasaron:** privacidad, humo, léxico y `worker`.
 - **Dependabot** (`.github/dependabot.yml`): npm del Worker y pip del servicio cada semana, y las acciones del CI cada mes. Las bibliotecas de `vendor/` no tienen manifiesto y se revisan a mano.
 - **Límites de esta prueba:** no mide Modal real (arranque en frío, 2 núcleos) ni los límites por minuto de Groq. La capacidad real con IA sigue siendo de cerca de 1 análisis con IA por minuto en Groq gratuito (ver `architecture.md` §11). Una prueba contra producción tendría que pasar por Access (con un token de servicio) y gastaría crédito.
 - **Repo pública:** `zvastian/nodo-unam` es pública. Antes de subir se revisó que ningún commit trajera claves (Groq, Supabase, Modal, Turnstile): 0 coincidencias.
+- **Dependabot** abrió en su primera pasada 3 PR: `actions/checkout`, `setup-python` y `setup-node`, de la v4/v5 a la v7. Pendiente: revisarlas y fusionarlas si el CI pasa.
