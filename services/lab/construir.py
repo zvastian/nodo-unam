@@ -31,7 +31,8 @@ OUT = Path(__file__).resolve().parent / "artefactos"
 EMB = ROOT / "data" / "embeddings" / "embeddings_full_e5large.npy"
 EMB_META = ROOT / "data" / "embeddings" / "embeddings_meta.parquet"
 DATA = ROOT / "data" / "public" / "data_unam.parquet"
-LAYOUT = ROOT / "data" / "clustering" / "layout_pacmap2d.parquet"
+# layout con la isla de recitales junto a Musica (pipeline/corregir_layout_manual.py); debe coincidir con el mapa
+LAYOUT = ROOT / "data" / "clustering" / "layout_pacmap2d_corregido.parquet"
 APP = ROOT / "prototypes" / "atlas_vecindario_mvp" / "data"
 MODELO = "intfloat/multilingual-e5-large"
 AREA_COD = {"area 1": 1, "area 2": 2, "area 3": 3, "area 4": 4}

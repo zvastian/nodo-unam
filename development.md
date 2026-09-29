@@ -4297,3 +4297,82 @@ El nombre de cada uno queda en `aria-label` y `title`. Entrar y Mi espacio los p
 - las URL de Supabase y de OAuth.
 
 Mientras tanto, el Laboratorio y el inicio de sesión no funcionan en el sitio publicado.
+
+## v4.35.0 (en curso): sin intro; «Notas al programa» junto a Música (2026-09-28)
+
+Sección de traspaso: la sesión se cortó porque la terminal dejó de responder. Aquí queda lo hecho y lo que falta para retomar.
+
+### Hecho, sin commit
+
+- **Intro quitada** (`index.html`), a pedido del usuario: «es innecesaria». El mapa abre directo en la vista por contenido. Se quitaron:
+  - `startIntro`, `runIntroTransition`, `introLayout` y `showDiscLabels`;
+  - la tarjeta narrativa `#story`, que solo usaba la intro, con su CSS y su HTML;
+  - `#disc-labels` y su CSS;
+  - la clave `nodo_atlas_intro_v3` de `localStorage`;
+  - la bandera `state.introActive` y sus comprobaciones.
+  - `finishSemantic()` queda como el arranque del mapa, sin argumentos.
+- **Verificado:** `prueba_humo.mjs` en local pasa las 6 páginas con la consola limpia.
+- **Verificado (28-sep):** capturas en escritorio (1600×900) y móvil (390×844): el mapa abre directo en la vista por contenido, con la consola limpia; `prueba_humo.mjs` pasa las 6 páginas.
+- **Cerrado:** `#app-version` en 4.35.0; `CLAUDE.md` sin la intro; `cerrarIntro` quitado de `tools/prueba_humo.mjs` y el ejemplo de `tools/cdp.mjs` sin `story-close`.
+- **Sigue en curso:** solo la reubicación de «Notas al programa» (abajo).
+
+### Hecho (28-sep, pendiente de aprobación visual): «Notas al programa (recitales)» junto a Música
+
+- **Qué se movió:** 308 tesis del campo 49 dentro de la caja de la isla (x < −10 y y > 10), trasladadas sin deformar (dx = +20.98, dy = −21.33). La mediana queda en (8.25, −2.75), en espacio libre justo debajo del borde inferior de Música. Las 231 tesis de ruido de la isla (por ejemplo «Micropolis») **no** se movieron: ninguna dice «notas al programa». Las 17 tesis del campo 49 que ya estaban fuera de la isla tampoco.
+- **Scripts:** `pipeline/corregir_layout_manual.py` (escribe `layout_pacmap2d_corregido.parquet` y `layout_movidos.json`, sin tocar el original) y `pipeline/mover_teselas_corregidas.py`.
+- **Comprobación previa:** con el layout original, `generar_atlas_modo_caos.py` reproduce el `.bin` byte a byte, y `generar_atlas_macro_graph.py` (salvo `createdAt`), `generar_atlas_subgraphs.py` reproducen los publicados. Las teselas **no**: 94 títulos difieren de los publicados (la limpieza de autores posterior). Por eso no se regeneraron, sino que se reubicaron las 308 tesis entre teselas con sus títulos tal cual (grilla igual: los límites del mapa no cambian).
+- **Regenerado:** `atlas_chaos_mode.v1.bin`, `atlas_macro_graph.v1.json`, `meso_by_macro/M49.json`, `micro_by_macro/M49.json`, 4 teselas nuevas y 5 tocadas, y `acerca.v1.json` (las ilustraciones cambian de caja de muestreo al quedar sin la isla lejana). No cambian `busqueda`, `catalogo`, `tesis_meta` ni `vecinas`: dependen del orden de las tesis, que se conserva.
+- **Laboratorio:** `pipeline/lab_contexto.py` y `services/lab/construir.py` leen el layout corregido; `services/lab/artefactos/meta.parquet` se parchó (308 filas). **Falta** volver a subir los artefactos a Modal.
+- **Verificación:** teselas: cada tesis en una sola tesela y en la que le toca por coordenadas; `limpiar_autores_atlas.py --verificar` sin cambios; `prueba_humo.mjs` pasa las 6 páginas; capturas en escritorio del mapa completo y de la zona de Música con la consola limpia.
+- **Aprobado por el usuario (28-sep):** la posición de la isla. **Falta:** ver la ilustración de Acerca; reconstruir `dist/` y publicar.
+
+### Por hacer (plan original): «Notas al programa (recitales)» junto a Música
+
+**Problema:** e5 agrupó estas tesis por la fórmula del título («notas al programa del recital…») y no por su disciplina. Quedaron en una isla aparte, lejos de Música. Se decidió reubicarlas a mano.
+
+**Datos** (`atlas_chaos_mode.v1.bin`):
+- **Campo 49**, «Notas al programa (recitales)»: 325 tesis. Mediana en (−12.73, 18.58); caja p10–p90 de x −15.5 a −12.0 y de y 16.4 a 18.8.
+- **Campo 47**, «Música»: 549 tesis. Mediana en (6.98, −0.07); caja p10–p90 de x 5.8 a 13.0 y de y −13.5 a 2.4. Está disperso: primero hay que ubicar su núcleo denso.
+- **Alrededor de la isla** (radio de 1.5 × p90): 602 puntos. De ellos, 308 son del campo 49, 231 son ruido y 41 son del campo 68.
+
+**Decisiones del usuario (28-sep-2026):**
+1. **Qué se mueve:** el campo 49, más las tesis de ruido de la isla cuyo título diga «notas al programa». Antes de moverlas, revisar la lista.
+2. **Dónde:** pegada al borde de Música, en espacio libre, sin tapar ningún otro campo, rótulo ni punto. Se traslada la isla completa, sin deformarla.
+3. **Aviso público:** no se menciona en Acerca ni en la interfaz. Solo queda registrado en esta bitácora.
+
+**Plan técnico:**
+- Un script nuevo, `pipeline/corregir_layout_manual.py`:
+  - lee `data/clustering/layout_pacmap2d.parquet` y **no lo sobrescribe**;
+  - escribe `layout_pacmap2d_corregido.parquet`, con la lista de `thesis_id` movidos y el desplazamiento.
+- Regenerar con `LAYOUT_PATH` apuntando al layout corregido, en este orden:
+  1. `generar_atlas_modo_caos.py`, `generar_atlas_macro_graph.py` y `generar_atlas_subgraphs.py`;
+  2. los que leen `atlas_chaos_mode`: `generar_atlas_titulos_teselas.py` (grilla 64×64 sobre las coordenadas: las tesis movidas cambian de tesela), `generar_atlas_busqueda.py`, `generar_atlas_catalogo.py`, `generar_atlas_tesis_meta.py`, `generar_vecinas_tesis.py`, `generar_acerca.py` y `generar_atlas_manifest.py`.
+- **Riesgo:** antes de regenerar, comprobar que los scripts reproducen los datos actuales **sin** la corrección (generar en una carpeta temporal y comparar). Si no, se pierden correcciones a mano que se hayan hecho después, como la jerarquía corregida o `aplicar_correccion_manual_macro.py`.
+- **El Laboratorio** (`pipeline/lab_contexto.py` y `services/lab/construir.py`) también lee `layout_pacmap2d.parquet`. Hay que apuntarlo al corregido, o la posición que calcula el Lab para una tesis de recital no coincidirá con el mapa.
+- **Al final:**
+  - `python pipeline/limpiar_autores_atlas.py --verificar` y la prueba de humo;
+  - capturas del antes y el después para que el usuario las apruebe;
+  - reconstruir `dist/` y volver a publicar.
+
+### Lo que falta en Cloudflare
+
+- **Estado:** el sitio está publicado en `https://nodosmap.sebastian-diaz-prado.workers.dev` (Worker `nodosmap` con archivos estáticos, en la cuenta de la UNAM, ID `98c2acfaa077d8350511cb2b8ac275c0`). Esa publicación todavía tiene la intro y la isla en su lugar original.
+- **Publicar:** desde la raíz del repo,
+  `python tools/construir_sitio.py`, y después
+  `CLOUDFLARE_ACCOUNT_ID=98c2acfaa077d8350511cb2b8ac275c0 npx --prefix services/puerta wrangler deploy --assets dist --name nodosmap --compatibility-date 2026-09-01`.
+  wrangler ya tiene sesión con el Gmail personal, que ve las dos cuentas.
+- **Pendientes:**
+  - [ ] Que el usuario revise el sitio publicado y apruebe conectar el dominio.
+  - [ ] Conectar `nodosmap.com` y `www.nodosmap.com` al Worker `nodosmap`: en el tablero, *Workers & Pages → nodosmap → Settings → Domains & Routes → Add → Custom domain*, o con `routes` y `custom_domain: true` en un `wrangler.jsonc` del sitio. `www` debe redirigir a la raíz.
+  - [ ] Confirmar la regla de Email Routing `contacto@nodosmap.com → Gmail` y probarla. El primer rebote («no encontramos el dominio») fue la caché negativa del DNS, de 30 min, con el dominio recién registrado.
+  - [ ] Opcional, para responder como `contacto@` desde Gmail:
+    - SPF `v=spf1 include:_spf.mx.cloudflare.net include:_spf.google.com ~all`;
+    - DMARC `_dmarc` con `v=DMARC1; p=none;`;
+    - «Enviar como» en Gmail con una contraseña de aplicación.
+  - [ ] Activar Auto-renew del dominio (*Registrations → nodosmap.com → Settings*). Vence el 28-sep-2027.
+  - [ ] **Worker de la API** (`services/puerta`), en `nodosmap.com/api/*` del mismo dominio:
+    - `ORIGENES` y `LAB_URL` de producción;
+    - `database_id` real de D1 (hoy `local-nodos`) y las migraciones en D1 remoto;
+    - los secretos con `wrangler secret put`.
+  - [ ] **Supabase:** Site URL y Redirect URLs a `https://nodosmap.com`. **Google OAuth:** dominio autorizado. **GitHub OAuth:** Homepage URL.
+  - [ ] Cerrar RFC-0002 como ADR con el dominio y el hosting elegidos (Workers con archivos estáticos, no Pages).

@@ -278,10 +278,10 @@
   /* [5] palabras clave como lista de texto, no chips */
   #panel .kw { display: block; font-size: 14px; color: var(--ink-2); line-height: 1.6; }
   #panel .kw span:not(:last-child)::after { content: ", "; }
-  #panel .close-btn, #map-selection .close-btn-mini, #story .st-close, #taller .tl-close, .page-close {
+  #panel .close-btn, #map-selection .close-btn-mini, #taller .tl-close, .page-close {
     /* [7] cerrar: area cuadrada, sin borde ni circulo */
     position: absolute; top: 12px; right: 12px; width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border: none; border-radius: 2px; background: none; color: var(--ink-2); cursor: pointer; }
-  #panel .close-btn:hover, #map-selection .close-btn-mini:hover, #story .st-close:hover, #taller .tl-close:hover, .page-close:hover { color: var(--ink); }
+  #panel .close-btn:hover, #map-selection .close-btn-mini:hover, #taller .tl-close:hover, .page-close:hover { color: var(--ink); }
   #panel .children button { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; width: 100%; text-align: left; border: none; border-bottom: 1px solid var(--grid); background: none; padding: 7px 0; cursor: pointer; font-size: 14px; color: var(--ink); }
   #panel .children button:hover { color: var(--link); }
   #panel .children button span:last-child { color: var(--ink-3); }
@@ -391,22 +391,6 @@
   #map-selection .btn.guardar-txt { color: var(--ink-2); }
   #map-selection .btn.guardar-txt:hover, #map-selection .btn.guardar-txt.on { color: var(--guardado); }
 
-  /* ---------- relato (intro / rutas): hoja inferior acoplada [3][19] ---------- */
-  #story { position: absolute; left: 0; right: 0; bottom: 0; z-index: 9; background: var(--paper); border-top: 1px solid var(--line-strong); padding: 16px 24px 14px; }
-  #story > * { max-width: 760px; }
-  #story .st-close { top: 10px; right: 14px; }
-  #story h3 { font-size: 19px; font-weight: 700; line-height: 1.25; margin: 0 40px 6px 0; letter-spacing: -0.01em; }
-  #story p { font-size: 15px; line-height: 1.6; color: var(--ink-2); margin: 0; max-width: 72ch; }
-  #story p strong { color: var(--ink); font-weight: 600; }
-  #story .st-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; gap: 12px; }
-  #story .st-route { display: flex; align-items: center; gap: 12px; min-width: 0; }
-  #story .st-eyebrow { font-size: 13px; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; gap: 8px; }
-  #story .dots { display: flex; gap: 6px; }
-  #story .dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--line-strong); display: block; }
-  #story .dots i.on { background: var(--ink); }
-  .disc-label { position: absolute; transform: translate(-50%, -100%); text-align: center; pointer-events: none; z-index: 4; white-space: nowrap; }
-  .disc-label b { display: block; font-weight: 700; font-size: 14px; }
-  .disc-label span { font-size: 13px; color: var(--ink-3); }
 
   /* ---------- menu de rutas: desplegable bajo su enlace ---------- */
 
@@ -629,10 +613,6 @@
     #minimap, #mm-show { display: none !important; }
     aside#panel, #map-selection { width: 100vw; max-width: 100vw; }
     main.panel-open #iso-chip { right: 0; }
-    .disc-label b { font-size: 12px; white-space: normal; width: 130px; }
-    #story { padding: 14px 16px 12px; }
-    #story h3 { font-size: 17px; }
-    #story p { font-size: 14px; }
     .tl-tesis, .tl-perfil, .tl-ases { grid-template-columns: 1fr; gap: 0; }
     .tl-fac { position: static; max-height: none; padding: 12px 0 0; }
     .tl-fac summary { display: block; padding: 10px 0; font-size: 14px; font-weight: 600; color: var(--ink); cursor: pointer; border-bottom: 1px solid var(--line); }
@@ -696,7 +676,6 @@
     <canvas id="flow" aria-hidden="true"></canvas>
     <canvas id="marks" aria-hidden="true"></canvas>
     <svg id="overlay"><g id="g-grid"></g><g id="g-edges"></g><g id="g-nodes"></g><g id="g-labels"></g></svg>
-    <div id="disc-labels"></div>
     <div id="iso-chip" hidden>
       <div class="ic-head"><b id="iso-name"></b><span id="iso-n" class="ic-n"></span></div>
       <div class="ic-actions">
@@ -747,25 +726,13 @@
     </aside>
 
 
-    <section id="story" hidden aria-live="polite">
-      <button class="st-close" id="story-close" type="button" aria-label="Cerrar"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg></button>
-      <h3 id="story-title"></h3>
-      <p id="story-text"></p>
-      <div class="st-actions">
-        <div class="st-route"><div class="dots" id="story-dots"></div><div class="st-eyebrow"><span id="story-eyebrow"></span><span id="story-count"></span></div></div>
-        <div style="display:flex;gap:8px;">
-          <button type="button" class="btn" id="story-prev">Anterior</button>
-          <button type="button" class="btn primary" id="story-next">Siguiente</button>
-        </div>
-      </div>
-    </section>
 
     <div class="loading-note" id="loading" role="status" aria-label="Cargando el mapa"><svg class="loading-logo" viewBox="226 142 873 864" fill-rule="evenodd" aria-hidden="true"><path class="lg-nodo-1" fill="var(--nodos-azul-1, #143a6b)" d="M591.3 766.3C600.2 762.1 606.1 757.1 611 749.8C618.5 738.6 620.8 725.1 617.5 711.3C616.7 707.9 612.5 697.9 608.1 689C598.3 669.1 594.7 659.4 591.3 643.2C588.9 631.9 588.6 628.4 588.6 610.5C588.6 589 589.8 579.9 594.6 563.3C604.5 529 629.6 510.7 661 515C690.4 518.9 737 544.2 742.1 559C742.7 560.6 743.5 562 743.8 562C744.2 562 745.5 557.8 746.7 552.7C749.8 540 754.1 532 762.6 523L769.8 515.5L761.6 515.4C739.4 515.1 707.6 503.3 686.8 487.6C670.2 475.1 661.7 461.7 657.4 441.3C652.3 416.5 646.7 407.2 629 393.4C606.2 375.7 596.4 360.5 591 333.9C589.1 324.9 588.9 321.2 589.3 306.5C589.7 291.7 590.2 288 592.8 277.7C596.4 264 603.2 249.2 611.3 237.2C618.8 226.3 620.7 222.3 623.1 213.3C627.6 195.4 623.2 178.4 610.5 165.4C596.5 151.2 574.4 146.3 555.7 153.4C543.3 158.1 534.1 166.1 528.5 177.2C524.1 186 522.6 193.5 523.3 203.5C524 214.5 527 223 533.6 233.6C550.9 261 557.3 279.4 558.7 304.6C560 330.8 553.3 356.6 540.4 374.1C534.6 382.1 523.7 391.6 516.3 395.1C500.4 402.7 479 398.8 457.4 384.5C447.7 378 438.1 368 428.5 354.4C416.2 336.9 406.6 328.9 393.5 325.5C373.2 320.3 352.1 329.9 342.9 348.6C340.2 354 339.6 356.7 339.2 363.4C338.3 381.4 346.6 395.8 362.5 403.6L368.5 406.5L394.5 406.6C423.9 406.7 432.5 407.8 449.5 413.7C473 421.8 487.7 434.6 494.2 452.5C497.1 460.5 497.8 475.3 495.7 483.3C491.2 500.5 472.5 517.1 451.5 522.5C448.2 523.4 437.4 524.5 427.5 525C417.6 525.5 407.2 526.6 404.3 527.4C391.8 530.8 383.1 536.7 375.4 547.2C371.4 552.7 370.1 556 364.1 575.5C360.4 588 352.2 599.6 341.8 607.6C332.1 614.8 321.1 619.7 305 623.6C297.2 625.5 288.9 628 286.6 629.2C271.9 636.5 265.5 655.6 272.7 670.8C277.4 680.8 289.3 687.6 300.5 686.7C313.1 685.7 321 679.4 329.1 663.6C336.2 649.7 339.9 644.4 347.2 637.4C354.9 630 364.9 624 375.5 620.4C382.8 617.9 385.3 617.6 405 617C428.6 616.2 433.5 615.2 442.4 609.1C452.7 602 458.4 592.8 465.7 571.6C472.1 552.7 477 544 486 534.9C496.1 524.7 504.3 520.6 514.4 520.6C520.2 520.6 522.5 521 526.8 523.3C540.8 530.6 551 547.7 556.2 572.6C558.2 582.2 558.5 586.3 558.5 607C558.4 627.3 558.1 631.8 556.3 640.3C552.7 656.7 549 666.7 539.8 684.9C527.4 709.5 524.7 719.2 527 732C530 749 541.2 762.2 557.5 767.9C562.4 769.7 565.4 770 574 769.7C583.4 769.5 585.2 769.1 591.3 766.3Z"/><path class="lg-nodo-2" fill="var(--nodos-azul-2, #2d65a8)" d="M891.3 726.4C897.7 724.2 905.2 717.3 908.1 710.8C909.9 706.8 910.4 703.7 910.5 698C910.5 691.5 910.1 689.8 907.5 685.2C904.1 678.9 900.3 676.1 887 669.8C866.4 660 855.9 648.2 847.7 625.5C837.9 598.1 845.8 565.4 867.5 543.4C885.1 525.6 906.3 516.3 934.5 513.9C948.7 512.7 954.8 510.3 960.9 503.4C965.8 497.8 968 491.6 968 483C968 470.9 962.4 463.3 948.7 456.4C937.5 450.7 931.1 446.3 923.1 438.6C911.7 427.6 904.9 416.1 899.9 399.5C899.3 397.2 898.5 384.7 898.1 370C897.4 346.8 897.2 344 895.1 338.8C889.6 324.8 878.9 315.3 863.1 310.5C845.1 305 839.5 302.9 834.2 299.8C817.6 289.7 804.9 273.6 796 251.3C791.3 239.3 789.2 229.4 788.4 215.2C787.6 200.4 786 195.8 779.1 188.9C772.5 182.3 766.7 180 757 180C748 180 742 182.3 735.6 188.1C728.3 194.7 725.5 201.1 725.6 211C725.7 224.4 731.2 231.9 746.9 240C765.9 249.7 779.8 263.8 789.1 282.5C798 300.6 799.8 314.6 796.3 338.8C795 348.4 794.9 351.6 795.9 357.8C798.9 377.7 811.6 390.6 836 398.5C847.1 402.1 859.9 408.6 867.9 414.6C880 423.7 891 440.5 894.4 455C900 478.5 889.1 499.5 867 508.2C857.7 511.8 842.7 511.9 825.5 508.4C795.3 502.4 778.6 506.3 762.7 522.9C754.2 531.9 749.9 539.8 746.7 552.8C745.4 557.8 744 562.3 743.7 562.7C743.3 563 743 564.1 743 565.1C743 568.2 738.2 578 734.3 582.9C719.6 601.2 694.1 614.1 664.3 618.5C651.1 620.4 647.6 621.5 642.7 625.1C631.5 633.1 627.2 647.4 632 660.2C636.2 671.5 645.1 678 657.6 678.8C670 679.6 678.3 674.4 685.5 661.3C696.8 640.9 712 626.5 732.4 616.9C756 605.9 777.7 605.7 800.6 616.5C811.6 621.6 818.6 626.6 826 634.7C840.9 650.7 849.2 670.8 850.6 694.4C851.7 711.3 856.1 719.4 867.2 724.9C872.2 727.4 874.5 728 880 728C883.6 728 888.7 727.3 891.3 726.4Z"/><path class="lg-punto-izq" fill="var(--nodos-punto-izq, #9cc3e6)" d="M495.4 337.9C502.3 335.4 510.3 328.2 513.7 321.6C515.8 317.6 516.4 314.6 516.8 307.8C517.2 299.7 517 298.7 514.1 292.4C508.9 281.3 500.5 274.9 488.5 273C466.1 269.4 446.2 290.6 450.9 313.2C455.1 333.2 476.4 345.1 495.4 337.9Z"/><path class="lg-punto-der" fill="var(--nodos-punto-der, #5b95cf)" d="M871 221.1C878 217.8 882.3 213.7 886.1 206.8C889.3 200.9 889.5 199.9 889.5 191C889.5 183.1 889.1 180.7 887.2 176.8C883.7 169.8 877.6 163.4 871.2 160.3C866.3 157.9 864.3 157.5 856.5 157.5C848.1 157.5 847.1 157.7 841.2 160.9C826.6 168.8 820 184.8 824.8 200.6C830.7 220 852.7 229.7 871 221.1Z"/><path class="lg-punto-centro" fill="var(--nodos-punto-centro, #5b95cf)" d="M778.5 466.6C785.2 463.6 791.5 457.1 794.9 450C797 445.4 797.5 443.1 797.5 436C797.5 428.9 797.1 426.6 794.9 421.9C791.4 414.6 786.4 409.1 779.8 405.4C774.9 402.7 773.7 402.5 764.5 402.5C753 402.5 748.7 404.1 741.2 411.4C721.7 430 730.4 462.3 756.7 469C762.6 470.4 772.5 469.4 778.5 466.6Z"/><path class="lg-palabra-nod" fill="var(--nodos-azul-1, #143a6b)" d="M662.6 993.5C671.2 990.6 678.9 986 684 980.6L687.5 976.9L688 985.2L688.5 993.5L705.8 993.8L723 994L722.8 902.8L722.5 811.5L705.5 811.5L688.5 811.5L688.2 844.4L688 877.3L682.6 872.2C672.1 862.3 659.1 857.5 642.5 857.6C629.7 857.7 619.8 860.4 609.1 866.7C574.8 887 568.1 945.5 596.4 977.7C611.1 994.5 639.5 1001.3 662.6 993.5ZM509.9 994.5C537.5 988.7 558.3 968.8 564.3 942.5C566.7 931.7 567.1 926.2 565.9 917C562 885.4 542.3 863.8 511 856.5C501.3 854.3 482.2 854.5 472.4 857C451.5 862.3 435.6 874.6 426.1 893C420.1 904.4 418.6 911.3 418.7 926.5C418.7 937.8 419.1 940.6 421.3 947.5C429.2 971.5 448.5 989 473.2 994.4C481.8 996.3 501.2 996.4 509.9 994.5ZM270 933C270 899.5 270.3 872 270.8 872.1C271.5 872.1 287 891.9 326.9 943.4C354.4 979 365.1 992.4 366.6 993.3C367.3 993.7 375 993.9 383.7 993.8L399.5 993.5L399.5 903.5L399.5 813.5L381.8 813.2L364 813L364 873C364 906 363.6 933 363.2 933C362.7 933 357.9 927.3 352.5 920.2C328.7 889.5 281.6 831 270.8 818.5L267.3 814.6L250.9 814.6L234.5 814.7L234.2 903.1C234.1 951.7 234.2 992.1 234.5 992.8C234.8 993.7 239.4 994 252.5 994L270 994L270 933ZM485.7 966C454 960.5 441.4 920.5 463.9 896.7C482.9 876.6 516.5 882 528.4 907C531.3 913.1 531.5 914.2 531.5 925C531.5 935.4 531.2 937.1 528.8 942.2C525.3 949.6 521.7 954.4 516.2 958.6C508.1 964.8 495.9 967.7 485.7 966ZM638 964.5C631.4 962.6 623.1 957.4 619.6 952.8C618.2 950.9 615.8 946.7 614.3 943.5C611.8 938.2 611.5 936.3 611.5 927.4C611.5 917.8 611.7 917.1 615.3 909.8C625 890.1 646.4 882.8 666 892.7C677.1 898.2 684 907.9 686.1 921.2C689.7 943.8 673.5 964.2 650.9 965.6C646.1 965.8 641.6 965.5 638 964.5Z"/><path class="lg-palabra-os" fill="var(--nodos-azul-2, #2d65a8)" d="M848.1 998C862.4 996.6 872.6 993.8 884.5 988C897.2 981.8 906.5 974.7 914.7 965.1C930.2 946.9 938 926.1 938 902.8C938 884.9 935.2 873.3 927.4 858C911.5 826.9 882.1 808.9 844.5 807.3C823.1 806.4 803.1 811.3 785.6 821.7C774.7 828.3 759.8 843 753.2 853.9C731.1 890.3 735.7 937.8 764.4 968.7C781.9 987.5 804.8 997.3 835 998.9C836.4 998.9 842.3 998.5 848.1 998ZM1044.5 995.1C1071.5 987.9 1088 971.2 1091.1 948C1093.9 926.1 1082.5 906.9 1060 895.6C1054.9 893.1 1040.8 887.8 1028.7 883.9C1005.6 876.5 1000.1 874.2 996.2 870.6C985.2 860.6 992.3 845.2 1010.1 840.5C1017.2 838.6 1030 838.6 1037.5 840.5C1045.5 842.5 1056.5 848 1061.9 852.6L1066.3 856.4L1069.6 852.5C1071.5 850.3 1076.2 844.3 1080.2 839.1L1087.4 829.8L1084.9 827.9C1063.2 810.7 1034.8 803.9 1006 809.1C973.8 815 954 835.2 954 862.4C954 877.2 958.3 887.3 968.6 897C977.2 905 987.1 909.7 1013.4 918.1C1043.5 927.8 1048.1 930.3 1051.5 938.3C1053.4 943 1053.4 947.3 1051.4 951.3C1046.4 961.1 1035.5 966 1018.5 966C1002 966 987.7 960.4 976.2 949.4C972.5 945.9 969.3 943 969 943C967.8 943 943.5 965.3 943.8 966.2C944.5 968.7 951.1 975.7 957.3 980.6C968 989 981.4 994.4 997.6 997C1008.1 998.6 1035.4 997.5 1044.5 995.1ZM822.2 964C811.1 961.1 803.5 956.6 794.5 947.5C781.6 934.5 776.6 921.9 776.7 902.5C776.7 888.8 779.7 878.8 786.9 867.9C805.1 840.3 837.9 831.4 867.6 846C881.4 852.7 892 865.2 897.8 881.2C900.1 887.6 900.4 890.1 900.4 901C900.5 911.2 900.1 914.8 898.3 920.5C889.8 947.2 864.5 966.1 837.5 965.9C833 965.9 826.3 965.1 822.2 964Z"/></svg><div id="loading-text"></div></div>
   </main>
 
   <footer>
     <span>Proyecto independiente, no oficial. Datos del catálogo público TESIUNAM.</span>
-    <span><a id="foot-metodo" href="acerca.html#mapa">Cómo se hizo el mapa</a><span class="foot-sep"></span><a href="privacidad.html">Privacidad</a><span class="foot-sep"></span>versión <span id="app-version">4.34.0</span></span>
+    <span><a id="foot-metodo" href="acerca.html#mapa">Cómo se hizo el mapa</a><span class="foot-sep"></span><a href="privacidad.html">Privacidad</a><span class="foot-sep"></span>versión <span id="app-version">4.35.0</span></span>
   </footer>
 </div>
 
@@ -861,7 +828,7 @@
     catTerritory: null, catArea: null, lens: 'territory', memberStart: null, memberIdx: null,
     palette: [], opacities: [],
     vecindarioPreview: null, panelStack: [], selectedId: null,
-    introActive: false, highlightKey: '',
+    highlightKey: '',
     densityPct: 1
   };
 
@@ -1018,11 +985,8 @@
     $('loading').style.opacity = '0';
     setTimeout(function () { $('loading').hidden = true; }, 450);
 
-    var seen = false;
-    try { seen = localStorage.getItem('nodo_atlas_intro_v3') === '1'; } catch (e) { /* almacenamiento bloqueado: se muestra la intro */ }
     var ir = new URLSearchParams(location.search), irLugar = ir.get('lugar'), irTesis = ir.get('tesis'), irAsesor = ir.get('asesor');
-    var aGuardado = !!(irLugar || irTesis || irAsesor);
-    if (seen || DEBUG || aGuardado) finishSemantic(false); else startIntro();
+    finishSemantic();
     if (irLugar) irALugar(irLugar); else if (irTesis) irATesis(irTesis); else if (irAsesor) irAAsesor(irAsesor);
   }
 
@@ -1142,7 +1106,7 @@
     });
     plot.subscribe('select', function (ev) {
       var idx = ev && ev.points && ev.points.length === 1 ? ev.points[0] : null;
-      if (idx != null && !state.introActive) onPointClick(idx);
+      if (idx != null) onPointClick(idx);
     });
     // v4.8.1: clic en una zona vacia del mapa = cerrar la ficha de la tesis (o el vecindario)
     plot.subscribe('deselect', function () { cerrarFichaTesis(); });
@@ -1150,14 +1114,14 @@
     // o un panel; solo se muestra si el cursor esta de verdad sobre el mapa
     var sobreMapa = true;
     document.addEventListener('pointermove', function (ev) { sobreMapa = ev.target === canvas; if (!sobreMapa && hoverIdx >= 0) { hoverIdx = -1; hideTip(); } }, true);
-    plot.subscribe('pointover', function (idx) { if (!state.introActive && sobreMapa) showPointTip(idx); });
+    plot.subscribe('pointover', function (idx) { if (sobreMapa) showPointTip(idx); });
     plot.subscribe('pointout', function () { hoverIdx = -1; hideTip(); });
     // clic sin arrastre y sin tesis debajo = zona vacia: cierra la ficha aunque se haya abierto
     // desde una lista (en ese caso la libreria no tiene nada seleccionado y no avisa)
     var down = null;
     canvas.addEventListener('pointerdown', function (ev) { down = [ev.clientX, ev.clientY]; });
     canvas.addEventListener('pointerup', function (ev) {
-      if (down && Math.hypot(ev.clientX - down[0], ev.clientY - down[1]) < 5 && hoverIdx < 0 && !state.introActive) cerrarFichaTesis();
+      if (down && Math.hypot(ev.clientX - down[0], ev.clientY - down[1]) < 5 && hoverIdx < 0) cerrarFichaTesis();
       down = null;
     });
   }
@@ -1201,7 +1165,7 @@
     return lo > hi ? 0 : Math.max(lo, Math.min(hi, t));
   }
   function clampCamera() {
-    if (!state.scatterplot || cameraTransitioning || state.introActive) return;
+    if (!state.scatterplot || cameraTransitioning) return;
     var dist = state.scatterplot.get('cameraDistance'), target = state.scatterplot.get('cameraTarget') || [0, 0];
     var aspect = state.W / Math.max(1, state.H);
     var tx = clampAxis(target[0], aspect * dist), ty = clampAxis(target[1], dist);
@@ -1294,7 +1258,7 @@
     revealTimer = setTimeout(function () { revealTimer = null; maybeReveal(); }, 140);
   }
   function maybeReveal() {
-    if (!state.macroGraph || state.introActive || state.iso) return;
+    if (!state.macroGraph || state.iso) return;
     var level = updateLevel(), changed = false;
     updateCrumbs(); // v4.6: la miga de pan dice el rango real (antes se quedaba en «temas» al llegar a subtemas)
     state.macros.forEach(function (m) {
@@ -1419,7 +1383,7 @@
   }
 
   function updateOverlayPositions() {
-    if (!state.xScale || state.introActive || state.iso) return;
+    if (!state.xScale || state.iso) return;
     var xs = state.xScale, ys = state.yScale, byId = {};
     live.forEach(function (rec) {
       var px = xs(rec.n.position.x), py = ys(rec.n.position.y);
@@ -1444,7 +1408,7 @@
     var W = state.W, H = state.H, placed = [], cands = [], regions = [];
     // las etiquetas no se colocan debajo del chrome flotante (breadcrumb, leyenda, minimapa, ficha)
     var mr = main.getBoundingClientRect();
-    ['minimap', 'map-selection', 'story', 'iso-chip', 'ley-areas'].forEach(function (id) {
+    ['minimap', 'map-selection', 'iso-chip', 'ley-areas'].forEach(function (id) {
       var el = $(id); if (!el || el.hidden) return;
       var r = el.getBoundingClientRect(); if (!r.width) return;
       placed.push({ x0: r.left - mr.left - 4, y0: r.top - mr.top - 4, x1: r.right - mr.left + 4, y1: r.bottom - mr.top + 4 });
@@ -1508,7 +1472,6 @@
   function scheduleHighlight(n) {
     if (hlTimer) clearTimeout(hlTimer);
     hlTimer = setTimeout(function () {
-      if (state.introActive) return;
       var m = n ? (n.level === 'macro' ? n : n.parentMacro) : null;
       if (m) highlightMacros([m.macroId]); else restoreView();
     }, n ? 160 : 220);
@@ -1523,7 +1486,6 @@
     return redrawCats(cats || null);
   }
   function restoreView() {
-    if (state.introActive) return Promise.resolve();
     if (state.iso) return setCats('iso|' + state.iso.node.id, state.iso.cats);
     return state.pin ? setCats(state.pin.key, state.pin.cats) : setCats('base|' + state.lens + '|' + state.densityPct, null);
   }
@@ -1601,7 +1563,6 @@
 
   // ==================== seleccion: vuelo + panel ====================
   function selectNode(n, fly) {
-    if (state.introActive) return;
     hideTip();
     $('map-selection').hidden = true; clearFocus();
     if ((n.level || 'macro') === 'micro') { openPanel(n); isolateMicro(n); return; }
@@ -1648,7 +1609,7 @@
     return best;
   }
   function updateCrumbs() {
-    if (state.introActive || !state.xScale) return;
+    if (!state.xScale) return;
     var c = $('crumbs'); c.hidden = false;
     var xd = state.xScale.domain(), yd = state.yScale.domain(), cx = (xd[0] + xd[1]) / 2, cy = (yd[0] + yd[1]) / 2;
     var parts = [{ label: 'UNAM', act: flyHome }];
@@ -1747,7 +1708,7 @@
       var d = state.scatterplot.get('cameraDistance'), aspect = state.W / Math.max(1, state.H);
       state.scatterplot.zoomToLocation([clampAxis(nx, aspect * d), clampAxis(ny, d)], d, { transition: false });
     }
-    mm.addEventListener('mousedown', function (ev) { if (state.introActive) return; dragging = true; go(ev); ev.preventDefault(); });
+    mm.addEventListener('mousedown', function (ev) { dragging = true; go(ev); ev.preventDefault(); });
     window.addEventListener('mousemove', function (ev) { if (dragging) go(ev); });
     window.addEventListener('mouseup', function () { dragging = false; });
   }
@@ -1775,7 +1736,7 @@
     ctx.globalAlpha = 1;
   }
   function drawMinimapView() {
-    var cv = $('mm-view'); if (!cv.width || state.introActive) return;
+    var cv = $('mm-view'); if (!cv.width) return;
     var ctx = cv.getContext('2d'), dpr = window.devicePixelRatio || 1, s = MM_W * dpr;
     var t = state.scatterplot.get('cameraTarget'), d = state.scatterplot.get('cameraDistance'), aspect = state.W / Math.max(1, state.H);
     var x0 = (t[0] - aspect * d + 1) / 2 * s, x1 = (t[0] + aspect * d + 1) / 2 * s, y0 = (1 - (t[1] + d)) / 2 * s, y1 = (1 - (t[1] - d)) / 2 * s;
@@ -1790,7 +1751,7 @@
   function leyendaAreas() {
     var L = $('ley-areas');
     L.innerHTML = [1, 2, 3, 4, 0].map(function (a) { return '<i style="--c:' + AREA_HEX[a] + '"></i><span>' + AREA_CORTO[a] + '</span>'; }).join('');
-    L.hidden = state.lens !== 'area' || state.introActive;
+    L.hidden = state.lens !== 'area';
     if (!L.hidden) L.innerHTML = [1, 2, 3, 4, 0].map(function (a) { return '<i style="--c:' + AREA_HEX[a] + '"></i><span>' + AREA_CORTO[a] + '</span>'; }).join('');
   }
   function setLens(lens, force) {
@@ -1800,7 +1761,7 @@
     if (window.NodosAjustes) NodosAjustes.pintar();
     state.highlightKey = '';
     if (state.iso) recolorIsolation();
-    if (!state.introActive) restoreView();
+    restoreView();
     live.forEach(function (rec) { if (rec.dot) { rec.dot.firstChild.setAttribute('fill', nodeColor(rec.n)); rec.dot.firstChild.style.setProperty('--c', nodeColor(rec.n)); } });
     paintMinimap();
   }
@@ -1841,7 +1802,7 @@
     modo: function () { return !!state.noche; },
     lente: function () { return state.lens; },
     alModo: function (oscuro) { setNoche(oscuro); },
-    alLente: function (l) { if (!state.introActive) setLens(l); }
+    alLente: function (l) { setLens(l); }
   });
   // ==================== datos por tema (v3.1) ====================
   // tesis_por_micro/{clusterId}.json: TODAS las tesis de cada tema fino (199,623 en
@@ -3040,7 +3001,6 @@
   // v4.32: el taller de una búsqueda carga el título de cada tesis (teselas del mapa); con más, se pide acotarla
   var TOPE_TALLER = 3000;
   function openSearch() {
-    if (state.introActive) return;
     $('search').hidden = false; var inp = $('search-input'); inp.value = ''; inp.focus();
     $('search-scope').textContent = '';
     loadTemas(); loadAsesores().catch(function () {});
@@ -3279,127 +3239,13 @@
   // precarga de asesores cuando el mapa ya esta listo (no compite con la carga inicial)
   (function precargar() { if (!state.n) return setTimeout(precargar, 1500); setTimeout(function () { loadAsesores().catch(function () {}); }, 2500); })();
 
-  // ==================== introduccion: de areas a contenido ====================
-  // El momento sorpresa: las 609,154 tesis empiezan agrupadas en discos por area
-  // administrativa (como las cataloga la UNAM) y vuelan a su posicion semantica
-  // real. Transicion nativa de regl-scatterplot (interpolacion en GPU).
-  function introLayout() {
-    var counts = [0, 0, 0, 0, 0], n = state.n, ac = state.areaCode, i;
-    for (i = 0; i < n; i++) counts[ac[i] || 0]++;
-    var order = [1, 2, 3, 4, 0], nmax = Math.max.apply(null, counts);
-    var aspect = state.W / Math.max(1, state.H), hx = aspect * DEFAULT_CAMERA_DISTANCE, hy = DEFAULT_CAMERA_DISTANCE;
-    var rel = order.map(function (a) { return Math.sqrt(counts[a] / nmax); });
-    var sumD = rel.reduce(function (s, r) { return s + 2 * r; }, 0), gapU = 0.45, gaps = gapU * (order.length - 1);
-    var R = Math.min(hy * 0.55, (2 * hx * 0.88) / (sumD + gaps));
-    var centers = {};
-    if (aspect >= 1.2) {
-      var x = -((sumD + gaps) * R) / 2;
-      order.forEach(function (a, k) { var r = rel[k] * R; centers[a] = { x: x + r, y: -hy * 0.18, r: r }; x += 2 * r + gapU * R; });
-    } else {
-      // pantalla vertical (telefono): grilla 2x2 en la mitad superior, "sin area" al centro
-      R = Math.min(hx * 0.40, hy * 0.23);
-      var slots = { 1: [-hx / 2, hy * 0.46], 2: [hx / 2, hy * 0.46], 3: [-hx / 2, -hy * 0.06], 4: [hx / 2, -hy * 0.06], 0: [0, hy * 0.2] };
-      order.forEach(function (a, k) { centers[a] = { x: slots[a][0], y: slots[a][1], r: rel[k] * R }; });
-    }
-    var X = new Float32Array(n), Y = new Float32Array(n), seen = [0, 0, 0, 0, 0], GA = Math.PI * (3 - Math.sqrt(5));
-    // orden pseudoaleatorio estable dentro de cada disco (hash por indice), para
-    // que el vuelo no "barra" el mapa en orden de registro
-    var rank = new Float32Array(n); for (i = 0; i < n; i++) { var h = Math.sin(i * 12.9898) * 43758.5453; rank[i] = h - Math.floor(h); }
-    var perm = new Uint32Array(n); for (i = 0; i < n; i++) perm[i] = i;
-    perm.sort(function (a, b) { return rank[a] - rank[b]; });
-    for (i = 0; i < n; i++) {
-      var p = perm[i], a = ac[p] || 0, c = centers[a], j = seen[a]++, rr = c.r * Math.sqrt((j + 0.5) / counts[a]), th = j * GA;
-      X[p] = c.x + rr * Math.cos(th); Y[p] = c.y + rr * Math.sin(th);
-    }
-    return { X: X, Y: Y, centers: centers, counts: counts };
-  }
-  var introData = null;
-  function showDiscLabels(show) {
-    var host = $('disc-labels'); host.innerHTML = '';
-    if (!show || !introData) return;
-    Object.keys(introData.centers).forEach(function (a) {
-      var c = introData.centers[a], p = ndcToPx(c.x, c.y + c.r), d = document.createElement('div');
-      d.className = 'disc-label'; d.style.left = p[0] + 'px'; d.style.top = (p[1] - 10) + 'px';
-      d.innerHTML = +a === 0 ? '<span>' + fmtNum(introData.counts[a]) + '<br>sin área</span>'
-        : '<b style="color:' + AREA_HEX[a] + '">' + escapeHtml(AREA_NAMES[a]) + '</b><span>' + fmtNum(introData.counts[a]) + ' tesis</span>';
-      host.appendChild(d);
-    });
-  }
-  function setChromeForIntro(on) {
-    state.introActive = on;
-    if (on) state.pin = null;
-    if (!on) showDiscLabels(false);
-    $('overlay').style.visibility = on ? 'hidden' : 'visible';
-    $('crumbs').hidden = on;
-    $('ley-areas').hidden = on || state.lens !== 'area';
-    if (on) { $('minimap').hidden = true; $('mm-show').hidden = true; } else applyMinimapPref();
-    state.scatterplot.set({ cameraIsFixed: on });
-    if (on) {
-      panel.classList.remove('open'); main.classList.remove('panel-open'); $('map-selection').hidden = true; hideTip();
-      state.scatterplot.deselect({ preventEvent: true });
-    }
-  }
-  function startIntro() {
-    cerrarFichaTesis();
-    if (panel.classList.contains('open')) closePanel(); // el resaltado del cluster no debe quedar sobre las esferas
-    if (state.iso) exitIsolation(true);
-    $('story').hidden = true; story = null;
-    setChromeForIntro(true);
-    state.scatterplot.zoomToLocation([0, 0], DEFAULT_CAMERA_DISTANCE, { transition: false });
-    if (!introData) introData = introLayout();
-    state.highlightKey = '';
-    drawPoints(introData.X, introData.Y, state.catArea).then(function () { setTimeout(function () { if (state.introActive) showDiscLabels(true); }, 80); });
-    showStory({
-      eyebrow: 'Introducción', count: '1 / 2',
-      title: 'Así clasifica la UNAM sus 609,154 tesis',
-      text: 'Cada punto es una tesis. El catálogo las reparte en <strong>cuatro áreas administrativas</strong>, según dónde se tituló cada estudiante y no según de qué trata su trabajo.',
-      next: 'Reordenar por contenido', dots: [1, 0],
-      onNext: runIntroTransition
-    });
-  }
-  function runIntroTransition() {
-    showDiscLabels(false);
-    $('story-next').disabled = true;
-    drawPoints(state.ndcX, state.ndcY, state.catArea, { transition: true, transitionDuration: 2600, transitionEasing: 'cubicInOut' }).then(function () {
-      showStory({
-        eyebrow: 'Introducción', count: '2 / 2',
-        title: 'El mismo corpus, ordenado por lo que dicen los títulos',
-        text: 'Ahora cada tesis está junto a las que tratan temas parecidos, y las áreas se mezclan: <strong>el contenido no respeta las fronteras administrativas</strong>. Los colores pasan a ser los <strong>130 campos</strong> que encontró el algoritmo. El 67% queda en gris porque no tiene un grupo claro.',
-        next: 'Explorar el mapa', dots: [0, 1],
-        onNext: closeStory
-      });
-      setTimeout(function () { finishSemantic(true); }, 900);
-    });
-  }
-  function finishSemantic(fromIntro) {
-    try { localStorage.setItem('nodo_atlas_intro_v3', '1'); } catch (e) { /* sin almacenamiento: la intro reaparece la proxima vez */ }
-    if (state.introActive) setChromeForIntro(false);
+  // Estado inicial del mapa ya cargado (v4.35: sin intro).
+  function finishSemantic() {
     state.highlightKey = '';
     setLens(NodosAjustes.lente(), true);
     applyMinimapPref();
     syncOverlay(); updateCrumbs(); drawMinimapView();
   }
-  if ($('btn-intro')) $('btn-intro').addEventListener('click', startIntro); // la intro ya no tiene pestaña: se abre sola la primera vez
-
-  // ==================== tarjeta narrativa + rutas guiadas ====================
-  var story = null;
-  function showStory(s) {
-    story = s;
-    $('story').hidden = false;
-    $('story-eyebrow').textContent = s.eyebrow; $('story-count').textContent = s.count || '';
-    $('story-title').textContent = s.title; $('story-text').innerHTML = s.text;
-    var nx = $('story-next'), pv = $('story-prev');
-    nx.disabled = false; nx.textContent = s.next || 'Siguiente';
-    pv.hidden = !s.prev; pv.textContent = s.prev || '';
-    $('story-dots').innerHTML = (s.dots || []).map(function (d) { return '<i class="' + (d ? 'on' : '') + '"></i>'; }).join('');
-  }
-  function closeStory() {
-    $('story').hidden = true; story = null;
-    if (state.introActive) { finishSemantic(false); return; }
-  }
-  $('story-next').addEventListener('click', function () { if (story && story.onNext) story.onNext(); });
-  $('story-prev').addEventListener('click', function () { if (story && story.onPrev) story.onPrev(); });
-  $('story-close').addEventListener('click', closeStory);
 
   // ==================== titulos por tesela espacial (v3.2) ====================
   // titulos_teselas/{tx}_{ty}.json: titulo (sin autor) + anio de las 609,154 tesis,
@@ -3497,7 +3343,6 @@
     if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
     var ctx = cv.getContext('2d');
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
-    if (state.introActive) return;
     var c = camXform(), X = state.dispX, Y = state.dispY;
     var pin = !state.iso ? state.pin : null;
     if (pin && pin.contour) paintContour(ctx, c, pin.contour);
@@ -4073,7 +3918,6 @@
       if (NodosAjustes.abierto()) NodosAjustes.abrir(false);
       else if (!$('search').hidden) closeSearch();
       else if (!$('taller').hidden) closeTaller();
-      else if (!$('story').hidden) closeStory();
       else if (!$('taller').hidden) closeTaller();
       else if (!$('map-selection').hidden) $('map-selection-close').click(); // la ficha antes que el subtema aislado
       else if (state.iso) exitIsolation();
@@ -4087,7 +3931,6 @@
     state.scatterplot.set({ width: rect.width, height: rect.height });
     if (state.iso) resizeFlow();
     drawMarks();
-    if (state.introActive && !$('story-next').disabled) showDiscLabels(true);
   });
 
   var densityCache = {};
@@ -4113,10 +3956,10 @@
   // Hook de desarrollo (prototipo local, no produccion).
   window.__debugAtlas = {
     state: state, flyTo: flyTo, flyToNode: flyToNode, flyHome: flyHome, selectNode: selectNode, setLens: setLens,
-    openSearch: openSearch, runSearch: runSearch, pickResult: pickResult, startIntro: startIntro,
+    openSearch: openSearch, runSearch: runSearch, pickResult: pickResult,
     highlightMacros: highlightMacros,
     verEnMapa: verEnMapa, focusThesis: focusThesis, loadMicro: loadMicro, loadMeso: loadMeso, onPointClick: onPointClick, loadTesisMeta: loadTesisMeta,
-    runIntroTransition: runIntroTransition, closeStory: closeStory, live: live, flow: flow,
+    live: live, flow: flow,
     onPointClick: onPointClick, loadAsesores: loadAsesores, asesoresDe: asesoresDe, tesisDeAsesor: tesisDeAsesor
   };
 })();

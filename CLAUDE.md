@@ -32,8 +32,7 @@ CHROME=/usr/bin/chromium SIZE=1600,900 node tools/cdp.mjs "http://127.0.0.1:8765
 CHROME=/usr/bin/chromium SIZE=390,844  node tools/cdp.mjs ...   # móvil
 ```
 
-- La intro se abre sola: el primer paso suele ser
-  `{"wait":9000,"eval":"document.getElementById('story-close').click();1"}`.
+- El mapa tarda unos segundos en cargar: el primer paso suele ser `{"wait":9000, ...}`. No hay intro (se quitó en v4.35).
 - `window.__debugAtlas` expone `state` y `selectNode` para manejar la app desde los pasos.
 - Revisa siempre escritorio **y** móvil, y la consola (el harness la vuelca al final).
 - Sin GPU, WebGL corre por software: los fps medidos así subestiman el rendimiento real.

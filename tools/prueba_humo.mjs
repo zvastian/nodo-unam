@@ -9,9 +9,8 @@ import path from 'node:path';
 
 const base = process.argv[2] || 'http://127.0.0.1:8765/';
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'humo-'));
-const cerrarIntro = "var c=document.getElementById('story-close');if(c)c.click();";
 const PAGINAS = [
-  { pagina: 'index.html', espera: 15000, listo: cerrarIntro + "window.__debugAtlas&&__debugAtlas.state.scatterplot&&__debugAtlas.state.macros.length===130" },
+  { pagina: 'index.html', espera: 15000, listo: "window.__debugAtlas&&__debugAtlas.state.scatterplot&&__debugAtlas.state.macros.length===130" },
   { pagina: 'index.html?tesis=TH_0462868', espera: 15000, listo: "document.getElementById('ms-title').getAttribute('data-idx')==='462866'&&!!document.querySelector('#ms-title a.leer')" },
   { pagina: 'laboratorio.html', espera: 6000, listo: "!!document.getElementById('pr-titulo')&&typeof NodosAjustes==='object'" },
   { pagina: 'espacio.html', espera: 5000, listo: "!document.getElementById('esp-vacio').hidden" },

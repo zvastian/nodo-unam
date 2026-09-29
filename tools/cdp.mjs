@@ -4,7 +4,7 @@
 //   CHROME=<ruta al binario>   (por defecto: Chrome de Windows; en Linux, p. ej. /usr/bin/google-chrome o chromium)
 //   SIZE=390,844               (tamano de ventana; por defecto 1600,900 = escritorio)
 //   GPU=1                      (usa la GPU real via D3D11 en Windows; sin GPU, WebGL por software (swiftshader) subestima los fps)
-// Ejemplo de pasos: [{"wait":9000,"eval":"document.getElementById('story-close').click();1"},{"wait":2500,"shot":"mapa"}]
+// Ejemplo de pasos: [{"wait":9000,"shot":"mapa"}]
 // La app expone window.__debugAtlas = {state, selectNode, ...} para manejarla desde los pasos.
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
