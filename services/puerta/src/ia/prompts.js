@@ -19,6 +19,7 @@
 //   periodo de estudio se pide una.
 
 import { NIVELES, VERBOS_POR_NIVEL } from '../../../../prototypes/atlas_vecindario_mvp/compartido/bloom.js';
+import { limpiarTexto } from './limpieza.js';
 
 const BASE = `Eres un asesor de tesis con experiencia en la UNAM. Lees el planteamiento de una tesis en proceso y respondes en español de México, tuteando, con frases cortas y concretas.
 
@@ -29,7 +30,8 @@ Reglas:
 - Sin elogios, sin relleno y sin frases genéricas que servirían para cualquier tesis.
 - Responde únicamente con un objeto JSON que cumpla el esquema indicado, sin texto antes ni después.`;
 
-const recorta = (s, n) => { s = String(s ?? '').trim(); return s.length > n ? s.slice(0, n - 1) + '…' : s; };
+// Limpia también los títulos del corpus, que entran al mismo prompt.
+const recorta = (s, n) => { s = limpiarTexto(s); return s.length > n ? s.slice(0, n - 1) + '…' : s; };
 
 /** Lo que escribió el usuario, limpio y acotado, para el bloque <entrada_usuario>. */
 export function entradaUsuario(e) {

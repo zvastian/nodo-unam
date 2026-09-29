@@ -1,7 +1,7 @@
 # Pruebas en cada push y pull request (v4.28).
 # - privacidad: ningún título publicado trae mención de autor ni hay campos de autor en los datos.
 # - humo: cada página carga en Chrome headless sin errores en la consola.
-# - léxico: la tabla de casos de Bloom del Laboratorio.
+# - léxico: la tabla de casos de Bloom del Laboratorio y los casos de inyección de prompt.
 name: pruebas
 
 on:
@@ -52,3 +52,5 @@ jobs:
           node-version: '22'
       - name: Casos límite de Bloom
         run: node --test services/puerta/pruebas/bloom.test.mjs
+      - name: Casos de inyección de prompt
+        run: node --test services/puerta/pruebas/inyeccion.test.mjs

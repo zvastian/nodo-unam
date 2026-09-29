@@ -7,7 +7,8 @@
     "migrar": "wrangler d1 migrations apply nodos --local",
     "claves": "node pruebas/claves.mjs",
     "prueba": "node --test pruebas/puerta.test.mjs",
-    "prueba:bloom": "node --test pruebas/bloom.test.mjs"
+    "prueba:bloom": "node --test pruebas/bloom.test.mjs",
+    "prueba:inyeccion": "node --test pruebas/inyeccion.test.mjs"
   },
   "devDependencies": {
     "wrangler": "4.141.0"

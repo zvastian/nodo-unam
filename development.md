@@ -4452,3 +4452,36 @@ Sección de traspaso: la sesión se cortó porque la terminal dejó de responder
 
 - **Qué cambió:** en el paso del modelo de lenguaje de Acerca de, la aclaración pasa a un registro impersonal: «El modelo no utiliza la información proporcionada para su entrenamiento, y el proveedor no la conserva: la retención de datos se encuentra desactivada.» El sentido y el respaldo son los de la v4.36.4.
 - **Cómo se verificó:** búsqueda del texto en `acerca.html`. No abrí la página en el navegador.
+
+## Lista de lanzamiento, por prioridad (2026-09-29)
+
+Revisión de todo lo pendiente, de lo más crítico (seguridad, fila) a lo menos (difusión). **Reemplaza a «Falta antes de lanzar» del «Plan de lanzamiento» (28-sep)** como lista viva; el plan completo, con el detalle de cada punto, se aprobó con el usuario.
+
+**Hallazgos de la revisión del código** que la bitácora no tenía:
+- la limpieza contra inyección no existía: `recorta()` solo recortaba, y un `</entrada_usuario>` escrito por el usuario cerraba el bloque de datos del prompt (cerrado abajo);
+- no hay límite por IP;
+- el Laboratorio manda un token falso de Turnstile (`TURNSTILE_PRUEBA`);
+- **la fila no existe**: el aviso es solo de interfaz, y el Worker llama a Modal directo (un contenedor de 2 núcleos);
+- el CI no corre `puerta.test.mjs`, y no hay Dependabot;
+- ninguna página trae `og:*`, ni hay `robots.txt`, `sitemap.xml` ni 404.
+
+**Orden:**
+1. **Blindar la API:** inyección (hecho), límite por IP, Turnstile real, revisión de seguridad de la sesión y de la API (JWT `iss`/`aud`, CORS de producción, XSS, `SUPABASE_SERVICE_KEY`, RLS de Supabase) y rotación de secretos.
+2. **Fila:** Durable Object `Fila` (plan gratuito, SQLite), N = 2 análisis a la vez hacia Modal, posición en vivo por SSE, largo máximo, cuota devuelta si se abandona, tope mensual ligado al crédito de Modal.
+3. **Staging:** D1 remoto con migraciones, Worker en un entorno `staging`, artefactos nuevos en Modal y decisión de la tarjeta.
+4. **Estrés y CI:** 50 análisis simultáneos contra staging; topes de IA; respaldo de Groq a Workers AI; pruebas del Worker en el CI; Dependabot.
+5. **Calidad:** `bloom.js` (artículo tomado por verbo), prueba con cuenta real, accesibilidad, primera carga del mapa, revisión humana de la IA.
+6. **Contenido y legal:** datos CC BY 4.0 en Acerca de, términos de TESIUNAM, nombres de campo, repo pública con historia limpia, purgar `MI-TESIS-UNAM`, RFC-0002 a ADR.
+7. **Producción:** Supabase y OAuth, Stripe en modo real, alertas y respaldo de D1, dominio, `www` y correo; publicar.
+8. **Difusión:** metadatos para compartir, 404, lanzamiento suave con conocidos y luego abierto, kit de prensa.
+
+### Limpieza contra inyección de prompt en el Worker (2026-09-29)
+
+- **Qué cambió:** `services/puerta/src/ia/limpieza.js` (nuevo).
+  - `limpiarTexto()` normaliza con NFKC; quita caracteres de control, de formato (ancho cero, bidi, guion suave) y privados, y conserva los saltos de línea; cambia `<` y `>` por `‹` y `›`; colapsa espacios y repeticiones de 5 o más, sin tocar cifras.
+  - `limpiarEntrada()` la aplica a título, problematiza, objetivos, palabras clave, programa y grado. Corre al entrar a `/api/lab/analisis` y a `/api/lab/contexto`, **antes** del léxico, del servicio de datos y de los 3 prompts, así que también cubre los reintentos.
+  - `recorta()` de `prompts.js` limpia también los títulos del corpus que entran al prompt.
+  - `contarInyeccion()` cuenta patrones típicos (en español y en inglés, roles falsos, delimitadores), sobre los campos unidos para detectar instrucciones repartidas. El Worker registra `posible_inyeccion` con **solo el número**, nunca el texto. No bloquea: la defensa es la limpieza y el esquema de salida.
+- **Por qué:** punto 2 de la lista de lanzamiento; lo pidió el usuario el 27-sep.
+- **Cómo se verificó:** `pruebas/inyeccion.test.mjs`, 6 pruebas (delimitadores falsos, también de ancho completo; texto invisible; repeticiones sin tocar cifras; una tesis normal queda idéntica; patrones en dos idiomas y repartidos, y dos falsos positivos que no cuentan; la forma de la entrada no cambia). Pasan las 6, y las 13 de Bloom. Se agregaron al CI (`npm run prueba:inyeccion`). `wrangler deploy --dry-run` empaqueta sin errores. No corrí `puerta.test.mjs`: necesita `wrangler dev` y el servicio de datos.
+- **Falta:** la misma limpieza en el formulario, al escribir y al pegar (comodidad).

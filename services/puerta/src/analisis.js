@@ -15,6 +15,7 @@
 import { clasificarObjetivo, clasificarObjetivos } from '../../../prototypes/atlas_vecindario_mvp/compartido/bloom.js';
 import { TOPE_ENTRADA, hoy, leerJson, pedirContexto, tomarCuota, verificarTurnstile } from './comun.js';
 import { ESQUEMAS } from './ia/esquemas.js';
+import { contarInyeccion, limpiarEntrada } from './ia/limpieza.js';
 import { entradaUsuario, promptBloom, promptNota, promptPreguntas, senalesCorpus } from './ia/prompts.js';
 import { IAAgotada, IAInvalida, pedirIA, tomarCupoIA } from './ia/proveedores.js';
 
@@ -71,8 +72,11 @@ function prepararBloom(d, lexico) {
 }
 
 export async function analisisSSE(request, env, ctx, u, h) {
-  const entrada = await leerJson(request, TOPE_ENTRADA);
+  // Limpia antes de todo: el léxico, el servicio de datos y los 3 prompts reciben el mismo texto.
+  const entrada = limpiarEntrada(await leerJson(request, TOPE_ENTRADA));
   await verificarTurnstile(request, env);
+  const sospechas = contarInyeccion(entrada);
+  if (sospechas) console.log(JSON.stringify({ evento: 'posible_inyeccion', patrones: sospechas }));
   const dia = hoy();
   const restante = await tomarCuota(env, u.id, dia);
   // Si el servicio de datos falla, pedirContexto devuelve la cuota y lanza un error normal (no SSE).

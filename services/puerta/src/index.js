@@ -9,6 +9,7 @@
 // Seguridad: toda consulta a D1 filtra por el id del token, nunca por uno que mande el cliente.
 
 import { analisisSSE } from './analisis.js';
+import { limpiarEntrada } from './ia/limpieza.js';
 import { ErrorApi, TOPE_ENTRADA, entero, hoy, leerJson, pedirContexto, responder, tomarCuota, verificarTurnstile } from './comun.js';
 import { SinSesion, usuarioDe } from './sesion.js';
 
@@ -76,7 +77,7 @@ async function yo(env, u) {
 }
 
 async function contexto(request, env, u, h) {
-  const entrada = await leerJson(request, TOPE_ENTRADA);
+  const entrada = limpiarEntrada(await leerJson(request, TOPE_ENTRADA));
   await verificarTurnstile(request, env);
   const dia = hoy();
   const restante = await tomarCuota(env, u.id, dia);
