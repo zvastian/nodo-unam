@@ -4795,3 +4795,8 @@ Pedida por el usuario: imaginar casos maliciosos y bordes, y comprobar que las d
 **Publicado:** sitio y Worker en `nodosmap.com` (la puerta de Access sigue puesta: 302). Versiones: `sesion.js?v=` y `cuenta.css?v=` en 4.38.5.
 
 **Cómo se verificó, en resumen:** Bloom 17, inyección 6 y seguridad 8 (31 en total); humo, 7 páginas; capturas y mediciones en Chrome descritas arriba.
+
+- **Falló el CI del `worker` tras subir esto, y era un defecto de las pruebas, no del código.** `fila.test.mjs` recibía `429` desde la segunda prueba. Reproducido en local con la misma secuencia: el contador del límite por IP (10 análisis por minuto) **se guarda en el directorio de estado** (`--persist-to`) y sobrevive al reinicio del Worker. Las pruebas de la fila heredaban las llamadas de la fase de integración y estrés, todas desde una misma dirección. En mi máquina las corrí por separado y por eso pasaban.
+  - **Arreglo:** cada usuario de `fila.test.mjs` usa su propia IP (`CF-Connecting-IP`), como en producción, y sin esto la prueba quedaba en 10 de 10 llamadas; y `ci.sh` usa un directorio de estado limpio por fase.
+  - **Comprobado:** las 5 pruebas de la fila pasan incluso sobre el estado contaminado que las hacía fallar.
+  - **Lección:** un análisis de la fila cuenta como una de las 10 llamadas por minuto de esa IP; en un campus con IP compartida, ese es el techo real de lo que un grupo puede enviar por minuto.

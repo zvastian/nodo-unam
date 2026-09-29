@@ -41,8 +41,12 @@ async function token() {
   const f = await crypto.subtle.sign({ name: 'ECDSA', hash: 'SHA-256' }, clave, new TextEncoder().encode(c + '.' + p));
   return `${c}.${p}.${Buffer.from(f).toString('base64url')}`;
 }
+// Cada usuario de la prueba, con su propia IP (como en producción, donde cada estudiante llega desde la suya):
+// el límite por IP del análisis es de 10 por minuto y una sola IP para toda la prueba lo rebasa.
+const ips = new Map();
+const ipDe = (tk) => { if (!ips.has(tk)) { const n = ips.size + 1; ips.set(tk, `198.18.${(n >> 8) & 255}.${n & 255}`); } return ips.get(tk); };
 async function api(ruta, tk, op = {}) {
-  const h = { Authorization: 'Bearer ' + tk, ...(op.cab || {}) };
+  const h = { Authorization: 'Bearer ' + tk, 'CF-Connecting-IP': ipDe(tk), ...(op.cab || {}) };
   if (op.cuerpo) h['Content-Type'] = 'application/json';
   const r = await fetch(URL_PUERTA + ruta, { method: op.metodo || 'GET', headers: h, body: op.cuerpo ? JSON.stringify(op.cuerpo) : undefined });
   const tipo = r.headers.get('content-type') || '';
