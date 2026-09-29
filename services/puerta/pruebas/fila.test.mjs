@@ -80,9 +80,13 @@ test('sin lugar, el análisis entra a la fila, se corre solo y queda como un an�
 
   const a = await hastaListo(tk, r.cuerpo.id);
   assert.equal(a.estado, 'listo');
+  // v4.38.3: los datos se guardan ya; la IA queda pendiente para el carril de IA (que aquí no
+  // puede hacerla: TOPE_IA_DIA=0, así que se pausa y el análisis sigue pendiente)
+  assert.equal(a.ia_pendiente, 1, 'Mi espacio lo ve con la lectura con IA pendiente');
   const uno = (await api('/api/analisis/' + r.cuerpo.id, tk)).cuerpo;
   assert.equal(uno.resultado.datos.vecinas.length, 100, 'el mismo contexto que un análisis en vivo');
   assert.equal(uno.resultado.ia, null, 'sin IA en esta corrida (TOPE_IA_DIA=0)');
+  assert.equal(uno.ia_pendiente, 1);
   assert.equal(uno.entrada.title, ENTRADA.title);
 });
 
@@ -110,6 +114,24 @@ test('borrarlo antes de su turno lo saca de la fila y devuelve la cuota', async 
   await espera(3000);
   assert.equal((await api('/api/analisis', b)).cuerpo.analisis.length, 0);
   assert.equal((await api('/api/yo', b)).cuerpo.analisis_hoy.usados, 0, 'la cuota del borrado volvió');
+});
+
+test('en vivo sin cupo de IA: el Worker lo guarda con la IA pendiente; el cliente no puede marcarla', async () => {
+  const tk = await token();
+  const r = await analizar(tk, 'En vivo sin cupo de IA');   // hay lugar: corre en vivo
+  assert.equal(r.status, 200);
+  assert.match(r.cuerpo, /event: ia_agotada/);
+  const fin = JSON.parse(/event: fin\ndata: (.*)/.exec(r.cuerpo)[1]);
+  assert.ok(fin.guardado, 'el Worker lo guardó');
+  assert.equal(fin.ia_pendiente, true);
+  const a = (await api('/api/analisis', tk)).cuerpo.analisis.find((x) => x.id === fin.guardado);
+  assert.equal(a.ia_pendiente, 1);
+  // Lo que guarda la página (POST /api/analisis) nunca queda pendiente, aunque lo pida: si pudiera,
+  // cualquiera obtendría IA gratis sobre un texto inventado.
+  const g = await api('/api/analisis', tk, { metodo: 'POST', cuerpo: { entrada: ENTRADA, resultado: { datos: {}, ia: null }, ia_pendiente: 1 } });
+  assert.equal(g.status, 201);
+  const b = (await api('/api/analisis', tk)).cuerpo.analisis.find((x) => x.id === g.cuerpo.id);
+  assert.equal(b.ia_pendiente, 0);
 });
 
 test('solo datos (/api/lab/contexto) sin lugar: 503, sin gastar cuota', async () => {

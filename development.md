@@ -4722,3 +4722,37 @@ Pedida por el usuario: imaginar casos maliciosos y bordes, y comprobar que las d
 - **Límites de esta prueba:** no mide Modal real (arranque en frío, 2 núcleos) ni los límites por minuto de Groq. La capacidad real con IA sigue siendo de cerca de 1 análisis con IA por minuto en Groq gratuito (ver `architecture.md` §11). Una prueba contra producción tendría que pasar por Access (con un token de servicio) y gastaría crédito.
 - **Repo pública:** `zvastian/nodo-unam` es pública. Antes de subir se revisó que ningún commit trajera claves (Groq, Supabase, Modal, Turnstile): 0 coincidencias.
 - **Dependabot** abrió en su primera pasada 3 PR: `actions/checkout`, `setup-python` y `setup-node`, de la v4/v5 a la v7. Pendiente: revisarlas y fusionarlas si el CI pasa.
+
+### v4.38.3: carril de IA en la fila y lectura con IA pendiente (2026-09-29)
+
+**La pregunta del usuario:** ¿qué pasa si la fila empieza un análisis y la IA llegó a su límite, por minuto o por día? La revisión del código mostró dos problemas:
+1. **La fila soltaba la IA en ráfaga.** La fila solo limitaba el servicio de datos (2 a la vez); en cuanto llegaban los datos, la IA arrancaba sin ocupar lugar. Con 50 en fila, los datos terminaban en segundos y decenas de llamadas chocaban con Groq en el mismo minuto: Groq gratuito da ~8,000 tokens por minuto y un análisis gasta ~5,200. Casi todas caían a Workers AI, que se agota con unos 26 análisis. Una ráfaga así quemaba la IA de todo el día en minutos.
+2. **Sin IA, en silencio y para siempre.** Un análisis de la fila guardado sin IA ocultaba las secciones de IA sin decir nada; el aviso «llegó a su límite» solo salía en vivo. Tampoco había forma de completarlo después.
+
+**Qué cambió (decisión del usuario: las dos cosas):**
+- **Carril de IA** en el Durable Object de la fila (`src/fila.js`).
+  - Los análisis de la fila guardan sus datos en cuanto el servicio responde y quedan con `ia_pendiente = 1` (migración 0005).
+  - La IA la hace el carril **de uno en uno y espaciado** (`IA_INTERVALO_S`, 45 s por defecto). Completa solo las secciones que faltan (`correrIA(…, solo)`).
+  - Si el cupo del día se acabó, se **pausa hasta las 06:05 UTC** (la medianoche de la Ciudad de México, cuando ya se reiniciaron el tope del sitio y los proveedores).
+  - Cede en cuanto alguien entra a la fila de datos: su espera se interrumpe.
+  - Si una sección falla por otra causa, deja de intentar, para no gastar cupo en bucle.
+- **El análisis en vivo lo guarda el Worker**, ya no la página (`POST /api/analisis`).
+  - Si se acabó el cupo y faltan secciones, queda `ia_pendiente` y el carril lo completa. `fin` dice `guardado` e `ia_pendiente`.
+  - **Por qué no la página:** si la página pudiera marcar un análisis como pendiente, cualquiera mandaría un resultado inventado y obtendría IA gratis sobre cualquier texto. `POST /api/analisis` sigue existiendo y nunca marca pendiente (hay una prueba de eso).
+- **Laboratorio.**
+  - En cada sección de IA que falta, con el cupo agotado: «Tu análisis ya tiene los datos; la lectura con IA se hará cuando esté disponible.», con un «?» que abre el aviso de siempre: la ilustración animada y «Apoya este proyecto», con título «La lectura con IA está en espera» y el botón «Volver a mi análisis».
+  - La barra dice «Datos listos. La lectura con IA se hará cuando esté disponible.»
+  - Si el análisis en vivo no se pudo guardar (2 guardados llenos), el aviso vuelve al de antes, para no prometer una lectura que no va a llegar.
+- **Mi espacio:** «Lectura con IA pendiente» junto a la fecha.
+
+**Cómo se verificó:**
+- **`fila.test.mjs`: 5 de 5**, con una prueba nueva: en vivo sin cupo, el Worker lo guarda pendiente y el cliente no puede marcarlo. `puerta.test.mjs`: 11 de 11. Estrés con 50: bien (2 en vivo y 48 a la fila, con los datos listos en 10 s). Unitarias: 27.
+- **Pausa sin cupo** (`TOPE_IA_DIA = 0`): el carril lo intentó una vez y se pausó hasta el `2026-09-30T06:05:00Z`, sin dar vueltas.
+- **Con IA real** (Groq; `pruebas/wrangler.ia.jsonc` con un lugar y el carril a 20 s, sobre almacenamiento limpio para no tocar los 48 pendientes del estrés): 3 estudiantes a la vez, 1 en vivo y 2 a la fila.
+  - Los 2 de la fila tuvieron sus datos a los 5 s, y el carril completó las 3 secciones de cada uno.
+  - Una llamada del primero pasó a Workers AI por chocar con el minuto del análisis en vivo, porque en la prueba el carril espera 20 s. En producción espera 45 s.
+- **En Chrome:** el aviso sale en las tres secciones de IA, el «?» abre el aviso con su título y su botón, y Mi espacio dice «Lectura con IA pendiente». `prueba_humo.mjs`: 7 páginas.
+- **Publicado:**
+  - la migración 0005 en la D1 remota;
+  - el Worker (versión `f35813bc`);
+  - el sitio en `nodosmap.com`, todavía detrás de Access (`/api/salud` sin sesión de Access: 302).

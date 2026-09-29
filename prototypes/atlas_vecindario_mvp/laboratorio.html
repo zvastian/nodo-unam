@@ -1663,13 +1663,18 @@
     colorMascota(colorCampo(campo.id)); estado('<b>Cae en ' + esc(campo.nombre) + '.</b> Buscando asesores', 'investiga');
     renderAsesores(abrir('s5')); listo('s5');
     await espera(1500); if (!sigue()) return;
-    if (S.ia || S.iaFlujo) {
+    if (S.ia || S.iaFlujo || S.iaPendiente) {
       // con el Worker, cada sección espera su evento; con un ejemplo guardado, un ritmo fijo
       var llega = async function (k, ms) { if (S.iaFlujo) { var v = await S.iaFlujo[k]; if (v) { S.ia = S.ia || {}; S.ia[k] = v; } return !!v; } await espera(ms); return !!(S.ia && S.ia[k]); };
-      var sinIA = function (c) { c.innerHTML = '<p class="sin-ia aparece vis">' + (S.iaFlujo && S.iaFlujo.iaAgotada ? 'La lectura con IA llegó a su límite de hoy. Tus datos están completos; vuelve mañana para la lectura.' : 'La lectura con IA no está disponible en este momento. Tus datos están completos.') + '</p>'; };
+      // v4.38.3: sin la sección por falta de cupo, queda pendiente (el Worker la completa) y el «?» abre
+      // el aviso de siempre; si falló por otra causa, se dice sin prometer nada
+      var sinIA = function (c, antes) {
+        c.innerHTML = (antes || '') + (iaEnEspera() ? PENDIENTE_IA : '<p class="sin-ia aparece vis">La lectura con IA no está disponible en este momento. Tus datos están completos.</p>');
+      };
       estado('<b>Leyendo el planteamiento</b>', 'investiga');
       var hayNota = await llega('nota', 1400); if (!sigue()) return;
-      if (hayNota) renderNota(abrir('s1')); else abrir('s1').innerHTML = '<p class="problematiza aparece vis">' + esc(S.datos.entrada.problematiza) + '</p>';
+      var prob = '<p class="problematiza aparece vis">' + esc(S.datos.entrada.problematiza) + '</p>';
+      if (hayNota) renderNota(abrir('s1')); else if (iaEnEspera()) sinIA(abrir('s1'), prob); else abrir('s1').innerHTML = prob;
       listo('inicio');
       estado('<b>Formulando preguntas</b>', 'investiga');
       var hayPreg = await llega('preguntas', 1800); if (!sigue()) return;
@@ -1686,7 +1691,7 @@
     }
     pose($('m-estado'), 'celebra');
     // la mascota celebra con «Análisis listo» y la barra pasa a ser la cabecera de la sección que lees
-    estado(S.ia ? '<b>Análisis listo.</b>' : '<b>Análisis de datos listo.</b> La lectura con IA llega con la cuenta.');
+    estado(iaEnEspera() ? '<b>Datos listos.</b> La lectura con IA se hará cuando esté disponible.' : S.ia ? '<b>Análisis listo.</b>' : '<b>Análisis de datos listo.</b> La lectura con IA llega con la cuenta.');
     guardarAnalisisActual();
     await espera(1800); if (!sigue()) return;
     terminado = true; cabecera();
@@ -1695,16 +1700,16 @@
   function guardarAnalisisActual() {
     var p = $('guardado-p'), fecha = new Date().toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' });
     if (S.fuente === 'guardado') { p.hidden = false; $('guardado').innerHTML = 'Guardado en <a href="espacio.html">Mi espacio</a>.'; return; }
-    if (S.fuente !== 'puerta' || !usuarioActual()) { p.hidden = true; return; }
-    var datos = Object.assign({}, S.datos); delete datos.entrada;
-    NDS.api('/api/analisis', { metodo: 'POST', cuerpo: { entrada: S.datos.entrada, resultado: { datos: datos, ia: S.ia || null } } })
-      .then(function () { p.hidden = false; $('guardado').innerHTML = 'Guardado en <a href="espacio.html">Mi espacio</a> el ' + fecha + '.'; })
-      .catch(function (err) {
-        p.hidden = false;
-        $('guardado').innerHTML = err.codigo === 'limite_de_guardados'
-          ? 'No se guardó: ya tienes dos análisis en <a href="espacio.html">Mi espacio</a>. Borra uno para guardar este.'
-          : 'No se pudo guardar este análisis. Tu borrador sigue en este navegador.';
-      });
+    if (S.fuente !== 'puerta' || !usuarioActual() || !S.iaFlujo) { p.hidden = true; return; }
+    // v4.38.3: el análisis en vivo lo guarda el Worker (solo él puede marcar la IA pendiente); «fin»
+    // dice si se guardó
+    S.iaFlujo.fin.then(function (d) {
+      p.hidden = false;
+      if (d && d.guardado) { $('guardado').innerHTML = 'Guardado en <a href="espacio.html">Mi espacio</a> el ' + fecha + '.'; return; }
+      $('guardado').innerHTML = d && d.guardado === null
+        ? 'No se guardó: ya tienes dos análisis en <a href="espacio.html">Mi espacio</a>. Borra uno para guardar este.'
+        : 'No se pudo guardar este análisis. Tu borrador sigue en este navegador.';
+    });
   }
   // un análisis guardado: laboratorio.html?analisis=<id>
   async function abrirGuardado(id) {
@@ -1713,7 +1718,7 @@
     try {
       var r = await NDS.api('/api/analisis/' + encodeURIComponent(id));
       if (r.estado === 'fila') { estado('<b>Tu análisis sigue en la fila.</b> Aparecerá en Mi espacio en cuanto esté listo.', 'fila'); return; }
-      S.precargado = { datos: r.resultado.datos, ia: r.resultado.ia };
+      S.precargado = { datos: r.resultado.datos, ia: r.resultado.ia, iaPendiente: !!r.ia_pendiente };
       analizar(r.entrada);
     } catch (err) { estado('<b>No se encontró ese análisis.</b> Revisa Mi espacio.', 'senala'); }
   }
@@ -2127,17 +2132,29 @@
     cupo: { titulo: 'Hoy llegamos al límite', motivo: 'El Laboratorio ya hizo todos los análisis que puede hacer hoy. Tu borrador queda guardado: inténtalo mañana.', pose: 'fila' },
     // v4.38: la fila existe; si ya tiene 2 guardados no entra (el aviso no habla de la fila: decisión del usuario)
     guardados: { titulo: 'Ya tienes 2 análisis guardados', motivo: 'El máximo es de 2 análisis. Si quieres hacer otro, borra uno en Mi espacio. Tu borrador queda guardado.', pose: 'senala' },
+    // v4.38.3: la lectura con IA de un análisis quedó pendiente (cupo de la IA agotado); se abre con el «?»
+    ia: { titulo: 'La lectura con IA está en espera', motivo: 'La IA gratuita que usamos tiene un límite por minuto y por día, y hoy llegaron muchas tesis. Tu análisis ya tiene los datos completos; en cuanto haya cupo hacemos la lectura y aparecerá aquí mismo y en Mi espacio. No tienes que volver a enviarlo.', pose: 'fila' },
     // el presupuesto del mes se acabó: el Laboratorio se pausa hasta el día 1 (motivo con la fecha, en avisoBeta)
     mes: { titulo: 'Llegamos al límite de este mes', motivo: 'El Laboratorio ya hizo todos los análisis que puede hacer este mes. Tu borrador queda guardado: vuelve a partir del 1 del mes siguiente.', pose: 'fila' },
     error: { titulo: 'Tu borrador está a salvo', motivo: 'No pudimos conectar con el servicio que ubica tu tesis. Nada se perdió: inténtalo de nuevo en unos minutos.', pose: 'senala' }
   };
   var avisoPose = 'fila';
-  function avisoBeta(tipo, extra) {
+  // v4.38.3: lectura con IA pendiente. En vivo se sabe al llegar «ia_agotada» (y se confirma en «fin»,
+  // si el análisis se guardó); en uno guardado, por su ia_pendiente.
+  var PENDIENTE_IA = '<p class="sin-ia ia-pend aparece vis">Tu análisis ya tiene los datos; la lectura con IA se hará cuando esté disponible. ' +
+    '<button type="button" class="ayuda ia-q" aria-haspopup="dialog" title="¿Por qué?" aria-label="¿Por qué la lectura con IA está en espera?">?</button></p>';
+  function sinCompletar() {
+    document.querySelectorAll('.ia-pend').forEach(function (p) { p.classList.remove('ia-pend'); p.textContent = 'La lectura con IA llegó a su límite de hoy. Tus datos están completos.'; });
+  }
+  function iaEnEspera() { return !!(S.iaPendiente || (S.iaFlujo && S.iaFlujo.iaAgotada && S.iaFlujo.guardadoSinIA !== false)); }
+  document.addEventListener('click', function (ev) { var q = ev.target.closest('.ia-q'); if (q) avisoBeta('ia', null, q); });
+  function avisoBeta(tipo, extra, desde) {
     var a = AVISOS[tipo]; avisoPose = a.pose;
+    $('beta-volver').textContent = tipo === 'ia' ? 'Volver a mi análisis' : 'Volver a mi borrador';
     var motivo = a.motivo, vuelve = extra && /^\d{4}-\d{2}-01$/.test(extra.vuelve || '') ? new Date(extra.vuelve + 'T12:00:00') : null;
     if (tipo === 'mes' && vuelve) motivo = 'El Laboratorio ya hizo todos los análisis que puede hacer este mes. Tu borrador queda guardado: vuelve a partir del ' + vuelve.toLocaleDateString('es-MX', { day: 'numeric', month: 'long' }) + '.';
     $('beta-titulo').textContent = a.titulo; $('beta-motivo').textContent = motivo; pose($('m-aviso'), a.pose);
-    abrirDialogo('beta', $('f-enviar'));
+    abrirDialogo('beta', desde || $('f-enviar'));
   }
 
   // --- pasos del formulario: título, Problematiza, objetivos, programa y grado ---
@@ -2327,7 +2344,12 @@
             if (ev === 'datos' || ev === 'nota' || ev === 'preguntas' || ev === 'bloom') ok[ev](d);
             else if (ev === 'error' && d && ok[d.seccion]) ok[d.seccion](null);
             else if (ev === 'ia_agotada') { f.iaAgotada = true; ok.nota(null); ok.preguntas(null); ok.bloom(null); }
-            else if (ev === 'fin') { f.cuotaRestante = d && d.cuota_restante; ok.fin(d); }
+            else if (ev === 'fin') {
+              f.cuotaRestante = d && d.cuota_restante;
+              // la IA se agotó pero el análisis no se guardó (2 guardados llenos): no hay nada que completar
+              if (f.iaAgotada && d && !d.ia_pendiente) { f.guardadoSinIA = false; sinCompletar(); }
+              ok.fin(d);
+            }
           }
         }
         cerrarTodo();
@@ -2377,14 +2399,14 @@
     document.body.classList.remove('escribiendo');
     $('lamina-txt').textContent = 'Análisis de tesis';
     $('titulo').textContent = e.title;
-    SECCIONES = TODAS; S.ia = null;
+    SECCIONES = TODAS; S.ia = null; S.iaPendiente = false;
     ['s1', 's2', 's3', 's4', 's5'].forEach(function (id) { var sec = $(id); sec.hidden = false; sec.querySelector('.pendiente').hidden = false; var c = sec.querySelector('.cuerpo'); c.hidden = true; c.innerHTML = ''; });
     $('objetos').innerHTML = ''; $('objetos-h').hidden = true;
     window.scrollTo({ top: 0, behavior: REDUCIDO ? 'auto' : 'smooth' });
     pintarPasos(); estado('<b>Ubicando tu tesis</b> entre 609,154 del catálogo', 'investiga'); colorMascota('#8c96a8');
     var datos; S.iaFlujo = null;
     var pre = S.precargado; S.precargado = null; // un análisis guardado se usa una sola vez
-    if (pre) { datos = pre.datos; S.ia = pre.ia || null; S.fuente = 'guardado'; }
+    if (pre) { datos = pre.datos; S.ia = pre.ia || null; S.iaPendiente = !!pre.iaPendiente; S.fuente = 'guardado'; }
     else if (!EJ_ID && usuarioActual() && NDS && NDS.PUERTA && turnstile) {
       var flujo = abrirFlujo(e, turnstile);
       try { datos = await flujo.datos; } catch (err) { errorFlujo(err); return; }
@@ -2395,7 +2417,7 @@
       catch (err) { console.error(err); errorDatos(); return; }
     }
     if (!pre && esEjemplo(e)) S.ia = await fetch(EJ_DIR + (EJ_ID ? 'ia.json' : 'ia_ejemplo.json')).then(function (x) { return x.json(); }).catch(function () { return null; });
-    if (!S.ia && !S.iaFlujo) { SECCIONES = TODAS.filter(function (s) { return s.id !== 's2' && s.id !== 's3'; }); $('s2').hidden = true; $('s3').hidden = true; }
+    if (!S.ia && !S.iaFlujo && !S.iaPendiente) { SECCIONES = TODAS.filter(function (s) { return s.id !== 's2' && s.id !== 's3'; }); $('s2').hidden = true; $('s3').hidden = true; }
     S.datos = datos; S.datos.entrada = e;
     S.vec = S.datos.vecinas.map(function (a) { return { id: a[0], titulo: a[1], anio: a[2], area: a[3], nivel: a[4], programa: a[5], plantel: a[6], campo: a[7], tema: a[8], subtema: a[9], sim: a[10] }; });
     // el área de la tesis: la de la mayoría de sus 100 vecinas (la que anuncia «Tu tesis es de …»)

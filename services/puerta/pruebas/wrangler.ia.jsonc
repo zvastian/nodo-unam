@@ -1,0 +1,38 @@
+// Prueba a mano del carril de IA con IA real (gasta tokens de Groq: ~5,000 por análisis). Como
+// wrangler.ci.jsonc, pero con el binding de IA (pide la cuenta de Cloudflare), un lugar y el carril a
+// 20 s entre lecturas. Contra el servicio simulado. Desde services/puerta:
+//   cp .dev.vars pruebas/.dev.vars
+//   CLOUDFLARE_ACCOUNT_ID=… npx wrangler dev -c pruebas/wrangler.ia.jsonc --persist-to .wrangler/state --port 8787 --ip 127.0.0.1
+{
+  "name": "nodos-puerta",
+  "main": "../src/index.js",
+  "compatibility_date": "2026-09-01",
+  "d1_databases": [
+    { "binding": "DB", "database_name": "nodos", "database_id": "local-nodos", "migrations_dir": "../migrations" }
+  ],
+  "ai": { "binding": "AI" },
+  "ratelimits": [
+    { "name": "LIMITE_IP", "namespace_id": "1001", "simple": { "limit": 120, "period": 60 } },
+    { "name": "LIMITE_IP_LAB", "namespace_id": "1002", "simple": { "limit": 10, "period": 60 } },
+    { "name": "LIMITE_USUARIO", "namespace_id": "1003", "simple": { "limit": 30, "period": 60 } }
+  ],
+  "durable_objects": { "bindings": [{ "name": "FILA", "class_name": "Fila" }] },
+  "migrations": [{ "tag": "fila-v1", "new_sqlite_classes": ["Fila"] }],
+  "vars": {
+    "ENTORNO": "local",
+    "FILA_SIMULTANEOS": "1",
+    "IA_INTERVALO_S": "20",
+    "TOPE_MES": "100000",
+    "TURNSTILE_HOSTS": "",
+    "ORIGENES": "http://127.0.0.1:8765",
+    "LAB_URL": "http://127.0.0.1:8770",
+    "SUPABASE_URL": "https://vujmkcpxsdrmrwsijnlz.supabase.co",
+    "JWT_EMISOR": "",
+    "CUOTA_USUARIO_DIA": "2",
+    "TOPE_SITIO_DIA": "100000",
+    "MAX_ANALISIS_GUARDADOS": "2",
+    "TOPE_IA_DIA": "55",
+    "GROQ_TOKENS_DIA": "180000",
+    "WORKERS_AI_NEURONAS_DIA": "9000"
+  }
+}

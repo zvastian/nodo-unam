@@ -224,7 +224,8 @@ async function rutear(request, env, ctx, h) {
 
   if (p === '/api/analisis' && m === 'GET') {
     // estado: «listo» o «fila» (esperando su turno; Mi espacio lo muestra como «En la fila»)
-    const r = await env.DB.prepare('SELECT id, titulo, creado, estado FROM analisis WHERE usuario = ?1 ORDER BY creado DESC').bind(u.id).all();
+    // ia_pendiente: 1 si le falta la lectura con IA (se hará cuando haya cupo)
+    const r = await env.DB.prepare('SELECT id, titulo, creado, estado, ia_pendiente FROM analisis WHERE usuario = ?1 ORDER BY creado DESC').bind(u.id).all();
     return ok({ analisis: r.results });
   }
   if (p === '/api/analisis' && m === 'POST') return responder(await guardarAnalisis(request, env, u), 201, h);
@@ -232,7 +233,7 @@ async function rutear(request, env, ctx, h) {
     const id = x[1].toLowerCase();
     if (!RE_UUID.test(id)) throw new ErrorApi(404, 'no_encontrado');
     if (m === 'GET') {
-      const a = await env.DB.prepare('SELECT id, titulo, entrada, resultado, creado, estado FROM analisis WHERE id = ?1 AND usuario = ?2').bind(id, u.id).first();
+      const a = await env.DB.prepare('SELECT id, titulo, entrada, resultado, creado, estado, ia_pendiente FROM analisis WHERE id = ?1 AND usuario = ?2').bind(id, u.id).first();
       if (!a) throw new ErrorApi(404, 'no_encontrado');
       return ok({ ...a, entrada: JSON.parse(a.entrada), resultado: JSON.parse(a.resultado) });
     }

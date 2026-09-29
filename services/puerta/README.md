@@ -151,6 +151,14 @@ Un Durable Object, uno solo para todo el sitio (plan gratuito, SQLite). Modal co
 
 - **Con lugar:** el análisis corre en vivo por SSE, como siempre. El lugar se suelta en cuanto el servicio de datos responde (la IA no lo ocupa); si el Worker muere sin soltarlo, vence a los 4 minutos.
 - **Sin lugar:** `202 {en_fila, id, posicion}`. El análisis se guarda en D1 con `estado = 'fila'` (Mi espacio lo muestra «En la fila») y el Durable Object lo corre en segundo plano (alarma) con el mismo código (`correrIA`), y lo guarda como un análisis normal. Quien llega mientras hay fila espera su turno aunque se libere un lugar.
+- **Carril de IA (v4.38.3).** Los de la fila guardan sus datos en cuanto el servicio responde y quedan con `ia_pendiente = 1`.
+  - La IA la hace un carril aparte del Durable Object, **de uno en uno y espaciado** (`IA_INTERVALO_S`, 45 s): Groq gratuito da ~8,000 tokens por minuto y un análisis gasta ~5,200. Antes, 50 en fila soltaban 50 llamadas a Groq en el mismo minuto, casi todas caían a Workers AI y agotaban el día.
+  - El mismo carril completa los análisis en vivo que se quedaron sin IA por falta de cupo.
+  - Si el cupo del día se acabó, se pausa hasta las 06:05 UTC (medianoche de la Ciudad de México).
+  - Cede en cuanto alguien entra a la fila de datos.
+  - Solo completa lo que el Worker guardó: el análisis en vivo ahora lo guarda el Worker (antes, la página con `POST /api/analisis`), y `POST /api/analisis` nunca marca `ia_pendiente`. Si no, cualquiera obtendría IA gratis sobre un texto inventado.
+  - Si una sección falla por otra causa (salida inválida tras el reintento), se deja de intentar.
+  - `pruebas/wrangler.ia.jsonc` sirve para probarlo a mano con IA real.
 - **Ocupa uno de los 2 guardados desde que entra:** con los 2 llenos, `409 limite_de_guardados` y la cuota se devuelve.
 - **Borrarlo antes de su turno** lo saca de la fila y devuelve la cuota; si el servicio de datos falla en segundo plano, se borra y la cuota vuelve.
 - **Sin largo máximo** (decisión del usuario): el freno es el tope diario del sitio.
@@ -213,6 +221,7 @@ npm run prueba:seguridad   # 8 pruebas de sesión, límites, entrada, configurac
 | `JWKS_LOCAL` | solo local | JWKS en JSON, en lugar de pedirlo a Supabase |
 | `GROQ_API_KEY` | secreto | Clave de Groq, con Zero Data Retention activado en su consola |
 | `FILA_SIMULTANEOS` | var | Análisis a la vez en el servicio de datos (2); el resto va a la fila |
+| `IA_INTERVALO_S` | var | Segundos entre lecturas del carril de IA (45 por defecto: el ritmo de Groq gratuito) |
 | `TOPE_MES` | var | Análisis al mes en todo el sitio; al llegar, el Laboratorio se pausa hasta el día 1. 6,000: los 30 USD de crédito de Modal con tarjeta |
 | `FILA` | binding | Durable Object de la fila (`src/fila.js`); obligatorio en producción |
 | `TOPE_IA_DIA` | var | Análisis con IA al día en todo el sitio: 55, la capacidad gratuita medida en la evaluación |

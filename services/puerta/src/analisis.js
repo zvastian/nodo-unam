@@ -76,17 +76,24 @@ function prepararBloom(d, lexico) {
 /**
  * Las 3 llamadas de IA sobre un contexto ya calculado. La usan el análisis en vivo (SSE) y la fila
  * (src/fila.js), para que los dos den exactamente lo mismo. `aviso(evento, datos)` recibe cada
- * sección al terminar. Devuelve { ia: {nota, preguntas, bloom} | null, costos }.
+ * sección al terminar. `solo` limita las secciones (para completar las que faltaron).
+ * Devuelve { ia: {nota, preguntas, bloom} | null, costos, agotada, faltan }: `agotada` si se acabó el
+ * cupo (del sitio o de los proveedores) y `faltan`, las secciones que no salieron.
  */
-export async function correrIA(env, dia, entrada, datos, lexico, aviso = async () => {}) {
+export async function correrIA(env, dia, entrada, datos, lexico, aviso = async () => {}, solo = null) {
   const costos = {}, ia = {};
-  if (!(await tomarCupoIA(env, dia))) { await aviso('ia_agotada', { motivo: 'tope_del_sitio' }); return { ia: null, costos }; }
   const eu = entradaUsuario(entrada), sen = senalesCorpus(datos);
-  const tareas = [
+  let tareas = [
     ['nota', promptNota(eu, sen), () => [], prepararNota],
     ['preguntas', promptPreguntas(eu, sen), revisarPreguntas, (d) => d],
   ];
   if (lexico.objetivos.length) tareas.push(['bloom', promptBloom(eu, lexico), revisarBloom(lexico), (d) => prepararBloom(d, lexico)]);
+  if (solo) tareas = tareas.filter(([nombre]) => solo.includes(nombre));
+  const nombres = tareas.map(([nombre]) => nombre);
+  if (!(await tomarCupoIA(env, dia))) {
+    await aviso('ia_agotada', { motivo: 'tope_del_sitio' });
+    return { ia: null, costos, agotada: true, faltan: nombres };
+  }
 
   let agotada = false;
   await Promise.all(tareas.map(async ([nombre, mensajes, revisar, preparar]) => {
@@ -103,7 +110,23 @@ export async function correrIA(env, dia, entrada, datos, lexico, aviso = async (
     }
   }));
   if (agotada) await aviso('ia_agotada', { motivo: 'proveedores_agotados' });
-  return { ia: Object.keys(ia).length ? ia : null, costos };
+  return { ia: Object.keys(ia).length ? ia : null, costos, agotada, faltan: nombres.filter((n) => !(n in ia)) };
+}
+
+/**
+ * Guarda el análisis en vivo desde el Worker (antes lo guardaba la página con POST /api/analisis).
+ * Así solo el Worker marca `ia_pendiente`: si la página pudiera, cualquiera mandaría un resultado
+ * inventado marcado como pendiente y obtendría IA gratis sobre cualquier texto. Con los 2 análisis
+ * guardados ya llenos no se guarda (devuelve null), como antes.
+ */
+async function guardarDelWorker(env, u, entrada, datos, ia, pendiente) {
+  const id = crypto.randomUUID();
+  const r = await env.DB.prepare(
+    `INSERT INTO analisis (id, usuario, titulo, entrada, resultado, estado, ia_pendiente)
+     SELECT ?1, ?2, ?3, ?4, ?5, 'listo', ?7 WHERE (SELECT count(*) FROM analisis WHERE usuario = ?2) < ?6`,
+  ).bind(id, u.id, String(entrada.title).slice(0, 400), JSON.stringify(entrada), JSON.stringify({ datos, ia }),
+    entero(env.MAX_ANALISIS_GUARDADOS, 2), pendiente ? 1 : 0).run();
+  return r.meta.changes ? id : null;
 }
 
 /**
@@ -150,18 +173,25 @@ export async function analisisSSE(request, env, ctx, u, h) {
   const enviar = (evento, datos) => w.write(enc.encode(`event: ${evento}\ndata: ${typeof datos === 'string' ? datos : JSON.stringify(datos)}\n\n`)).catch(() => {});
 
   const trabajo = (async () => {
-    let costos = {};
+    let costos = {}, guardado = null, iaPendiente = false;
     try {
       await soltar(); // el servicio de datos ya respondió: la IA no ocupa su lugar
       const lexico = clasificarObjetivos(entrada.objectives || [], entrada.degree || '');
       await enviar('lexico', lexico);
       await enviar('datos', datosTexto);
-      costos = (await correrIA(env, dia, entrada, JSON.parse(datosTexto), lexico, enviar)).costos;
+      const datos = JSON.parse(datosTexto);
+      const r = await correrIA(env, dia, entrada, datos, lexico, enviar);
+      costos = r.costos;
+      // Si se acabó el cupo y faltan secciones, queda pendiente: el carril de IA de la fila la completa.
+      const pendiente = r.agotada && r.faltan.length > 0;
+      guardado = await guardarDelWorker(env, u, entrada, datos, r.ia, pendiente);
+      iaPendiente = pendiente && !!guardado;
+      if (iaPendiente) await fila(env, '/ia').catch(() => {});
     } catch (e) {
       console.error(JSON.stringify({ evento: 'analisis_error', nombre: e.name, mensaje: String(e.message).slice(0, 200) }));
       await enviar('error', { seccion: 'analisis', error: 'interno' });
     } finally {
-      await enviar('fin', { cuota_restante: restante, ia: costos });
+      await enviar('fin', { cuota_restante: restante, ia: costos, guardado, ia_pendiente: iaPendiente, limite_guardados: entero(env.MAX_ANALISIS_GUARDADOS, 2) });
       await w.close().catch(() => {});
     }
   })();
