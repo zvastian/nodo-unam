@@ -4574,3 +4574,9 @@ Pedida por el usuario: imaginar casos maliciosos y bordes, y comprobar que las d
 - **La sesión vive en `localStorage`** (supabase-js), y la CSP permite `'unsafe-inline'` porque las páginas llevan su código en línea. Cualquier XSS tendría acceso al token. Hoy el escape aguanta la prueba de arriba. La defensa de fondo es sacar los scripts en línea a archivos y usar una CSP con hashes, que es un cambio grande y conviene hacer antes de crecer.
 - **Un token sigue valiendo hasta que caduca** (1 hora en Supabase), aun después de «Salir» o de borrar la cuenta. Es aceptable para lo que se guarda; si se quiere cerrar, el Worker puede consultar `/auth/v1/user` solo en `DELETE /api/cuenta`.
 - **El enlace de apoyo de Stripe es de prueba** (`buy.stripe.com/test_…`): no es de seguridad, pero no puede salir así.
+
+### v4.37.2: clave de sitio real de Turnstile (2026-09-29)
+
+- **Qué cambió:** `TURNSTILE_SITIO` en `laboratorio.html` lleva la clave de sitio del widget «NodOS» que creó el usuario en Cloudflare (cuenta de gmail, modo *Managed*): `0x4AAAAAAFJWFLy7ndrwA6Oq`. Es pública por diseño. En local se sigue usando la de prueba.
+- **Falta (usuario):** el widget tiene 1 dominio; hay que agregar el segundo (`nodosmap.com` y `www.nodosmap.com`, los mismos de `TURNSTILE_HOSTS`). También guardar la clave secreta en el Worker con `wrangler secret put TURNSTILE_SECRET`.
+- **Cómo se verificó:** búsqueda del texto en `laboratorio.html`. No se puede probar en local, porque el widget solo acepta sus dominios.

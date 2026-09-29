@@ -2228,7 +2228,7 @@
   // análisis y el widget va con la acción «analisis», que el Worker exige. Con «interaction-only» no
   // se ve, salvo que Cloudflare pida una prueba: entonces aparece junto al botón.
   // La clave de sitio es pública por diseño. En local, la de prueba que siempre aprueba sin mostrarse.
-  var TURNSTILE_SITIO = /^(127\.0\.0\.1|localhost)$/.test(location.hostname) ? '1x00000000000000000000BB' : ''; // la real, al publicar
+  var TURNSTILE_SITIO = /^(127\.0\.0\.1|localhost)$/.test(location.hostname) ? '1x00000000000000000000BB' : '0x4AAAAAAFJWFLy7ndrwA6Oq'; // widget «NodOS» (Managed)
   var ts = { carga: null, id: null };
   function cargarTurnstile() {
     if (ts.carga) return ts.carga;
