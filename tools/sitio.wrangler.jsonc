@@ -13,7 +13,8 @@
   "account_id": "98c2acfaa077d8350511cb2b8ac275c0",
   "compatibility_date": "2026-09-01",
   "assets": { "directory": "../dist" },
-  "workers_dev": true,
+  // Sin copia en workers.dev: Access protege nodosmap.com, y una copia ahí se lo saltaba.
+  "workers_dev": false,
   "routes": [
     { "pattern": "nodosmap.com", "custom_domain": true },
     { "pattern": "www.nodosmap.com", "custom_domain": true }

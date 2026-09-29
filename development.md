@@ -4670,3 +4670,17 @@ Pedida por el usuario: imaginar casos maliciosos y bordes, y comprobar que las d
 - **`compartido/sesion.js`:** publicado, `PUERTA` es `location.origin`; antes quedaba vacío y las páginas publicadas no llamaban a la API. La API vivirá en `nodosmap.com/api/*`, el único origen que la CSP deja llamar (`connect-src 'self'`). En local sigue en `127.0.0.1:8787`, o en `?puerta=`. `sesion.js?v=4.38.1` en las seis páginas.
 - **Cómo se verificó:** `prueba_humo.mjs` pasa las 7 páginas en local. En la copia de prueba de workers.dev, `/api/*` no existe todavía; sin sesión no se llama.
 - **Al conectar el dominio** (el último paso), `nodosmap.com/api/*` tiene que llegar al Worker `nodos-puerta` y el resto al sitio `nodosmap`. Hay dos formas: rutas para los dos (`nodosmap.com/*` al sitio y `nodosmap.com/api/*` a la API; gana la más específica), o dominio propio para el sitio y ruta para la API. Hay que comprobar con `curl` cuál tiene precedencia antes de anunciar nada, y que `www` redirija a la raíz.
+
+### nodosmap.com conectado, detrás de Cloudflare Access (2026-09-29)
+
+- **Por qué Access:** para probar el Laboratorio de punta a punta hace falta el dominio real, porque Turnstile, CORS y la CSP solo admiten `nodosmap.com`. El usuario no quiere publicar a medias. Access (Zero Trust Free, hasta 50 usuarios) pone una puerta con un código por correo: solo entran los correos de la política «Autorizados». Al lanzar se quita.
+- **Qué hizo el usuario:** activó Zero Trust Free (equipo `purple-grass-f25d`), con One-time PIN, y creó la aplicación self-hosted para `nodosmap.com` y `www.nodosmap.com` con la política «Autorizados» (Allow, por correo). El asistente del panel nuevo falló una vez con `use_clientless_isolation_app_launcher_url can only be enabled for apps with private destinations`; se arregló dejando apagado *Browser rendering* y vacía la fila de IP privadas.
+- **Qué se desplegó:**
+  - el sitio con `tools/sitio.wrangler.jsonc`, con dominios propios en `nodosmap.com` y `www`; la copia en workers.dev se apagó (`workers_dev: false`) porque se saltaba Access;
+  - la API con rutas `nodosmap.com/api/*` y `www.nodosmap.com/api/*`.
+- **Verificación (`curl`, con el DNS de Cloudflare por DoH):** sin la sesión de Access, todo redirige (302) al inicio de sesión de Access, en los dos dominios: la raíz, `/laboratorio`, `/data/…`, `/api/salud` y `/api/yo`. La copia de workers.dev da 404.
+- **DNS local:** un intento previo a `nodosmap.com` deja en caché el «no existe» (`DNS_PROBE_POSSIBLE`). Se arregla solo en minutos, o con `ipconfig /flushdns`.
+- **Por probar (usuario, en el navegador):**
+  - que `nodosmap.com/api/salud` dé `{"ok":true}`, es decir, que la ruta de la API gane sobre el dominio propio del sitio (si muestra la página del sitio, hay que cambiar la conexión);
+  - el análisis completo.
+- **Pendiente:** que `www` redirija a la raíz; hoy sirve lo mismo.
