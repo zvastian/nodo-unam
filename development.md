@@ -4403,3 +4403,10 @@ Sección de traspaso: la sesión se cortó porque la terminal dejó de responder
 - **Verificación:** el resto de las columnas es idéntico a la versión anterior (609,156 filas, contra el parquet previo). En `titulo_legible`, las 191 filas que casan con «presenta» o «sustentante» seguido de una palabra con mayúscula son falsos positivos (por ejemplo «la enfermedad que presenta el paciente»).
 - **Acerca de:** la columna del ejemplo del paso 11 se llama ahora `titulo_legible`.
 - **Falta:** actualizar ADR-0011 (esquema de 25 columnas) y subir el dataset a Kaggle con su descripción y su licencia; después, poner el enlace en Acerca de y en la nota del «?».
+
+### v4.36.1: enlace al dataset de Kaggle (2026-09-28)
+
+- **Qué cambió:** el enlace «dataset abierto en Kaggle» apunta ya a https://www.kaggle.com/datasets/sebastiandiazprado/nodos-map, en el paso 11 de Acerca de y en la nota del «?» junto a la cifra de tesis del mapa. Se quitó el marcador `data-pendiente="kaggle"` y su comentario.
+- **Por qué:** el dataset se publicó (CC BY 4.0, 21 columnas, parquet y CSV, con nota metodológica y cuaderno de ejemplo) y esos dos enlaces eran lo único que quedaba pendiente de la sección anterior.
+- **Cómo se verificó:** no queda ningún `data-pendiente="kaggle"` en las páginas; los dos enlaces llevan el mismo URL.
+- **Falta:** el paso 12 (Licencia) dice que la licencia MIT no cubre los datos; ahora conviene decir que los datos son CC BY 4.0. Y el enlace al código sigue apuntando a `zvastian/nodo-unam` hasta que exista la repo pública.
