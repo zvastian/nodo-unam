@@ -23,6 +23,9 @@ SOFTWARE.
 ---
 
 La licencia MIT cubre el código de NodOS. No cubre:
-- los datos de las tesis (títulos, años, programas, planteles, niveles y asesores),
-  que provienen del catálogo público TESIUNAM de la UNAM;
-- el nombre NodOS, su logo y los archivos de `marca/`.
+- los registros bibliográficos de las tesis (títulos, años, programas, planteles,
+  niveles y asesores), que provienen del catálogo TESIUNAM de la UNAM. El dataset
+  depurado que se deriva de ellos se publica por separado con licencia CC BY 4.0:
+  https://www.kaggle.com/datasets/sebastiandiazprado/nodos-map
+- el nombre NodOS, su logo y los archivos de `marca/`, que no pueden usarse sin
+  autorización.

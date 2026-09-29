@@ -4800,3 +4800,20 @@ Pedida por el usuario: imaginar casos maliciosos y bordes, y comprobar que las d
   - **Arreglo:** cada usuario de `fila.test.mjs` usa su propia IP (`CF-Connecting-IP`), como en producción, y sin esto la prueba quedaba en 10 de 10 llamadas; y `ci.sh` usa un directorio de estado limpio por fase.
   - **Comprobado:** las 5 pruebas de la fila pasan incluso sobre el estado contaminado que las hacía fallar.
   - **Lección:** un análisis de la fila cuenta como una de las 10 llamadas por minuto de esa IP; en un campus con IP compartida, ese es el techo real de lo que un grupo puede enviar por minuto.
+
+### v4.39.0: paso 6, apartado legal (términos de uso y licencias) (2026-09-29)
+
+**Qué cambió:**
+- **`terminos.html`, nueva:** «Términos y condiciones de uso», con el mismo formato que el aviso de privacidad (registro jurídico, apartados en romanos, incisos con letra, sin banda). Quince apartados: naturaleza del Sitio (independiente, no oficial), descripción del servicio, cuenta, límites de uso (dos análisis diarios, dos guardados, límite por IP, fila), carácter orientativo de los resultados (no es asesoría ni detecta plagio), información del usuario (autorización limitada, sin entrenamiento de modelos), conductas prohibidas (extracción masiva, eludir límites, inyección de instrucciones, presentarse como UNAM), propiedad intelectual (código MIT, dataset CC BY 4.0, registros de TESIUNAM, tesis de sus autores, marca reservada), aportaciones voluntarias, disponibilidad, exclusión de garantías, enlaces a terceros, correcciones y avisos de derechos, modificaciones, legislación y jurisdicción (CDMX, sin perjuicio de la protección al consumidor).
+- **Enlaces:** «Términos de uso» en el pie de las seis páginas y «Términos» en el pie del mapa. En la ventana «Entra a NodOS», el enlace pendiente (`href="#"`) ahora lleva a los términos y al aviso: «Al continuar aceptas los términos de uso y el aviso de privacidad».
+- **Acerca de, paso 12:** el dataset con CC BY 4.0; el nombre y el logo, fuera de ambas licencias, con enlace a los términos.
+- **`LICENSE`:** la nota final remite al dataset CC BY 4.0 y aclara que la marca no puede usarse sin autorización.
+- `_headers` (CSP de `/terminos`), `construir_sitio.py` y `prueba_humo.mjs` incluyen la página nueva.
+
+**Por qué:** paso 6 de la lista de lanzamiento. El sitio pedía aceptar un aviso con un enlace vacío y no tenía términos que fijaran el carácter orientativo de la IA, los límites y las licencias.
+
+**Términos de TESIUNAM (revisados):** la DGBSDI reserva los derechos de las **tesis digitales** y prohíbe su descarga masiva o sistemática. NodOS no descarga ni reproduce tesis: usa los registros del catálogo y enlaza a él. Los términos lo dicen así (apartados II y VIII). **Riesgo abierto:** la CC BY 4.0 del dataset solo puede cubrir lo que aporta la depuración; sobre la compilación del catálogo la UNAM podría reclamar derechos. No es asesoría legal; conviene una consulta antes de difundir el dataset.
+
+**Pendiente:** el enlace al código de los términos y de Acerca de apunta a `zvastian/nodo-unam` hasta que exista la repo pública.
+
+**Verificación:** `prueba_humo.mjs` pasa las 8 páginas (la nueva con sus 15 apartados); capturas de `terminos.html` en escritorio (1600×900) y móvil (390×844), consola limpia.

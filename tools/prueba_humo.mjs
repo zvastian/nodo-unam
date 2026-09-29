@@ -16,6 +16,7 @@ const PAGINAS = [
   { pagina: 'espacio.html', espera: 5000, listo: "!document.getElementById('esp-vacio').hidden" },
   { pagina: 'acerca.html', espera: 4000, listo: "document.querySelectorAll('#mini circle').length===130" },
   { pagina: 'privacidad.html', espera: 3000, listo: "document.querySelectorAll('.legal h2').length===9" },
+  { pagina: 'terminos.html', espera: 3000, listo: "document.querySelectorAll('.legal h2').length===15" },
   { pagina: 'contacto.html', espera: 3000, listo: "!!document.querySelector('.contacto a[href^=mailto]')&&document.querySelectorAll('.ac-autor .redes a').length===3&&!document.querySelector('.redes a[href^=mailto]')" },
 ];
 // ruido de Chrome headless que no viene de la página

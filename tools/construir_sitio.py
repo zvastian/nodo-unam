@@ -12,7 +12,7 @@ import sys
 RAIZ = os.path.join(os.path.dirname(__file__), '..')
 SITIO = os.path.join(RAIZ, 'prototypes', 'atlas_vecindario_mvp')
 DIST = os.path.join(RAIZ, 'dist')
-ARCHIVOS = ['index.html', 'laboratorio.html', 'espacio.html', 'acerca.html', 'privacidad.html', 'contacto.html',
+ARCHIVOS = ['index.html', 'laboratorio.html', 'espacio.html', 'acerca.html', 'privacidad.html', 'terminos.html', 'contacto.html',
             'favicon.svg', 'ventanas-dia.svg', 'ventanas-noche.svg', 'mit-license.png', '_headers']
 CARPETAS = ['compartido', 'vendor', 'lab', 'data']
 # vecindario_preview.v1.json (24 MB): ya no lo descarga el mapa (v4.38.5); sigue en el repo, como salida del pipeline

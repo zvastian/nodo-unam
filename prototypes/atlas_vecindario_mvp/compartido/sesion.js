@@ -64,7 +64,7 @@
       '<p class="acceso-aviso" aria-live="polite"></p>' +
       '<div class="acceso-enviado" aria-live="polite"><svg viewBox="0 0 40 40" aria-hidden="true"><rect x="5" y="9" width="30" height="22" rx="2"/><path d="M6 11l14 11 14-11"/></svg>' +
         '<h4>Revisa tu correo</h4><p></p><button type="button" class="btn-txt acceso-otro">Usar otro correo</button></div>' +
-      '<p class="acceso-legal">Con el correo te enviamos un enlace para entrar, sin contraseña. Al continuar aceptas el <a href="#" data-pendiente="aviso">aviso de privacidad</a>.</p>' +
+      '<p class="acceso-legal">Con el correo te enviamos un enlace para entrar, sin contraseña. Al continuar aceptas los <a href="terminos.html">términos de uso</a> y el <a href="privacidad.html">aviso de privacidad</a>.</p>' +
     '</div>';
     var a = cont.querySelector('.acceso');
     a.querySelectorAll('[data-prov]').forEach(function (b) { b.addEventListener('click', function () { entrarProveedor(b.getAttribute('data-prov'), marca); }); });
