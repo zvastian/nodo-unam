@@ -471,13 +471,14 @@ de los proveedores viven solo en el Worker.
 | Cuenta de Cloudflare | **«NodOS»** (`98c2acfa…`), la única que importa: tiene el dominio, el sitio, la API y D1. Su único miembro es el correo personal (gmail), como Superadministrador; el usuario institucional (comunidad.unam.mx) se quitó y la cuenta se renombró el 29-sep-2026. `wrangler` opera con el inicio de sesión de gmail. La otra cuenta de gmail (`fc4e…`) no aloja nada de producción |
 | Dominio | `nodosmap.com` en Cloudflare Registrar, dentro de «NodOS»; vence el 28-sep-2027. **Los cuatro contactos del registro** (titular, administrador, técnico y facturación) **están en el correo personal**, que es lo que acredita la propiedad. Comprado y todavía sin conectar al sitio |
 | Sitio estático | **Publicado como copia de prueba** en `nodosmap.sebastian-diaz-prado.workers.dev` (v4.36.9) |
-| Worker `puerta` | Entorno `produccion` declarado en `wrangler.jsonc` (cuenta «NodOS», `workers.dev` activo y sin rutas en el dominio hasta lanzar). **Sin desplegar:** faltan los secretos |
+| Worker `puerta` | **Desplegado** en `nodos-puerta.sebastian-diaz-prado.workers.dev` (entorno `produccion`, cuenta «NodOS»), con sus 6 secretos. La revisión de producción pasa (`/api/salud` da 200), rechaza sin sesión o con un token falso y solo admite el origen `nodosmap.com`. Sin rutas en el dominio hasta lanzar |
 | D1 | **Remota creada** (29-sep-2026): `nodos`, id `c754d30f-9825-48b2-9c2d-a9ff107fd3d8`, región WNAM, con las migraciones 0001 a 0004. En local, la misma base en `.wrangler/` |
 | Fila (Durable Object) | Local, probada (§8.4) |
 | Supabase Auth | Configurado: Google (app en modo prueba), GitHub y correo. Faltan las URL de producción |
 | Turnstile | Widget «NodOS» (Managed) creado; clave de sitio en `laboratorio.html`. La secreta va con staging |
-| Servicio de datos | **Desplegado en Modal** (espacio `sebastiaan-diaz-prado`, app `nodos-lab`), con tarjeta registrada. Falta volver a desplegar con el token de proxy |
-| IA | Groq y Workers AI funcionando desde el Worker local |
+| Servicio de datos | **Desplegado en Modal** (espacio `sebastiaan-diaz-prado`, app `nodos-lab`), con tarjeta registrada, **token de proxy** (sin él, 401 en el borde en unos 350 ms, sin despertar el contenedor) y una `LAB_CLAVE` nueva compartida con el Worker |
+| IA | Groq y Workers AI; la clave de Groq en producción es todavía la de desarrollo |
+| Prueba de punta a punta | **Pendiente:** requiere una sesión real de Supabase y un token real de Turnstile, que solo se obtienen desde `nodosmap.com` (el widget y CORS solo admiten ese dominio). Se hace al conectar el dominio |
 | Apoyos | Enlace de Stripe **en modo de prueba** |
 | Dataset público | **Publicado** en Kaggle |
 

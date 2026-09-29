@@ -3,3 +3,4 @@ node_modules/
 .dev.vars
 pruebas/claves.local.json
 .env.supabase
+.secretos*

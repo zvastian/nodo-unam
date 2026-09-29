@@ -4643,3 +4643,22 @@ Pedida por el usuario: imaginar casos maliciosos y bordes, y comprobar que las d
   - los secretos del Worker, que los pone el usuario desde su terminal;
   - volver a desplegar Modal con el token de proxy;
   - el primer despliegue del Worker en workers.dev y la prueba de punta a punta.
+
+### Staging, paso 2: secretos, Worker desplegado y Modal con token de proxy (2026-09-29)
+
+- **Secretos.** `services/puerta/poner_secretos.mjs` (nuevo) lee `.secretos.produccion` (ignorado por git), genera una `LAB_CLAVE` nueva de 32 bytes y sube todo de una vez con `wrangler secret bulk --env produccion`, por la entrada estándar. Pone esa misma `LAB_CLAVE` en el secreto `nodos-lab` de Modal y al final borra el archivo; nunca imprime un valor. Quedaron 6 secretos: `TURNSTILE_SECRET`, `GROQ_API_KEY`, `SUPABASE_SERVICE_KEY`, `MODAL_KEY`, `MODAL_SECRET` y `LAB_CLAVE`.
+  - **Nota de seguridad.** Por decisión del usuario, los valores de Turnstile, Modal y Supabase se pegaron en el chat del asistente, que los guarda en texto en el disco local (`~/.claude/projects/`). Si en algún momento preocupa, se pueden rotar los tres y volver a correr el script.
+  - `GROQ_API_KEY` es la de desarrollo (`.dev.vars`), porque rotarla sigue pendiente.
+- **Worker `nodos-puerta` desplegado** con `--env produccion` en `https://nodos-puerta.sebastian-diaz-prado.workers.dev`, en la cuenta NodOS. El primer despliegue, sin secretos, respondió 503 a todo, como debía (falla cerrado).
+- **Modal redesplegado** con `requires_proxy_auth` y `LAB_EXIGIR_CLAVE=1`. En Windows, `modal deploy` necesita `PYTHONIOENCODING=utf-8`, porque imprime «✓» y la consola no lo codifica.
+- **Verificación, desde fuera:**
+  - `/api/salud` da 200, así que la revisión de producción pasa.
+  - Sin sesión o con un token falso, 401.
+  - CORS: `nodosmap.com` da 204 y otro origen, 403.
+  - Las cabeceras de la API (CSP `default-src 'none'`, `no-referrer`) están activas.
+  - Modal sin token responde 401 en su borde en 353 ms, sin despertar el contenedor.
+- **No verificado:** un análisis real de punta a punta (sesión de Supabase, Turnstile real, Modal e IA). El widget y CORS solo admiten `nodosmap.com`, así que se prueba al conectar el dominio.
+- **Pendiente de staging:**
+  - volver a subir los artefactos parchados a Modal (`meta.parquet`, 308 filas);
+  - las URL de producción en Supabase (Site URL y Redirect URLs) y en Google y GitHub OAuth;
+  - rotar la clave de Groq.
