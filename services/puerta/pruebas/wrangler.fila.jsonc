@@ -1,0 +1,36 @@
+// Configuración solo para pruebas/fila.test.mjs: la del Worker con UN lugar, sin IA (no gasta Groq)
+// y el servicio de datos detrás de un proxy lento (el de la prueba, en :8771), para que un análisis
+// ocupe su lugar el tiempo suficiente. Los secretos salen de pruebas/.dev.vars, una copia ignorada
+// por git que se borra al terminar (`--env-file` choca con la opción del mismo nombre de node).
+// Correr desde services/puerta:
+//   cp .dev.vars pruebas/.dev.vars
+//   npx wrangler dev -c pruebas/wrangler.fila.jsonc --persist-to .wrangler/state --port 8787 --ip 127.0.0.1
+{
+  "name": "nodos-puerta",
+  "main": "../src/index.js",
+  "compatibility_date": "2026-09-01",
+  "d1_databases": [
+    { "binding": "DB", "database_name": "nodos", "database_id": "local-nodos", "migrations_dir": "../migrations" }
+  ],
+  "ratelimits": [
+    { "name": "LIMITE_IP", "namespace_id": "1001", "simple": { "limit": 120, "period": 60 } },
+    { "name": "LIMITE_IP_LAB", "namespace_id": "1002", "simple": { "limit": 10, "period": 60 } },
+    { "name": "LIMITE_USUARIO", "namespace_id": "1003", "simple": { "limit": 30, "period": 60 } }
+  ],
+  "durable_objects": { "bindings": [{ "name": "FILA", "class_name": "Fila" }] },
+  "migrations": [{ "tag": "fila-v1", "new_sqlite_classes": ["Fila"] }],
+  "vars": {
+    "ENTORNO": "local",
+    "FILA_SIMULTANEOS": "1",
+    "TOPE_MES": "100000",
+    "TURNSTILE_HOSTS": "",
+    "ORIGENES": "http://127.0.0.1:8765",
+    "LAB_URL": "http://127.0.0.1:8771",
+    "SUPABASE_URL": "https://vujmkcpxsdrmrwsijnlz.supabase.co",
+    "JWT_EMISOR": "",
+    "CUOTA_USUARIO_DIA": "2",
+    "TOPE_SITIO_DIA": "100000",
+    "MAX_ANALISIS_GUARDADOS": "2",
+    "TOPE_IA_DIA": "0"
+  }
+}

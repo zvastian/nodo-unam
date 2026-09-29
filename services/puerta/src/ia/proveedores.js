@@ -44,7 +44,8 @@ async function sumar(env, dia, tipo, n) {
 /** Toma un lugar del tope diario de análisis con IA. false si ya se llegó. */
 export async function tomarCupoIA(env, dia) {
   const r = await env.DB.prepare(
-    `INSERT INTO cuota_sitio (dia, tipo, n) VALUES (?1, 'ia', 1)
+    // «WHERE ?2 > 0»: con tope 0 no entra ni el primero del día (sin esto, el INSERT lo dejaba pasar)
+    `INSERT INTO cuota_sitio (dia, tipo, n) SELECT ?1, 'ia', 1 WHERE ?2 > 0
      ON CONFLICT (dia, tipo) DO UPDATE SET n = n + 1 WHERE n < ?2 RETURNING n`,
   ).bind(dia, entero(env.TOPE_IA_DIA, 55)).first();
   return !!r;

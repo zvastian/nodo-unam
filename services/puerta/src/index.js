@@ -9,6 +9,7 @@
 // Seguridad: toda consulta a D1 filtra por el id del token, nunca por uno que mande el cliente.
 
 import { analisisSSE } from './analisis.js';
+import { fila } from './fila.js';
 import { limpiarEntrada } from './ia/limpieza.js';
 import { ErrorApi, TOPE_ENTRADA, entero, hoy, leerJson, pedirContexto, responder, tomarCuota, validarEntrada, verificarTurnstile } from './comun.js';
 import { limitarEscrituras, limitarPorIp, problemasDeConfig } from './seguridad.js';
@@ -83,10 +84,17 @@ async function yo(env, u) {
 async function contexto(request, env, u, h) {
   const entrada = limpiarEntrada(validarEntrada(await leerJson(request, TOPE_ENTRADA)));
   await verificarTurnstile(request, env);
-  const dia = hoy();
-  const restante = await tomarCuota(env, u.id, dia);
-  const texto = await pedirContexto(env, entrada, u.id, dia);
-  return responder(texto, 200, { ...h, 'X-Cuota-Restante': String(restante) });
+  // Solo datos, sin fila: si el servicio está ocupado se dice, sin gastar cuota.
+  const { ok, lugar } = await fila(env, '/lugar');
+  if (!ok) throw new ErrorApi(503, 'servicio_ocupado');
+  try {
+    const dia = hoy();
+    const restante = await tomarCuota(env, u.id, dia);
+    const texto = await pedirContexto(env, entrada, u.id, dia);
+    return responder(texto, 200, { ...h, 'X-Cuota-Restante': String(restante) });
+  } finally {
+    await fila(env, '/soltar', { lugar }).catch(() => {});
+  }
 }
 
 async function guardarAnalisis(request, env, u) {
@@ -215,7 +223,8 @@ async function rutear(request, env, ctx, h) {
   if (p === '/api/lab/analisis' && m === 'POST') return analisisSSE(request, env, ctx, u, h);
 
   if (p === '/api/analisis' && m === 'GET') {
-    const r = await env.DB.prepare('SELECT id, titulo, creado FROM analisis WHERE usuario = ?1 ORDER BY creado DESC').bind(u.id).all();
+    // estado: «listo» o «fila» (esperando su turno; Mi espacio lo muestra como «En la fila»)
+    const r = await env.DB.prepare('SELECT id, titulo, creado, estado FROM analisis WHERE usuario = ?1 ORDER BY creado DESC').bind(u.id).all();
     return ok({ analisis: r.results });
   }
   if (p === '/api/analisis' && m === 'POST') return responder(await guardarAnalisis(request, env, u), 201, h);
@@ -223,7 +232,7 @@ async function rutear(request, env, ctx, h) {
     const id = x[1].toLowerCase();
     if (!RE_UUID.test(id)) throw new ErrorApi(404, 'no_encontrado');
     if (m === 'GET') {
-      const a = await env.DB.prepare('SELECT id, titulo, entrada, resultado, creado FROM analisis WHERE id = ?1 AND usuario = ?2').bind(id, u.id).first();
+      const a = await env.DB.prepare('SELECT id, titulo, entrada, resultado, creado, estado FROM analisis WHERE id = ?1 AND usuario = ?2').bind(id, u.id).first();
       if (!a) throw new ErrorApi(404, 'no_encontrado');
       return ok({ ...a, entrada: JSON.parse(a.entrada), resultado: JSON.parse(a.resultado) });
     }
@@ -283,6 +292,8 @@ async function rutear(request, env, ctx, h) {
   throw new ErrorApi(404, 'no_encontrado');
 }
 
+export { Fila } from './fila.js';
+
 export default {
   async fetch(request, env, ctx) {
     const h = cors(request, env);
@@ -308,9 +319,13 @@ export default {
   // que el plan gratuito pausa tras 7 días sin actividad.
   async scheduled(evento, env, ctx) {
     const limite = new Date(Date.now() - 7 * 86400 * 1000).toISOString().slice(0, 10);
+    // El contador del mes («2026-09») se queda 3 meses: su «dia» es más corto y, comparado como
+    // texto, caería en el primer borrado.
+    const d = new Date(); d.setUTCMonth(d.getUTCMonth() - 3);
     ctx.waitUntil(env.DB.batch([
       env.DB.prepare('DELETE FROM cuota_diaria WHERE dia < ?1').bind(limite),
-      env.DB.prepare('DELETE FROM cuota_sitio WHERE dia < ?1').bind(limite),
+      env.DB.prepare(`DELETE FROM cuota_sitio WHERE dia < ?1 AND tipo != 'mes'`).bind(limite),
+      env.DB.prepare(`DELETE FROM cuota_sitio WHERE tipo = 'mes' AND dia < ?1`).bind(d.toISOString().slice(0, 7)),
     ]));
     if (env.SUPABASE_URL && env.SUPABASE_ANON_KEY) {
       ctx.waitUntil(fetch(env.SUPABASE_URL.replace(/\/$/, '') + '/auth/v1/health', { headers: { apikey: env.SUPABASE_ANON_KEY } }));

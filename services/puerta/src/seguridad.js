@@ -26,6 +26,7 @@ export function problemasDeConfig(env) {
   if ((env.ORIGENES || '').split(',').some((o) => o.trim() && !/^https:\/\//.test(o.trim()))) p.push('ORIGENES');
   if (!env.TURNSTILE_HOSTS) p.push('TURNSTILE_HOSTS');
   if (!env.LIMITE_IP || !env.LIMITE_IP_LAB || !env.LIMITE_USUARIO) p.push('LIMITE_IP');
+  if (!env.FILA) p.push('FILA'); // sin la fila, cualquier cantidad de análisis iría directo a Modal
   return p;
 }
 

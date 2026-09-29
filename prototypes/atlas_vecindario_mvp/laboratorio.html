@@ -1700,6 +1700,7 @@
     if (!u) { estado('<b>Entra para ver tu análisis guardado.</b>', 'senala'); if (NDS) NDS.abrirEntrar(); return; }
     try {
       var r = await NDS.api('/api/analisis/' + encodeURIComponent(id));
+      if (r.estado === 'fila') { estado('<b>Tu análisis sigue en la fila.</b> Aparecerá en Mi espacio en cuanto esté listo.', 'fila'); return; }
       S.precargado = { datos: r.resultado.datos, ia: r.resultado.ia };
       analizar(r.entrada);
     } catch (err) { estado('<b>No se encontró ese análisis.</b> Revisa Mi espacio.', 'senala'); }
@@ -2112,12 +2113,18 @@
     fila: { titulo: '¡Tu análisis se agregó a la fila!', motivo: 'Hoy llegaron muchas tesis. En cuanto se libere un lugar lo procesamos y aparecerá en «Mis análisis»; tu borrador queda guardado.', pose: 'fila' },
     cuota: { titulo: 'Ya hiciste tus análisis de hoy', motivo: 'Cada cuenta puede hacer dos análisis al día. Tu borrador queda guardado: mañana puedes analizarlo.', pose: 'senala' },
     cupo: { titulo: 'Hoy llegamos al límite', motivo: 'El Laboratorio ya hizo todos los análisis que puede hacer hoy. Tu borrador queda guardado: inténtalo mañana.', pose: 'fila' },
+    // v4.38: la fila existe; si ya tiene 2 guardados no entra (el aviso no habla de la fila: decisión del usuario)
+    guardados: { titulo: 'Ya tienes 2 análisis guardados', motivo: 'El máximo es de 2 análisis. Si quieres hacer otro, borra uno en Mi espacio. Tu borrador queda guardado.', pose: 'senala' },
+    // el presupuesto del mes se acabó: el Laboratorio se pausa hasta el día 1 (motivo con la fecha, en avisoBeta)
+    mes: { titulo: 'Llegamos al límite de este mes', motivo: 'El Laboratorio ya hizo todos los análisis que puede hacer este mes. Tu borrador queda guardado: vuelve a partir del 1 del mes siguiente.', pose: 'fila' },
     error: { titulo: 'Tu borrador está a salvo', motivo: 'No pudimos conectar con el servicio que ubica tu tesis. Nada se perdió: inténtalo de nuevo en unos minutos.', pose: 'senala' }
   };
   var avisoPose = 'fila';
-  function avisoBeta(tipo) {
+  function avisoBeta(tipo, extra) {
     var a = AVISOS[tipo]; avisoPose = a.pose;
-    $('beta-titulo').textContent = a.titulo; $('beta-motivo').textContent = a.motivo; pose($('m-aviso'), a.pose);
+    var motivo = a.motivo, vuelve = extra && /^\d{4}-\d{2}-01$/.test(extra.vuelve || '') ? new Date(extra.vuelve + 'T12:00:00') : null;
+    if (tipo === 'mes' && vuelve) motivo = 'El Laboratorio ya hizo todos los análisis que puede hacer este mes. Tu borrador queda guardado: vuelve a partir del ' + vuelve.toLocaleDateString('es-MX', { day: 'numeric', month: 'long' }) + '.';
+    $('beta-titulo').textContent = a.titulo; $('beta-motivo').textContent = motivo; pose($('m-aviso'), a.pose);
     abrirDialogo('beta', $('f-enviar'));
   }
 
@@ -2290,8 +2297,10 @@
       headers: { Authorization: 'Bearer ' + usuarioActual().token, 'Content-Type': 'application/json', 'X-Turnstile': turnstile } })
       .then(async function (x) {
         if (!x.ok || !(x.headers.get('content-type') || '').startsWith('text/event-stream')) {
-          var j = await x.json().catch(function () { return {}; }), err = new Error(j.error || ('HTTP ' + x.status));
-          err.status = x.status; err.codigo = j.error; throw err;
+          var j = await x.json().catch(function () { return {}; });
+          // 202: no había lugar y el análisis quedó en la fila; se correrá solo y aparecerá en Mi espacio
+          var err = new Error(x.status === 202 ? 'en_fila' : (j.error || ('HTTP ' + x.status)));
+          err.status = x.status; err.codigo = x.status === 202 ? 'en_fila' : j.error; err.datos = j; throw err;
         }
         var rd = x.body.getReader(), dec = new TextDecoder(), buf = '';
         for (;;) {
@@ -2322,7 +2331,8 @@
       avisoEntrar('Tu sesión terminó. Entra de nuevo para analizar tu tesis; tu borrador sigue aquí.');
       return;
     }
-    errorDatos(err.codigo === 'cuota_diaria_agotada' ? 'cuota' : err.codigo === 'cupo_del_sitio_agotado' ? 'cupo' : 'error');
+    var tipo = { en_fila: 'fila', limite_de_guardados: 'guardados', mes_agotado: 'mes', cuota_diaria_agotada: 'cuota', cupo_del_sitio_agotado: 'cupo' }[err.codigo] || 'error';
+    errorDatos(tipo, err.datos);
   }
   function enviar() {
     if (!validar(true)) { estado('<b>Falta completar algo.</b> Está marcado debajo de cada campo.', 'senala'); return; }
@@ -2380,13 +2390,14 @@
     secuencia();
   }
   // el servicio no respondió: se dice qué pasó y se vuelve al formulario con el borrador intacto
-  function errorDatos(tipo) {
+  function errorDatos(tipo, extra) {
     document.body.classList.add('escribiendo');
     $('lamina-txt').textContent = 'Tu tesis';
     pasosForm(); estadoForm();
-    estado('<b>No pudimos ubicar tu tesis.</b> Tu borrador sigue aquí.', 'senala');
+    // solo un error dice «no pudimos»; la fila, la cuota y los topes llevan el título de su aviso
+    estado(!tipo || tipo === 'error' ? '<b>No pudimos ubicar tu tesis.</b> Tu borrador sigue aquí.' : '<b>' + esc(AVISOS[tipo].titulo) + '</b>', 'senala');
     $('f-envio').hidden = false; $('f-sesion').hidden = true;
-    avisoBeta(tipo || 'error');
+    avisoBeta(tipo || 'error', extra);
   }
 
   // --- eventos ---

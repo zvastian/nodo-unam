@@ -121,16 +121,34 @@ export async function verificarTurnstile(request, env) {
 
 // --- Cuotas: un solo UPSERT atómico que solo suma si no se llegó al límite. ---
 
+// El primer día del mes siguiente a «2026-09»: cuándo vuelve el Laboratorio si se acabó el mes.
+export function mesSiguiente(mes) {
+  const [a, m] = mes.split('-').map(Number);
+  return m === 12 ? `${a + 1}-01-01` : `${a}-${String(m + 1).padStart(2, '0')}-01`;
+}
+
+// Tres topes, en este orden: el del mes (TOPE_MES, ligado al crédito de Modal; al llegar, el
+// Laboratorio se pausa hasta el mes siguiente), el del sitio por día y el del usuario por día.
 export async function tomarCuota(env, usuario, dia) {
   const tope = entero(env.TOPE_SITIO_DIA, 500);
   const limite = entero(env.CUOTA_USUARIO_DIA, 2);
+  const mes = dia.slice(0, 7);
+  const delMes = await env.DB.prepare(
+    // «WHERE ?2 > 0» en los tres: con tope 0 no entra ni el primero (el INSERT lo dejaba pasar)
+    `INSERT INTO cuota_sitio (dia, tipo, n) SELECT ?1, 'mes', 1 WHERE ?2 > 0
+     ON CONFLICT (dia, tipo) DO UPDATE SET n = n + 1 WHERE n < ?2 RETURNING n`,
+  ).bind(mes, entero(env.TOPE_MES, 200)).first();
+  if (!delMes) throw new ErrorApi(429, 'mes_agotado', { vuelve: mesSiguiente(mes) });
   const sitio = await env.DB.prepare(
-    `INSERT INTO cuota_sitio (dia, tipo, n) VALUES (?1, 'datos', 1)
+    `INSERT INTO cuota_sitio (dia, tipo, n) SELECT ?1, 'datos', 1 WHERE ?2 > 0
      ON CONFLICT (dia, tipo) DO UPDATE SET n = n + 1 WHERE n < ?2 RETURNING n`,
   ).bind(dia, tope).first();
-  if (!sitio) throw new ErrorApi(429, 'cupo_del_sitio_agotado');
+  if (!sitio) {
+    await env.DB.prepare(`UPDATE cuota_sitio SET n = n - 1 WHERE dia = ?1 AND tipo = 'mes' AND n > 0`).bind(mes).run();
+    throw new ErrorApi(429, 'cupo_del_sitio_agotado');
+  }
   const propia = await env.DB.prepare(
-    `INSERT INTO cuota_diaria (usuario, dia, n) VALUES (?1, ?2, 1)
+    `INSERT INTO cuota_diaria (usuario, dia, n) SELECT ?1, ?2, 1 WHERE ?3 > 0
      ON CONFLICT (usuario, dia) DO UPDATE SET n = n + 1 WHERE n < ?3 RETURNING n`,
   ).bind(usuario, dia, limite).first();
   if (!propia) {
@@ -141,7 +159,10 @@ export async function tomarCuota(env, usuario, dia) {
 }
 
 export async function devolverCuota(env, usuario, dia) {
-  const q = [env.DB.prepare(`UPDATE cuota_sitio SET n = n - 1 WHERE dia = ?1 AND tipo = 'datos' AND n > 0`).bind(dia)];
+  const q = [
+    env.DB.prepare(`UPDATE cuota_sitio SET n = n - 1 WHERE dia = ?1 AND tipo = 'datos' AND n > 0`).bind(dia),
+    env.DB.prepare(`UPDATE cuota_sitio SET n = n - 1 WHERE dia = ?1 AND tipo = 'mes' AND n > 0`).bind(dia.slice(0, 7)),
+  ];
   if (usuario) q.push(env.DB.prepare('UPDATE cuota_diaria SET n = n - 1 WHERE usuario = ?1 AND dia = ?2 AND n > 0').bind(usuario, dia));
   await env.DB.batch(q);
 }

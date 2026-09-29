@@ -30,8 +30,16 @@
     // «Guardar las N» va en lotes de 100 por petición.
     { "name": "LIMITE_USUARIO", "namespace_id": "1003", "simple": { "limit": 30, "period": 60 } }
   ],
+  // La fila del Laboratorio (src/fila.js): un solo Durable Object con almacenamiento SQLite, que es
+  // el que admite el plan gratuito.
+  "durable_objects": { "bindings": [{ "name": "FILA", "class_name": "Fila" }] },
+  "migrations": [{ "tag": "fila-v1", "new_sqlite_classes": ["Fila"] }],
   "vars": {
     "ENTORNO": "local",
+    "FILA_SIMULTANEOS": "2",
+    // Análisis al mes en todo el sitio; al llegar, el Laboratorio se pausa hasta el mes siguiente.
+    // 200 cabe en el crédito de Modal sin tarjeta (1 USD); con tarjeta (30 USD), unos 6,000.
+    "TOPE_MES": "200",
     "TURNSTILE_HOSTS": "",
     "ORIGENES": "http://127.0.0.1:8765,http://localhost:8765",
     "LAB_URL": "http://127.0.0.1:8770",

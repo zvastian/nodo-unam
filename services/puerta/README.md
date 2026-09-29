@@ -127,6 +127,29 @@ Cada corrida completa gasta unos 65,000 tokens de Groq, un tercio del día: para
 - toca `auth/v1/health` de Supabase para que el plan gratuito no pause el proyecto. Falta confirmar
   que eso cuenta como actividad (ver «Pendiente»).
 
+## Fila (`src/fila.js`)
+
+Un Durable Object, uno solo para todo el sitio (plan gratuito, SQLite). Modal corre un contenedor de 2 núcleos, así que el servicio de datos atiende `FILA_SIMULTANEOS` (2) análisis a la vez.
+
+- **Con lugar:** el análisis corre en vivo por SSE, como siempre. El lugar se suelta en cuanto el servicio de datos responde (la IA no lo ocupa); si el Worker muere sin soltarlo, vence a los 4 minutos.
+- **Sin lugar:** `202 {en_fila, id, posicion}`. El análisis se guarda en D1 con `estado = 'fila'` (Mi espacio lo muestra «En la fila») y el Durable Object lo corre en segundo plano (alarma) con el mismo código (`correrIA`), y lo guarda como un análisis normal. Quien llega mientras hay fila espera su turno aunque se libere un lugar.
+- **Ocupa uno de los 2 guardados desde que entra:** con los 2 llenos, `409 limite_de_guardados` y la cuota se devuelve.
+- **Borrarlo antes de su turno** lo saca de la fila y devuelve la cuota; si el servicio de datos falla en segundo plano, se borra y la cuota vuelve.
+- **Sin largo máximo** (decisión del usuario): el freno es el tope diario del sitio.
+- **Tope del mes (`TOPE_MES`)**, ligado al crédito de Modal: al llegar, `429 mes_agotado` con `vuelve` (el día 1 del mes siguiente) y el Laboratorio se pausa. 200 sin tarjeta; unos 6,000 con tarjeta.
+- `POST /api/lab/contexto` (solo datos) no entra a la fila: sin lugar, `503 servicio_ocupado`, sin gastar cuota.
+- Un objeto que se reinicia a mitad de un análisis lo devuelve al frente de la fila en la siguiente alarma. Cada alarma dura a lo más 12 minutos y se reprograma.
+
+**Pruebas:** `pruebas/fila.test.mjs` (4) corre contra `pruebas/wrangler.fila.jsonc`: un lugar, sin IA (no gasta Groq) y un proxy lento en `:8771` que hace que el análisis que bloquea ocupe su lugar unos segundos seguros. Hace falta una copia de `.dev.vars` en `pruebas/` (ignorada por git; bórrala al terminar), porque `--env-file` choca con el de node:
+
+```sh
+cp .dev.vars pruebas/.dev.vars
+npx wrangler dev -c pruebas/wrangler.fila.jsonc --persist-to .wrangler/state --port 8787 --ip 127.0.0.1
+node --test pruebas/fila.test.mjs
+```
+
+Antes de levantar otro `wrangler dev`, detén el anterior **completo** (el proceso `wrangler`, no solo `workerd`): si solo se mata `workerd`, `wrangler` lo vuelve a levantar con su configuración, sigue atendiendo el puerto y los dos comparten el almacenamiento del Durable Object, que se traba. Así pasó al escribir estas pruebas.
+
 ## D1
 
 `migrations/0001_inicial.sql` tiene cuatro tablas: `analisis`, `tesis_guardadas`, `cuota_diaria` y
@@ -171,6 +194,9 @@ npm run prueba:seguridad   # 8 pruebas de sesión, límites, entrada, configurac
 | `SUPABASE_ANON_KEY` | var | Opcional. Para el cron que evita la pausa |
 | `JWKS_LOCAL` | solo local | JWKS en JSON, en lugar de pedirlo a Supabase |
 | `GROQ_API_KEY` | secreto | Clave de Groq, con Zero Data Retention activado en su consola |
+| `FILA_SIMULTANEOS` | var | Análisis a la vez en el servicio de datos (2); el resto va a la fila |
+| `TOPE_MES` | var | Análisis al mes en todo el sitio; al llegar, el Laboratorio se pausa hasta el día 1. 200 sin tarjeta en Modal |
+| `FILA` | binding | Durable Object de la fila (`src/fila.js`); obligatorio en producción |
 | `TOPE_IA_DIA` | var | Análisis con IA al día en todo el sitio: 55, la capacidad gratuita medida en la evaluación |
 | `GROQ_TOKENS_DIA`, `WORKERS_AI_NEURONAS_DIA` | var | Presupuesto diario de cada proveedor (180,000 y 9,000) |
 | `IA_MODELO_GROQ`, `IA_MODELO_WORKERS` | var | Opcionales; por defecto, `gpt-oss-120b` en los dos |

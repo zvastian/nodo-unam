@@ -51,7 +51,7 @@ test('sesión: acepta un token válido y rechaza los alterados', async () => {
 const PROD_BIEN = {
   ENTORNO: 'produccion', SUPABASE_URL: 'https://x.supabase.co', TURNSTILE_SECRET: '0x4AAAAAAAbcdefghijklmnopqrstuvwxyz',
   LAB_CLAVE: 'k'.repeat(32), LAB_URL: 'https://lab.modal.run', ORIGENES: 'https://nodosmap.com',
-  TURNSTILE_HOSTS: 'nodosmap.com', LIMITE_IP: {}, LIMITE_IP_LAB: {}, LIMITE_USUARIO: {},
+  TURNSTILE_HOSTS: 'nodosmap.com', LIMITE_IP: {}, LIMITE_IP_LAB: {}, LIMITE_USUARIO: {}, FILA: {},
 };
 
 test('configuración: en producción falla cerrado con valores de desarrollo', async () => {
@@ -62,7 +62,7 @@ test('configuración: en producción falla cerrado con valores de desarrollo', a
     TURNSTILE_SECRET: '1x0000000000000000000000000000000AA', LAB_CLAVE: 'corta', LAB_URL: 'http://127.0.0.1:8770',
     ORIGENES: 'https://nodosmap.com,http://127.0.0.1:8765',
   });
-  assert.deepEqual(mal.sort(), ['JWKS_LOCAL', 'LAB_CLAVE', 'LAB_URL', 'LIMITE_IP', 'ORIGENES', 'TURNSTILE_HOSTS', 'TURNSTILE_SECRET']);
+  assert.deepEqual(mal.sort(), ['FILA', 'JWKS_LOCAL', 'LAB_CLAVE', 'LAB_URL', 'LIMITE_IP', 'ORIGENES', 'TURNSTILE_HOSTS', 'TURNSTILE_SECRET']);
   const r = await worker.fetch(new Request('https://api.local/api/salud'), { ...PROD_BIEN, JWKS_LOCAL: '{}' }, {});
   assert.equal(r.status, 503);
   assert.equal((await r.json()).error, 'servicio_no_disponible');

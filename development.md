@@ -4467,7 +4467,7 @@ Revisión de todo lo pendiente, de lo más crítico (seguridad, fila) a lo menos
 
 **Orden:**
 1. **Blindar la API** (código hecho en la v4.37.0; faltan los pasos de panel que ahí se listan): inyección (hecho), límite por IP, Turnstile real, revisión de seguridad de la sesión y de la API (JWT `iss`/`aud`, CORS de producción, XSS, `SUPABASE_SERVICE_KEY`, RLS de Supabase) y rotación de secretos.
-2. **Fila:** Durable Object `Fila` (plan gratuito, SQLite), N = 2 análisis a la vez hacia Modal, posición en vivo por SSE, largo máximo, cuota devuelta si se abandona, tope mensual ligado al crédito de Modal.
+2. **Fila** (hecha en la v4.38.0): Durable Object `Fila` (plan gratuito, SQLite), N = 2 análisis a la vez hacia Modal, posición en vivo por SSE, largo máximo, cuota devuelta si se abandona, tope mensual ligado al crédito de Modal.
 3. **Staging:** D1 remoto con migraciones, Worker en un entorno `staging`, artefactos nuevos en Modal y decisión de la tarjeta.
 4. **Estrés y CI:** 50 análisis simultáneos contra staging; topes de IA; respaldo de Groq a Workers AI; pruebas del Worker en el CI; Dependabot.
 5. **Calidad:** `bloom.js` (artículo tomado por verbo), prueba con cuenta real, accesibilidad, primera carga del mapa, revisión humana de la IA.
@@ -4580,3 +4580,51 @@ Pedida por el usuario: imaginar casos maliciosos y bordes, y comprobar que las d
 - **Qué cambió:** `TURNSTILE_SITIO` en `laboratorio.html` lleva la clave de sitio del widget «NodOS» que creó el usuario en Cloudflare (cuenta de gmail, modo *Managed*): `0x4AAAAAAFJWFLy7ndrwA6Oq`. Es pública por diseño. En local se sigue usando la de prueba.
 - **Falta (usuario):** el widget tiene 1 dominio; hay que agregar el segundo (`nodosmap.com` y `www.nodosmap.com`, los mismos de `TURNSTILE_HOSTS`). También guardar la clave secreta en el Worker con `wrangler secret put TURNSTILE_SECRET`.
 - **Cómo se verificó:** búsqueda del texto en `laboratorio.html`. No se puede probar en local, porque el widget solo acepta sus dominios.
+
+### v4.38.0: la fila del Laboratorio (punto 2 de la lista de lanzamiento) (2026-09-29)
+
+**Por qué:** la fila no existía. El aviso «¡Tu análisis se agregó a la fila!» era solo de interfaz y el Worker mandaba todo directo a Modal, que corre un contenedor de 2 núcleos: con 10 análisis a la vez, varios pasaban de 90 s y fallaban.
+
+**Decisiones del usuario (29-sep):**
+- La vista de espera es la que ya existía (ilustración de la pila de hojas, «Apoya este proyecto»). Promete que el análisis «aparecerá en Mis análisis», así que la fila corre **en segundo plano**; no hace falta dejar la pestaña abierta.
+- **Con 2 análisis guardados no entra.** El aviso no menciona la fila: «Ya tienes 2 análisis guardados. El máximo es de 2 análisis. Si quieres hacer otro, borra uno en Mi espacio. Tu borrador queda guardado.»
+- **Mientras espera, Mi espacio lo muestra «En la fila»** en lugar de la fecha. No se abre hasta que esté listo, y borrarlo lo saca de la fila.
+- **Sin largo máximo:** el único freno es el tope diario del sitio.
+- **Al acabarse el presupuesto del mes, se pausa hasta el mes siguiente:** «Llegamos al límite de este mes … vuelve a partir del 1 de octubre.»
+- **Tarjeta en Modal:** la registrará después. Por eso `TOPE_MES` queda en 200 (el crédito sin tarjeta); con tarjeta, unos 6,000.
+
+**Qué cambió:**
+- `services/puerta/src/fila.js` (nuevo): el Durable Object `Fila`, uno para todo el sitio, con SQLite (plan gratuito).
+  - Reparte `FILA_SIMULTANEOS` (2) lugares en el servicio de datos. El lugar se suelta al responder el servicio; la IA no lo ocupa. Si nadie lo suelta, vence a los 4 minutos.
+  - Guarda el turno; el texto vive en la fila de D1 del análisis.
+  - Corre los análisis en segundo plano, con alarma, y los guarda con el mismo formato `{datos, ia}` que el Laboratorio.
+  - Si el objeto se reinicia a mitad de un análisis, ese análisis vuelve al frente de la fila.
+- `analisis.js`: las 3 llamadas de IA pasan a `correrIA()`, que usan tanto el análisis en vivo como la fila. Sin lugar, responde `202 {en_fila, id, posicion}`.
+- `comun.js`: tope del mes (`TOPE_MES`, `429 mes_agotado` con `vuelve`), que se devuelve junto con la cuota.
+- **Bug encontrado al probar:** con un tope en 0, el primer contador del día pasaba igual, porque el `INSERT` creaba la fila antes de mirar el tope. Ahora los cuatro topes (IA, mes, sitio y usuario) llevan `WHERE tope > 0`.
+- `/api/lab/contexto` (solo datos) no entra a la fila: sin lugar responde `503 servicio_ocupado`, sin gastar cuota.
+- `GET /api/analisis` y `/api/analisis/:id` devuelven `estado`.
+- El cron deja 3 meses el contador del mes: su `dia` («2026-09») caía en el borrado de 7 días al compararse como texto.
+- La revisión de producción exige el binding `FILA`.
+- `migrations/0004_fila.sql`: `analisis.estado` (`listo` o `fila`).
+- `wrangler.jsonc`: el Durable Object, su migración, `FILA_SIMULTANEOS` y `TOPE_MES`.
+- Laboratorio: el 202 abre el aviso de la fila que ya existía; hay dos avisos nuevos con el mismo componente (2 guardados y mes agotado, con la fecha); abrir un análisis que sigue en la fila lo dice.
+- Mi espacio: «En la fila».
+
+**Cómo se verificó:**
+- `pruebas/fila.test.mjs`, 4 de 4, contra `pruebas/wrangler.fila.jsonc` (un lugar, sin IA y un proxy lento). Cubre cuatro casos:
+  - sin lugar hay 202; Mi espacio lo ve «En la fila» y se gasta la cuota; se corre solo y queda «listo», con las mismas 100 vecinas que uno en vivo;
+  - con 2 guardados, 409 y la cuota vuelve;
+  - borrarlo antes de su turno devuelve la cuota;
+  - `contexto` sin lugar da 503 sin gastar cuota.
+- `puerta.test.mjs` con la configuración normal: 11 de 11. Unitarias: 27. Humo: 7 páginas.
+- Con 3 análisis simultáneos contra la configuración normal, 2 corrieron en vivo y el tercero entró a la fila.
+- En Chrome: Mi espacio muestra «2 de 2», con uno fechado y otro «En la fila». Abrir el de la fila dice «Tu análisis sigue en la fila…». Los tres avisos (202, 409 y 429) salen con su texto; el de la fila, con su ilustración y «Apoya este proyecto».
+- **Contratiempo al probar:** un `wrangler dev` de la mañana seguía vivo. Al matar solo su `workerd`, `wrangler` lo relevantó con la configuración normal, y las pruebas le pegaban a él (por eso parecía que `--var` no funcionaba). Los dos compartían el almacenamiento del Durable Object y se trababan. Quedó documentado en el README.
+- En esas corridas equivocadas se gastaron unos 80,000 tokens de Groq del día (capa gratuita, sin costo).
+
+**Pendiente:**
+- `fila.test.mjs` no está en el CI, porque necesita `wrangler dev` y el servicio de datos (igual que `puerta.test.mjs`).
+- Con una fila larga, la espera puede ser de horas. El aviso dice «en cuanto se libere un lugar», sin prometer tiempo.
+- Si el servicio falla en segundo plano, el análisis desaparece de Mi espacio y la cuota vuelve, sin avisar. Se puede agregar un estado «no se pudo» si hace falta.
+- Staging (paso 3) tiene que declarar el Durable Object y aplicar la migración 0004 en D1 remoto.

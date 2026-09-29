@@ -300,6 +300,8 @@
     var lim = (d.yo && d.yo.analisis_guardados && d.yo.analisis_guardados.limite) || 2;
     $('n-analisis').textContent = d.analisis.length + ' de ' + lim;
     $('l-analisis').innerHTML = d.analisis.length ? d.analisis.map(function (a) {
+      // «En la fila»: espera su turno; se abre cuando esté listo. Borrarlo lo saca de la fila.
+      if (a.estado === 'fila') return fila(a.titulo, null, '<span>En la fila</span>', tache('data-borrar-analisis="' + esc(a.id) + '"', a.titulo));
       return fila(a.titulo, 'laboratorio.html?analisis=' + encodeURIComponent(a.id), '<span>' + fecha(a.creado) + '</span>',
         tache('data-borrar-analisis="' + esc(a.id) + '"', a.titulo));
     }).join('') : '<li class="esp-nada">Todavía no tienes análisis. <a href="laboratorio.html">Analiza tu tesis en el Laboratorio</a>.</li>';

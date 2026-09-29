@@ -13,7 +13,8 @@
 // mandar nada. Si falla la IA, la cuota no se devuelve: los datos ya se entregaron.
 
 import { clasificarObjetivo, clasificarObjetivos } from '../../../prototypes/atlas_vecindario_mvp/compartido/bloom.js';
-import { TOPE_ENTRADA, hoy, leerJson, pedirContexto, tomarCuota, validarEntrada, verificarTurnstile } from './comun.js';
+import { ErrorApi, TOPE_ENTRADA, devolverCuota, entero, hoy, leerJson, pedirContexto, responder, tomarCuota, validarEntrada, verificarTurnstile } from './comun.js';
+import { fila } from './fila.js';
 import { ESQUEMAS } from './ia/esquemas.js';
 import { contarInyeccion, limpiarEntrada } from './ia/limpieza.js';
 import { entradaUsuario, promptBloom, promptNota, promptPreguntas, senalesCorpus } from './ia/prompts.js';
@@ -72,6 +73,59 @@ function prepararBloom(d, lexico) {
   return d;
 }
 
+/**
+ * Las 3 llamadas de IA sobre un contexto ya calculado. La usan el análisis en vivo (SSE) y la fila
+ * (src/fila.js), para que los dos den exactamente lo mismo. `aviso(evento, datos)` recibe cada
+ * sección al terminar. Devuelve { ia: {nota, preguntas, bloom} | null, costos }.
+ */
+export async function correrIA(env, dia, entrada, datos, lexico, aviso = async () => {}) {
+  const costos = {}, ia = {};
+  if (!(await tomarCupoIA(env, dia))) { await aviso('ia_agotada', { motivo: 'tope_del_sitio' }); return { ia: null, costos }; }
+  const eu = entradaUsuario(entrada), sen = senalesCorpus(datos);
+  const tareas = [
+    ['nota', promptNota(eu, sen), () => [], prepararNota],
+    ['preguntas', promptPreguntas(eu, sen), revisarPreguntas, (d) => d],
+  ];
+  if (lexico.objetivos.length) tareas.push(['bloom', promptBloom(eu, lexico), revisarBloom(lexico), (d) => prepararBloom(d, lexico)]);
+
+  let agotada = false;
+  await Promise.all(tareas.map(async ([nombre, mensajes, revisar, preparar]) => {
+    try {
+      const r = await pedirIA(env, dia, nombre, mensajes, ESQUEMAS[nombre], revisar, preparar);
+      costos[nombre] = { proveedor: r.proveedor, intentos: r.intentos, costo: r.costo };
+      ia[nombre] = r.datos;
+      await aviso(nombre, r.datos);
+    } catch (e) {
+      if (e instanceof IAAgotada) { agotada = true; return; }
+      const error = e instanceof IAInvalida ? 'salida_invalida' : 'ia_fallo';
+      if (!(e instanceof IAInvalida)) console.error(JSON.stringify({ evento: 'ia_error', tarea: nombre, mensaje: String(e.message).slice(0, 200) }));
+      await aviso('error', { seccion: nombre, error });
+    }
+  }));
+  if (agotada) await aviso('ia_agotada', { motivo: 'proveedores_agotados' });
+  return { ia: Object.keys(ia).length ? ia : null, costos };
+}
+
+/**
+ * Deja el análisis en la fila (src/fila.js): una fila de D1 con estado «fila», que Mi espacio
+ * muestra como «En la fila», y su turno en el Durable Object. Ocupa uno de los 2 análisis
+ * guardados: con los 2 llenos no entra y la cuota se devuelve.
+ */
+async function formarEnFila(env, u, entrada, dia, restante, h) {
+  const id = crypto.randomUUID();
+  const limite = entero(env.MAX_ANALISIS_GUARDADOS, 2);
+  const r = await env.DB.prepare(
+    `INSERT INTO analisis (id, usuario, titulo, entrada, resultado, estado)
+     SELECT ?1, ?2, ?3, ?4, 'null', 'fila' WHERE (SELECT count(*) FROM analisis WHERE usuario = ?2) < ?5`,
+  ).bind(id, u.id, String(entrada.title).slice(0, 400), JSON.stringify(entrada), limite).run();
+  if (!r.meta.changes) {
+    await devolverCuota(env, u.id, dia);
+    throw new ErrorApi(409, 'limite_de_guardados', { limite });
+  }
+  const { posicion } = await fila(env, '/formar', { id, usuario: u.id, dia });
+  return responder({ en_fila: true, id, posicion, cuota_restante: restante }, 202, h);
+}
+
 export async function analisisSSE(request, env, ctx, u, h) {
   // Limpia antes de todo: el léxico, el servicio de datos y los 3 prompts reciben el mismo texto.
   const entrada = limpiarEntrada(validarEntrada(await leerJson(request, TOPE_ENTRADA)));
@@ -80,8 +134,15 @@ export async function analisisSSE(request, env, ctx, u, h) {
   if (sospechas) console.log(JSON.stringify({ evento: 'posible_inyeccion', patrones: sospechas }));
   const dia = hoy();
   const restante = await tomarCuota(env, u.id, dia);
+
+  // Un lugar en el servicio de datos (FILA_SIMULTANEOS a la vez); si no hay, a la fila.
+  const { ok, lugar } = await fila(env, '/lugar');
+  if (!ok) return formarEnFila(env, u, entrada, dia, restante, h);
+  const soltar = () => fila(env, '/soltar', { lugar }).catch(() => {});
+
   // Si el servicio de datos falla, pedirContexto devuelve la cuota y lanza un error normal (no SSE).
-  const datosTexto = await pedirContexto(env, entrada, u.id, dia);
+  let datosTexto;
+  try { datosTexto = await pedirContexto(env, entrada, u.id, dia); } catch (e) { await soltar(); throw e; }
 
   const { readable, writable } = new TransformStream();
   const w = writable.getWriter();
@@ -89,40 +150,18 @@ export async function analisisSSE(request, env, ctx, u, h) {
   const enviar = (evento, datos) => w.write(enc.encode(`event: ${evento}\ndata: ${typeof datos === 'string' ? datos : JSON.stringify(datos)}\n\n`)).catch(() => {});
 
   const trabajo = (async () => {
-    const ia = {};
+    let costos = {};
     try {
+      await soltar(); // el servicio de datos ya respondió: la IA no ocupa su lugar
       const lexico = clasificarObjetivos(entrada.objectives || [], entrada.degree || '');
       await enviar('lexico', lexico);
       await enviar('datos', datosTexto);
-
-      if (!(await tomarCupoIA(env, dia))) { await enviar('ia_agotada', { motivo: 'tope_del_sitio' }); return; }
-      const datos = JSON.parse(datosTexto);
-      const eu = entradaUsuario(entrada), sen = senalesCorpus(datos);
-      const tareas = [
-        ['nota', promptNota(eu, sen), () => [], prepararNota],
-        ['preguntas', promptPreguntas(eu, sen), revisarPreguntas, (d) => d],
-      ];
-      if (lexico.objetivos.length) tareas.push(['bloom', promptBloom(eu, lexico), revisarBloom(lexico), (d) => prepararBloom(d, lexico)]);
-
-      let agotada = false;
-      await Promise.all(tareas.map(async ([nombre, mensajes, revisar, preparar]) => {
-        try {
-          const r = await pedirIA(env, dia, nombre, mensajes, ESQUEMAS[nombre], revisar, preparar);
-          ia[nombre] = { proveedor: r.proveedor, intentos: r.intentos, costo: r.costo };
-          await enviar(nombre, r.datos);
-        } catch (e) {
-          if (e instanceof IAAgotada) { agotada = true; return; }
-          const error = e instanceof IAInvalida ? 'salida_invalida' : 'ia_fallo';
-          if (!(e instanceof IAInvalida)) console.error(JSON.stringify({ evento: 'ia_error', tarea: nombre, mensaje: String(e.message).slice(0, 200) }));
-          await enviar('error', { seccion: nombre, error });
-        }
-      }));
-      if (agotada) await enviar('ia_agotada', { motivo: 'proveedores_agotados' });
+      costos = (await correrIA(env, dia, entrada, JSON.parse(datosTexto), lexico, enviar)).costos;
     } catch (e) {
       console.error(JSON.stringify({ evento: 'analisis_error', nombre: e.name, mensaje: String(e.message).slice(0, 200) }));
       await enviar('error', { seccion: 'analisis', error: 'interno' });
     } finally {
-      await enviar('fin', { cuota_restante: restante, ia });
+      await enviar('fin', { cuota_restante: restante, ia: costos });
       await w.close().catch(() => {});
     }
   })();
