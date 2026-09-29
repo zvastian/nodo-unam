@@ -4440,3 +4440,10 @@ Sección de traspaso: la sesión se cortó porque la terminal dejó de responder
 - **De dónde sale la fecha:** el máximo de `downloaded_at_unix` en `pipeline/recovery/processed/marc_recovered_all.parquet`: la última descarga MARC fue el 5-jun-2026 a las 00:58 (hora de México); las 46,945 descargas están entre el 4 y el 5 de junio.
 - **Limitación:** solo fecha la parte MARC (46,945 de 609,156). Los 562,211 registros de `base6` no traen marca de tiempo, y no hay registro de cuándo se descargaron; si son más antiguos, la fecha describe la recuperación MARC y no todo el corpus.
 - **Cómo se verificó:** búsqueda del texto en `index.html`. No abrí la nota en el navegador.
+
+### v4.36.4: aclaración sobre datos y modelo de lenguaje en Acerca de (2026-09-28)
+
+- **Qué cambió:** el paso del modelo de lenguaje (gpt-oss-120b) en Acerca de añade: «El modelo no usa lo que envías para entrenarse y el proveedor no lo conserva: tiene la retención de datos desactivada.»
+- **Respaldo:** el aviso de privacidad ya dice que los datos no se usan para entrenar modelos de IA y que Groq tiene la retención desactivada; en la bitácora (26-sep) el usuario confirmó *Zero Data Retention* global en su consola de Groq.
+- **Límite:** el respaldo es de Groq. ADR-0015 prevé Workers AI (Cloudflare) como proveedor de reserva con el mismo modelo; si llega a usarse, hay que comprobar sus condiciones de retención y entrenamiento antes de seguir afirmándolo, y ajustar este texto y el aviso de privacidad.
+- **Cómo se verificó:** búsqueda del texto en `acerca.html`. No abrí la página en el navegador.
