@@ -4410,3 +4410,21 @@ Sección de traspaso: la sesión se cortó porque la terminal dejó de responder
 - **Por qué:** el dataset se publicó (CC BY 4.0, 21 columnas, parquet y CSV, con nota metodológica y cuaderno de ejemplo) y esos dos enlaces eran lo único que quedaba pendiente de la sección anterior.
 - **Cómo se verificó:** no queda ningún `data-pendiente="kaggle"` en las páginas; los dos enlaces llevan el mismo URL.
 - **Falta:** el paso 12 (Licencia) dice que la licencia MIT no cubre los datos; ahora conviene decir que los datos son CC BY 4.0. Y el enlace al código sigue apuntando a `zvastian/nodo-unam` hasta que exista la repo pública.
+
+## Plan de lanzamiento: se publica en nodosmap.com cuando todo esté bien hecho (2026-09-28)
+
+**Decisión del usuario (28-sep):** no se publica una versión a medias. Lo importante era reservar el dominio, y ya está comprado. El mapa y el Laboratorio salen juntos en `nodosmap.com`, cuando estén listos. Por eso no se despliega la 4.36.1 ni se conecta el dominio antes; lo que hay en `nodosmap.sebastian-diaz-prado.workers.dev` (v4.34) es una copia de prueba, sin anunciar. Esto reemplaza el orden de «Lo que falta en Cloudflare» (que sigue valiendo como lista de pasos técnicos).
+
+**Ya hecho:** dominio; dataset público en Kaggle (`sebastiandiazprado/nodos-map`, CC BY 4.0, con cuaderno de ejemplo); enlace al dataset en Acerca de y en la nota del «?» (v4.36.1); Worker de la API con sesión (JWT), CORS, Turnstile y cuotas en D1.
+
+**Falta antes de lanzar:**
+
+1. **Fila de espera del Laboratorio.** Sin diseño escrito. Hay que decidir si es una cola de análisis (un solo contenedor de 2 núcleos en Modal, 12 a 16 s de arranque en frío) o una lista de acceso, y qué pasa cuando se agota el crédito mensual (unos 6,000 análisis con tarjeta).
+2. **Ciberseguridad** (hoy ~35 %): revisión de la API y del flujo de sesión antes de abrirlos al público.
+3. **Pruebas de estrés** sobre el Worker y el servicio de Modal: concurrencia, cuotas y qué ocurre al llegar al tope de gasto.
+4. **Modal:** volver a subir los artefactos parchados (`meta.parquet`, 308 filas) y decidir la tarjeta (1 USD sin ella, 30 USD al mes con ella).
+5. **Worker de la API en producción:** `ORIGENES` y `LAB_URL`, `database_id` real de D1 con migraciones, secretos; Supabase (Site URL y Redirect URLs), Google OAuth y GitHub OAuth con `https://nodosmap.com`.
+6. **Licencia:** paso 12 de Acerca de con los datos en CC BY 4.0 (hoy dice que la MIT no los cubre); revisar los términos de uso de TESIUNAM, de donde vienen los registros.
+7. **Repo pública** en `ssebastian-diazz` (historia limpia); el enlace al código sigue apuntando a `zvastian/nodo-unam`.
+8. **Dominio y correo:** Email Routing de `contacto@`, Auto-renew, `www` que redirija a la raíz.
+9. **Al final:** `python tools/construir_sitio.py`, publicar `dist/` y conectar el dominio.
