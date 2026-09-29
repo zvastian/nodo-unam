@@ -5,8 +5,10 @@ UNAM. Describe los componentes del sistema, cómo se relacionan y las razones de
 principales. Los detalles de cada decisión están en los ADR (`adr/`) y en los RFC (`rfc/`). La
 historia de cómo se llegó a cada una está en `development.md`.
 
-Estado de referencia: septiembre de 2026. Atlas v4.22 y servicio de datos del Laboratorio,
-paso 1 de ADR-0015.
+Estado de referencia: 29 de septiembre de 2026, v4.38.0. El mapa está publicado como copia de
+prueba (sin dominio); el Laboratorio funciona de punta a punta en local, con su API blindada y su
+fila, y le falta el despliegue (staging). La tabla de §8.1 dice qué está publicado, qué corre
+solo en local y qué falta.
 
 ---
 
@@ -19,9 +21,13 @@ equivale a parecido temático. El producto tiene dos partes:
   campo, tema y subtema. Tiene fichas de tesis, de agrupaciones y de asesores, búsqueda y un
   modo de análisis por tema.
 - **Laboratorio.** Recibe la descripción de una tesis en proceso (título, problematización,
-  palabras clave) y devuelve su contexto en el corpus: dónde cae en el mapa, cuántas tesis
-  parecidas hay, qué asesores han dirigido trabajos cercanos y cuáles son las 100 tesis más
-  parecidas. Después se añade una lectura generada por un modelo de lenguaje.
+  objetivos, palabras clave, programa y grado) y devuelve su contexto en el corpus: dónde cae en
+  el mapa, cuántas tesis parecidas hay, qué asesores han dirigido trabajos cercanos y cuáles son
+  las 100 tesis más parecidas. Encima van tres lecturas de un modelo de lenguaje: una nota del
+  planteamiento, la revisión de los objetivos con la taxonomía de Bloom y preguntas de
+  investigación. Pide cuenta; cada cuenta hace 2 análisis al día y guarda hasta 2.
+- **Mi espacio.** Lo que cada usuario guarda: sus análisis, tesis, asesores y lugares del mapa
+  (campos, temas y subtemas).
 
 Este documento cubre la arquitectura de ambas partes, del dato crudo al navegador.
 
@@ -57,13 +63,16 @@ datos. El **plano en línea** los sirve y atiende las peticiones.
  │               ├─► PaCMAP ─► coordenadas 2D          │
  │               └─► FAISS ─► vecindarios top-100      │
  │                                                    │
- │   generar_atlas_*.py ──────────────────────────────┼──► datos estáticos ──► Atlas (navegador)
- │   services/lab/construir.py ───────────────────────┼──► modelo ONNX, índice ──► Servicio del Lab
- └───────────────────────────────────────────────────┘                          (contenedor)
+ │   generar_atlas_*.py ──────────────────────────────┼──► datos estáticos ──► sitio (navegador)
+ │   services/lab/construir.py ───────────────────────┼──► modelo ONNX, índice ──► servicio de datos
+ │   generar_data_unam.py ────────────────────────────┼──► dataset público (Kaggle, CC BY 4.0)
+ └───────────────────────────────────────────────────┘
 ```
 
-Lo que el atlas muestra está calculado de antemano. El único cómputo por petición es el del
-Laboratorio, porque su entrada es un texto que no existe en el corpus (ADR-0014).
+Lo que el mapa muestra está calculado de antemano. El único cómputo por petición es el del
+Laboratorio, porque su entrada es un texto que no existe en el corpus (ADR-0014). Entre el
+navegador y ese cómputo hay una sola puerta, el Worker `puerta` (§8), que pone la sesión, los
+topes, la fila y las llamadas a la IA.
 
 ## 4. Capa de datos
 
@@ -85,7 +94,8 @@ evita tener que deduplicar sin un identificador común entre los dos sistemas.
 - **Export público.** `data/public/data_unam.parquet` lo genera `generar_data_unam.py` con un
   mapeo explícito columna por columna (ADR-0011). Una columna nueva del maestro no llega al
   export por accidente: hay que declararla. El export no tiene autores ni campos internos de
-  linaje.
+  linaje. Está publicado en Kaggle (`sebastiandiazprado/nodos-map`, CC BY 4.0, con un cuaderno
+  de ejemplo).
 
 Las correcciones de entidades (plantel, programa, grado, asesores) siguen una política común
 (ADR-0005 a 0010):
@@ -181,14 +191,46 @@ caras, para poder reanudar sin repetirlas.
 
 ## 6. Frontend
 
-### 6.1 Atlas: organización
+### 6.1 Páginas y piezas compartidas
 
-El atlas es un solo archivo, `prototypes/atlas_vecindario_mvp/index.html`, con HTML, CSS y
-JavaScript. No tiene paso de build ni framework. La decisión cambia modularidad por dos
-ventajas: el sitio se despliega copiando archivos y cualquier cambio se prueba recargando la
-página.
+El sitio son seis páginas HTML, cada una en un solo archivo con su HTML, CSS y JavaScript, sin
+paso de build ni framework. La decisión cambia modularidad por dos ventajas: el sitio se
+despliega copiando archivos y cualquier cambio se prueba recargando la página. Comparten una
+navegación (Mapa, Laboratorio, Acerca de; Ajustes, Entrar y Mi espacio) y un pie.
 
-Dentro del archivo, el código se divide en secciones con encabezados. Las principales son:
+| Página | Qué es |
+|---|---|
+| `index.html` | El mapa |
+| `laboratorio.html` | El Laboratorio: formulario, análisis y ejemplos (`lab/`) |
+| `espacio.html` | Mi espacio: lo guardado de cada cuenta, y borrar la cuenta |
+| `acerca.html` | Cómo se hizo el mapa y el Laboratorio (antes, la página de método) |
+| `privacidad.html`, `contacto.html` | Aviso de privacidad y contacto |
+
+Lo que usan varias páginas vive en `compartido/`, como scripts clásicos que dejan un objeto
+global:
+
+- `sesion.js` (`window.NodOS`): la sesión con Supabase Auth, la pantalla de acceso, la barra
+  (Entrar, la inicial con su menú, Mi espacio), las llamadas a la API con el token, lo guardado
+  (incluido `guardarTesisLote`, que guarda en bloques de 100) y las confirmaciones antes de
+  borrar;
+- `ajustes.js` y `ajustes.css`: el panel de Ajustes, con los modos día y noche;
+- `bloom.js`: el léxico de la taxonomía de Bloom. Es un módulo ES que usan **el formulario y el
+  Worker** (§8.3), así que el nivel de un objetivo se calcula igual en los dos lados;
+- `apoyo.js`: el enlace de «Apoya este proyecto» (Stripe), en un solo lugar;
+- `cuenta.css`: estilos de la pantalla de acceso y de Mi espacio.
+
+Las bibliotecas de terceros se sirven desde el propio sitio, con versión exacta, en `vendor/`:
+
+- `regl` y `regl-scatterplot`, para dibujar los puntos con WebGL;
+- `d3`, para contornos de densidad, escalas y la red de asesores;
+- `pub-sub-es`, dependencia de `regl-scatterplot`;
+- `supabase-js`, con SRI.
+
+Así la CSP puede limitar los scripts al propio origen (§9).
+
+### 6.2 Mapa: organización
+
+Dentro de `index.html`, el código se divide en secciones con encabezados. Las principales son:
 
 - carga;
 - cámara;
@@ -198,19 +240,15 @@ Dentro del archivo, el código se divide en secciones con encabezados. Las princ
 - modo taller;
 - asesores;
 - buscador;
-- introducción;
-- página de método.
+- lo guardado junto al buscador.
 
-Un objeto `state` concentra el estado de la aplicación. `window.__debugAtlas` lo expone para
-las pruebas automatizadas.
+La introducción animada se quitó en la v4.35. Un objeto `state` concentra el estado de la
+aplicación, y `window.__debugAtlas` lo expone para las pruebas automatizadas.
 
-Las bibliotecas se cargan al vuelo desde jsDelivr:
+`?tesis=`, `?lugar=` y `?asesor=` abren el mapa directo en una tesis, un campo, tema o subtema,
+o un asesor. Solo buscan valores que ya existen en los datos.
 
-- `regl` y `regl-scatterplot`, para dibujar los puntos con WebGL;
-- `d3`, para contornos de densidad, escalas y la simulación de fuerzas de la red de asesores;
-- `pub-sub-es`, dependencia de `regl-scatterplot`.
-
-### 6.2 Atlas: capas de dibujo
+### 6.3 Mapa: capas de dibujo
 
 El mapa superpone capas con responsabilidades separadas:
 
@@ -225,9 +263,9 @@ El mapa superpone capas con responsabilidades separadas:
 WebGL se reserva para lo que tiene volumen, que son los puntos. Los nombres van en SVG, donde
 el texto se dibuja nítido y se puede seleccionar.
 
-### 6.3 Atlas: formatos de datos y carga
+### 6.4 Mapa: formatos de datos y carga
 
-Los datos del atlas (`data/`, unos 160 MB en 3,231 archivos) se sirven como archivos
+Los datos del mapa (`data/`, unos 160 MB en unos 3,200 archivos) se sirven como archivos
 estáticos. Siguen dos principios.
 
 **1. Datos masivos en binario columnar.** Todo lo que tiene un valor por tesis viaja como
@@ -259,24 +297,41 @@ se pide al usarse y se guarda en memoria:
 Los nombres de archivo llevan versión (`.v1`). Con eso, una regeneración del pipeline puede
 publicarse junto a la anterior y el cambio se hace en un solo paso.
 
-### 6.4 Sistema visual
+### 6.5 Sistema visual
 
 Todo color de interfaz sale de variables CSS (tokens: `--paper`, `--ink`…). El modo día es el
-predeterminado y el modo noche redefine los mismos tokens. En el mapa, el color solo codifica
-datos (área, agrupación, nivel), no decora. La tipografía es únicamente Libre Franklin. Las
-reglas de diseño y los 25 anti-patrones vetados están en `PRODUCT.md`.
+predeterminado y el modo noche redefine los mismos tokens en todas las páginas. En el mapa, el
+color solo codifica datos (área, agrupación, nivel), no decora. La tipografía es únicamente
+Libre Franklin. Las reglas de diseño y los 25 anti-patrones vetados están en `PRODUCT.md`.
 
-El navegador guarda en `localStorage` solo preferencias de quien mira (modo noche, minimapa,
-introducción vista). La aplicación funciona igual si ese almacenamiento no está disponible.
+El navegador guarda en `localStorage` solo lo de quien mira: el modo noche, el minimapa, el
+borrador del Laboratorio y la sesión de Supabase. Lo guardado de cada cuenta vive en el servidor
+(D1), no en el navegador. Las páginas funcionan igual si ese almacenamiento no está disponible.
 
-### 6.5 Laboratorio: interfaz
+### 6.6 Laboratorio: interfaz
 
-La interfaz del Laboratorio (`laboratorio.html`) es hoy la plantilla del análisis ya
-terminado. Pide la parte de datos al servicio del Laboratorio: `127.0.0.1:8770` en local, o
-la URL que indique el parámetro `?api=`. Si el servicio no responde, pinta un resultado de
-ejemplo y lo avisa en la consola. Todo texto que viene del usuario o del modelo se escapa antes
-de insertarse en la página (`esc()`). Faltan el formulario de entrada, los estados de error y
-la integración con el atlas.
+`laboratorio.html` tiene cuatro estados: la portada con cuatro análisis de ejemplo, el
+formulario, el análisis que se despliega y los avisos.
+
+- **Formulario.** Título, problematización, objetivos con el léxico de Bloom en vivo, palabras
+  clave, programa, grado y periodo, con validación debajo de cada campo. El borrador se guarda
+  en el navegador.
+- **Sin cuenta**, la invitación a entrar ocupa el lugar del botón. Al volver de entrar, el
+  análisis arranca solo.
+- **Envío.** Primero pide un token a Turnstile (§9). Es invisible, salvo que Cloudflare pida
+  una prueba; entonces aparece junto al botón. Después hace `POST /api/lab/analisis` y lee la
+  respuesta por SSE: cada sección se pinta al llegar (léxico, datos, nota, Bloom, preguntas).
+- **Guardado.** Al terminar, el análisis se guarda solo en Mi espacio (hasta 2).
+- **Avisos.** Usan un mismo componente, con ilustración e invitación a apoyar el proyecto:
+  - el análisis entró a la fila y aparecerá en Mi espacio;
+  - ya hiciste tus 2 análisis de hoy;
+  - ya tienes 2 análisis guardados;
+  - se llegó al límite del día o del mes;
+  - el servicio no respondió.
+- **Escape.** Todo texto que viene del usuario, del catálogo o del modelo se escapa antes de
+  insertarse (`esc()`, que también escapa comillas porque se usa dentro de atributos).
+- **Parámetros de desarrollo.** `?api=`, `?sesion=local` y `?puerta=` solo se leen en local.
+  Publicados, un enlace con ellos podría mandar el borrador o el token a otro sitio.
 
 ## 7. Backend: servicio de datos del Laboratorio
 
@@ -288,12 +343,12 @@ devuelve su contexto en el corpus, con el mismo formato que el script offline
 
 - `GET /salud`: disponibilidad y tiempo de arranque.
 - `POST /v1/contexto`: recibe título (3 a 400 caracteres), problematización (hasta 2,000),
-  palabras clave (hasta 12) y datos académicos opcionales. Devuelve la ubicación, la
+  palabras clave (hasta 12), objetivos (hasta 8) y datos académicos opcionales. Devuelve la ubicación, la
   saturación, las tesis cercanas, los asesores, las 100 vecinas y los tiempos por etapa.
   Pydantic valida la entrada y rechaza la inválida con 422.
 
-El servicio no conoce usuarios, sesiones ni cuotas: de eso se encarga la puerta que lo precede
-(§8). Tampoco escribe el texto recibido en los logs, solo tiempos y tamaños.
+El servicio no conoce usuarios, sesiones, cuotas ni la fila: de eso se encarga la puerta que lo
+precede (§8). Tampoco escribe el texto recibido en los logs, solo tiempos y tamaños.
 
 ### 7.2 Diseño interno
 
@@ -348,7 +403,10 @@ el código. El proceso corre con un usuario sin privilegios. Los artefactos **no
 imagen**:
 
 - en desarrollo se montan en `/artefactos`, en solo lectura;
-- en producción se descargarán desde almacenamiento de objetos al arrancar.
+- en Modal, desde un volumen (§7.6).
+
+El `Dockerfile` queda como plan B, por si el servicio se muda a Cloud Run o a otro proveedor de
+contenedores.
 
 La imagen mide unos 200 MB comprimida y se puede reconstruir sin mover los 3 GB de datos. El
 puerto sale de la variable `PORT`, como espera Cloud Run.
@@ -359,92 +417,256 @@ Medido en un contenedor local, con el motor de Docker 29.8:
 - mediana de unos 300 ms por petición;
 - unos 3 GiB de memoria residente.
 
+### 7.6 Despliegue en Modal
+
+El plan de ADR-0015 era Cloud Run, pero Google rechazó la cuenta de facturación (26-sep).
+El servicio corre en **Modal** (`modal_app.py`) con la misma app de FastAPI, sin cambios:
+
+- **Recursos:** 2 núcleos y 4 GiB, **un solo contenedor** (`max_containers = 1`), que atiende
+  hasta 4 peticiones a la vez y se apaga tras 1 minuto sin uso.
+- **Arranque en frío:** de 12 a 16 s, aceptados por el usuario; con el servicio despierto, un
+  análisis completo tarda unos 3 s.
+- **Artefactos:** viven en un volumen de Modal (`nodos-lab-artefactos`), montado en
+  `/artefactos`; la imagen lleva solo el código.
+- **Acceso** (29-sep):
+  - Modal exige un **token de proxy** (`Modal-Key` y `Modal-Secret`) y rechaza en su borde lo
+    que no lo trae, **sin despertar el contenedor**;
+  - la app exige además la clave compartida `X-Lab-Clave`;
+  - con `LAB_EXIGIR_CLAVE=1`, que Modal pone, la app no arranca sin una clave de 32 o más
+    caracteres.
+- **Costo:** 30 USD de crédito al mes con tarjeta (unos 6,000 análisis) o 1 USD sin ella. La
+  tarjeta se está registrando (29-sep).
+
+Pendiente: registrar el cambio a Modal como enmienda a ADR-0015, y volver a desplegar con el
+token de proxy.
+
 ## 8. Arquitectura de producción
 
-Decidida en ADR-0015; en construcción. El paso 1, el servicio de datos, está completo en local.
+Decidida en ADR-0015, con dos cambios de proveedor en la práctica: el sitio va en Workers con
+archivos estáticos y no en Pages (§8.2), y el servicio de datos va en Modal y no en Cloud Run
+(§7.6).
 
 ```
 Navegador
- ├── Sitio estático (atlas + interfaz del Lab) ──── Cloudflare Pages
- └── /api/* ── Worker «puerta» ──────────────────── Cloudflare Workers
-                ├── Turnstile, CORS explícito, tope de tamaño
-                ├── sesión: JWT verificado con JWKS ── Supabase Auth
-                ├── cuotas, análisis y tesis guardadas ── Cloudflare D1
-                ├── datos ──► servicio del Lab ──────── Google Cloud Run (8 GiB)
-                └── IA ────► gpt-oss-120b ──────────── Groq + Workers AI
+ ├── Sitio estático (6 páginas + data/) ──────── Cloudflare Workers, archivos estáticos («nodosmap»)
+ ├── Inicio de sesión (PKCE) ─────────────────── Supabase Auth: Google, GitHub y enlace por correo
+ └── /api/* ── Worker «puerta» ───────────────── Cloudflare Workers
+                ├── límites por IP y por usuario ── Rate Limiting de Workers
+                ├── sesión: JWT (ES256) ─────────── JWKS de Supabase
+                ├── Turnstile (acción y dominio) ── Cloudflare Turnstile
+                ├── cuotas, análisis y guardados ── Cloudflare D1
+                ├── fila (2 a la vez) ───────────── Durable Object «Fila» (SQLite)
+                ├── datos ─► servicio del Lab ───── Modal (token de proxy + X-Lab-Clave)
+                └── IA ───► gpt-oss-120b ────────── Groq (retención cero) → Workers AI de respaldo
 ```
 
-- **Sitio estático.** Atlas e interfaz del Laboratorio en Cloudflare Pages. Los datos caben
-  dentro de sus límites por número y tamaño de archivos. R2 queda como opción para un archivo
-  que pase de 25 MiB.
-- **Worker puerta.** Es el único punto de entrada a lo dinámico:
-  - verifica la sesión (JWT de Supabase, validado contra su JWKS);
-  - aplica el desafío anti-bots (Turnstile), CORS con orígenes explícitos y un tope al tamaño
-    de la entrada;
-  - lleva las cuotas en D1;
-  - llama al servicio de datos y a los proveedores de IA.
+Ningún servicio interno queda expuesto al navegador: la URL del servicio de datos y las claves
+de los proveedores viven solo en el Worker.
 
-  Ningún servicio interno queda expuesto directamente al navegador.
-- **Identidad y datos de usuario.** Supabase se usa solo para la identidad (Google y enlace
-  mágico). Los datos del usuario (análisis y tesis guardadas) viven en D1, junto a la puerta.
-- **Servicio de datos.** El contenedor de §7 en Cloud Run, con instancia de 8 GiB, un número
-  máximo de instancias bajo y una alerta de presupuesto. AWS Lambda con el mismo contenedor es
-  el plan B.
-- **IA.** El mismo modelo (`gpt-oss-120b`), con los mismos prompts y esquemas de salida, en dos
-  proveedores. La puerta usa Groq primero y pasa a Workers AI cuando Groq agota su cupo o
-  responde 429. Así, un análisis no cambia según el proveedor que contestó. Si ambos se agotan,
-  se entrega la parte de datos y se indica que la de IA no está disponible ese día.
-- **Portabilidad.** Cada pieza depende de una interfaz estándar: HTTP, JWT o un contenedor
-  OCI. Mudarla es cambiar configuración. Esto responde a que varias capas gratuitas cambiaron
-  sin aviso durante 2026.
+### 8.1 Estado de cada pieza (29-sep-2026)
 
-Orden de construcción: (1) servicio de datos; (2) puerta, autenticación y D1; (3) IA con
-respuesta por streaming (SSE); (4) despliegue con integración continua.
+| Pieza | Estado |
+|---|---|
+| Sitio estático | **Publicado como copia de prueba** en `nodosmap.sebastian-diaz-prado.workers.dev` (v4.36.9). Cuenta de Cloudflare `98c2acfa…`, dueña del dominio. `nodosmap.com` está comprado y sin conectar |
+| Worker `puerta` | **Solo en local** (`wrangler dev`). Falta staging: D1 remoto con migraciones, entorno de producción y secretos |
+| D1 | Local, con las migraciones 0001 a 0004 |
+| Fila (Durable Object) | Local, probada (§8.4) |
+| Supabase Auth | Configurado: Google (app en modo prueba), GitHub y correo. Faltan las URL de producción |
+| Turnstile | Widget «NodOS» (Managed) creado; clave de sitio en `laboratorio.html`. La secreta va con staging |
+| Servicio de datos | **Desplegado en Modal** (prueba). Falta volver a desplegar con el token de proxy |
+| IA | Groq y Workers AI funcionando desde el Worker local |
+| Apoyos | Enlace de Stripe **en modo de prueba** |
+| Dataset público | **Publicado** en Kaggle |
+
+La decisión del usuario (28-sep) es no publicar a medias: el mapa y el Laboratorio salen juntos
+en `nodosmap.com` cuando todo esté listo. El orden restante está en la «Lista de lanzamiento»
+de `development.md`: staging, estrés y CI, calidad, contenido y legal, producción y difusión.
+
+### 8.2 Sitio estático
+
+`tools/construir_sitio.py` arma `dist/` con las seis páginas, `compartido/`, `vendor/`, `lab/`,
+`data/` y `_headers`, y se publica con
+`npx wrangler deploy --assets dist --name nodosmap` desde la raíz del repo. Queda en Workers con
+archivos estáticos, no en Pages: wrangler 4.141 manda Pages a ese flujo. Los límites son los
+mismos (20,000 archivos y 25 MiB por archivo), y hoy caben con margen.
+
+- `_headers` pone las cabeceras de seguridad comunes (HSTS, `nosniff`, `X-Frame-Options`,
+  `Referrer-Policy`, `Permissions-Policy`, COOP) y **una CSP por página**. Workers Static
+  Assets no respeta `! Content-Security-Policy`, así que una CSP general se sumaba a la del
+  mapa, y la estricta bloqueaba regl.
+- Las URL `.html` redirigen (307) a la ruta sin extensión, conservando la consulta.
+
+### 8.3 Worker `puerta`
+
+`services/puerta/` es el único punto de entrada a lo dinámico, en JavaScript sin build. Cada
+petición pasa, en orden, por:
+
+1. **La configuración.** Con `ENTORNO = "produccion"`, si hay algo de desarrollo (un JWKS local,
+   la clave de prueba de Turnstile, una clave corta con el servicio, URLs sin https, o faltan
+   los límites o la fila), responde 503 a todo y registra qué variable falla.
+2. **CORS** con orígenes explícitos. Sin cookies: la sesión va en `Authorization: Bearer`, así
+   que no hay CSRF que cuidar.
+3. **Límite por IP**, antes de la sesión: 120 peticiones por minuto a toda la API y 10 al
+   análisis. IPv6 cuenta por su /64.
+4. **Sesión.**
+   - El JWT de Supabase se verifica con WebCrypto contra su JWKS, en caché 10 minutos.
+   - Solo acepta ES256 o RS256, y exige emisor, audiencia, rol `authenticated` y vigencia.
+   - Rechaza a los usuarios anónimos.
+   - Después aplica el límite de **30 escrituras por minuto por usuario**, que cuida las
+     100,000 filas escritas al día de D1.
+5. **La entrada.** Tope de tamaño (el cuerpo se lee por partes y se corta al pasarlo) y
+   revisión de la forma, con los mismos topes que el servicio de datos.
+6. **Limpieza contra inyección de prompt**, antes del léxico, del servicio y de la IA.
+7. **Turnstile**, que en producción exige la acción `analisis` y uno de los dominios propios.
+8. **Cuotas**, con UPSERT atómicos en D1: el tope del mes (`TOPE_MES`), el del sitio por día y
+   el del usuario (2 al día). Si algo falla antes de entregar datos, la cuota se devuelve.
+9. **La fila** (§8.4) y, al final, el servicio de datos y la IA.
+
+**Rutas:**
+
+| Ruta | Qué hace |
+|---|---|
+| `POST /api/lab/analisis` | Análisis completo por SSE; sin lugar, 202 y a la fila |
+| `POST /api/lab/contexto` | Solo datos |
+| `GET /api/yo` | Cuotas y conteos de la cuenta |
+| `/api/analisis` | Guardar, listar, abrir y borrar análisis |
+| `/api/tesis` | Tesis guardadas, también por lotes de 100 |
+| `/api/asesores`, `/api/lugares` | Asesores y lugares del mapa guardados |
+| `DELETE /api/cuenta` | Borra los datos de D1 y, con la clave de servicio, la identidad en Supabase |
+
+Lo que se muestra de cada guardado pasa por una lista blanca de campos y tipos, con tope de 2 KB.
+Toda consulta a D1 filtra por el `sub` del token, nunca por un id que mande el cliente.
+
+**IA** (`src/ia/`):
+
+- **Tres llamadas en paralelo**, cada una con su esquema de salida y un reintento con los
+  errores como retroalimentación:
+  - la nota del planteamiento;
+  - Bloom, con el nivel que da el léxico compartido;
+  - las preguntas.
+- **Proveedores:** primero Groq (`gpt-oss-120b`, con retención de datos desactivada) y, si se
+  agota o falla, Workers AI con el mismo modelo.
+- **Topes diarios:** análisis con IA (`TOPE_IA_DIA`), tokens de Groq y neuronas de Workers AI.
+  Si se acaban, el análisis se entrega solo con datos.
+
+**D1** (`migrations/`): `analisis` (con `estado`: `listo` o `fila`), `tesis_guardadas`,
+`asesores_guardados`, `lugares_guardados`, `cuota_diaria` y `cuota_sitio` (tipos `datos`, `mes`,
+`ia`, `groq_tokens` y `workers_ai_neuronas`). Un cron diario borra las cuotas viejas (las del mes,
+a los 3 meses) y mantiene despierto el proyecto de Supabase.
+
+### 8.4 Fila del Laboratorio
+
+Modal corre un solo contenedor de 2 núcleos, así que el servicio de datos atiende
+`FILA_SIMULTANEOS` (2) análisis a la vez. La fila es un **Durable Object**, uno para todo el sitio
+(`src/fila.js`), con almacenamiento SQLite (plan gratuito).
+
+- **Con lugar**, el análisis corre en vivo por SSE. El lugar se suelta en cuanto responde el
+  servicio de datos, porque la IA no lo ocupa. Si nadie lo suelta, vence a los 4 minutos.
+- **Sin lugar**, el Worker responde 202 y guarda el análisis en D1 con estado `fila`, que Mi
+  espacio muestra como «En la fila».
+  - El Durable Object lo corre en segundo plano (alarma), con el mismo código que el análisis en
+    vivo (`correrIA`), y lo guarda como un análisis normal.
+  - Quien llega mientras hay fila espera su turno, aunque se libere un lugar.
+- **Ocupa uno de los 2 guardados** desde que entra. Con los 2 llenos no entra, y la cuota se
+  devuelve.
+- **Si se borra antes de su turno**, sale de la fila y la cuota vuelve. Si el servicio falla en
+  segundo plano, el análisis se borra y la cuota vuelve.
+- **No tiene largo máximo:** el freno es el tope diario del sitio. Al llegar al tope del mes, el
+  Laboratorio se pausa hasta el día 1.
+- **Recuperación:** un objeto que se reinicia a mitad de un análisis lo devuelve al frente en la
+  siguiente alarma. Cada alarma dura a lo más 12 minutos y se reprograma.
+
+### 8.5 Portabilidad
+
+Cada pieza depende de una interfaz estándar: HTTP, JWT o un contenedor OCI. Mudarla es cambiar
+configuración, y ya pasó dos veces (Pages → Workers y Cloud Run → Modal). Esto responde a que
+varias capas gratuitas cambiaron sin aviso durante 2026.
 
 ## 9. Seguridad y privacidad
 
-- **Datos personales.** Los autores quedan fuera de todo artefacto publicado (§4.3). El export
-  público se construye por lista blanca de columnas.
-- **Separación de responsabilidades.** La autenticación, las cuotas y la protección contra
-  abuso se concentran en la puerta. Los servicios internos confían en ella y no manejan
-  identidad.
-- **Entradas.** Se validan por esquema y tamaño en la puerta y otra vez en el servicio. El
-  texto del usuario viaja al modelo de lenguaje como dato delimitado. La salida del modelo se
-  valida contra un esquema y se escapa al pintarse.
-- **Registros.** Ningún componente escribe en los logs el texto de una tesis del usuario.
-- **Secretos.** Se leen de variables de entorno o del gestor de secretos de cada plataforma.
-  Ninguno se versiona.
-- **Pendiente para producción:**
-  - cabeceras del sitio (CSP, HSTS y afines);
-  - versiones exactas con SRI para las bibliotecas de CDN;
-  - aviso de privacidad y borrado real de cuentas;
-  - pruebas de acceso cruzado entre usuarios.
+Revisada en dos pasadas el 29-sep-2026 (v4.37.0 y v4.37.1, en `development.md`), con ataques
+simulados y el flujo normal probado de punta a punta.
+
+- **Datos personales.**
+  - Los autores quedan fuera de todo artefacto publicado (§4.3), y el export público se
+    construye por lista blanca de columnas.
+  - Los asesores sí se muestran.
+  - El texto de una tesis nunca llega a los logs de ningún componente, solo conteos y tiempos.
+- **Sesión.** Tokens firmados y verificados contra el JWKS; sin cookies ni CSRF. Los parámetros
+  de desarrollo que cambian a dónde se manda el token o el borrador (`?puerta=`, `?api=`,
+  `?sesion=local`) solo se leen en local.
+- **Abuso y costo.**
+  - Límites por IP y por usuario, Turnstile con acción y dominio, y cuotas por usuario, sitio
+    y mes.
+  - El servicio de datos está detrás de un token de proxy que Modal revisa sin despertar el
+    contenedor.
+  - La configuración de producción falla cerrada.
+- **Entradas.**
+  - Se validan por esquema y tamaño en la puerta y otra vez en el servicio.
+  - El texto del usuario viaja al modelo como dato delimitado, después de normalizarlo y quitar
+    caracteres invisibles y delimitadores.
+  - La salida del modelo se valida contra un esquema.
+- **Salidas.** Todo texto del catálogo, del usuario o del modelo se escapa al pintarse, también
+  dentro de atributos. Una prueba con **el catálogo envenenado** (cada texto con una carga XSS)
+  no ejecutó ninguna en el mapa ni en el Laboratorio.
+- **Cabeceras.**
+  - El sitio lleva CSP por página, HSTS y afines (§8.2).
+  - La API lleva `default-src 'none'`, `no-referrer` y `nosniff`.
+  - Las bibliotecas van con versión exacta y desde el propio origen; supabase-js, con SRI.
+- **Aislamiento entre cuentas.** Toda consulta filtra por el usuario del token; hay pruebas de
+  acceso cruzado.
+- **Secretos.** Viven en el gestor de secretos de cada plataforma o en `.dev.vars` en local;
+  ninguno se versiona.
+- **Riesgos abiertos:**
+  - **Cuentas creadas en masa** podrían agotar el tope diario del sitio.
+  - **La sesión vive en `localStorage`** y la CSP admite `'unsafe-inline'`, porque las páginas
+    llevan su código en línea. La defensa de fondo es sacar los scripts a archivos y usar hashes.
+  - **Un token vale hasta su caducidad** (1 hora), aun después de salir.
+  - **Las claves viejas de los scripts de `app/`** siguen sin rotar.
 
 ## 10. Verificación y gestión del cambio
 
+- **CI** (`.github/workflows/pruebas.yml`, en cada push):
+  - **privacidad**: ningún título publicado trae mención de autor;
+  - **humo**: cada página carga en Chrome sin errores en la consola (`tools/prueba_humo.mjs`);
+  - **léxico e inyección**: los casos límite de Bloom y de la limpieza contra inyección;
+  - **seguridad**: sesión, límites, forma de la entrada, configuración de producción y
+    Turnstile, sin necesidad de levantar el Worker.
+- **Pruebas del Worker contra `wrangler dev`**, fuera del CI porque necesitan el servicio de
+  datos:
+  - `puerta.test.mjs`: 11 pruebas, incluidas las de acceso cruzado y los lotes;
+  - `fila.test.mjs`: 4 pruebas, con una configuración de un lugar y sin IA.
 - **Interfaz.** `tools/cdp.mjs` controla Chrome sin ventana (headless) con el protocolo
   DevTools: ejecuta pasos declarados en JSON, toma capturas en escritorio y móvil y vuelca la
-  consola. Con él se verifica cada versión del atlas.
-- **Backend.** `evaluar.py` es la prueba de aceptación de calidad semántica (§7.4). Las pruebas
-  de contrato (422, CORS, paridad dentro y fuera del contenedor) se corren contra el servicio en
-  ejecución.
-- **Versiones.** El atlas sigue versionado semántico (se muestra en el pie). Cada versión queda
-  registrada en `development.md` con qué cambió, por qué y cómo se verificó.
+  consola.
+- **Backend.**
+  - `evaluar.py` es la prueba de aceptación de calidad semántica (§7.4).
+  - `evaluacion/evaluar_ia.mjs` corre 11 casos de IA con chequeos automáticos: fuga de
+    inyección, citas inventadas, periodo e idioma.
+- **Versiones.** El sitio sigue versionado semántico (se muestra en el pie del mapa). Cada
+  versión queda registrada en `development.md` con qué cambió, por qué y cómo se verificó.
 - **Decisiones.** Las decisiones de arquitectura se registran como ADR, que no se editan
   después de aceptarse: un ADR nuevo reemplaza al anterior y lo cita. Las propuestas que
   requieren investigación pasan primero por un RFC.
-- **Pendiente:** integración continua con una prueba de privacidad (que falle si un título
-  publicado menciona a un autor) y pruebas de extremo a extremo automáticas.
+- **Pendiente:**
+  - las pruebas del Worker en el CI (con staging);
+  - pruebas de estrés con 50 análisis simultáneos;
+  - Dependabot.
 
 ## 11. Limitaciones conocidas
 
 - Solo un tercio del corpus tiene subtema (§5.2). La ubicación que calcula el Laboratorio
   todavía vota solo con las tesis agrupadas.
-- El atlas publica una muestra de los vecindarios, no la tabla completa (§5.6).
-- El frontend en un solo archivo, sin módulos, facilita el despliegue pero dificulta la
-  cobertura de pruebas unitarias.
-- El arranque en frío del servicio del Laboratorio en Cloud Run dependerá de descargar unos
-  3 GB de artefactos. Falta medirlo.
+- El mapa publica una muestra de los vecindarios, no la tabla completa (§5.6).
+- Las páginas en un solo archivo, sin módulos, facilitan el despliegue pero dificultan la
+  cobertura de pruebas unitarias y obligan a `'unsafe-inline'` en la CSP.
+- **Capacidad del Laboratorio.**
+  - Un contenedor de 2 núcleos da 2 análisis a la vez.
+  - El límite por minuto de Groq en la capa gratuita alcanza para cerca de 1 análisis con IA
+    por minuto; los demás esperan o pasan a Workers AI, que tarda unos 25 s.
+  - Con una fila larga, la espera puede ser de horas.
+- Si el servicio de datos falla con un análisis de la fila, este desaparece de Mi espacio sin
+  aviso (la cuota se devuelve).
 - Los umbrales de similitud del Laboratorio son orientativos hasta calibrarlos con un conjunto
   de evaluación más amplio.
 
@@ -452,12 +674,14 @@ respuesta por streaming (SSE); (4) despliegue con integración continua.
 
 | Ruta | Contenido |
 |---|---|
-| `prototypes/atlas_vecindario_mvp/` | Atlas (`index.html`), sus datos (`data/`) y la interfaz del Laboratorio (`laboratorio.html`, con sus ejemplos en `lab/`) |
-| `services/lab/` | Servicio de datos del Laboratorio, su `Dockerfile`, la construcción de artefactos y la prueba de aceptación |
+| `prototypes/atlas_vecindario_mvp/` | El sitio: las seis páginas, `compartido/`, `vendor/`, los datos (`data/`), los ejemplos del Laboratorio (`lab/`) y `_headers` |
+| `services/puerta/` | Worker de la API: sesión, límites, cuotas, fila (`src/fila.js`), IA (`src/ia/`), migraciones de D1 y pruebas |
+| `services/lab/` | Servicio de datos del Laboratorio: app de FastAPI, `modal_app.py`, `Dockerfile`, la construcción de artefactos y la prueba de aceptación |
 | `pipeline/` | Adquisición, limpieza, pipeline semántico y generación de artefactos |
-| `tools/` | Herramienta de verificación visual (`cdp.mjs`) |
+| `tools/` | `construir_sitio.py` (arma `dist/`), `prueba_humo.mjs` y `cdp.mjs` |
+| `.github/workflows/` | CI: privacidad, humo, léxico, inyección y seguridad |
 | `adr/`, `rfc/` | Decisiones de arquitectura y propuestas |
 | `marca/` | Logo y favicon de NodOS |
 | `PRODUCT.md` | Usuarios, propósito y reglas de diseño |
-| `development.md` | Bitácora del proyecto y hoja de ruta |
+| `development.md` | Bitácora del proyecto, hoja de ruta y lista de lanzamiento |
 | `app/` | Código de la versión anterior del producto, conservado como referencia |
