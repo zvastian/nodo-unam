@@ -468,14 +468,15 @@ de los proveedores viven solo en el Worker.
 
 | Pieza | Estado |
 |---|---|
-| Sitio estático | **Publicado como copia de prueba** en `nodosmap.sebastian-diaz-prado.workers.dev` (v4.36.9). Cuenta de Cloudflare `98c2acfa…`, dueña del dominio. `nodosmap.com` está comprado y sin conectar |
-| Dominio y cuenta | `nodosmap.com` en Cloudflare Registrar, vence el 28-sep-2027. **Los cuatro contactos del registro** (titular, administrador, técnico y facturación) **están en el correo personal (gmail)**, no en el institucional, y la cuenta de gmail es Superadministradora de la cuenta `98c2acfa…` (revisado el 29-sep-2026). El nombre de la cuenta sigue diciendo «comunidad.unam.mx», pero solo es el nombre. `wrangler` opera con el inicio de sesión de gmail |
-| Worker `puerta` | **Solo en local** (`wrangler dev`). Falta staging: D1 remoto con migraciones, entorno de producción y secretos |
-| D1 | Local, con las migraciones 0001 a 0004 |
+| Cuenta de Cloudflare | **«NodOS»** (`98c2acfa…`), la única que importa: tiene el dominio, el sitio, la API y D1. Su único miembro es el correo personal (gmail), como Superadministrador; el usuario institucional (comunidad.unam.mx) se quitó y la cuenta se renombró el 29-sep-2026. `wrangler` opera con el inicio de sesión de gmail. La otra cuenta de gmail (`fc4e…`) no aloja nada de producción |
+| Dominio | `nodosmap.com` en Cloudflare Registrar, dentro de «NodOS»; vence el 28-sep-2027. **Los cuatro contactos del registro** (titular, administrador, técnico y facturación) **están en el correo personal**, que es lo que acredita la propiedad. Comprado y todavía sin conectar al sitio |
+| Sitio estático | **Publicado como copia de prueba** en `nodosmap.sebastian-diaz-prado.workers.dev` (v4.36.9) |
+| Worker `puerta` | Entorno `produccion` declarado en `wrangler.jsonc` (cuenta «NodOS», `workers.dev` activo y sin rutas en el dominio hasta lanzar). **Sin desplegar:** faltan los secretos |
+| D1 | **Remota creada** (29-sep-2026): `nodos`, id `c754d30f-9825-48b2-9c2d-a9ff107fd3d8`, región WNAM, con las migraciones 0001 a 0004. En local, la misma base en `.wrangler/` |
 | Fila (Durable Object) | Local, probada (§8.4) |
 | Supabase Auth | Configurado: Google (app en modo prueba), GitHub y correo. Faltan las URL de producción |
 | Turnstile | Widget «NodOS» (Managed) creado; clave de sitio en `laboratorio.html`. La secreta va con staging |
-| Servicio de datos | **Desplegado en Modal** (prueba). Falta volver a desplegar con el token de proxy |
+| Servicio de datos | **Desplegado en Modal** (espacio `sebastiaan-diaz-prado`, app `nodos-lab`), con tarjeta registrada. Falta volver a desplegar con el token de proxy |
 | IA | Groq y Workers AI funcionando desde el Worker local |
 | Apoyos | Enlace de Stripe **en modo de prueba** |
 | Dataset público | **Publicado** en Kaggle |

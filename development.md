@@ -4633,3 +4633,13 @@ Pedida por el usuario: imaginar casos maliciosos y bordes, y comprobar que las d
 
 - **Dominio y cuenta de Cloudflare:** el usuario revisó el registro de `nodosmap.com`. Los cuatro contactos (titular, administrador, técnico y facturación) están en su correo personal (gmail), y gmail es Superadministradora de la cuenta `98c2acfa…`, dueña del dominio. `wrangler whoami` lo confirma: el inicio de sesión es el de gmail y ve las dos cuentas. Así, perder el correo institucional no deja el dominio sin dueño. Pendiente, a revisar por el usuario: que **Auto-renew** esté activo y que haya tarjeta en *Billing* (vence el 28-sep-2027). Quedó en `architecture.md`, §8.1, sin teléfono ni dirección.
 - **Modal con tarjeta:** 30 USD de crédito al mes. `TOPE_MES` pasa de 200 a **6,000** en `wrangler.jsonc`: al llegar, el Laboratorio se pausa hasta el día 1 y no cobra de más.
+
+### Staging, paso 1: cuenta «NodOS» y D1 remota (2026-09-29)
+
+- **Cuenta.** El usuario renombró la cuenta de Cloudflare dueña del dominio a **«NodOS»** (`98c2acfa…`) y quitó al usuario institucional; queda solo su gmail, como Superadministrador. Se eligió quedarse en esa cuenta en lugar de mover el dominio a la otra de gmail (`fc4e…`): la API tiene que estar en la cuenta del dominio para tomar `/api/*`, y así no hace falta ninguna transferencia. La propiedad del dominio la acreditan los contactos del registro, que ya estaban en el gmail. `wrangler whoami` muestra «NodOS».
+- **D1 remota:** `wrangler d1 create nodos` en «NodOS» → id `c754d30f-9825-48b2-9c2d-a9ff107fd3d8`, región WNAM. Migraciones 0001 a 0004 aplicadas con `--remote --env produccion`; quedan las 6 tablas.
+- **`wrangler.jsonc`:** entorno `produccion`, con `account_id` fijo (para no caer en la otra cuenta), la D1 remota, IA, los 3 límites, la fila, `ENTORNO=produccion`, `TOPE_MES=6000`, `TURNSTILE_HOSTS` y `ORIGENES` con `nodosmap.com` y `www`, y `LAB_URL` de Modal (`https://sebastiaan-diaz-prado--nodos-lab-servicio.modal.run`). Tiene `workers_dev` activo y ninguna ruta en el dominio hasta lanzar. `wrangler deploy --env produccion --dry-run` empaqueta todos los bindings.
+- **Siguiente:**
+  - los secretos del Worker, que los pone el usuario desde su terminal;
+  - volver a desplegar Modal con el token de proxy;
+  - el primer despliegue del Worker en workers.dev y la prueba de punta a punta.

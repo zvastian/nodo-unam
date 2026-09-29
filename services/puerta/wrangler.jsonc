@@ -54,5 +54,50 @@
     "TOPE_IA_DIA": "55",
     "GROQ_TOKENS_DIA": "180000",
     "WORKERS_AI_NEURONAS_DIA": "9000"
+  },
+
+  // Producción (staging, 29-sep-2026): en la cuenta «NodOS», dueña de nodosmap.com. Los bindings y
+  // las vars no se heredan del nivel de arriba, así que van todos aquí. Sin «routes» todavía: hasta
+  // lanzar, responde solo en workers.dev (el dominio se conecta al final, con el sitio).
+  //   npx wrangler deploy --env produccion
+  //   npx wrangler d1 migrations apply nodos --remote --env produccion
+  //   npx wrangler secret put <NOMBRE> --env produccion
+  // Secretos: TURNSTILE_SECRET, LAB_CLAVE, GROQ_API_KEY, MODAL_KEY, MODAL_SECRET, SUPABASE_SERVICE_KEY.
+  // Sin cualquiera de los obligatorios, src/seguridad.js responde 503 a todo (falla cerrado).
+  "env": {
+    "produccion": {
+      "name": "nodos-puerta",
+      "account_id": "98c2acfaa077d8350511cb2b8ac275c0",
+      "workers_dev": true,
+      "d1_databases": [
+        { "binding": "DB", "database_name": "nodos", "database_id": "c754d30f-9825-48b2-9c2d-a9ff107fd3d8", "migrations_dir": "migrations" }
+      ],
+      "ai": { "binding": "AI" },
+      "ratelimits": [
+        { "name": "LIMITE_IP", "namespace_id": "1001", "simple": { "limit": 120, "period": 60 } },
+        { "name": "LIMITE_IP_LAB", "namespace_id": "1002", "simple": { "limit": 10, "period": 60 } },
+        { "name": "LIMITE_USUARIO", "namespace_id": "1003", "simple": { "limit": 30, "period": 60 } }
+      ],
+      "durable_objects": { "bindings": [{ "name": "FILA", "class_name": "Fila" }] },
+      "vars": {
+        "ENTORNO": "produccion",
+        "FILA_SIMULTANEOS": "2",
+        "TOPE_MES": "6000",
+        "TURNSTILE_HOSTS": "nodosmap.com,www.nodosmap.com",
+        "ORIGENES": "https://nodosmap.com,https://www.nodosmap.com",
+        "LAB_URL": "https://sebastiaan-diaz-prado--nodos-lab-servicio.modal.run",
+        "SUPABASE_URL": "https://vujmkcpxsdrmrwsijnlz.supabase.co",
+        "JWT_EMISOR": "",
+        "CUOTA_USUARIO_DIA": "2",
+        "TOPE_SITIO_DIA": "500",
+        "MAX_ANALISIS_GUARDADOS": "2",
+        "MAX_TESIS_GUARDADAS": "500",
+        "MAX_ASESORES_GUARDADOS": "200",
+        "MAX_LUGARES_GUARDADOS": "200",
+        "TOPE_IA_DIA": "55",
+        "GROQ_TOKENS_DIA": "180000",
+        "WORKERS_AI_NEURONAS_DIA": "9000"
+      }
+    }
   }
 }
