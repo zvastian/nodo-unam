@@ -24,11 +24,13 @@
     --bloom-1: #9dbde4; --bloom-2: #7ea8da; --bloom-3: #5588c7; --bloom-4: #346bb0; --bloom-5: #1f4f8f; --bloom-6: #123566;
     --bloom-1t: #4676b1; --bloom-2t: #3d6eaa; --bloom-3t: #33639f; --bloom-4t: #285692; --bloom-5t: #1c477e; --bloom-6t: #123566;
     --nav-h: 56px; color-scheme: light;
+    --alerta: #b3261e;       /* v4.38.2: lo que falta corregir en el formulario (siempre con ícono y texto) */
   }
   body.noche {
     --bg: #0f1422; --paper: #161c2a;
     --ink: #eceae4; --ink-2: #bcc2cf; --ink-3: #8f98ab;
     --line: #283044; --line-strong: #3b4559; --grid: #1a2030; --link: #8fb8f2; --grano: 0.07; color-scheme: dark;
+    --alerta: #f2a097;
     /* en noche, más alto = más claro */
     --bloom-1: #2f4f7c; --bloom-2: #3d68a3; --bloom-3: #4f82c4; --bloom-4: #6d9ee0; --bloom-5: #94bdf0; --bloom-6: #cfe3ff;
     --bloom-1t: #6f97cf; --bloom-2t: #7ea5dc; --bloom-3t: #8fb3e6; --bloom-4t: #a3c3ef; --bloom-5t: #bcd5f6; --bloom-6t: #dcebff;
@@ -160,7 +162,11 @@
   .banda .f-op input:focus-visible + span { outline-color: var(--ink); }
   .banda .f-programa { margin-top: 20px; max-width: min(56ch, calc(100% - 150px)); }
   .banda .f-rot { color: var(--ink-2); }
-  .banda .f-err { color: var(--ink); }
+  /* en la banda (el color del área, oscurecido) el aviso va en ámbar: se distingue sobre las cuatro áreas */
+  .banda { --alerta: #ffcf5c; }
+  .banda .f-err { color: var(--alerta); }
+  .b-grado .f-fs legend { padding: 0; }
+  .b-grado.mal legend { color: var(--alerta); font-weight: 600; }
   body:not(.escribiendo) .emblema { width: 132px; height: 88px; }
   /* el nombre del área, en posición fija sobre el grabado; cambia con él */
   .banda > .emblema-area { position: absolute; right: 22px; bottom: 144px; z-index: 1; width: 180px; margin: 0; text-align: right; text-wrap: balance; font-size: 13px; font-weight: 600; line-height: 1.3;
@@ -335,7 +341,7 @@
   .campo::placeholder { color: var(--ink-3); opacity: 1; }
   .campo:hover { border-bottom-color: var(--ink-2); }
   .campo:focus-visible { border-bottom: 2px solid var(--ink); padding-bottom: 7px; }
-  .campo.mal { border-bottom: 2px solid var(--ink); padding-bottom: 7px; }
+  .campo.mal { border-bottom: 2px solid var(--alerta); padding-bottom: 7px; }
   textarea.campo { overflow: hidden; display: block; }
   .f-fs { border: 0; margin: 0; padding: 0; min-width: 0; }
   .f-fs legend { padding: 0; }
@@ -350,7 +356,7 @@
   .f-claves li:hover .f-quitar, .f-claves li:focus-within .f-quitar { opacity: 1; }
   .f-claves .f-nota { grid-column: 1 / 3; }
   .f-rot { display: block; font-size: 13px; color: var(--ink-3); margin: 0 0 4px; }
-  .f-err { display: flex; gap: 6px; align-items: flex-start; font-size: 13.5px; line-height: 1.4; color: var(--ink); margin: 7px 0 0; }
+  .f-err { display: flex; gap: 6px; align-items: flex-start; font-size: 13.5px; line-height: 1.4; color: var(--alerta); font-weight: 600; margin: 7px 0 0; }
   .f-err .ico { width: 15px; height: 15px; margin-top: 1px; }
   /* en la portada */
   .banda .campo::placeholder { color: var(--ink-2); }
@@ -417,6 +423,7 @@
   .f-nota b { color: var(--ink); font-weight: 600; }
   /* verbos por nivel: se ofrecen solo cuando el objetivo no tiene un verbo reconocible; un clic lo pone al inicio */
   .f-verbos { grid-column: 2 / 4; margin: 2px 0 4px; font-size: 13.5px; }
+  .f-verbos-guia { margin: 18px 0 0; }
   .f-verbos summary { cursor: pointer; color: var(--ink); font-weight: 600; width: fit-content; list-style: none; display: inline-flex; align-items: center; gap: 6px; }
   .f-verbos summary::-webkit-details-marker { display: none; }
   .f-verbos summary .ico { width: 12px; height: 12px; transition: transform 150ms ease; }
@@ -765,7 +772,7 @@
         <!-- grado, título y programa se escriben en la portada misma: son datos de la tesis -->
         <div class="f-campo b-grado solo-escritura">
           <fieldset class="f-fs">
-            <legend class="oculto">Grado</legend>
+            <legend class="f-rot">Grado</legend>
             <div class="f-grado" id="f-grado"><span class="g-nv" id="f-grado-nv" aria-hidden="true"><i></i><i></i><i></i><i></i></span></div>
           </fieldset>
           <p class="f-err" id="e-grado" hidden></p>
@@ -827,6 +834,8 @@
           <ol class="f-objs" id="f-objs"></ol>
           <button type="button" class="linkbtn f-mas" id="f-mas"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg>Agregar objetivo</button>
           <p class="f-err" id="e-obj" hidden></p>
+          <!-- v4.38.2: los verbos a la vista desde el principio, no solo después de un verbo vago -->
+          <details class="f-verbos f-verbos-guia" id="f-verbos-guia"></details>
         </div>
         <div class="obj-esc">
           <button type="button" class="ayuda" id="f-esc-ayuda" aria-haspopup="dialog" title="¿Qué es la taxonomía de Bloom?" aria-label="¿Qué es la taxonomía de Bloom?">?</button>
@@ -1175,7 +1184,10 @@
     if (faseMapa >= 2) {
       var izq = u[0] + 150 > W, lx = izq ? u[0] - 30 : u[0] + 30, ly = Math.max(24, u[1] - 30);
       s += '<path d="M' + u[0] + ' ' + u[1] + ' L' + lx + ' ' + (ly + 5) + '" stroke="var(--ink)" stroke-width="1.5" fill="none"/>' +
-        '<circle cx="' + u[0] + '" cy="' + u[1] + '" r="8" fill="var(--m)" stroke="var(--ink)" stroke-width="2"/>' +
+        // v4.38.2: el color del área de la tesis, como los puntos y la leyenda de este mapa (y el nodo del
+        // ejemplo de la portada). Antes tomaba el de la mascota, que termina en el color del campo, otra
+        // paleta, donde casi todos los campos de sociales y humanidades salen verdes.
+        '<circle cx="' + u[0] + '" cy="' + u[1] + '" r="8" fill="' + areaHex(S.area) + '" stroke="var(--ink)" stroke-width="2"/>' +
         '<text class="halo-txt" x="' + lx + '" y="' + ly + '" text-anchor="' + (izq ? 'end' : 'start') + '" font-weight="700" font-size="13">MI TESIS</text>';
     }
     $('mapa-capa').innerHTML = s;
@@ -1641,7 +1653,7 @@
     await espera(700); if (!sigue()) return;
     await animarCamara(1500); if (!sigue()) return;
     faseMapa = 1; proy = dibujarMapa(vistaFinal); capaMapa(proy);
-    var area = contar(S.vec, function (t) { return t.area; })[0][0];
+    var area = S.area;
     colorMascota(areaHex(area)); estado('<b>Tu tesis es de ' + AREA_NOMBRE[area] + '.</b> Reuniendo las tesis parecidas', 'investiga');
     await espera(900); if (!sigue()) return;
     faseMapa = 2; capaMapa(proy);
@@ -2218,6 +2230,7 @@
     marca('e-titulo', $('f-titulo'), e.title.length < 3 ? 'Escribe el título de tu tesis, aunque sea provisional.' : '');
     marca('e-prob', $('f-prob'), e.problematiza.length < 20 ? 'Cuenta en pocas palabras qué problema quieres resolver. Es lo que más ayuda a ubicar tu tesis.' : '');
     marca('e-grado', document.querySelector('input[name="grado"]'), e.degree ? '' : 'Elige tu grado: de él depende qué se espera de tus objetivos.');
+    document.querySelector('.b-grado').classList.toggle('mal', !e.degree); // el rótulo «Grado» también se marca
     marca('e-periodo', $('f-desde'), p.on && !p.ok ? 'Escribe dos años, el primero antes del segundo, o quita el periodo.' : '');
     marca('e-obj', $('f-objs').querySelector('textarea'), e.objectives.length ? '' : 'Escribe al menos un objetivo: qué harás para responder tu pregunta.');
     var larga = Array.prototype.filter.call($('f-claves').querySelectorAll('input'), function (t) { return palabras(t.value) > MAX_PALABRAS; })[0];
@@ -2385,6 +2398,8 @@
     if (!S.ia && !S.iaFlujo) { SECCIONES = TODAS.filter(function (s) { return s.id !== 's2' && s.id !== 's3'; }); $('s2').hidden = true; $('s3').hidden = true; }
     S.datos = datos; S.datos.entrada = e;
     S.vec = S.datos.vecinas.map(function (a) { return { id: a[0], titulo: a[1], anio: a[2], area: a[3], nivel: a[4], programa: a[5], plantel: a[6], campo: a[7], tema: a[8], subtema: a[9], sim: a[10] }; });
+    // el área de la tesis: la de la mayoría de sus 100 vecinas (la que anuncia «Tu tesis es de …»)
+    S.area = (contar(S.vec, function (t) { return t.area; })[0] || [0])[0];
     aplicarColor(); vistas(); leyendaAreas();
     pintarMeta(); pintarLomo();
     secuencia();
@@ -2465,6 +2480,19 @@
     $('f-objs').addEventListener('click', function (ev) {
       var v = ev.target.closest('.f-verbo');
       if (v) { ponerVerbo(v.closest('li').querySelector('textarea'), v.dataset.v); return; }
+      if (ev.target.closest('.f-bloom-q')) abrirAyudaBloom(ev.target.closest('.f-bloom-q'));
+    });
+    // la guía de verbos de abajo: el verbo va al objetivo que se estaba escribiendo, o al primero vacío
+    var ultimoObj = null;
+    $('f-objs').addEventListener('focusin', function (ev) { if (ev.target.tagName === 'TEXTAREA') ultimoObj = ev.target; });
+    $('f-verbos-guia').addEventListener('click', function (ev) {
+      var v = ev.target.closest('.f-verbo');
+      if (v) {
+        var tas = Array.prototype.slice.call($('f-objs').querySelectorAll('textarea'));
+        var t = (ultimoObj && document.contains(ultimoObj)) ? ultimoObj : (tas.filter(function (x) { return !x.value.trim(); })[0] || tas[tas.length - 1]);
+        if (t) ponerVerbo(t, v.dataset.v);
+        return;
+      }
       if (ev.target.closest('.f-bloom-q')) abrirAyudaBloom(ev.target.closest('.f-bloom-q'));
     });
     $('f-esc-ayuda').addEventListener('click', function () { abrirAyudaBloom(this); });
@@ -2645,7 +2673,10 @@
     $('lamina-fecha').textContent = new Date().toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' });
     pose($('m-estado'), 'senala'); pintarPrograma(); estadoForm(); actualizarBloom();
     // el léxico de Bloom es el mismo módulo que usa el Worker (compartido/bloom.js)
-    import('./compartido/bloom.js').then(function (m) { F.bloom = m; actualizarBloom(); estadoForm(); })
+    import('./compartido/bloom.js').then(function (m) {
+      F.bloom = m; actualizarBloom(); estadoForm();
+      $('f-verbos-guia').innerHTML = listaVerbos().replace('Elegir un verbo por nivel', 'Ver los verbos sugeridos');
+    })
       .catch(function (err) { console.error('No se pudo cargar el léxico de Bloom', err); });
     if (presentar) mostrarPresentacion(true);
     formListoOk();

@@ -4684,3 +4684,23 @@ Pedida por el usuario: imaginar casos maliciosos y bordes, y comprobar que las d
   - que `nodosmap.com/api/salud` dé `{"ok":true}`, es decir, que la ruta de la API gane sobre el dominio propio del sitio (si muestra la página del sitio, hay que cambiar la conexión);
   - el análisis completo.
 - **Pendiente:** que `www` redirija a la raíz; hoy sirve lo mismo.
+
+### v4.38.2: tres arreglos del Laboratorio tras la primera prueba real (2026-09-29)
+
+**La primera prueba de punta a punta en producción** (`nodosmap.com`, detrás de Access) **funcionó**: inicio de sesión, Turnstile, análisis por SSE con IA, Modal (con el `meta.parquet` nuevo) y guardado en Mi espacio. Encima de eso, el usuario pidió tres arreglos.
+
+1. **«El nodo siempre sale verde».** El círculo de «MI TESIS» en el mapa del análisis tomaba el color de la mascota (`var(--m)`). La mascota termina la secuencia con el **color del campo**, que sale de otra paleta (por ángulo en el mapa), y en ella casi todos los campos de sociales y humanidades son verdes. Pero los puntos y la leyenda de ese mapa van **por área**, igual que el nodo del ejemplo de la portada. Ahora el nodo usa el área de la tesis (`S.area`, la mayoría de sus 100 vecinas: la que anuncia «Tu tesis es de …»). Verificado con los 4 ejemplos: repartidores ocre (Sociales), cofradías rojo (Humanidades), acuífero azul (Físico-Matemáticas) y antibióticos verde (Biológicas).
+2. **El grado casi no se veía, y su error se camuflaba.** Las cuatro opciones iban sueltas en la banda, sin rótulo. El aviso era blanco sobre la banda, como todo lo demás, y en el cuerpo del formulario los avisos iban en el color del texto.
+   - La banda tiene ahora el rótulo **«Grado»**, como el de «Programa».
+   - Hay un token nuevo, `--alerta`, para lo que falta corregir: rojo `#b3261e` sobre el papel (en noche, `#f2a097`) y ámbar `#ffcf5c` dentro de la banda. La banda toma el color del área oscurecido, y el ámbar se distingue sobre las cuatro áreas; un rojo no, sobre la de Humanidades.
+   - El aviso va en ese color y en seminegrita, siempre con el ícono y el texto: nunca el color solo (PRODUCT.md). El subrayado del campo que falta también.
+   - Si falta el grado, el rótulo se marca, y se limpia al elegirlo.
+3. **Los verbos sugeridos, solo después del error.** «Elegir un verbo por nivel» aparecía únicamente cuando un objetivo empezaba mal. Ahora, debajo de los objetivos, está siempre **«Ver los verbos sugeridos»**, la misma lista de 82 verbos por nivel. Al pulsar uno, entra al inicio del último objetivo que se estaba escribiendo, o del primero vacío, con la misma regla de siempre (`ponerVerbo`).
+
+- **Se respetan los antipatrones:** sin píldoras ni botones de contorno (#5) y sin rótulos en mayúsculas (#8).
+- **Cómo se verificó** (Chrome sin ventana):
+  - el aviso del grado mide `rgb(255, 207, 92)` y el del cuerpo `rgb(179, 38, 30)`; el rótulo se marca y se limpia al elegir Maestría;
+  - la guía trae 82 verbos, y pulsar «Comparar» dejó «Comparar las condiciones…»;
+  - capturas en escritorio y móvil;
+  - `prueba_humo.mjs` pasa las 7 páginas.
+- **Publicado** en `nodosmap.com`, detrás de Access.
