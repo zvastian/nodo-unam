@@ -1,0 +1,19 @@
+# Avisos de dependencias con vulnerabilidades y actualizaciones semanales (paso 4 de la lista de
+# lanzamiento). Las bibliotecas del sitio (vendor/) van con versión fija y se revisan a mano: no
+# tienen manifiesto que Dependabot pueda leer.
+version: 2
+updates:
+  - package-ecosystem: npm            # Worker «puerta»: wrangler
+    directory: /services/puerta
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+  - package-ecosystem: pip            # servicio de datos del Laboratorio (FastAPI, ONNX Runtime, FAISS)
+    directory: /services/lab
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+  - package-ecosystem: github-actions # acciones del CI
+    directory: /
+    schedule:
+      interval: monthly

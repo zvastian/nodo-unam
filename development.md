@@ -4704,3 +4704,19 @@ Pedida por el usuario: imaginar casos maliciosos y bordes, y comprobar que las d
   - capturas en escritorio y móvil;
   - `prueba_humo.mjs` pasa las 7 páginas.
 - **Publicado** en `nodosmap.com`, detrás de Access.
+
+### Paso 4: estrés, pruebas del Worker en el CI y Dependabot (2026-09-29)
+
+- **Servicio de datos simulado** (`services/puerta/pruebas/servicio_simulado.mjs`): responde como `services/lab`, con la misma forma y exigiendo `X-Lab-Clave`, con el contexto de ejemplo y un retraso configurable. Cuenta el máximo de peticiones simultáneas que atendió. Así el Worker se prueba sin el modelo ni los 3 GB de artefactos, sin Modal y sin gastar nada.
+- **`pruebas/wrangler.ci.jsonc`:** el Worker sin el binding de IA (que pide cuenta de Cloudflare) y con `TOPE_IA_DIA=0`, contra el simulado, con la fila real de 2 lugares.
+- **Prueba de estrés** (`pruebas/estres.mjs N`): N estudiantes, cada uno con su cuenta y su IP (en `wrangler dev`, el límite por IP respeta `CF-Connecting-IP`; en producción Cloudflare lo sobrescribe), piden un análisis al mismo tiempo.
+  - **50 a la vez:** 2 en vivo y 48 a la fila, sin ningún error ni 429. La fila se vació sola en 11 s, con 48 de 48 «listo» y sus 100 vecinas. Las 50 cuentas gastaron exactamente 1, y el servicio **nunca atendió más de 2 a la vez**.
+  - **150 a la vez:** 2 en vivo y 148 a la fila, con los mismos resultados. La fila se vació en 43 s, con el servicio a 2 a la vez como máximo.
+- **CI:** job `worker` nuevo en `.github/workflows/pruebas.yml`, que corre `pruebas/ci.sh`:
+  - el servicio simulado;
+  - `wrangler dev` con `wrangler.ci.jsonc`, con `puerta.test.mjs` (11) y el estrés con 50;
+  - luego `wrangler.fila.jsonc`, con `fila.test.mjs` (4).
+  En local, las tres pasaron contra el simulado: 11/11, estrés bien y 4/4.
+- **Dependabot** (`.github/dependabot.yml`): npm del Worker y pip del servicio cada semana, y las acciones del CI cada mes. Las bibliotecas de `vendor/` no tienen manifiesto y se revisan a mano.
+- **Límites de esta prueba:** no mide Modal real (arranque en frío, 2 núcleos) ni los límites por minuto de Groq. La capacidad real con IA sigue siendo de cerca de 1 análisis con IA por minuto en Groq gratuito (ver `architecture.md` §11). Una prueba contra producción tendría que pasar por Access (con un token de servicio) y gastaría crédito.
+- **Repo pública:** `zvastian/nodo-unam` es pública. Antes de subir se revisó que ningún commit trajera claves (Groq, Supabase, Modal, Turnstile): 0 coincidencias.

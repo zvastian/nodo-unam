@@ -127,6 +127,24 @@ Cada corrida completa gasta unos 65,000 tokens de Groq, un tercio del día: para
 - toca `auth/v1/health` de Supabase para que el plan gratuito no pause el proyecto. Falta confirmar
   que eso cuenta como actividad (ver «Pendiente»).
 
+## Pruebas con el servicio simulado y estrés
+
+`pruebas/servicio_simulado.mjs` responde como el servicio de datos: misma forma, exige `X-Lab-Clave`
+y tiene un retraso configurable. Usa el contexto de ejemplo del Laboratorio y no necesita el
+modelo ni los 3 GB de artefactos. Además cuenta cuántas peticiones atendió a la vez. Con él y
+`pruebas/wrangler.ci.jsonc` (sin IA y sin cuenta de Cloudflare), el Worker completo se prueba sin
+gastar nada:
+
+- `puerta.test.mjs`: 11 pruebas;
+- `estres.mjs [N]`: N estudiantes con su cuenta y su IP piden un análisis a la vez. Falla si
+  alguno recibe un 5xx o un 429, si uno de la fila no termina «listo», si una cuenta no gastó
+  exactamente 1, o si el servicio atendió más de `FILA_SIMULTANEOS` a la vez;
+- `fila.test.mjs`: 4 pruebas, con `wrangler.fila.jsonc`.
+
+`pruebas/ci.sh` corre todo en el CI (job `worker` de `.github/workflows/pruebas.yml`), en Linux.
+En Windows, los mismos pasos a mano: `cp .dev.vars pruebas/.dev.vars`, el servicio simulado con la
+`LAB_CLAVE` de `.dev.vars`, y `wrangler dev -c pruebas/wrangler.ci.jsonc`.
+
 ## Fila (`src/fila.js`)
 
 Un Durable Object, uno solo para todo el sitio (plan gratuito, SQLite). Modal corre un contenedor de 2 núcleos, así que el servicio de datos atiende `FILA_SIMULTANEOS` (2) análisis a la vez.
