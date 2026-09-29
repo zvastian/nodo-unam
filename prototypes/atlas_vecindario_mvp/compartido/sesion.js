@@ -9,8 +9,9 @@
   var PARAM = new URLSearchParams(location.search);
   var LOCAL = /^(127\.0\.0\.1|localhost)$/.test(location.hostname);
   // ?puerta= solo en local: en producción, un enlace con ?puerta=https://otro-sitio mandaría ahí
-  // el token de sesión. Publicado, la API está en el mismo origen.
-  var PUERTA = LOCAL ? (PARAM.get('puerta') || 'http://127.0.0.1:8787') : '';
+  // el token de sesión. Publicado, la API está en el mismo origen (nodosmap.com/api/*, la ruta del
+  // Worker «puerta»), que es lo único que la CSP deja llamar (connect-src 'self').
+  var PUERTA = LOCAL ? (PARAM.get('puerta') || 'http://127.0.0.1:8787') : location.origin;
   var sb = null, usuario = null, oyentes = [], listoOk = null, primera = true;
   var listo = new Promise(function (r) { listoOk = r; });
   try {

@@ -4662,3 +4662,11 @@ Pedida por el usuario: imaginar casos maliciosos y bordes, y comprobar que las d
   - volver a subir los artefactos parchados a Modal (`meta.parquet`, 308 filas);
   - las URL de producción en Supabase (Site URL y Redirect URLs) y en Google y GitHub OAuth;
   - rotar la clave de Groq.
+
+### v4.38.1: la API en el mismo origen; artefactos parchados en Modal; Supabase con URL de producción (2026-09-29)
+
+- **Supabase (usuario):** Site URL `https://nodosmap.com`, y Redirect URLs de `nodosmap.com` y `www.nodosmap.com`. Se conservan las de `127.0.0.1` para desarrollo.
+- **Modal:** `meta.parquet` parchado (las 308 tesis de «Notas al programa» movidas el 28-sep) subido al volumen `nodos-lab-artefactos` con `modal volume put … --force`: 56.2 MiB, 29-sep 13:37. El contenedor carga los artefactos al arrancar y se apaga tras 1 minuto sin uso, así que el siguiente arranque ya usa el nuevo. **No verificado desde fuera:** llamar al servicio requiere la `LAB_CLAVE`, que nadie ve. Se comprueba en la prueba de punta a punta. En Git Bash hace falta `MSYS_NO_PATHCONV=1`.
+- **`compartido/sesion.js`:** publicado, `PUERTA` es `location.origin`; antes quedaba vacío y las páginas publicadas no llamaban a la API. La API vivirá en `nodosmap.com/api/*`, el único origen que la CSP deja llamar (`connect-src 'self'`). En local sigue en `127.0.0.1:8787`, o en `?puerta=`. `sesion.js?v=4.38.1` en las seis páginas.
+- **Cómo se verificó:** `prueba_humo.mjs` pasa las 7 páginas en local. En la copia de prueba de workers.dev, `/api/*` no existe todavía; sin sesión no se llama.
+- **Al conectar el dominio** (el último paso), `nodosmap.com/api/*` tiene que llegar al Worker `nodos-puerta` y el resto al sitio `nodosmap`. Hay dos formas: rutas para los dos (`nodosmap.com/*` al sitio y `nodosmap.com/api/*` a la API; gana la más específica), o dominio propio para el sitio y ruta para la API. Hay que comprobar con `curl` cuál tiene precedencia antes de anunciar nada, y que `www` redirija a la raíz.
