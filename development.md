@@ -4428,3 +4428,8 @@ Sección de traspaso: la sesión se cortó porque la terminal dejó de responder
 7. **Repo pública** en `ssebastian-diazz` (historia limpia); el enlace al código sigue apuntando a `zvastian/nodo-unam`.
 8. **Dominio y correo:** Email Routing de `contacto@`, Auto-renew, `www` que redirija a la raíz.
 9. **Al final:** `python tools/construir_sitio.py`, publicar `dist/` y conectar el dominio.
+
+### v4.36.2: los ajustes dicen «Día» y «Noche» (2026-09-28)
+
+- **Qué cambió:** en Ajustes, las dos opciones de apariencia se llaman «Día» y «Noche» (antes «Claro» y «Oscuro»), como el resto del proyecto. Solo cambia el texto de `compartido/ajustes.js`; los valores internos (`data-modo`) y lo guardado en el navegador siguen igual, así que nadie pierde su elección.
+- **Cómo se verificó:** búsqueda de «Claro» y «Oscuro» en las cinco páginas y en `compartido/`: no queda ninguna etiqueta visible con esos nombres (el resto son comentarios de código y palabras como «azul oscuro»). No abrí el panel en el navegador.

@@ -1,5 +1,5 @@
 // Ajustes de NodOS (v4.26): la misma ventana en el mapa, el Laboratorio y Mi espacio.
-// Apariencia (claro u oscuro) y color de los puntos del mapa (campos o áreas). Cada página pone
+// Apariencia (día o noche) y color de los puntos del mapa (campos o áreas). Cada página pone
 // lo suyo al cambiar: NodosAjustes.montar({ boton, alModo(oscuro), alLente(lente) }).
 (function () {
   'use strict';
@@ -24,8 +24,8 @@
       '<button type="button" class="aj-cerrar" aria-label="Cerrar ajustes">' + ICO_X + '</button></div>' +
     '<section class="aj-sec"><h4 id="aj-h-modo">Apariencia</h4>' +
       '<div class="aj-modos" role="radiogroup" aria-labelledby="aj-h-modo">' +
-        '<button type="button" role="radio" data-modo="claro"><img src="ventanas-dia.svg" width="96" height="96" alt=""><span class="aj-op"><span class="aj-radio"></span>Claro</span></button>' +
-        '<button type="button" role="radio" data-modo="oscuro"><img src="ventanas-noche.svg" width="96" height="96" alt=""><span class="aj-op"><span class="aj-radio"></span>Oscuro</span></button>' +
+        '<button type="button" role="radio" data-modo="claro"><img src="ventanas-dia.svg" width="96" height="96" alt=""><span class="aj-op"><span class="aj-radio"></span>Día</span></button>' +
+        '<button type="button" role="radio" data-modo="oscuro"><img src="ventanas-noche.svg" width="96" height="96" alt=""><span class="aj-op"><span class="aj-radio"></span>Noche</span></button>' +
       '</div></section>' +
     '<section class="aj-sec"><h4 id="aj-h-lente">Color de los puntos del mapa</h4>' +
       '<div class="aj-lentes" role="radiogroup" aria-labelledby="aj-h-lente">' +
