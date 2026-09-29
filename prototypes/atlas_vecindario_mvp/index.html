@@ -473,7 +473,7 @@
   .tl-tesis { display: grid; grid-template-columns: 250px 1fr; gap: 40px; align-items: start; }
   .tl-fac { position: sticky; top: 0; padding: 20px 0; max-height: calc(100vh - 190px); overflow-y: auto; }
   .tl-fac input { width: 100%; height: 34px; font: inherit; font-size: 14px; padding: 0 2px; border: 0; border-bottom: 1px solid var(--line-strong); background: none; color: var(--ink); }
-  .tl-fac input:focus { outline: none; border-bottom-color: var(--ink); }
+  .tl-fac input:focus { outline: none; border-bottom: 2px solid var(--ink); margin-bottom: -1px; }
   .fc { padding: 14px 0 12px; border-bottom: 1px solid var(--line); }
   .tl-fac summary { display: none; }
   .fc h4 { margin: 0 0 8px; font-size: 13.5px; font-weight: 600; color: var(--ink); }
@@ -637,7 +637,7 @@
     #map-selection, body.iso #map-selection { --msy: 14px; --msx: 16px; top: auto; max-height: 46%; border-left: none; border-top: 1px solid var(--line-strong); }
   }
 </style>
-<link rel="stylesheet" href="compartido/cuenta.css?v=4.31.2">
+<link rel="stylesheet" href="compartido/cuenta.css?v=4.38.5">
 <link rel="stylesheet" href="compartido/ajustes.css?v=4.26.0">
 </head>
 <body>
@@ -671,6 +671,7 @@
   <div id="debug-log" hidden></div>
 
   <main id="main">
+    <h1 class="oculto">NodOS: mapa de las tesis de la UNAM</h1>
     <div id="wgl-host"></div>
     <div id="tint" aria-hidden="true"></div>
     <canvas id="flow" aria-hidden="true"></canvas>
@@ -732,7 +733,7 @@
 
   <footer>
     <span>Proyecto independiente, no oficial. Datos del catálogo público TESIUNAM.</span>
-    <span><a id="foot-metodo" href="acerca.html#mapa">Cómo se hizo el mapa</a><span class="foot-sep"></span><a href="privacidad.html">Privacidad</a><span class="foot-sep"></span><a href="contacto.html">Contacto</a><span class="foot-sep"></span>versión <span id="app-version">4.38.3</span></span>
+    <span><a id="foot-metodo" href="acerca.html#mapa">Cómo se hizo el mapa</a><span class="foot-sep"></span><a href="privacidad.html">Privacidad</a><span class="foot-sep"></span><a href="contacto.html">Contacto</a><span class="foot-sep"></span>versión <span id="app-version">4.38.5</span></span>
   </footer>
 </div>
 
@@ -771,7 +772,7 @@
 <!-- v4.28: las librerías se sirven desde vendor/, con versión exacta; supabase-js conserva su SRI -->
 <script src="vendor/supabase-js-2.117.2.js" integrity="sha384-Rj26LVGvoeRVR6+mwQmFfcR3QOBEwT+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok"></script>
 <script>if (location.hash === '#metodo') location.replace('acerca.html');</script>
-<script src="compartido/sesion.js?v=4.38.1"></script>
+<script src="compartido/sesion.js?v=4.38.5"></script>
 <script src="compartido/ajustes.js?v=4.36.2"></script>
 <script>
 (function () {
@@ -827,7 +828,7 @@
     n: 0, ndcX: null, ndcY: null, macroCode: null, areaCode: null, thesisIds: null, thesisIdToIndex: null,
     catTerritory: null, catArea: null, lens: 'territory', memberStart: null, memberIdx: null,
     palette: [], opacities: [],
-    vecindarioPreview: null, panelStack: [], selectedId: null,
+    panelStack: [], selectedId: null,
     highlightKey: '',
     densityPct: 1
   };
@@ -849,6 +850,17 @@
   // titulos del catalogo: acentos (atencion -> atención), siglas (vih -> VIH) y nombres
   // propios (iztacala -> Iztacala). Solo cambia lo que se muestra, no los datos.
   var ESCRITURA = {};
+  // v4.38.5: escribir() para títulos con mayúsculas («Enfermeria en la deteccion…»). escribir() solo entiende
+  // minúsculas; aquí cada palabra se busca en minúsculas y conserva su forma (Capital, MAYÚSCULAS o minúscula).
+  // Las palabras que ya traen acento («análisis») son una sola palabra y no están en el diccionario.
+  function escribirTitulo(t) {
+    return String(t == null ? '' : t).replace(/[\p{L}\p{N}]+/gu, function (w) {
+      var r = ESCRITURA[w.toLowerCase()]; if (!r) return w;
+      if (w.length > 1 && w === w.toUpperCase()) return r.toUpperCase();
+      if (w.charAt(0) !== w.charAt(0).toLowerCase()) return r.charAt(0).toUpperCase() + r.slice(1);
+      return r;
+    });
+  }
   function escribir(t) { return String(t || '').replace(/[a-z0-9ñü]+/g, function (w) { return ESCRITURA[w] || w; }); }
   function capital(t) { t = String(t || ''); return t.charAt(0).toUpperCase() + t.slice(1); }
   // v4.8.1: todo titulo de tesis empieza con mayuscula (el catalogo trae algunos en minuscula, p. ej.
@@ -919,18 +931,14 @@
       fetchJson('./data/atlas_macro_graph.v1.json'),
       fetchJson('./data/atlas_chaos_mode.v1.json'),
       fetch('./data/atlas_chaos_mode.v1.bin', { cache: 'no-cache' }).then(function (r) { return r.arrayBuffer(); }),
-      fetchJson('./data/vecindario_preview.v1.json').catch(function () { return null; }),
       fetchJson('./data/macro_nombres.v1.json').catch(function () { return null; }),
       fetchJson('./data/escritura.v1.json').catch(function () { return null; })
     ]);
-    ESCRITURA = (results[5] && results[5].v) || {};
+    ESCRITURA = Object.assign(Object.create(null), (results[4] && results[4].v) || {}); // sin prototipo: un título con «constructor» no toma la función Object
     var graph = results[0], meta = results[1], buf = results[2];
-    state.vecindarioPreview = results[3];
-    if (state.vecindarioPreview) Object.keys(state.vecindarioPreview.theses).forEach(function (k) {
-      var t = state.vecindarioPreview.theses[k]; t.title = tituloTesis(escribir(t.title));
-      (t.neighbors || []).forEach(function (nb) { nb.title = tituloTesis(escribir(nb.title)); });
-    });
-    var curados = (results[4] && results[4].macros) || {};
+    // v4.38.5: ya no se descarga vecindario_preview.v1.json (24 MB, solo 2,500 tesis de muestra): los
+    // títulos salen de las teselas, como los del resto del corpus.
+    var curados = (results[3] && results[3].macros) || {};
     state.macroGraph = graph;
     state.macros = graph.nodes.slice().sort(function (a, b) { return a.macroId - b.macroId; });
     var huellasRotas = 0;
@@ -1591,7 +1599,7 @@
   }
   function showPointCard(idx) {
     var tid = state.thesisIds[idx], info = pointInfo(idx), mc = state.macroCode[idx], m = mc >= 0 ? state.macroById[mc] : null;
-    var t = state.vecindarioPreview && state.vecindarioPreview.theses[tid], row = state.iso && state.iso.byIdx[idx];
+    var row = state.iso && state.iso.byIdx[idx];
     $('ms-eyebrow').textContent = 'Tesis';
     $('ms-title').textContent = info ? info.t : 'Cargando título…';
     $('ms-meta').textContent = (info && info.y) || 'Año sin registro';
@@ -2136,7 +2144,6 @@
     // en movil el panel ocupa toda la pantalla: se aparta mientras la ficha este abierta
     if (panel.classList.contains('open') && window.matchMedia('(max-width: 860px)').matches) panel.classList.add('peek');
     var idx = state.thesisIdToIndex.get(r.id); if (idx == null) return;
-    var t = state.vecindarioPreview && state.vecindarioPreview.theses[r.id];
     $('ms-eyebrow').textContent = 'Tesis';
     $('ms-title').textContent = r.t;
     $('ms-meta').textContent = r.y || 'Año sin registro';
@@ -3272,7 +3279,7 @@
       var rec = titleTiles[k] = { map: null, p: null };
       rec.p = fetchJson('./data/titulos_teselas/' + k + '.json').then(function (d) {
         var mp = new Map();
-        for (var j = 0; j < d.i.length; j++) mp.set(d.i[j], { t: tituloTesis(d.t[j]), y: d.y[j] });
+        for (var j = 0; j < d.i.length; j++) mp.set(d.i[j], { t: tituloTesis(escribirTitulo(d.t[j])), y: d.y[j] }); // acentos y ñ, como el resto de los títulos (v4.38.5)
         rec.map = mp; return mp;
       }).catch(function () { rec.map = new Map(); return rec.map; });
     }
@@ -3282,8 +3289,6 @@
   function pointInfo(idx) {
     var r = state.iso && state.iso.byIdx[idx];
     if (r) return { t: r.t, y: r.y };
-    var pv = state.vecindarioPreview && state.vecindarioPreview.theses[state.thesisIds[idx]];
-    if (pv) return { t: pv.title, y: pv.year };
     var k = tileKeyOf(idx), rec = k && titleTiles[k];
     if (!rec || !rec.map) return undefined;
     return rec.map.get(idx) || null;

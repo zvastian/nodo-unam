@@ -4756,3 +4756,42 @@ Pedida por el usuario: imaginar casos maliciosos y bordes, y comprobar que las d
   - la migración 0005 en la D1 remota;
   - el Worker (versión `f35813bc`);
   - el sitio en `nodosmap.com`, todavía detrás de Access (`/api/salud` sin sesión de Access: 302).
+
+### v4.38.4 y v4.38.5: paso 5, calidad (léxico de Bloom, accesibilidad y primera carga) (2026-09-29)
+
+**1. Léxico de Bloom (`compartido/bloom.js`).** El pendiente «artículo tomado como verbo» era real, y de paso salieron otros dos errores.
+- **El artículo tomado como verbo.** El preámbulo solo saltaba «el» y «la». «Los análisis de…», «Un análisis de…», «Una evaluación de…» y «Unos estudios sobre…» salían con verbo «los», «un», «una»: fuera del léxico, sin sugerencia, con el aviso «“los” no dice qué harás». Ahora los artículos y demostrativos (`los las un una unos unas este esta estos estas`) se saltan, y el sustantivo que sigue manda: «Los análisis de…» dice «Empieza con un sustantivo. Prueba con el verbo: «Analizar…»».
+- **Plurales** de la tabla de sustantivos («evaluaciones», «estudios», «propuestas»), con y sin artículo.
+- **Un sustantivo tras el artículo no es un verbo conjugado.** «Un modelo para predecir…» se clasificaba como «modelar» (Aplicar), en silencio, porque «modelo» parece una forma de ese verbo. Ahora, tras el artículo, sigue un sustantivo y no se busca un verbo más adelante: «No empieza con un verbo…». Excepción: «El objetivo es analizar…», donde el artículo es preámbulo.
+- **El sujeto «Este estudio compara…».** El verbo es «compara», no «estudio». Se quita el sujeto («este», «esta», «el presente» o «la presente» + estudio, trabajo, investigación, tesis o proyecto) si no lo sigue «de», «sobre», «en», «para» o «acerca». «El presente estudio busca analizar…» sale como Analizar; «El presente estudio de la vivienda» sigue siendo un sustantivo.
+- **Palabras que también son nombres de `Object`** (error viejo, no de este cambio). `NIVEL['constructor']` devolvía la función `Object`: «**Constructor** de puentes» salía con `lema = function` y `nivel = object`, y «Estudio del constructor» con nivel objeto. Un estudiante de ingeniería lo habría visto como basura. Los diccionarios (`NIVEL`, `RANGO`, `NOMINAL`) ya no tienen prototipo. Lo mismo en el diccionario de escritura del mapa (`ESCRITURA`) y del Laboratorio (`S.escritura`): un título con «constructor» tomaba la función, y `escribir()` habría pintado su código fuente.
+- **Cómo se hizo:** primero las pruebas (4 nuevas en `bloom.test.mjs`: artículos, sustantivo tras el artículo, preámbulo y palabras de `Object`; fallaban), luego el arreglo. Las 13 anteriores siguen pasando. **Bloom: 17.**
+- **`ponerVerbo`** (el verbo que se elige de la lista) quita también el artículo y el sustantivo: «Los análisis de las condiciones» + «Comparar» da «Comparar las condiciones…», no «Comparar los análisis de…». Comprobado en el formulario con 6 casos.
+- **`bloom.js?v=` en el `import` del formulario.** Sin versión, el navegador de prueba conservó el módulo viejo y parecía que el arreglo no servía. En producción Workers Assets revalida, pero ahora lleva versión como el resto.
+- **Un error mío, encontrado por una prueba:** un `\b` de una expresión regular entró al archivo como el carácter de retroceso (código 8), invisible, y desactivó una condición. Se revisó que ningún archivo del sitio conserve caracteres de control.
+
+**2. Accesibilidad** (medida en Chrome, en las seis páginas, en día **y** en noche real).
+- **Contraste:** 0 textos por debajo de AA (4.5:1; 3:1 los grandes) en las seis páginas, en los dos modos. Validado con un caso plantado: un texto gris claro sobre blanco sale con 1.61:1 y se detecta. **Aviso de método:** mi primera medición de noche era falsa (el modo se activa con `localStorage nodo_noche`, no con una clase); la rehice bien.
+- **Estructura:** `lang="es"` y título en todas; ninguna imagen sin `alt`; ningún botón, enlace o campo sin nombre; ningún id duplicado; landmarks completos; sin saltos de título ni `tabindex` positivos.
+- **Lo que faltaba, y ya está:**
+  - **El mapa y el Laboratorio no tenían `h1`.** El mapa trae uno solo para lectores de pantalla («NodOS: mapa de las tesis de la UNAM»). El Laboratorio, uno en el formulario («Laboratorio: describe tu tesis»); la presentación y el análisis ya traían el suyo, así que nunca hay dos.
+  - **Ninguna página tenía enlace para saltar la barra** (WCAG 2.4.1). `sesion.js` crea «Saltar al contenido», que solo se ve al enfocarlo y lleva el foco al `<main>`. Probado con el teclado: el primer `Tab` lo muestra y `Enter` mueve el foco.
+  - **Los diálogos dejaban salir el `Tab`.** Los del Laboratorio (aviso y ayuda de Bloom) y la ventana «Entra a NodOS» movían el foco adentro y cerraban con `Esc`, pero `Tab` llegaba a la página de atrás. Ahora recorre sus controles en círculo (también con `Shift+Tab`) y `Esc` devuelve el foco al botón de origen. Probado.
+  - **Blancos de toque:** los iconos de la barra medían 22 px de ancho (mínimo 24 en WCAG 2.2): ahora 28 px. Los verbos de la guía, 24 px de alto. Los blancos por debajo de 24 px en el Laboratorio pasaron de 173 a 7.
+  - El filtro de listas del mapa marca el foco con una línea de 2 px.
+- **Sin cambio (revisado):** el diálogo de búsqueda del mapa es un panel no modal con rol y nombre; ninguna regla quita el marco de foco sin dejar otro indicador.
+- **Falta:** una prueba con lector de pantalla real (NVDA o VoiceOver) y con `axe`: esta medición no lo sustituye. Tampoco se revisó el mapa WebGL con teclado (los puntos no son enfocables; las fichas y la búsqueda sí).
+
+**3. Primera carga del mapa.**
+- **Medido** en local, sin compresión (en producción Cloudflare comprime): **49.5 MB en los primeros 14 s.** El mayor era `vecindario_preview.v1.json`, **23.8 MB**, que se descargaba al abrir y se recorría entero para reescribir títulos, aunque solo cubre 2,500 tesis de muestra y la función que lo usaba se retiró. Sus usos quedaban en una variable muerta (`t`, en dos funciones) y en el título de respaldo de `pointInfo`.
+- **Ya no se descarga** ni se publica (`construir_sitio.py` lo deja fuera; sigue en el repo como salida del pipeline). **49.5 → 25.7 MB (-48 %).** Lo demás: el `.bin` del mapa (16 MB, indispensable) y, a los 5 s, la precarga de asesores (`asesores_por_tesis.v1.bin` 5 MB, `asesores.v1.json` 2.4 MB, `tesis_anio.v1.bin` 1.2 MB).
+- **Regresión que salió al verificar, ya corregida:** los títulos de esas 2,500 tesis pasaban por `escribir()` (acentos y ñ) y los de las teselas nunca. «Enfermería en la detección…» se veía «Enfermeria… deteccion». `escribir()` solo entiende minúsculas, así que se agregó `escribirTitulo()`, que respeta las mayúsculas del título, y se aplica a las teselas.
+  - Se probó con los **609,154 títulos**: **47 % (287,130) recuperan acentos que les faltaban** («Etiologia» → «Etiología», «ninos» → «niños», «denticion» → «dentición»), y **ninguno cambia una letra que no sea un acento**.
+  - El diccionario (6,560 entradas) no tiene palabras ambiguas («esta», «si», «mas»).
+- **Verificado:** la ficha de `TH_0000072` (de la muestra) y la de `TH_0462868` muestran su título con acentos; consola sin errores; `prueba_humo.mjs` pasa las 7 páginas.
+- **Sigue pendiente (decisión de producto):** la precarga de 8.6 MB de asesores a los 5 s cuesta datos móviles aunque nadie abra un asesor. Se podría hacer bajo demanda; no lo toqué porque cambia cuándo aparecen los filtros por año.
+- **Medida en producción, no hecha:** `nodosmap.com` está detrás de Access. Los números de arriba son locales y sin compresión.
+
+**Publicado:** sitio y Worker en `nodosmap.com` (la puerta de Access sigue puesta: 302). Versiones: `sesion.js?v=` y `cuenta.css?v=` en 4.38.5.
+
+**Cómo se verificó, en resumen:** Bloom 17, inyección 6 y seguridad 8 (31 en total); humo, 7 páginas; capturas y mediciones en Chrome descritas arriba.

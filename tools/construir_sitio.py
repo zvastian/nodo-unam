@@ -15,7 +15,8 @@ DIST = os.path.join(RAIZ, 'dist')
 ARCHIVOS = ['index.html', 'laboratorio.html', 'espacio.html', 'acerca.html', 'privacidad.html', 'contacto.html',
             'favicon.svg', 'ventanas-dia.svg', 'ventanas-noche.svg', 'mit-license.png', '_headers']
 CARPETAS = ['compartido', 'vendor', 'lab', 'data']
-FUERA = {'LEEME.md'}
+# vecindario_preview.v1.json (24 MB): ya no lo descarga el mapa (v4.38.5); sigue en el repo, como salida del pipeline
+FUERA = {'LEEME.md', 'vecindario_preview.v1.json'}
 LIMITE_ARCHIVO = 25 * 1024 * 1024  # Cloudflare Pages
 LIMITE_ARCHIVOS = 20000
 

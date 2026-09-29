@@ -13,7 +13,7 @@ export const NIVELES = ['Recordar', 'Comprender', 'Aplicar', 'Analizar', 'Evalua
 // «interpretar» va en Analizar, no en Comprender (decisión del usuario, 27-sep-2026): en humanidades
 // interpretar un discurso o una obra es el acto analítico central, y en Comprender marcaba un falso
 // retroceso tras «analizar» (caso historia_arte de la evaluación).
-const NIVEL = {};
+const NIVEL = Object.create(null);   // sin prototipo: NIVEL['constructor'] no debe devolver la función Object
 const porNivel = [
   'recordar reconocer enumerar listar nombrar definir memorizar localizar recuperar citar',
   'comprender explicar resumir clasificar categorizar contextualizar caracterizar describir ' +
@@ -59,6 +59,11 @@ const NOMINAL = {
   examen: 'examinar', planeacion: 'planear', planificacion: 'planificar', sistematizacion: 'sistematizar',
 };
 
+// Los diccionarios se indexan con texto libre del estudiante («constructor», «toString»…): sin prototipo,
+// una palabra que también es un nombre de Object es una palabra más (v4.38.5).
+Object.setPrototypeOf(RANGO, null);
+Object.setPrototypeOf(NOMINAL, null);
+
 // Verbos «ligeros» que toman el sentido de su complemento: «realizar un análisis», «llevar a cabo encuestas».
 const LIGEROS = new Set(['realizar', 'hacer', 'efectuar', 'llevar']);
 // Instrumentos y actividades de método (no son objetivos).
@@ -73,7 +78,20 @@ const INGLES = new Set('to the of and for in on with by from analyze analyse eva
 const ESPANOL = new Set('de la el los las en y para por con del al que se un una'.split(' '));
 
 // Palabras que se saltan antes del verbo rector.
-const PREAMBULO = new Set(['se', 'para', 'que', 'el', 'la', 'objetivo', 'general', 'especifico', 'es', 'busca', 'pretende', 'intenta', 'quiere', 'buscamos', 'pretendo', 'busco', 'mi', 'nuestro', 'primero', 'finalmente', 'ademas', 'tambien', 'y']);
+const PREAMBULO = new Set(['se', 'para', 'que', 'el', 'la', 'objetivo', 'general', 'especifico', 'es', 'busca', 'pretende', 'intenta', 'quiere', 'buscamos', 'pretendo', 'busco', 'mi', 'nuestro', 'presente', 'primero', 'finalmente', 'ademas', 'tambien', 'y']);
+
+// Artículos y demostrativos: no son el verbo. Tras uno viene un sustantivo («Los análisis de…»,
+// «Un modelo para…»), y ese sustantivo tampoco es un verbo conjugado aunque lo parezca («modelo»).
+const ARTICULOS = new Set(['el', 'la', 'los', 'las', 'un', 'una', 'unos', 'unas', 'este', 'esta', 'estos', 'estas']);
+// El sujeto de una oración con verbo: «Este estudio compara…», «El presente trabajo busca analizar…».
+// El verbo rector es el que sigue. Si sigue «de», «sobre»… es un sustantivo con complemento y no se quita.
+const SUJETO = /^(este|esta|el presente|la presente)\s+(estudio|trabajo|investigacion|tesis|proyecto)\s+(?!(de|del|sobre|en|para|acerca)\b)/;
+
+// Sustantivo de la tabla NOMINAL, también en plural («evaluaciones», «estudios», «propuestas»).
+function nominal(w) {
+  if (!w) return undefined;
+  return NOMINAL[w] || NOMINAL[w.replace(/es$/, '')] || NOMINAL[w.replace(/s$/, '')];
+}
 
 const ENCLITICOS = /(selos|selas|sela|selo|los|las|lo|la|les|le|se|nos)$/;
 const FUTURO = /(emos|eis|an|as|a|e)$/;          // analizare, analizaran… (tras quitar acentos)
@@ -123,7 +141,7 @@ function palabras(t) { return normalizar(t).split(/[^a-zñ]+/).filter(Boolean); 
  */
 export function clasificarObjetivo(texto) {
   const r = { texto: String(texto || '').trim(), verbo: '', lema: null, nivel: null, rango: null, banderas: [], sugerencias: [] };
-  const norm = normalizar(r.texto).replace(/^\s*(\d+[.)-]?|[a-z][.)])\s+/, '');
+  const norm = normalizar(r.texto).replace(/^\s*(\d+[.)-]?|[a-z][.)])\s+/, '').replace(SUJETO, '');
   const t = palabras(norm);
   if (!t.length) { r.banderas.push('vacio'); return r; }
 
@@ -132,12 +150,20 @@ export function clasificarObjetivo(texto) {
   if (TRAMITE.test(norm)) { r.banderas.push('tramite'); return r; }
 
   // Verbo rector: el primero reconocible entre las primeras palabras, después del preámbulo.
-  let i = 0;
-  while (i < t.length && PREAMBULO.has(t[i]) && !lematizar(t[i])) i++;
+  let i = 0, sustantivo = false;
+  while (i < t.length) {
+    if (ARTICULOS.has(t[i])) {
+      // «El objetivo es analizar…»: el artículo es parte del preámbulo. Si no, sigue un sustantivo.
+      if (PREAMBULO.has(t[i + 1]) && !lematizar(t[i + 1])) { i++; continue; }
+      sustantivo = true; i++; break;
+    }
+    if (PREAMBULO.has(t[i]) && !lematizar(t[i])) { i++; continue; }
+    break;
+  }
   // Sin verbo: «Análisis de…». Va antes de lematizar: «desarrollo» o «estudio» también son verbos
   // conjugados, pero al inicio de un objetivo casi siempre son sustantivos.
-  if (NOMINAL[t[i]]) {
-    const l = NOMINAL[t[i]];
+  if (nominal(t[i])) {
+    const l = nominal(t[i]);
     r.banderas.push('sin_verbo');
     r.verbo = t[i];
     r.lema = l;
@@ -147,6 +173,10 @@ export function clasificarObjetivo(texto) {
     if (VAGOS.has(l)) r.banderas.push('vago');
     return r;
   }
+
+  // Un sustantivo tras el artículo («Las políticas de vivienda», «Un modelo para predecir…»): no hay verbo
+  // rector. Buscarlo más adelante tomaría por verbo una palabra del complemento («modelo» → modelar).
+  if (sustantivo) { r.verbo = t[i - 1]; r.banderas.push('fuera_lexico'); return r; }
 
   let lema = null, pos = -1;
   for (let k = i; k < Math.min(i + 3, t.length); k++) {

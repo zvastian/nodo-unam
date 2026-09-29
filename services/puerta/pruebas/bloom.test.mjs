@@ -59,6 +59,68 @@ test('sin verbo: se sugiere el verbo del sustantivo', () => {
   assert.ok(tiene('Desarrollo de un sistema de monitoreo', 'sin_verbo'));
 });
 
+test('un artículo o un demostrativo no es el verbo: el sustantivo que sigue manda', () => {
+  // v4.38.4: «Los análisis de…», «Un análisis de…» salían con verbo «los»/«un» (fuera del léxico)
+  for (const [o, lema] of [
+    ['Los análisis de las condiciones laborales', 'analizar'],
+    ['Un análisis de la vivienda en la ciudad', 'analizar'],
+    ['Una evaluación del sistema de riego', 'evaluar'],
+    ['Las evaluaciones del impacto de la beca', 'evaluar'],
+    ['Unos estudios sobre migración', 'estudiar'],
+    ['Las propuestas de política pública', 'proponer'],
+    ['Evaluaciones del impacto de la beca', 'evaluar'],   // el plural también, sin artículo
+  ]) {
+    const r = c(o);
+    assert.ok(r.banderas.includes('sin_verbo'), o + ' → ' + r.banderas);
+    assert.equal(r.lema, lema, o);
+    assert.deepEqual(r.sugerencias, [lema], o);
+    assert.ok(!r.banderas.includes('fuera_lexico'), o);
+  }
+  assert.equal(NIVELES[c('Un análisis de la vivienda').nivel], 'Analizar');
+});
+
+test('un sustantivo tras el artículo no se toma por verbo conjugado', () => {
+  // «modelo» parece una forma de «modelar»; «factores» y «políticas» no dicen qué se hará
+  for (const o of ['Un modelo para predecir los precios de la vivienda', 'Los factores de la pobreza en México', 'Las políticas de vivienda en la ciudad', 'Los resultados de las políticas públicas']) {
+    const r = c(o);
+    assert.equal(r.nivel, null, o);
+    assert.ok(r.banderas.includes('fuera_lexico') || r.banderas.includes('sin_verbo'), o + ' → ' + r.banderas);
+  }
+  assert.deepEqual(c('Un modelo para predecir los precios de la vivienda').banderas, ['fuera_lexico']);
+  assert.ok(!c('Un modelo para predecir los precios').lema);
+});
+
+test('el preámbulo sigue siendo preámbulo: «El objetivo es analizar…»', () => {
+  for (const o of ['El objetivo general es analizar la deserción escolar', 'El objetivo es analizar la deserción escolar', 'Para analizar la deserción escolar', 'Se busca analizar la deserción escolar', 'El presente estudio busca analizar la deserción escolar', 'Este estudio compara dos sistemas bancarios']) {
+    assert.ok(c(o).nivel !== null && !c(o).banderas.includes('fuera_lexico'), o + ' → ' + c(o).banderas);
+  }
+  assert.equal(NIVELES[c('El presente estudio busca analizar la deserción escolar').nivel], 'Analizar');
+  assert.equal(c('Este estudio compara dos sistemas bancarios').lema, 'comparar');
+  assert.equal(NIVELES[c('Este estudio compara dos sistemas bancarios').nivel], 'Analizar');
+  // sin verbo detrás del sujeto, sigue siendo un sustantivo
+  assert.ok(tiene('Este estudio de la vivienda en la ciudad', 'sin_verbo'));
+  assert.ok(tiene('El estudio de la vivienda', 'sin_verbo'));
+});
+
+test('palabras que también son nombres de Object: son palabras comunes, no funciones', () => {
+  // v4.38.5: NIVEL['constructor'] devolvía la función Object: «Constructor de puentes» salía con lema función
+  // y nivel objeto. Los diccionarios se indexan con texto libre de los estudiantes.
+  for (const o of ['Constructor de puentes colgantes', 'constructor', 'toString del sistema', 'valueOf', 'hasOwnProperty', 'isPrototypeOf', 'Estudio del constructor', '__proto__ de la vivienda', 'Los constructores de vivienda']) {
+    const r = c(o);
+    assert.ok(r.lema === null || typeof r.lema === 'string', o + ' lema: ' + typeof r.lema);
+    assert.ok(r.nivel === null || typeof r.nivel === 'number', o + ' nivel: ' + typeof r.nivel);
+    assert.ok(r.rango === null || Array.isArray(r.rango), o + ' rango');
+    assert.ok(r.sugerencias.every((x) => typeof x === 'string'), o + ' sugerencias');
+    JSON.parse(JSON.stringify(r));
+  }
+  assert.equal(c('Constructor de puentes colgantes').nivel, null);
+  assert.ok(tiene('Constructor de puentes colgantes', 'fuera_lexico'));
+  assert.equal(lematizar('constructor'), null);
+  assert.equal(lematizar('toString'), null);
+  // y un verbo de verdad, tras una de esas palabras, sigue mandando
+  assert.equal(NIVELES[c('Analizar el constructor de la vivienda').nivel], 'Analizar');
+});
+
 test('verbo conjugado: se lematiza', () => {
   assert.equal(lematizar('analizaré'), 'analizar');
   assert.equal(lematizar('analizará'), 'analizar');

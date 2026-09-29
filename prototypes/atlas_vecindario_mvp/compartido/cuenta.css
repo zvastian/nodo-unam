@@ -105,3 +105,11 @@ body .guardar.on svg, body .guardar-as.on svg, body .guardar-lugar.on svg, body 
 .conf-recordar:hover { color: var(--ink); }
 /* en el mapa la barra separa sus hijos 28px; la tuerca queda a 20px de la cuenta, como en las demás páginas */
 header.nav > [data-nds-cuenta] + .navajustes { margin-left: -8px; }
+
+/* v4.38.5: enlace para saltar la barra y llegar al contenido (WCAG 2.4.1). Solo se ve al enfocarlo con el
+   teclado; el contenido principal recibe el foco sin marco, porque no es un control. */
+.saltar { position: fixed; left: 12px; top: -64px; z-index: 100000; padding: 10px 16px; background: var(--ink); color: var(--paper); font: inherit; font-size: 14px; font-weight: 600; text-decoration: none; }
+.saltar:focus { top: 12px; outline: 2px solid var(--link); outline-offset: 2px; }
+main:focus { outline: none; }
+/* la barra: iconos de al menos 24 px de ancho (WCAG 2.5.8) */
+.nds-entrar, .nds-espacio, #btn-ajustes { min-width: 28px; }

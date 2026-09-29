@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Laboratorio de tesis</title>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="compartido/cuenta.css?v=4.31.2">
+<link rel="stylesheet" href="compartido/cuenta.css?v=4.38.5">
 <link rel="stylesheet" href="compartido/ajustes.css?v=4.26.0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -332,6 +332,7 @@
      El estudiante escribe dentro de la misma portada que después encabeza su análisis. Campos sin
      caja: filete inferior; en la portada, tinta blanca. Ver DESIGN.md, «Inputs / Fields». */
   body.escribiendo .solo-analisis, body:not(.escribiendo) .solo-escritura { display: none !important; }
+  body.presentando .solo-form { display: none !important; }  /* la presentación ya tiene su h1 */
   body.escribiendo .inicio { grid-template-columns: minmax(0, 1fr); }
   .oculto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   ::selection { background: color-mix(in oklch, var(--link) 28%, transparent); }
@@ -433,7 +434,7 @@
   .f-verbos dt { font-weight: 700; color: var(--vc, var(--ink)); display: flex; align-items: baseline; gap: 6px; }
   .f-verbos dt i { font-style: normal; font-weight: 400; color: var(--ink-3); font-size: 12px; }
   .f-verbos dd { margin: 0; display: flex; flex-wrap: wrap; gap: 2px 12px; }
-  .f-verbo { background: none; border: none; border-bottom: 1px solid transparent; padding: 0 0 1px; cursor: pointer; color: var(--vc, var(--ink-2)); font-weight: 600; font-size: 13.5px; }
+  .f-verbo { min-height: 24px; background: none; border: none; border-bottom: 1px solid transparent; padding: 0 0 1px; cursor: pointer; color: var(--vc, var(--ink-2)); font-weight: 600; font-size: 13.5px; }
   .f-verbo:hover { border-bottom-color: currentColor; }
   .f-verbo:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
   .f-bloom-q { display: inline-flex; align-items: center; gap: 8px; background: none; border: none; padding: 0; cursor: pointer; color: var(--ink-2); font-size: 13.5px; }
@@ -768,6 +769,7 @@
     <div class="inicio-izq">
     <header class="ficha" id="ficha">
       <div class="banda">
+        <h1 class="oculto solo-escritura solo-form">Laboratorio: describe tu tesis</h1>
         <p class="lamina"><span><b>Laboratorio</b> <span id="lamina-txt">Tu tesis</span></span><span class="lamina-der"><span>Versión beta</span><span id="lamina-fecha"></span></span></p>
         <!-- grado, título y programa se escriben en la portada misma: son datos de la tesis -->
         <div class="f-campo b-grado solo-escritura">
@@ -924,7 +926,7 @@
 
 <!-- supabase-js 2.117.2 (UMD), versión exacta con SRI: inicio de sesión -->
 <script src="vendor/supabase-js-2.117.2.js" integrity="sha384-Rj26LVGvoeRVR6+mwQmFfcR3QOBEwT+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok"></script>
-<script src="compartido/sesion.js?v=4.38.1"></script>
+<script src="compartido/sesion.js?v=4.38.5"></script>
 <script src="compartido/ajustes.js?v=4.36.2"></script>
 <script src="compartido/apoyo.js?v=4.36.9"></script>
 <script>
@@ -1775,7 +1777,7 @@
       fetch(base + 'tesis_meta.v1.bin').then(function (x) { return x.arrayBuffer(); }),
       fetch(EJ_DIR + (EJ_ID ? 'entrada.json' : 'entrada_ejemplo.json')).then(function (x) { return x.json(); }).catch(function () { return null; })
     ]);
-    S.macros = r[0].nodes.slice().sort(function (a, b) { return a.macroId - b.macroId; }); S.escritura = r[1].v || {};
+    S.macros = r[0].nodes.slice().sort(function (a, b) { return a.macroId - b.macroId; }); S.escritura = Object.assign(Object.create(null), r[1].v || {}); // sin prototipo (ver index.html)
     var f = r[2].fields, buf = r[3];
     S.puntos = { n: r[2].n, x: new Float32Array(buf, f.x.byteOffset, f.x.count), y: new Float32Array(buf, f.y.byteOffset, f.y.count), macro: new Int32Array(buf, f.macroCode.byteOffset, f.macroCode.count), area: new Int32Array(buf, f.areaCode.byteOffset, f.areaCode.count) };
     S.idx = new Map(new TextDecoder('utf-8').decode(new Uint8Array(buf, f.thesisIdsBlob.byteOffset, f.thesisIdsBlob.byteLength)).split('\n').map(function (id, i) { return [id, i]; }));
@@ -2061,7 +2063,7 @@
   function pareceVerbo(o) { return !!o.lema || /(ar|er|ir)$/.test(sinAcento(o.verbo || '')) && (o.verbo || '').length > 4; }
   function ponerVerbo(t, v) {
     var o = F.bloom.clasificarObjetivo(t.value), txt = t.value.trim(), V = capital(verboBonito(v));
-    var m = txt.match(/^\S+\s+(del?)\s+/i);
+    var m = txt.match(/^(?:(?:el|la|los|las|un|una|unos|unas)\s+)?\S+\s+(del?)\s+/i);
     if (o.banderas.indexOf('sin_verbo') >= 0) txt = m ? V + ' ' + (m[1].toLowerCase() === 'del' ? 'el ' : '') + txt.slice(m[0].length) : txt.replace(/^\S+/, V); // «Estudio de la vivienda» -> «Comparar la vivienda»
     else if (!pareceVerbo(o) || !txt) txt = V + ' ' + txt.charAt(0).toLowerCase() + txt.slice(1);                                                                   // «Las políticas…» -> «Comparar las políticas…»
     else txt = txt.replace(/^\S+/, V);                                                                                                                                  // «Conocer las…» -> «Comparar las…»
@@ -2524,6 +2526,17 @@
     ['mouseenter', 'focus'].forEach(function (ev) { apoya.addEventListener(ev, function () { festejo($('m-aviso'), avisoPose === 'fila'); }); });
     ['mouseleave', 'blur'].forEach(function (ev) { apoya.addEventListener(ev, function () { if (apoya.matches(':hover') || document.activeElement === apoya) return; pose($('m-aviso'), avisoPose); }); });
     document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape') cerrarDialogo(); });
+    // Tab no sale del diálogo abierto (v4.38.5): recorre sus controles en círculo
+    document.addEventListener('keydown', function (ev) {
+      if (ev.key !== 'Tab' || !dlgAbierto) return;
+      var d = $(dlgAbierto + '-dlg');
+      var f = Array.prototype.filter.call(d.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])'), function (e) { return e.offsetParent !== null; });
+      if (!f.length) return;
+      var a0 = f[0], z = f[f.length - 1];
+      if (!d.contains(document.activeElement)) { ev.preventDefault(); a0.focus(); }
+      else if (ev.shiftKey && document.activeElement === a0) { ev.preventDefault(); z.focus(); }
+      else if (!ev.shiftKey && document.activeElement === z) { ev.preventDefault(); a0.focus(); }
+    }, true);
     $('f-objs').addEventListener('keydown', function (ev) {
       var t = ev.target; if (t.tagName !== 'TEXTAREA') return;
       var li = t.closest('li');
@@ -2695,7 +2708,7 @@
     $('lamina-fecha').textContent = new Date().toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' });
     pose($('m-estado'), 'senala'); pintarPrograma(); estadoForm(); actualizarBloom();
     // el léxico de Bloom es el mismo módulo que usa el Worker (compartido/bloom.js)
-    import('./compartido/bloom.js').then(function (m) {
+    import('./compartido/bloom.js?v=4.38.4').then(function (m) {
       F.bloom = m; actualizarBloom(); estadoForm();
       $('f-verbos-guia').innerHTML = listaVerbos().replace('Elegir un verbo por nivel', 'Ver los verbos sugeridos');
     })

@@ -88,6 +88,16 @@
     pintarAcceso($('nds-acceso'), null);
     capa.addEventListener('click', cerrarEntrar); $('nds-cerrar').addEventListener('click', cerrarEntrar);
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !dlg.hidden) cerrarEntrar(); });
+    // Tab no sale de la ventana (v4.38.5)
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Tab' || dlg.hidden) return;
+      var f = Array.prototype.filter.call(dlg.querySelectorAll('a[href], button:not([disabled]), input:not([disabled])'), function (x) { return x.offsetParent !== null; });
+      if (!f.length) return;
+      var a0 = f[0], z = f[f.length - 1];
+      if (!dlg.contains(document.activeElement)) { e.preventDefault(); a0.focus(); }
+      else if (e.shiftKey && document.activeElement === a0) { e.preventDefault(); z.focus(); }
+      else if (!e.shiftKey && document.activeElement === z) { e.preventDefault(); a0.focus(); }
+    }, true);
   }
   function abrirEntrar(origen) {
     crearVentana(); aviso(''); desde = origen || document.activeElement;
@@ -281,7 +291,16 @@
     borrarCuenta: function () { return api('/api/cuenta', { metodo: 'DELETE' }).then(function () { if (sb) return sb.auth.signOut(); }); }
   };
 
+  // enlace para saltar la barra (v4.38.5): apunta al <main> de la página, que recibe el foco al usarlo
+  function saltar() {
+    var m = document.querySelector('main'); if (!m || document.querySelector('.saltar')) return;
+    if (!m.id) m.id = 'nds-contenido';
+    m.setAttribute('tabindex', '-1');
+    var a = document.createElement('a'); a.className = 'saltar'; a.href = '#' + m.id; a.textContent = 'Saltar al contenido';
+    document.body.insertBefore(a, document.body.firstChild);
+  }
   function arrancar() {
+    saltar();
     pintarNav();
     if (!sb) { listoOk(null); primera = false; return; }
     sb.auth.onAuthStateChange(function (ev, ses) { poner(ses); });
