@@ -1,0 +1,21 @@
+// El sitio estático de NodOS (las seis páginas, compartido/, vendor/, lab/, data/ y _headers) como
+// Worker con archivos estáticos, en la cuenta «NodOS», dueña del dominio. No va en la raíz del repo
+// a propósito: un wrangler.jsonc ahí lo tomaría cualquier comando de wrangler (ya pasó una vez).
+// Publicar, desde la raíz del repo:
+//   python tools/construir_sitio.py
+//   npx wrangler deploy -c tools/sitio.wrangler.jsonc
+// Los dominios propios crean sus registros DNS solos. La API (Worker «nodos-puerta») toma
+// nodosmap.com/api/* con una ruta en services/puerta/wrangler.jsonc.
+// Mientras no se lance, Cloudflare Access (Zero Trust) va delante de los dos dominios: solo entran
+// los correos autorizados.
+{
+  "name": "nodosmap",
+  "account_id": "98c2acfaa077d8350511cb2b8ac275c0",
+  "compatibility_date": "2026-09-01",
+  "assets": { "directory": "../dist" },
+  "workers_dev": true,
+  "routes": [
+    { "pattern": "nodosmap.com", "custom_domain": true },
+    { "pattern": "www.nodosmap.com", "custom_domain": true }
+  ]
+}

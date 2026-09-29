@@ -69,6 +69,11 @@
       "name": "nodos-puerta",
       "account_id": "98c2acfaa077d8350511cb2b8ac275c0",
       "workers_dev": true,
+      // La API en el mismo origen que el sitio: la CSP de las páginas solo deja llamar a 'self'.
+      "routes": [
+        { "pattern": "nodosmap.com/api/*", "zone_name": "nodosmap.com" },
+        { "pattern": "www.nodosmap.com/api/*", "zone_name": "nodosmap.com" }
+      ],
       "d1_databases": [
         { "binding": "DB", "database_name": "nodos", "database_id": "c754d30f-9825-48b2-9c2d-a9ff107fd3d8", "migrations_dir": "migrations" }
       ],
