@@ -4273,3 +4273,27 @@ El nombre de cada uno queda en `aria-label` y `title`. Entrar y Mi espacio los p
 - cerrar RFC-0002 como ADR.
 
 **Verificación:** `grep` sin ningún `data-pendiente="contacto"` restante.
+
+## v4.34.0: el sitio publicado en Cloudflare (Workers con archivos estáticos) (2026-09-28)
+
+**Qué cambió:**
+- **El sitio está en línea** en `https://nodosmap.sebastian-diaz-prado.workers.dev`, en la cuenta de Cloudflare dueña de `nodosmap.com` (ID `98c2acfa…`). Todavía no está conectado al dominio.
+- **Workers y no Pages:** wrangler 4.141 manda `pages project create` al flujo de Workers («Cloudflare Pages, now part of Cloudflare Workers»). Se publica como Worker con archivos estáticos, que acepta el mismo `_headers` y tiene los mismos límites (20,000 archivos y 25 MiB por archivo):
+  `npx wrangler deploy --assets dist --name nodosmap --compatibility-date 2026-09-01`
+  Hay que correrlo **desde la raíz del repo**. Dentro de `services/puerta` toma el `wrangler.jsonc` de la API: el primer intento, ahí, trató de subir el Worker de la API con el nombre `nodosmap` y falló con un 400, sin publicar nada.
+- **`_headers`, la CSP por página.** Workers Static Assets no respeta `! Content-Security-Policy`, así que el mapa recibía dos CSP: la general, sin `unsafe-eval`, y la suya. El navegador aplica las dos, y la estricta bloquea regl. Ahora `/*` lleva solo las cabeceras comunes, y cada página (`/`, `/acerca`, `/laboratorio`, `/espacio`, `/privacidad`) lleva su CSP.
+- **Las URL `.html` redirigen (307) sin la extensión:** `/acerca.html` va a `/acerca`, e `/index.html?tesis=…` va a `/?tesis=…`, conservando la consulta.
+- `construir_sitio.py` documenta el comando nuevo.
+
+**Por qué:** es el paso de despliegue para lanzar el mapa solo (v0).
+
+**Verificación:**
+- `curl`: una sola CSP por página, y `unsafe-eval` solo en `/`. Las dos CSP que se vieron primero en `/` venían de la caché del borde.
+- `prueba_humo.mjs` contra el sitio publicado: pasan las 6 páginas, con la consola limpia.
+
+**Falta:**
+- conectar `nodosmap.com` y `www`;
+- poner el Worker de la API en `/api/*` del mismo dominio;
+- las URL de Supabase y de OAuth.
+
+Mientras tanto, el Laboratorio y el inicio de sesión no funcionan en el sitio publicado.

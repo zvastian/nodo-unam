@@ -1,12 +1,14 @@
-# Cabeceras de seguridad para Cloudflare Pages (v4.28).
+# Cabeceras de seguridad (v4.28; por página desde v4.34).
 # La CSP se probó en Chrome con cada página (development.md, v4.28.0).
 # - 'unsafe-inline' en scripts: las páginas llevan su código en línea (sin build).
 # - 'unsafe-eval' solo en el mapa: regl compila sus shaders con new Function.
 # - La API (el Worker) y el servicio del Laboratorio van en el mismo dominio: connect-src 'self'.
 # - Turnstile carga su script y su marco desde challenges.cloudflare.com.
+# - La CSP va por página y no en /*: Workers Static Assets no respeta «! Content-Security-Policy»
+#   y mandaba dos CSP al mapa; el navegador aplica las dos y la estricta bloquea regl.
+#   Las rutas van sin .html porque el sitio redirige /acerca.html a /acerca.
 
 /*
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://vujmkcpxsdrmrwsijnlz.supabase.co wss://vujmkcpxsdrmrwsijnlz.supabase.co; frame-src https://challenges.cloudflare.com; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests
   Strict-Transport-Security: max-age=31536000
   X-Content-Type-Options: nosniff
   X-Frame-Options: DENY
@@ -15,12 +17,19 @@
   Cross-Origin-Opener-Policy: same-origin-allow-popups
 
 /
-  ! Content-Security-Policy
   Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://vujmkcpxsdrmrwsijnlz.supabase.co wss://vujmkcpxsdrmrwsijnlz.supabase.co; frame-src https://challenges.cloudflare.com; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests
 
-/index.html
-  ! Content-Security-Policy
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://vujmkcpxsdrmrwsijnlz.supabase.co wss://vujmkcpxsdrmrwsijnlz.supabase.co; frame-src https://challenges.cloudflare.com; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests
+/acerca
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://vujmkcpxsdrmrwsijnlz.supabase.co wss://vujmkcpxsdrmrwsijnlz.supabase.co; frame-src https://challenges.cloudflare.com; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests
+
+/laboratorio
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://vujmkcpxsdrmrwsijnlz.supabase.co wss://vujmkcpxsdrmrwsijnlz.supabase.co; frame-src https://challenges.cloudflare.com; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests
+
+/espacio
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://vujmkcpxsdrmrwsijnlz.supabase.co wss://vujmkcpxsdrmrwsijnlz.supabase.co; frame-src https://challenges.cloudflare.com; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests
+
+/privacidad
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://vujmkcpxsdrmrwsijnlz.supabase.co wss://vujmkcpxsdrmrwsijnlz.supabase.co; frame-src https://challenges.cloudflare.com; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests
 
 /vendor/*
   Cache-Control: public, max-age=31536000, immutable

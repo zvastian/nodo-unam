@@ -2,7 +2,8 @@
 
 Deja fuera las versiones viejas (index.v*.html), los bocetos y las notas internas.
 Uso:  python tools/construir_sitio.py
-Luego: npx wrangler pages deploy dist --project-name <proyecto>
+Luego: npx wrangler deploy --assets dist --name nodosmap --compatibility-date 2026-09-01
+       (desde la raíz del repo, con CLOUDFLARE_ACCOUNT_ID de la cuenta del dominio)
 """
 import os
 import shutil
