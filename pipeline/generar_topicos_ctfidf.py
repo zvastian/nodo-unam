@@ -24,11 +24,17 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import scipy.sparse as sp
 from sklearn.feature_extraction.text import CountVectorizer
 
 CLUSTERS_PATH = Path(os.getenv("CLUSTERS_PATH", "data/clustering/clusters_hdbscan.parquet"))
 TITLES_PATH = Path(os.getenv("TITLES_PATH", "data/public/data_unam.parquet"))
 OUTPUT_PATH = Path(os.getenv("OUTPUT_PATH", "data/clustering/cluster_topics_ctfidf.parquet"))
+# Opcional: guarda la matriz c-TF-IDF completa (una fila por grupo, en el orden de IDS_PATH). La usan
+# generar_atlas_subgraphs.py (meso_ctfidf_matrix.npz y micro_ctfidf_matrix.npz, con sus _ids.npy)
+# para medir la similitud entre grupos hermanos.
+MATRIZ_PATH = os.getenv("MATRIZ_PATH")
+IDS_PATH = os.getenv("IDS_PATH")
 
 TOP_N_KEYWORDS = int(os.getenv("TOP_N_KEYWORDS", "8"))
 # Descarta terminos casi unicos en todo el corpus (typos, nombres propios
@@ -132,6 +138,10 @@ def main():
 
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     result.to_parquet(OUTPUT_PATH, index=False)
+    if MATRIZ_PATH and IDS_PATH:
+        sp.save_npz(MATRIZ_PATH, c_tfidf)
+        np.save(IDS_PATH, cluster_ids)
+        print("Guardado:", MATRIZ_PATH, c_tfidf.shape, "y", IDS_PATH)
 
     print("\nOK")
     print("Guardado:", OUTPUT_PATH, result.shape)

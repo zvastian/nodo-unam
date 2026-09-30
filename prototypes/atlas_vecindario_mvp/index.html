@@ -10,8 +10,8 @@
 <style>
   /* =====================================================================
      v4.0.0 — de plantilla de dashboard a producto web.
-     Cada decision responde a un anti-patron de PRODUCT.md («Lo que hace ver
-     generica una UI», #1-#21); el numero va entre corchetes en el comentario.
+     Cada decision responde a un anti-patron de la guia de diseno del proyecto («Lo que
+     hace ver generica una UI», #1-#21); el numero va entre corchetes en el comentario.
      ===================================================================== */
   /* v4.18: modo noche holistico. Toda la interfaz lee estos tokens; body.noche solo cambia
      sus valores. Contraste verificado (WCAG): de dia ink 17.4, ink-2 8.5, ink-3 5.1, link 8.1 sobre
@@ -70,7 +70,7 @@
     border: none; border-radius: 2px; background: transparent; color: var(--ink); cursor: pointer;
     font-size: 14px; font-weight: 500;
   }
-  /* sin fondos grises: el hover subraya (lista negra del usuario, 25-09) */
+  /* sin fondos grises: el hover subraya (regla de la interfaz) */
   .btn:hover { text-decoration: underline; text-underline-offset: 3px; }
   .btn:disabled { color: var(--ink-3); cursor: default; background: transparent; }
   /* v4.15: la accion principal ya no es una caja negra. Es texto en tinta, seminegritas, con una
@@ -153,7 +153,7 @@
   .anode.micro circle { fill: var(--bg); fill-opacity: 1; stroke: var(--c); stroke-width: 2; }
   .anode.micro:hover circle, .anode.micro.selected circle { stroke: var(--ink); stroke-width: 2; }
   .alabel.micro text { text-transform: none; font-weight: 500; }
-  /* rotulos del mapa: unico lugar con mayusculas (convencion cartografica pedida por el usuario) */
+  /* rotulos del mapa: unico lugar con mayusculas (convencion cartografica) */
   .alabel text, .node-label { font-family: "Libre Franklin", sans-serif; font-weight: 600; text-transform: uppercase; fill: var(--map-label); paint-order: stroke; stroke: var(--bg); stroke-width: 3.5px; stroke-linejoin: round; cursor: pointer; pointer-events: auto; }
   .alabel text:hover { fill: var(--link); }
   .alabel.selected text { fill: var(--ink); text-decoration: underline; text-decoration-thickness: 1.5px; }
@@ -866,7 +866,7 @@
   // v4.8.1: todo titulo de tesis empieza con mayuscula (el catalogo trae algunos en minuscula, p. ej.
   // «a considerar…»). Se sube la primera LETRA, saltando comillas, signos de apertura y parentesis.
   function tituloTesis(t) { return String(t || '').replace(/^([^A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9]*)([a-záéíóúüñ])/, function (m, pre, l) { return pre + l.toUpperCase(); }); }
-  // v4.6: sin punto medio (el usuario lo senalo como patron de UI generica); guion largo entre palabras clave
+  // v4.6: sin punto medio (patron de UI generica); guion largo entre palabras clave
   var SEP = ' – ';
   function nombreTema(label) { return keywords(label).map(function (k) { return capital(escribir(k)); }).join(SEP); }
   function keywords(label) { return String(label || '').split(' · ').map(function (s) { return s.trim(); }).filter(Boolean); }
@@ -1384,7 +1384,7 @@
 
   function bindNodeEvents(el, n) {
     // v3.2: el hover ya NO resalta el territorio en negro (redibujaba 609k puntos y
-    // estorbaba el desplazamiento por el mapa, pedido del usuario). Solo tooltip.
+    // estorbaba el desplazamiento por el mapa). Solo tooltip.
     el.addEventListener('mouseenter', function (ev) { showNodeTip(n, ev); });
     el.addEventListener('mousemove', moveTip);
     el.addEventListener('mouseleave', hideTip);
@@ -1670,7 +1670,7 @@
     for (var i = 0; i < state.n; i += paso) { var q = locXY(i, px); ctx.fillRect(q[0], q[1], d, d); }
     return (locBases[px] = cv);
   }
-  // v4.12, tonal (pedido del usuario: el recuadro con el color de fondo): fondo en un tinte claro
+  // v4.12, tonal (el recuadro con el color de fondo): fondo en un tinte claro
   // del color, la silueta del mapa en un tono medio y lo que describe la ficha en el color pleno.
   function mezclaBlanco(hex, f) {
     var v = parseInt(String(hex).slice(1), 16), base = parseInt(tok('--paper').slice(1), 16);
@@ -1910,8 +1910,8 @@
     });
     return { ys: ys, ar: ar, tot: tot || 1, nvc: nvc, nvt: nvt, prs: prs };
   }
-  // Linea de tiempo (v4.12). Con 10 tesis o mas, barras por anio (histograma, pedido del
-  // usuario); con menos, paletas (un tallo y un punto por anio), para no volver al bloque de
+  // Linea de tiempo (v4.12). Con 10 tesis o mas, barras por anio (histograma);
+  // con menos, paletas (un tallo y un punto por anio), para no volver al bloque de
   // una sola barra a todo el ancho. Rango minimo de 10 anios; eje con numeros. Al pasar el
   // cursor, la barra se marca, las demas se atenuan y encima aparece cuantas tesis y el anio.
   function histHtml(d, c, W, H, grande) {
@@ -2023,7 +2023,7 @@
     var c = colorNodo(n), N = rows.length, idxs = rows.map(function (r) { return state.thesisIdToIndex.get(r.id); }); // alineado con rows
     var d = perfilDatos(rows, idxs);
     pintaLocator($('panel-loc'), 60, idxs.filter(function (i) { return i != null; }), c);
-    // v4.13.1: sin palabras clave (el usuario: redundantes, el nombre ya esta hecho de ellas)
+    // v4.13.1: sin palabras clave (redundantes: el nombre ya esta hecho de ellas)
     var html = '<div class="cs">' + histHtml(d, c, 316, 46, false) + '</div>';
     html += '<div class="cs"><h3>Áreas</h3>' + areasHtml(d, 92) + '</div>';
     if (d.nvt) html += '<div class="cs"><h3>Niveles</h3>' + nivelesHtml(d, 316, 10) + '</div>';
@@ -2540,7 +2540,7 @@
   // pipeline/generar_atlas_tesis_meta.py: los tres datos para las 609k tesis (antes solo las
   // ~200k de algun tema fino), alineados con el orden del mapa. 3 MB; se piden con la primera ficha.
   var tmeta = null, tmetaP = null;
-  // Licenciatura..Doctorado: escala secuencial de azul, mas oscuro cuanto mas avanzado (pedido del usuario);
+  // Licenciatura..Doctorado: escala secuencial de azul, mas oscuro cuanto mas avanzado;
   // cada paso contrasta con el anterior y el primero se distingue del blanco
   var NIVEL_DIA = ['#9cc3e6', '#5b95cf', '#2d65a8', '#143a6b'], NIVEL_NOCHE = ['#3f67a0', '#4f82c4', '#86b3ec', '#cfe3ff']; // de noche, mas avanzado = mas luminoso
   var NIVEL_COLOR = NIVEL_DIA.slice();
@@ -3154,7 +3154,7 @@
       if (ms.getAttribute('data-grupo') !== clave) return;
       var filas = idxs.map(function (i) { return { y: ases.anio ? ases.anio[i] : 0, nv: '', pr: tmeta && tmeta.pr[i] ? pretty(tmeta.m.programas[tmeta.pr[i] - 1]) : '' }; });
       var d = perfilDatos(filas, idxs);
-      // v4.10, orden pedido por el usuario: linea de tiempo, areas y niveles (datos del catalogo);
+      // v4.10, orden: linea de tiempo, areas y niveles (datos del catalogo);
       // al final los campos, que son inferidos por el agrupamiento. Sin subtitulo de conteo y rango:
       // la linea de tiempo ya lo dice.
       $('ms-meta').textContent = '';
@@ -3174,7 +3174,7 @@
         var co = {};
         idxs.forEach(function (i) { for (var j = ases.off[i]; j < ases.off[i + 1]; j++) if (ases.ids[j] !== opts.aid) co[ases.ids[j]] = (co[ases.ids[j]] || 0) + 1; });
         var cs = Object.keys(co).sort(function (a, b) { return co[b] - co[a]; }).slice(0, 5);
-        // v4.20, pedido del usuario: un clic abre aqui mismo las tesis que codirigieron (antes volaba
+        // v4.20: un clic abre aqui mismo las tesis que codirigieron (antes volaba
         // al mapa con el otro asesor); el titulo lleva al catalogo, como en la ficha de una tesis
         if (cs.length) h += '<div class="cs"><h3>Codirigió con</h3><div class="cs-list">' + cs.map(function (k) {
           var on = abierto === +k;
@@ -3308,7 +3308,7 @@
   // La separacion NO es un layout inventado: cada tesis parte de su posicion real
   // ampliada alrededor del centro del tema (conserva quien esta cerca de quien) y
   // una relajacion de colisiones garantiza ISO_MIN_PX entre centros en pantalla.
-  var ISO_MIN_PX = 24;      // separacion minima entre centros de dos tesis (v3.3: antes 15; referencia del usuario)
+  var ISO_MIN_PX = 24;      // separacion minima entre centros de dos tesis (v3.3: antes 15)
   var EDGE_MAX = 1200;      // enlaces dibujados como maximo en un subtema aislado (v4.8.1)
   var ISO_DOT_PX = 15;      // diametro del punto en estado 'eco'
   var ISO_EXPAND = 3.2;     // cuanto se amplia el tema como minimo respecto a su tamano real
@@ -3329,11 +3329,11 @@
   }
 
   // ==================== marcas: tesis elegidas por encima del mapa (v4.3) ====================
-  // Pedido del usuario: una tesis o un grupo elegidos no se distinguian del ruido. Causas:
+  // Problema: una tesis o un grupo elegidos no se distinguian del ruido. Causas:
   // la tesis sola usaba el mismo negro y tamano que su grupo; el grupo tenia el tamano del
   // ruido y los 600k puntos atenuados se dibujaban ENCIMA (orden de indice en WebGL).
   // Solucion en el lenguaje del mapa (tinta, gris, rotulos, lineas finas), sin anillos,
-  // brillos ni pulsos (el usuario descarto el halo: "se ve muy IA"). Referencias: Gapminder
+  // brillos ni pulsos (el halo se descarto por generico). Referencias: Gapminder
   // (lo elegido en color, lo demas gris), FT/NYT (anotacion con linea guia) y Embedding
   // Atlas (curvas de densidad para resumir un conjunto disperso).
   //   - grupo (pin): sus puntos se repintan aqui, encima de todo y 1.5 px mas grandes;
@@ -3781,7 +3781,7 @@
   $('iso-exit').addEventListener('click', function () { exitIsolation(); });
 
   // ---------- estado 'eco': enlaces + deriva lenta (v3.4, en WebGL) ----------
-  // A pedido del usuario: fuera particulas y pulsos ("resplandor", se veia generico).
+  // Fuera particulas y pulsos ("resplandor", se veia generico).
   // Solo enlaces (grosor = similitud e5) y un movimiento lento pero notable: cada tesis
   // deriva alrededor de su lugar (suma de dos senoidales, periodo propio 7-13 s,
   // amplitud DRIFT_PX) y los enlaces la siguen, estirandose y relajandose.
@@ -3793,7 +3793,7 @@
   // vez y la deriva se calcula en el shader; por cuadro solo cambian tiempo y camara.
   // En WebGL de fondo las tesis del tema quedan INVISIBLES pero seleccionables
   // (hover/clic funcionan; la deriva es de pocos px).
-  // v4.24.1, pedido del usuario: fuera la deriva. El cuadro se redibujaba 60 veces por segundo
+  // v4.24.1: fuera la deriva. El cuadro se redibujaba 60 veces por segundo
   // mientras el tema estuviera abierto; ahora las tesis quedan quietas y la capa se pinta solo
   // cuando algo cambia (camara, seleccion, tamano, color), desde paintMarks.
   var DRIFT_PX = 0;
@@ -3902,8 +3902,7 @@
   }
 
   // v4.14: el modo «Analizar» (reordenar las tesis del subtema en cuadricula por grupo) se quito.
-  // Su cuadricula se salia por debajo de la pantalla en subtemas grandes y no se alcanzaba (bug
-  // reportado por el usuario). El boton ahora abre el taller del subtema, que ya organiza sus
+  // Su cuadricula se salia por debajo de la pantalla en subtemas grandes y no se alcanzaba (bug). El boton ahora abre el taller del subtema, que ya organiza sus
   // tesis por nivel, programa, plantel y decada con mas detalle.
   $('iso-analyze').addEventListener('click', function () {
     var n = state.iso && state.iso.node; if (!n) return;

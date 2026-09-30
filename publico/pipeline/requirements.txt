@@ -1,0 +1,14 @@
+# Pipeline de datos (ver pipeline/README.md). Versiones de la corrida local de 2026-09.
+numpy==2.4.6
+pandas==3.0.3
+pyarrow==24.0.0
+scipy==1.17.1
+scikit-learn==1.9.0
+faiss-cpu==1.14.2
+joblib==1.5.3
+psutil
+# Pasos que corrieron en Kaggle con GPU (embeddings, reducción y clustering); sin versión fija.
+sentence-transformers
+umap-learn
+hdbscan
+pacmap

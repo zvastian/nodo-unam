@@ -1,0 +1,92 @@
+# Pruebas en cada push y pull request.
+# - privacidad: ningún título publicado trae mención de autor ni hay campos de autor en los datos.
+# - humo: cada página carga en Chrome headless sin errores en la consola.
+# - léxico: la tabla de casos de Bloom del Laboratorio y los casos de inyección de prompt.
+name: pruebas
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  privacidad:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Datos del mapa (Release, en caché)
+        uses: actions/cache@v4
+        with:
+          path: sitio/data
+          key: datos-${{ hashFiles('tools/descargar_datos.py') }}
+      - run: python3 tools/descargar_datos.py
+      - name: Sin autores en los datos del mapa
+        run: python pipeline/limpiar_autores_atlas.py --verificar
+
+  humo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Datos del mapa (Release, en caché)
+        uses: actions/cache@v4
+        with:
+          path: sitio/data
+          key: datos-${{ hashFiles('tools/descargar_datos.py') }}
+      - run: python3 tools/descargar_datos.py
+      - name: Servir el sitio
+        working-directory: sitio
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 > /tmp/servidor.log 2>&1 &
+          for i in $(seq 1 30); do curl -sf http://127.0.0.1:8765/index.html > /dev/null && break; sleep 1; done
+      - name: Cada página carga sin errores
+        env:
+          CHROME: /usr/bin/google-chrome
+        run: node tools/prueba_humo.mjs
+
+  lexico:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Casos límite de Bloom
+        run: node --test services/puerta/pruebas/bloom.test.mjs
+      - name: Casos de inyección de prompt
+        run: node --test services/puerta/pruebas/inyeccion.test.mjs
+      - name: Defensas del Worker (sesión, límite por IP, configuración, Turnstile)
+        run: node --test services/puerta/pruebas/seguridad.test.mjs
+
+  # El Worker completo en `wrangler dev`, contra un servicio de datos simulado (sin cuenta de
+  # Cloudflare, sin Modal y sin IA): integración (sesión, acceso cruzado, lotes, cuotas), estrés
+  # con 50 análisis a la vez y la fila.
+  worker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: services/puerta
+    env:
+      WRANGLER_SEND_METRICS: 'false'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: services/puerta/package-lock.json
+      - run: npm ci
+      - name: Integración, estrés y fila
+        run: bash pruebas/ci.sh

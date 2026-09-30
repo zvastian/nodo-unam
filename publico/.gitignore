@@ -1,0 +1,28 @@
+# Datos del mapa: se descargan con tools/descargar_datos.py (Release de GitHub)
+sitio/data/
+
+# Intermedios del pipeline (ver pipeline/README.md)
+data/
+atlas_data/
+
+# Sitio armado para publicar (tools/construir_sitio.py)
+dist/
+
+# Servicio del Laboratorio: entorno y artefactos (modelo ONNX, índice FAISS, metadatos)
+services/lab/.venv/
+services/lab/artefactos/
+
+# Worker: dependencias, estado local y secretos
+node_modules/
+.wrangler/
+.dev.vars
+.env
+.env.*
+
+# Python y sistema
+__pycache__/
+*.pyc
+.venv/
+venv/
+.DS_Store
+Thumbs.db

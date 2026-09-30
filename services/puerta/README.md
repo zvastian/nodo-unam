@@ -161,7 +161,7 @@ Un Durable Object, uno solo para todo el sitio (plan gratuito, SQLite). Modal co
   - `pruebas/wrangler.ia.jsonc` sirve para probarlo a mano con IA real.
 - **Ocupa uno de los 2 guardados desde que entra:** con los 2 llenos, `409 limite_de_guardados` y la cuota se devuelve.
 - **Borrarlo antes de su turno** lo saca de la fila y devuelve la cuota; si el servicio de datos falla en segundo plano, se borra y la cuota vuelve.
-- **Sin largo máximo** (decisión del usuario): el freno es el tope diario del sitio.
+- **Sin largo máximo** (decisión de diseño): el freno es el tope diario del sitio.
 - **Tope del mes (`TOPE_MES`)**, ligado al crédito de Modal: al llegar, `429 mes_agotado` con `vuelve` (el día 1 del mes siguiente) y el Laboratorio se pausa. 6,000 con los 30 USD de crédito de Modal (tarjeta registrada el 29-sep).
 - `POST /api/lab/contexto` (solo datos) no entra a la fila: sin lugar, `503 servicio_ocupado`, sin gastar cuota.
 - Un objeto que se reinicia a mitad de un análisis lo devuelve al frente de la fila en la siguiente alarma. Cada alarma dura a lo más 12 minutos y se reprograma.
@@ -237,7 +237,7 @@ npm run prueba:seguridad   # 8 pruebas de sesión, límites, entrada, configurac
 - Revisión humana de las salidas de derecho, historia_arte y medicina en `evaluacion/resultados_ia.json`.
 - Bajar los tokens por análisis (hoy ~6,000 en Groq) para ganar capacidad gratuita.
 
-- **Crear el proyecto de Supabase.** Lo hace el usuario:
+- **Crear el proyecto de Supabase** (paso manual en su panel):
   - Google y enlace mágico como métodos;
   - claves de firma asimétricas (ES256), para que el JWKS publique la clave pública;
   - SMTP de Resend;

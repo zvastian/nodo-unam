@@ -14,8 +14,8 @@ el ruido se muestra siempre en el modo caos, es literalmente el punto de
 esta vista (ver development.md: "el contraste narrativo real esta en
 mostrar tambien el ruido como dispersion visible sin bucket").
 
-areaCode agregado 2026-09-23 (a pedido del usuario: "eso [color por area]
-solo aplica en los clusters, por que en las tesis individuales no?") -- 1-4
+areaCode agregado 2026-09-23 (el color por area tambien en las tesis
+individuales, no solo en los clusters) -- 1-4
 = area administrativa real (independiente de si HDBSCAN la considero ruido
 o no, el area es un dato del catalogo, no del clustering), 0 = sin area
 registrada (10,257 filas, "Por Clasificar", ver Fase 1 de development.md).

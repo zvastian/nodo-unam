@@ -9,7 +9,7 @@ Decisiones de esta sesion (2026-09-20, ver ADR-0011):
   ya verificada sin bugs y con "Blanco De Mendieta" homogeneizado.
 - Fuera: texto_completo_url (URLs invalidas, proveedor cambio),
   thesis_id_old / ID_Aleph / source_record (no se usaran), flag_sin_asesor
-  y flag_multiples_asesores (decision del usuario).
+  y flag_multiples_asesores (decision de diseño).
 - 2026-09-28: fuera tambien `titulo` (titulo_normalizado), que salia de la cadena
   cruda y en 224 filas traia la mencion de autor ("... presenta NOMBRE"). Del titulo
   solo se publica `titulo_legible`, ya sin la mencion de responsabilidad.
@@ -22,7 +22,7 @@ import pandas as pd
 
 from titulo_sin_autor import titulo_legible
 
-ROOT = Path(r"C:\Users\sebas\Desktop\UNAM Tesis")
+ROOT = Path(__file__).resolve().parents[1]
 SOURCE_PATH = ROOT / "data" / "clean" / "base7_kaggle_clean.parquet"
 OUT_DIR = ROOT / "data" / "public"
 OUT_PATH = OUT_DIR / "data_unam.parquet"

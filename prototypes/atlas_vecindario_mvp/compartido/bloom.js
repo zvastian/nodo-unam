@@ -10,7 +10,7 @@
 export const NIVELES = ['Recordar', 'Comprender', 'Aplicar', 'Analizar', 'Evaluar', 'Crear'];
 
 // Verbo en infinitivo, sin acentos -> nivel (0 a 5).
-// «interpretar» va en Analizar, no en Comprender (decisión del usuario, 27-sep-2026): en humanidades
+// «interpretar» va en Analizar, no en Comprender (decisión de diseño, 27-sep-2026): en humanidades
 // interpretar un discurso o una obra es el acto analítico central, y en Comprender marcaba un falso
 // retroceso tras «analizar» (caso historia_arte de la evaluación).
 const NIVEL = Object.create(null);   // sin prototipo: NIVEL['constructor'] no debe devolver la función Object

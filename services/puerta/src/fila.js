@@ -10,7 +10,7 @@
 //    IA pendiente para el carril de IA (abajo). Si el usuario lo borró antes de su turno, o si el
 //    servicio de datos falla, se devuelve su cuota.
 //
-// Sin largo máximo (decisión del usuario, 29-sep): el único freno es el tope diario del sitio.
+// Sin largo máximo (decisión de diseño, 29-sep): el único freno es el tope diario del sitio.
 // Quien llega mientras hay fila espera su turno aunque se libere un lugar: primero los de la fila.
 //
 // Carril de IA (29-sep): los análisis de la fila guardan sus datos en cuanto el servicio responde y

@@ -13,7 +13,7 @@ el panel de Modal, Settings > Proxy Auth Tokens, y va al Worker como MODAL_KEY y
 rechaza en su borde lo que no lo trae, sin despertar el contenedor: sin esto, cualquiera podía
 mantenerlo despierto con peticiones sin clave y gastar el crédito.
 Topes de gasto: un solo contenedor y 1 minuto despierto tras la última petición (la espera del
-arranque en frío, 12 a 16 s, se acepta: decisión del usuario, 26-sep-2026).
+arranque en frío, 12 a 16 s, se acepta: decisión de diseño, 26-sep-2026).
 """
 from pathlib import Path
 

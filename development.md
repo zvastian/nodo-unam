@@ -4817,3 +4817,24 @@ Pedida por el usuario: imaginar casos maliciosos y bordes, y comprobar que las d
 **Pendiente:** el enlace al código de los términos y de Acerca de apunta a `zvastian/nodo-unam` hasta que exista la repo pública.
 
 **Verificación:** `prueba_humo.mjs` pasa las 8 páginas (la nueva con sus 15 apartados); capturas de `terminos.html` en escritorio (1600×900) y móvil (390×844), consola limpia.
+
+### Paso 6: repo pública `ssebastian-diazz/nodos-map` (2026-09-29)
+
+**Decisiones del dueño del proyecto:** repo nueva en `ssebastian-diazz/nodos-map`, con historia limpia; los datos del mapa en un Release (no en git); el pipeline solo desde el dataset público de Kaggle, sin los scripts de descarga de TESIUNAM; como documentación, solo README (sin bitácora, ADR, RFC ni notas internas); ninguna atribución de herramientas en commits ni archivos.
+
+**Cómo se genera:** `python tools/exportar_repo_publica.py ../nodos-map --datos <dir>`.
+- Copia solo archivos versionados de una lista blanca: el sitio (pasa de `prototypes/atlas_vecindario_mvp/` a `sitio/`, sin las versiones viejas ni `bocetos/`), `services/`, 25 scripts del pipeline, `tools/` y el `LICENSE`.
+- Añade lo propio de la repo pública, versionado aquí en `publico/`: README con captura del mapa, `.gitignore`, CI con la descarga de datos en caché, `tools/descargar_datos.py` (Release + SHA-256), `pipeline/preparar_dataset.py` (crea `titulo` normalizado a partir de `titulo_legible`), `pipeline/README.md` y `pipeline/requirements.txt`.
+- Cambia los identificadores de la cuenta de producción por marcadores (`TU_ACCOUNT_ID`, `TU_DATABASE_ID`, `TU_WORKSPACE`) y quita los enlaces a documentos internos.
+- Falla si queda una ruta local, un identificador de cuenta, un correo o una mención de herramientas. La primera pasada encontró dos (la ruta absoluta de `generar_data_unam.py` y una mención de `PRODUCT.md` en `index.html`), corregidas en el origen.
+- Datos: `nodos-datos-v1.zip`, 3,382 archivos, 109.6 MB, zip determinista (misma suma en cada corrida).
+
+**Cambios en esta repo para que la copia sea fiel:**
+- ~25 comentarios reescritos en tono impersonal («pedido del usuario» → la razón técnica).
+- La nota de `macro_nombres.v1.json`, sin la mención de la herramienta.
+- `generar_topicos_ctfidf.py` puede guardar la matriz c-TF-IDF (`MATRIZ_PATH`, `IDS_PATH`). Las matrices por tema y subtema que usa `generar_atlas_subgraphs.py` se habían generado fuera de los scripts: era un hueco de reproducibilidad.
+- El enlace al código de Acerca de y de los términos apunta a la repo pública.
+
+**Límites de la reproducibilidad (escritos en `pipeline/README.md`):** el método se reproduce, los números no idénticos: el embedding original usó el título normalizado de la cadena cruda, y el dataset público solo trae `titulo_legible`; la curaduría manual usa los ids de la corrida original; y UMAP, HDBSCAN y PaCMAP dependen de versiones. `unificar_asesores.py` y `generar_atlas_catalogo.py` leen columnas de la base interna que el dataset no trae.
+
+**Verificación sobre la copia exportada:** descarga de datos desde un servidor local con la suma verificada (3,382 archivos); `prueba_humo.mjs`, 8 páginas; privacidad (`--verificar`), 0 cambios y 0 campos prohibidos; Bloom, inyección y seguridad, 31 de 31; todo el Python compila. La suite `ci.sh` del Worker no se pudo validar en Windows porque quedaron procesos `workerd` de una corrida anterior ocupando el puerto (en esta repo también falla así); la valida el CI de la repo pública en Ubuntu.

@@ -1,5 +1,5 @@
 """Correccion manual del layout: traslada la isla de "Notas al programa (recitales)"
-junto a Musica (decision del usuario, 2026-09-28; ver development.md, v4.35.0).
+junto a Musica (2026-09-28, v4.35.0).
 
 e5 agrupo estas tesis por la formula del titulo ("notas al programa del recital...")
 y no por su disciplina, y quedaron en una isla lejos de Musica. Se traslada la isla
