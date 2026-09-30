@@ -4856,3 +4856,9 @@ Pedida por el usuario: imaginar casos maliciosos y bordes, y comprobar que las d
 - **La sesión OAuth de wrangler quedó revocada** durante la limpieza del panel; el usuario volvió a entrar con `wrangler login`.
 - **Inventario con la API (solo lectura), todo en su lugar:** Workers `nodosmap` y `nodos-puerta`; rutas `nodosmap.com/api/*` y `www.nodosmap.com/api/*` → `nodos-puerta`; dominios propios `nodosmap.com` y `www` → `nodosmap`; cron `17 9 * * *`; D1 `nodos` con sus tablas y sin migraciones pendientes; 6 secretos; Email Routing activo (`contacto@` → Gmail verificado); widget de Turnstile «NodOS» (managed) con los dos dominios.
 - **Fuera de lugar:** `nodos-puerta` sigue expuesto en `workers.dev` (con previews), de la etapa de staging: una segunda entrada a la API que ya no hace falta. En la otra cuenta (`fc4e…`) queda un Worker `tesis-reranker` que la bitácora no menciona.
+
+### v4.39.2: «Apoya este proyecto» con Stripe en modo real (2026-09-29)
+
+- **Qué cambió:** `APOYO_URL` = `https://buy.stripe.com/eVqcMZg8E3t961u3dS4gg00` (Payment Link real, creado por el usuario). Vuelven a verse los enlaces de los pies de página, el botón del aviso del Laboratorio y el párrafo que invita a apoyar.
+- **Verificación:** el enlace abre el checkout sin la franja «TEST MODE», con el texto de NodOS, la ilustración y 50 MXN sugeridos. En Chrome, los enlaces de `terminos.html` y `laboratorio.html` apuntan a él en pestaña nueva; `prueba_humo.mjs`, 8 páginas.
+- **Observaciones del checkout, no bloquean:** en un navegador de EE. UU. aparece en USD (precios adaptativos; se puede cambiar a MXN); no se vio OXXO, que solo aplica en MXN (revisar que esté activado); el ícono de la tienda es el genérico (falta el logo en *Branding*).

@@ -4,7 +4,7 @@
 // ocultan los enlaces y la invitación a apoyar ([data-apoyo]): el checkout de prueba no se muestra en público.
 (function () {
   'use strict';
-  var APOYO_URL = ''; // pendiente: el Payment Link real de Stripe (https://buy.stripe.com/…, sin test_)
+  var APOYO_URL = 'https://buy.stripe.com/eVqcMZg8E3t961u3dS4gg00'; // Payment Link de Stripe en modo real (v4.39.2)
   if (!APOYO_URL) {
     document.querySelectorAll('a[data-pendiente="cafe"]').forEach(function (a) { (a.closest('li') || a).hidden = true; });
     document.querySelectorAll('[data-apoyo]').forEach(function (e) { e.hidden = true; });
