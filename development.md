@@ -4848,3 +4848,11 @@ Pedida por el usuario: imaginar casos maliciosos y bordes, y comprobar que las d
 - **Por qué:** el sitio se abre al público antes de activar Stripe en modo real. Al tener el enlace real, basta con ponerlo en `APOYO_URL`.
 - **Verificación:** en Chrome, los enlaces y el párrafo quedan ocultos (`terminos.html`, `laboratorio.html`); `prueba_humo.mjs`, 8 páginas.
 - **Desplegada v4.39.0 y luego v4.39.1** en `nodosmap.com`, todavía detrás de Access. Google OAuth pasó a producción (usuario), sin logo, para no requerir verificación de marca.
+
+### Sitio público (2026-09-29, noche)
+
+- **Access retirado (usuario).** Hubo que borrar dos aplicaciones: tras la primera, todo seguía redirigiendo a la que quedaba (AUD `852939c2…`).
+- **Verificado en público:** las 8 páginas (`prueba_humo.mjs https://nodosmap.com/`), raíz y `www` con 200; `/api/salud` 200 y `/api/yo` 401 sin sesión; HSTS, CSP y demás cabeceras; CORS 403 a un origen ajeno; Turnstile carga con la clave de producción. Las rutas `.html` redirigen (307) a la versión sin extensión, por el manejo de HTML de Workers Assets.
+- **La sesión OAuth de wrangler quedó revocada** durante la limpieza del panel; el usuario volvió a entrar con `wrangler login`.
+- **Inventario con la API (solo lectura), todo en su lugar:** Workers `nodosmap` y `nodos-puerta`; rutas `nodosmap.com/api/*` y `www.nodosmap.com/api/*` → `nodos-puerta`; dominios propios `nodosmap.com` y `www` → `nodosmap`; cron `17 9 * * *`; D1 `nodos` con sus tablas y sin migraciones pendientes; 6 secretos; Email Routing activo (`contacto@` → Gmail verificado); widget de Turnstile «NodOS» (managed) con los dos dominios.
+- **Fuera de lugar:** `nodos-puerta` sigue expuesto en `workers.dev` (con previews), de la etapa de staging: una segunda entrada a la API que ya no hace falta. En la otra cuenta (`fc4e…`) queda un Worker `tesis-reranker` que la bitácora no menciona.
