@@ -4886,3 +4886,10 @@ Pedida por el usuario: imaginar casos maliciosos y bordes, y comprobar que las d
 - **Aviso de privacidad** (última actualización 29-sep): el apartado IV pasa a «Almacenamiento en el navegador y estadísticas de visitas». Dice qué se mide (páginas, procedencia, país, dispositivo y navegador), que no usa cookies ni identifica personas, y que solo se consulta en totales, sin cruzarse con las cuentas. En el apartado III, Cloudflare suma «estadísticas agregadas de visitas». Antes decía que no había herramientas de analítica: activar la medición sin cambiarlo lo habría contradicho.
 - **Verificación en producción** (Chrome sin ventana, en `/`, `/laboratorio` y `/privacidad`): `beacon.min.js` 200 y el envío a `cloudflareinsights.com/cdn-cgi/rum` 204, sin bloqueos de la CSP; `prueba_humo.mjs`, 8 páginas.
 - **Antes de esto:** Cloudflare ya registraba el tráfico de la zona por hora (API GraphQL). Del 29-sep a las 13:00 al 30-sep a las 03:00 (UTC), entre 40 y 48 IP únicas por hora en las horas altas. En D1, 2 cuentas con análisis y 3 análisis guardados.
+
+### 1.0.3: el botón del demo del Laboratorio ya no tapa el programa (2026-09-30)
+
+- **Reporte del usuario (captura en móvil):** en la portada del Laboratorio, la tarjeta del demo («Así se ubica una tesis») tenía el botón «Ver análisis completo» encima de la línea del programa y el nivel cuando el título ocupaba 5 líneas.
+- **Causa:** `.demo-ver` va en posición absoluta al fondo de `.demo-ficha`, pero la tarjeta solo tenía `min-height`; con un título largo el contenido llegaba hasta el botón.
+- **Cambio:** `.demo-ficha` reserva 72 px abajo (`padding-bottom`), en escritorio y en los dos bloques móviles.
+- **Verificación:** en Chrome a 360 px, los cuatro ejemplos del demo: el fondo de `#demo-meta` queda por encima del borde superior del botón en todos.
