@@ -4841,3 +4841,10 @@ Pedida por el usuario: imaginar casos maliciosos y bordes, y comprobar que las d
 - **Publicada (29-sep, noche):** https://github.com/ssebastian-diazz/nodos-map, un commit (`NodOS: mapa semántico de las tesis de la UNAM`) y el Release `datos-v1` con el zip. CI de la repo pública en verde: privacidad, humo, léxico y la suite completa del Worker (integración, estrés y fila) en Ubuntu. La primera corrida de privacidad y humo falló porque arrancó antes de que existiera el Release; al relanzarla pasó.
 - **Corregido antes de publicar:** la primera exportación incluía `services/puerta/pruebas/claves.local.json` (claves de prueba que genera `ci.sh`), porque el exportador dejaba fuera el `.gitignore` del Worker. Ahora lo copia, y ya no borra todo el destino: solo sus archivos versionados, así que lo ignorado (`node_modules`, `.dev.vars`, `sitio/data`) no se toca.
 - **Dependabot abrió PR en la repo pública.** Si se aceptan allá, la siguiente exportación los pisa: conviene aceptarlos aquí y volver a exportar.
+
+### v4.39.1: sin enlace de apoyo hasta tener Stripe en modo real (2026-09-29)
+
+- **Qué cambió:** `APOYO_URL` queda vacío y `apoyo.js` oculta los enlaces «Apoya este proyecto» (pies de página y botón del aviso del Laboratorio) y el párrafo que invita a apoyar (`data-apoyo`). Antes llevaban al Payment Link de prueba, que muestra «TEST MODE».
+- **Por qué:** el sitio se abre al público antes de activar Stripe en modo real. Al tener el enlace real, basta con ponerlo en `APOYO_URL`.
+- **Verificación:** en Chrome, los enlaces y el párrafo quedan ocultos (`terminos.html`, `laboratorio.html`); `prueba_humo.mjs`, 8 páginas.
+- **Desplegada v4.39.0 y luego v4.39.1** en `nodosmap.com`, todavía detrás de Access. Google OAuth pasó a producción (usuario), sin logo, para no requerir verificación de marca.
