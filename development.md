@@ -4862,3 +4862,11 @@ Pedida por el usuario: imaginar casos maliciosos y bordes, y comprobar que las d
 - **Qué cambió:** `APOYO_URL` = `https://buy.stripe.com/eVqcMZg8E3t961u3dS4gg00` (Payment Link real, creado por el usuario). Vuelven a verse los enlaces de los pies de página, el botón del aviso del Laboratorio y el párrafo que invita a apoyar.
 - **Verificación:** el enlace abre el checkout sin la franja «TEST MODE», con el texto de NodOS, la ilustración y 50 MXN sugeridos. En Chrome, los enlaces de `terminos.html` y `laboratorio.html` apuntan a él en pestaña nueva; `prueba_humo.mjs`, 8 páginas.
 - **Observaciones del checkout, no bloquean:** en un navegador de EE. UU. aparece en USD (precios adaptativos; se puede cambiar a MXN); no se vio OXXO, que solo aplica en MXN (revisar que esté activado); el ícono de la tienda es el genérico (falta el logo en *Branding*).
+
+## 1.0.0: versión de producción oficial (2026-09-29)
+
+**NodOS 1.0.0** es la primera versión pública en `nodosmap.com`: mapa, Laboratorio con cuentas (Google en producción, GitHub y correo), Mi espacio, páginas legales y apoyo con Stripe en modo real. La numeración 4.x era de desarrollo; desde aquí, semver sobre 1.0.0.
+
+- **Bug visual en móvil (reportado por el usuario con captura de iPhone):** en el mapa, «beta» caía encima de «Laboratorio». En móvil la barra baja a una fila de 38 px, pero `.nav-beta` conservaba la posición de escritorio (absoluta, 7 px desde arriba). Las demás páginas ya lo corregían en móvil; al mapa le faltaba la regla. Ahora va junto a la palabra, 5 px arriba. Medido a 390 × 844: el texto termina en x = 142 y «beta» empieza en x = 145.
+- **API sin copia en `workers.dev`:** `workers_dev: false` y `preview_urls: false` en el entorno `produccion`. `nodos-puerta.sebastian-diaz-prado.workers.dev` da 404; `nodosmap.com/api/salud` y `www` siguen en 200.
+- **Verificación:** `prueba_humo.mjs`, 8 páginas; captura del mapa en móvil.

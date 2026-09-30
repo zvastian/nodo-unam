@@ -629,6 +629,10 @@
   @media (max-width: 860px) {
     header.nav { flex-wrap: wrap; height: auto; row-gap: 0; padding-top: 8px; }
     header.nav .navlinks { order: 3; width: 100%; height: 38px; overflow-x: auto; }
+    /* 1.0.0: «beta» junto a «Laboratorio», como en las demás páginas; con la posición de escritorio
+       (absoluta, 7 px desde arriba) caía encima de la palabra en la fila de 38 px */
+    .navlinks a { white-space: nowrap; }
+    .nav-beta { position: relative; top: -5px; right: auto; margin-left: 3px; }
     body.iso #map-selection { top: 0; }
   }
   /* v4.3: en movil la ficha de una tesis es una hoja inferior; a pantalla completa tapaba la tesis que describe */
@@ -733,7 +737,7 @@
 
   <footer>
     <span>Proyecto independiente, no oficial. Datos del catálogo público TESIUNAM.</span>
-    <span><a id="foot-metodo" href="acerca.html#mapa">Cómo se hizo el mapa</a><span class="foot-sep"></span><a href="privacidad.html">Privacidad</a><span class="foot-sep"></span><a href="terminos.html">Términos</a><span class="foot-sep"></span><a href="contacto.html">Contacto</a><span class="foot-sep"></span>versión <span id="app-version">4.39.2</span></span>
+    <span><a id="foot-metodo" href="acerca.html#mapa">Cómo se hizo el mapa</a><span class="foot-sep"></span><a href="privacidad.html">Privacidad</a><span class="foot-sep"></span><a href="terminos.html">Términos</a><span class="foot-sep"></span><a href="contacto.html">Contacto</a><span class="foot-sep"></span>versión <span id="app-version">1.0.0</span></span>
   </footer>
 </div>
 

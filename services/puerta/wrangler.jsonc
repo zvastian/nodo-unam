@@ -68,7 +68,9 @@
     "produccion": {
       "name": "nodos-puerta",
       "account_id": "98c2acfaa077d8350511cb2b8ac275c0",
-      "workers_dev": true,
+      // 1.0.0: sin copia en workers.dev; la API solo responde en nodosmap.com/api/* y www.nodosmap.com/api/*
+      "workers_dev": false,
+      "preview_urls": false,
       // La API en el mismo origen que el sitio: la CSP de las páginas solo deja llamar a 'self'.
       "routes": [
         { "pattern": "nodosmap.com/api/*", "zone_name": "nodosmap.com" },
