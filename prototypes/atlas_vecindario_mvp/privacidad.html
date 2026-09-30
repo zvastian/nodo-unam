@@ -100,7 +100,7 @@
 
 <main class="legal" lang="es">
   <h1>Aviso de privacidad integral</h1>
-  <p class="fecha">Última actualización: 28 de septiembre de 2026</p>
+  <p class="fecha">Última actualización: 29 de septiembre de 2026</p>
 
   <p>En cumplimiento de la Ley Federal de Protección de Datos Personales en Posesión de los Particulares (en lo sucesivo, la «Ley»), Sebastián Díaz Prado (en lo sucesivo, el «Responsable»), cuya identidad y domicilio se señalan en el apartado VIII, pone a disposición del titular de los datos personales (en lo sucesivo, el «Titular») el presente aviso de privacidad, que regula el tratamiento de los datos personales recabados a través del sitio NodOS (en lo sucesivo, el «Sitio»), que comprende el mapa de tesis, el Laboratorio y Mi espacio.</p>
 
@@ -126,15 +126,16 @@
   <p>Para la prestación del servicio, el Responsable se apoya en los siguientes encargados, que tratan los datos personales por cuenta del Responsable y únicamente para los fines indicados:</p>
   <ol class="incisos">
     <li><strong>Supabase:</strong> administración de cuentas y autenticación.</li>
-    <li><strong>Cloudflare:</strong> alojamiento del Sitio, base de datos de Mi espacio y de los análisis, verificación contra accesos automatizados (Turnstile) y modelo de inteligencia artificial de respaldo (Workers AI).</li>
+    <li><strong>Cloudflare:</strong> alojamiento del Sitio, base de datos de Mi espacio y de los análisis, verificación contra accesos automatizados (Turnstile), estadísticas agregadas de visitas (Web Analytics) y modelo de inteligencia artificial de respaldo (Workers AI).</li>
     <li><strong>Groq:</strong> modelo de inteligencia artificial que redacta los textos del Laboratorio, con la retención de datos desactivada.</li>
     <li><strong>Modal:</strong> procesamiento que convierte el título, el planteamiento y las palabras clave capturados por el Titular en una representación numérica para compararlos con el catálogo de tesis.</li>
     <li><strong>Stripe:</strong> procesamiento de pagos, sólo en caso de que el Titular decida realizar una aportación voluntaria. El pago se efectúa en el sitio de Stripe; el Responsable no recibe los datos de la tarjeta.</li>
   </ol>
   <p>Algunos de estos encargados se ubican fuera del territorio nacional, principalmente en los Estados Unidos de América. Fuera de los supuestos anteriores, el Responsable no transfiere los datos personales a terceros.</p>
 
-  <h2 id="navegador">IV. Almacenamiento en el navegador</h2>
-  <p>El Sitio no utiliza cookies de rastreo ni herramientas de analítica. Almacena en el navegador del Titular sus preferencias (modo de visualización, color de los puntos del mapa y presentación de la introducción), el borrador del formulario del Laboratorio y la sesión iniciada. Esta información permanece en el dispositivo del Titular, quien puede eliminarla en cualquier momento desde la configuración de su navegador. El servicio Turnstile de Cloudflare puede emplear tecnologías propias para verificar que el acceso no es automatizado.</p>
+  <h2 id="navegador">IV. Almacenamiento en el navegador y estadísticas de visitas</h2>
+  <p>El Sitio no utiliza cookies de rastreo ni publicidad. Para conocer el uso agregado del Sitio (páginas visitadas, sitio de procedencia, país y tipo de dispositivo y navegador), emplea Cloudflare Web Analytics, que no utiliza cookies ni almacenamiento en el navegador, no identifica a personas individuales ni sigue su actividad en otros sitios. Dicha información se consulta únicamente en forma de totales y no se combina con los datos de la cuenta del Titular.</p>
+  <p>El Sitio almacena en el navegador del Titular sus preferencias (modo de visualización, color de los puntos del mapa y presentación de la introducción), el borrador del formulario del Laboratorio y la sesión iniciada. Esta información permanece en el dispositivo del Titular, quien puede eliminarla en cualquier momento desde la configuración de su navegador. El servicio Turnstile de Cloudflare puede emplear tecnologías propias para verificar que el acceso no es automatizado.</p>
 
   <h2 id="conservacion">V. Plazo de conservación</h2>
   <p>Los análisis y la información guardada se conservan mientras el Titular no los elimine. Al eliminar su cuenta desde Mi espacio, se suprimen de inmediato sus análisis y toda la información guardada. El registro de acceso (correo electrónico) en el servicio de autenticación se suprime a solicitud del Titular, conforme al apartado VI.</p>
@@ -195,5 +196,7 @@
   NodosAjustes.montar({ boton: document.getElementById('btn-ajustes'), modo: noche, alModo: function (oscuro) { document.body.classList.toggle('noche', oscuro); } });
 })();
 </script>
+<!-- Cloudflare Web Analytics (1.0.2): estadísticas agregadas, sin cookies; ver privacidad.html, apartado IV -->
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "b139a2732eb941f6b0cfc778ab86a689"}'></script>
 </body>
 </html>
