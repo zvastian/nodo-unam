@@ -976,7 +976,6 @@
   function noche() { return document.body.classList.contains('noche'); }
   function tok(n) { return getComputedStyle(document.body).getPropertyValue(n).trim(); }
   function areaHex(a) { return (noche() ? AREA_NOCHE : AREA_DIA)[a || 0]; }
-  function colorCampo(id) { return (noche() ? S.colorNoche : S.colorDia)[id] || tok('--ink-3'); }
   function espera(ms) { return new Promise(function (r) { setTimeout(r, REDUCIDO ? 0 : ms); }); }
   function mostrar(root, sel, paso) { root.querySelectorAll(sel).forEach(function (el, i) { setTimeout(function () { el.classList.add('vis'); }, REDUCIDO ? 0 : i * (paso || 60)); }); }
   function contar(arr, f) { var m = new Map(); arr.forEach(function (x) { var k = f(x); if (k == null || k === '') return; m.set(k, (m.get(k) || 0) + 1); }); return Array.from(m.entries()).sort(function (a, b) { return b[1] - a[1]; }); }
@@ -1414,8 +1413,8 @@
   }
   function colorFaceta(f, k) {
     if (k === '__x') return 'var(--line-strong)';
-    if (f === 'campo') return colorCampo(+k);
-    if (f === 'tema' || f === 'subtema') { var t = S.vec.find(function (x) { return claveDe(x, f) === k; }); return t && t.campo != null ? colorCampo(t.campo) : 'var(--ink-3)'; }
+    // 1.0.1: campo, tema y subtema en el color del área que predomina entre sus tesis parecidas, como el programa
+    if (f === 'campo' || f === 'tema' || f === 'subtema') return areaHex(areaDe(S.vec.filter(function (x) { return claveDe(x, f) === k; })));
     if (f === 'programa') return areaHex(contar(S.vec.filter(function (x) { return x.programa === k; }), function (x) { return x.area; })[0][0]);
     return 'var(--ink-3)';
   }
@@ -1663,7 +1662,7 @@
     renderParecidas(abrir('s4')); listo('s4');
     var campo = S.datos.ubicacion.campo[0];
     await espera(900); if (!sigue()) return;
-    colorMascota(colorCampo(campo.id)); estado('<b>Cae en ' + esc(campo.nombre) + '.</b> Buscando asesores', 'investiga');
+    colorMascota(areaHex(areaFicha())); estado('<b>Cae en ' + esc(campo.nombre) + '.</b> Buscando asesores', 'investiga');
     renderAsesores(abrir('s5')); listo('s5');
     await espera(1500); if (!sigue()) return;
     if (S.ia || S.iaFlujo || S.iaPendiente) {
@@ -2722,14 +2721,21 @@
   function pintarMeta() {
     var e = S.datos.entrada, nv = GRADOS.indexOf(e.degree) + 1, col = noche() ? NIVEL_NOCHE : NIVEL_DIA, dots = '';
     for (var k = 0; k < 4; k++) dots += k < nv ? '<i class="si" style="background:' + col[k] + ';box-shadow:none"></i>' : '<i></i>';
-    var mismos = S.vec.filter(function (t) { return sinAcento(t.programa) === sinAcento(e.program); });
-    var ar = mismos.length ? contar(mismos, function (t) { return t.area; })[0][0] : (F.prog ? F.prog.area : 0);
+    var ar = areaFicha();
     colorArea(areaHex(ar)); pintarEmblema(ar); etiquetaArea(AREA_NOMBRE[ar] || '');
     $('meta').innerHTML = (e.program ? '<span style="--c:' + areaHex(ar) + '" title="' + AREA_NOMBRE[ar] + '"><i class="g-ar"></i><i class="g-pr"></i><b>' + esc(e.program) + '</b></span>' : '') +
       '<span title="' + esc(e.degree) + ', nivel ' + nv + ' de 4"><span class="g-nv">' + dots + '</span>' + esc(e.degree) + '</span>' +
       (e.study_period.applies ? '<span>' + esc(e.study_period.label) + '</span>' : '');
   }
-  function aplicarColor() { if (S.datos) document.documentElement.style.setProperty('--c', colorCampo(S.datos.ubicacion.campo[0].id)); }
+  // el área de la ficha: la del programa entre las 100 parecidas (o la del programa elegido). 1.0.1: el acento
+  // del análisis (--c: barras, histogramas, Bloom, preguntas) va en el color de esa área, el mismo de la banda del
+  // título; antes iba en el color del campo, de otra paleta, y una tesis de Sociales salía verde.
+  function areaFicha() {
+    var e = S.datos.entrada, mismos = S.vec.filter(function (t) { return sinAcento(t.programa) === sinAcento(e.program); });
+    return mismos.length ? contar(mismos, function (t) { return t.area; })[0][0] : (F.prog ? F.prog.area : S.area || 0);
+  }
+  function areaDe(lista) { var c = contar(lista, function (t) { return t.area; }); return c.length ? c[0][0] : 0; }
+  function aplicarColor() { if (S.datos) document.documentElement.style.setProperty('--c', areaHex(areaFicha())); }
   function aplicarModo(oscuro) {
     document.body.classList.toggle('noche', oscuro);
     if (document.body.classList.contains('escribiendo')) { pintarPrograma(); pintarPuntosGrado(); pintarPeriodo(); actualizarBloom(); return; }
