@@ -14,7 +14,7 @@ Uso, desde la raíz:
 - Con --datos, arma nodos-datos-<VERSION_DATOS>.zip con sitio/data (lo que publica
   construir_sitio.py) para el Release de GitHub y fija su SHA-256 en tools/descargar_datos.py.
 
-DESTINO es una repo git aparte: se reemplaza todo su contenido salvo .git/.
+DESTINO es una repo git aparte: se reemplazan sus archivos versionados; lo ignorado se queda.
 """
 import hashlib
 import os
@@ -44,7 +44,7 @@ PIPELINE = ["titulo_sin_autor", "limpiar_autores_atlas", "generar_data_unam", "g
             "generar_acerca", "lab_contexto"]
 OTROS = ["LICENSE", ".github/dependabot.yml", "pipeline/curaduria/macro_nombres.v1.json",
          "tools/construir_sitio.py", "tools/cdp.mjs", "tools/prueba_humo.mjs", "tools/sitio.wrangler.jsonc"]
-FUERA = {"services/puerta/.gitignore"}
+FUERA = set()
 
 TEXTO = {".html", ".js", ".mjs", ".css", ".py", ".md", ".json", ".jsonc", ".yml", ".yaml", ".sql", ".sh",
          ".txt", ".svg", ".toml", ""}
@@ -133,9 +133,11 @@ def main():
     if "--datos" in args:
         sha = armar_zip(Path(args[args.index("--datos") + 1]).resolve())
 
-    for hijo in dest.iterdir():
-        if hijo.name != ".git":
-            shutil.rmtree(hijo) if hijo.is_dir() else hijo.unlink()
+    # Se borran solo los archivos versionados en DESTINO: lo ignorado (sitio/data, node_modules,
+    # .wrangler, .dev.vars) se queda, y lo que sobre aparece en `git status` para revisarlo.
+    r = subprocess.run(["git", "ls-files", "-z"], cwd=dest, capture_output=True, check=True)
+    for rel in filter(None, r.stdout.decode("utf-8").split("\0")):
+        (dest / rel).unlink(missing_ok=True)
 
     copiados, errores = 0, []
     pares = [(p, destino_de(p)) for p in git_ls()]
