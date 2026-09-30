@@ -143,5 +143,4 @@ Los secretos se cargan con `wrangler secret put`; nunca van en el repositorio.
 
 ## Contacto
 
-[contacto@nodosmap.com](mailto:contacto@nodosmap.com). Los asesores que deseen corregir la forma en
-que aparece su nombre pueden escribir a esa dirección.
+[contacto@nodosmap.com](mailto:contacto@nodosmap.com).
