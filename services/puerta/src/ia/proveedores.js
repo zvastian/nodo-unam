@@ -31,15 +31,26 @@ const sinValores = (errores) => errores.map((e) => e.replace(/«[^»]*»/g, '«�
 
 const entero = (v, def) => (Number.isFinite(+v) && v !== '' && v !== undefined ? +v : def);
 
-async function contador(env, dia, tipo) {
-  const r = await env.DB.prepare('SELECT n FROM cuota_sitio WHERE dia = ?1 AND tipo = ?2').bind(dia, tipo).first();
-  return r ? r.n : 0;
-}
 async function sumar(env, dia, tipo, n) {
   await env.DB.prepare(
     'INSERT INTO cuota_sitio (dia, tipo, n) VALUES (?1, ?2, ?3) ON CONFLICT (dia, tipo) DO UPDATE SET n = n + ?3',
   ).bind(dia, tipo, Math.ceil(n)).run();
 }
+
+// Reserva atómica (1.0.4): suma `monto` solo si cabe en el tope, en una sola sentencia. Antes se leía
+// el contador, se llamaba al proveedor y se sumaba al final: varias llamadas a la vez (3 tareas por
+// análisis, la fila y el carril) pasaban la revisión juntas y podían rebasar el tope. Ahora la suma de
+// lo reservado nunca pasa del tope; al terminar se ajusta al costo real.
+async function reservar(env, dia, tipo, monto, tope) {
+  const r = await env.DB.prepare(
+    `INSERT INTO cuota_sitio (dia, tipo, n) SELECT ?1, ?2, ?3 WHERE ?3 <= ?4
+     ON CONFLICT (dia, tipo) DO UPDATE SET n = n + ?3 WHERE n + ?3 <= ?4 RETURNING n`,
+  ).bind(dia, tipo, Math.ceil(monto), tope).first();
+  return !!r;
+}
+const MAX_SALIDA_GROQ = 4000;
+// El peor caso de una llamada a Groq: la entrada (≈ 3 caracteres por token, de más) y la salida máxima.
+const reservaGroq = (mensajes) => Math.ceil(JSON.stringify(mensajes).length / 3) + MAX_SALIDA_GROQ;
 
 /** Toma un lugar del tope diario de análisis con IA. false si ya se llegó. */
 export async function tomarCupoIA(env, dia) {
@@ -60,7 +71,7 @@ async function groq(env, mensajes, esquema, nombre) {
       messages: mensajes,
       temperature: 0.4,
       reasoning_effort: 'low',
-      max_completion_tokens: 4000,
+      max_completion_tokens: MAX_SALIDA_GROQ,
       response_format: { type: 'json_schema', json_schema: { name: nombre, schema: paraProveedor(esquema), strict: false } },
     }),
     signal: AbortSignal.timeout(60000),
@@ -118,16 +129,24 @@ export async function pedirIA(env, _diaMexico, tarea, mensajes, esquema, revisar
   const dia = new Date().toISOString().slice(0, 10);   // día UTC, el de los proveedores
   const topeGroq = entero(env.GROQ_TOKENS_DIA, 180000);
   const topeWai = entero(env.WORKERS_AI_NEURONAS_DIA, 9000);
+  // Peor caso de una llamada a Workers AI. La media medida en Cloudflare es de ~140 neuronas
+  // (1 a 4 de octubre); 600 deja margen de sobra con la salida tope de 2,500 tokens.
+  const reservaWai = entero(env.WORKERS_AI_RESERVA_NEURONAS, 600);
   let conversacion = mensajes, ultimo = [], costoTotal = 0;
   for (let intento = 0; intento < 2; intento++) {
     let respuesta, proveedor;
-    if (env.GROQ_API_KEY && (await contador(env, dia, 'groq_tokens')) < topeGroq) {
+    if (env.GROQ_API_KEY) {
+      const reserva = reservaGroq(conversacion);
       for (let espera = 0; espera <= ESPERAS_GROQ_S.length && !respuesta; espera++) {
+        if (!(await reservar(env, dia, 'groq_tokens', reserva, topeGroq))) break;   // sin cupo: a Workers AI
         try {
           respuesta = await groq(env, conversacion, esquema, tarea);
           proveedor = 'groq';
-          await sumar(env, dia, 'groq_tokens', respuesta.costo);
+          // Ajuste al costo real. Sin `usage` se queda la reserva completa (nunca se cuenta de menos).
+          if (respuesta.costo > 0) await sumar(env, dia, 'groq_tokens', respuesta.costo - reserva);
         } catch (e) {
+          // Un 429 no gasta tokens: se devuelve la reserva. Otro error (red, 5xx, tiempo) la conserva.
+          if (e instanceof Limite429) await sumar(env, dia, 'groq_tokens', -reserva);
           if (e instanceof Limite429 && e.porDia) {
             await sumar(env, dia, 'groq_tokens', topeGroq);   // agotado hasta mañana
             console.log(JSON.stringify({ evento: 'ia_groq_429_dia', tarea }));
@@ -146,10 +165,10 @@ export async function pedirIA(env, _diaMexico, tarea, mensajes, esquema, revisar
       }
     }
     if (!respuesta) {
-      if (!env.AI || (await contador(env, dia, 'workers_ai_neuronas')) >= topeWai) throw new IAAgotada();
-      respuesta = await workersAI(env, conversacion, esquema, dia, topeWai);
+      if (!env.AI || !(await reservar(env, dia, 'workers_ai_neuronas', reservaWai, topeWai))) throw new IAAgotada();
+      respuesta = await workersAI(env, conversacion, esquema, dia, topeWai);   // si falla, la reserva se queda
       proveedor = 'workers_ai';
-      await sumar(env, dia, 'workers_ai_neuronas', respuesta.costo);
+      if (respuesta.costo > 0) await sumar(env, dia, 'workers_ai_neuronas', respuesta.costo - reservaWai);
     }
 
     let datos;

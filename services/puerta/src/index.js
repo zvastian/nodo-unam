@@ -328,6 +328,10 @@ export default {
       env.DB.prepare(`DELETE FROM cuota_sitio WHERE dia < ?1 AND tipo != 'mes'`).bind(limite),
       env.DB.prepare(`DELETE FROM cuota_sitio WHERE tipo = 'mes' AND dia < ?1`).bind(d.toISOString().slice(0, 7)),
     ]));
+    // Red de seguridad del carril de IA (1.0.4): si su alarma se perdiera, los análisis con la IA
+    // pendiente esperarían a que alguien más analizara. El cron (09:17 UTC, después del reinicio de
+    // las 06:05) lo despierta; si está en pausa, solo reprograma la alarma.
+    ctx.waitUntil(fila(env, '/ia').catch(() => {}));
     if (env.SUPABASE_URL && env.SUPABASE_ANON_KEY) {
       ctx.waitUntil(fetch(env.SUPABASE_URL.replace(/\/$/, '') + '/auth/v1/health', { headers: { apikey: env.SUPABASE_ANON_KEY } }));
     }

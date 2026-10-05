@@ -4893,3 +4893,14 @@ Pedida por el usuario: imaginar casos maliciosos y bordes, y comprobar que las d
 - **Causa:** `.demo-ver` va en posición absoluta al fondo de `.demo-ficha`, pero la tarjeta solo tenía `min-height`; con un título largo el contenido llegaba hasta el botón.
 - **Cambio:** `.demo-ficha` reserva 72 px abajo (`padding-bottom`), en escritorio y en los dos bloques móviles.
 - **Verificación:** en Chrome a 360 px, los cuatro ejemplos del demo: el fondo de `#demo-meta` queda por encima del borde superior del botón en todos.
+
+### 1.0.4: topes de IA con reserva atómica; el cron despierta el carril de IA (2026-10-04)
+
+- **Pedido del usuario:** no pasar nunca del plan gratuito de ninguna IA, con un tope diario ultra estricto, y asegurar que los análisis con la IA pendiente se completen.
+- **Causa del riesgo:** `pedirIA` leía el contador (`groq_tokens`, `workers_ai_neuronas`), llamaba al proveedor y sumaba el costo al final. Las llamadas simultáneas (3 tareas por análisis, la fila y el carril) pasaban la revisión juntas y podían rebasar el tope.
+- **Cambio (`src/ia/proveedores.js`):** antes de cada llamada se **reserva** el peor caso con una sola sentencia (`INSERT … ON CONFLICT DO UPDATE … WHERE n + reserva <= tope RETURNING`); si no cabe, no se llama. Groq reserva la entrada (≈ 3 caracteres por token) más los 4,000 tokens de salida; Workers AI, 600 neuronas (`WORKERS_AI_RESERVA_NEURONAS`; la media medida es de ~140). Al terminar se ajusta al costo real; sin `usage`, se queda la reserva completa. Un 429 devuelve la reserva; otro error la conserva. Se retiró `contador()`, que ya no se usaba.
+- **Cambio (`src/index.js`):** el cron diario (09:17 UTC) llama a `/ia` de la fila: si la alarma del carril se perdiera, los pendientes no esperan a que alguien más analice.
+- **Uso real medido en Cloudflare (GraphQL, `aiInferenceAdaptiveGroups`):** 9,106, 2,306, 9,160 y 7,691 neuronas del 1 al 4 de octubre, siempre bajo las 10,000 gratuitas. Los 29,313 del contador interno del 2-oct son el +9,000 que suma cada error 4006, no gasto real. Modal: límite de uso de 30 USD fijado por el usuario (= el crédito), 1.22 USD usados en octubre, 0 en cargos.
+- **Estado al desplegar:** 164 análisis con la IA pendiente (el más viejo, 2-oct 00:50 UTC); el tope `ia` (55) se llenó del 1 al 4 de octubre. El carril vació el rezago del 1-oct; a ~55 por día y ~35 nuevos, el rezago actual tarda unos 8 días (estimación).
+- **Verificación:** la sentencia de reserva en SQLite (`node:sqlite`): con reservas de 600 y tope de 9,000 entran 15 y la 16.ª se rechaza; una reserva mayor que el tope se rechaza con la tabla vacía. `node --check` y `wrangler deploy --dry-run`. El CI no cubre esta ruta (corre con `TOPE_IA_DIA=0`). En producción: `/api/salud` 200, `/api/yo` 401 sin sesión, pie en 1.0.4.
+- **Publicado:** Worker `nodos-puerta` (versión `1c0bbf68…`) y sitio (`75b11ef7…`, solo cambió `index.html`).
