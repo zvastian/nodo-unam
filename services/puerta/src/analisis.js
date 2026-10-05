@@ -143,8 +143,9 @@ async function guardarDelWorker(env, u, entrada, datos, r, plan) {
   const resultado = { datos, ia: r.ia };
   if (Object.keys(r.fallos).length) resultado.fallos = r.fallos;
   const g = await env.DB.prepare(
-    `INSERT INTO analisis (id, usuario, titulo, entrada, resultado, estado, ia_pendiente, ia_intentos, ia_siguiente)
-     SELECT ?1, ?2, ?3, ?4, ?5, 'listo', ?7, ?8, ?9 WHERE (SELECT count(*) FROM analisis WHERE usuario = ?2) < ?6`,
+    // avisar (1.0.7): si queda pendiente, se le avisará por correo cuando el carril lo complete
+    `INSERT INTO analisis (id, usuario, titulo, entrada, resultado, estado, ia_pendiente, ia_intentos, ia_siguiente, avisar)
+     SELECT ?1, ?2, ?3, ?4, ?5, 'listo', ?7, ?8, ?9, ?7 WHERE (SELECT count(*) FROM analisis WHERE usuario = ?2) < ?6`,
   ).bind(id, u.id, String(entrada.title).slice(0, 400), JSON.stringify(entrada), JSON.stringify(resultado),
     entero(env.MAX_ANALISIS_GUARDADOS, 2), plan.pendiente ? 1 : 0, plan.intentos, plan.siguiente).run();
   return g.meta.changes ? id : null;
@@ -159,8 +160,8 @@ async function formarEnFila(env, u, entrada, dia, restante, h) {
   const id = crypto.randomUUID();
   const limite = entero(env.MAX_ANALISIS_GUARDADOS, 2);
   const r = await env.DB.prepare(
-    `INSERT INTO analisis (id, usuario, titulo, entrada, resultado, estado)
-     SELECT ?1, ?2, ?3, ?4, 'null', 'fila' WHERE (SELECT count(*) FROM analisis WHERE usuario = ?2) < ?5`,
+    `INSERT INTO analisis (id, usuario, titulo, entrada, resultado, estado, avisar)
+     SELECT ?1, ?2, ?3, ?4, 'null', 'fila', 1 WHERE (SELECT count(*) FROM analisis WHERE usuario = ?2) < ?5`,
   ).bind(id, u.id, String(entrada.title).slice(0, 400), JSON.stringify(entrada), limite).run();
   if (!r.meta.changes) {
     await devolverCuota(env, u.id, dia);
