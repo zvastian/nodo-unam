@@ -22,7 +22,9 @@ export const ESQUEMAS = {
   bloom: objeto({
     main_risk: texto(260),
     objectives: lista(objeto({
-      original: texto(600),
+      // 1,000, como el tope de cada objetivo en la entrada (comun.js, validarEntrada): con 600, un
+      // objetivo largo copiado tal cual rompía el esquema en los dos intentos (1.0.6).
+      original: texto(1000),
       level: { type: ['integer', 'null'], minimum: 0, maximum: 5 },
       diagnosis: texto(260),
       improvement: texto(260),

@@ -2148,7 +2148,7 @@
   function sinCompletar() {
     document.querySelectorAll('.ia-pend').forEach(function (p) { p.classList.remove('ia-pend'); p.textContent = 'La lectura con IA llegó a su límite de hoy. Tus datos están completos.'; });
   }
-  function iaEnEspera() { return !!(S.iaPendiente || (S.iaFlujo && S.iaFlujo.iaAgotada && S.iaFlujo.guardadoSinIA !== false)); }
+  function iaEnEspera() { return !!(S.iaPendiente || (S.iaFlujo && ((S.iaFlujo.iaAgotada && S.iaFlujo.guardadoSinIA !== false) || S.iaFlujo.iaReintento))); }
   document.addEventListener('click', function (ev) { var q = ev.target.closest('.ia-q'); if (q) avisoBeta('ia', null, q); });
   function avisoBeta(tipo, extra, desde) {
     var a = AVISOS[tipo]; avisoPose = a.pose;
@@ -2350,6 +2350,12 @@
               f.cuotaRestante = d && d.cuota_restante;
               // la IA se agotó pero el análisis no se guardó (2 guardados llenos): no hay nada que completar
               if (f.iaAgotada && d && !d.ia_pendiente) { f.guardadoSinIA = false; sinCompletar(); }
+              // 1.0.6: una sección que falló (no por cupo) también queda pendiente y se reintenta;
+              // lo ya pintado como «no disponible» pasa a «en espera»
+              if (!f.iaAgotada && d && d.ia_pendiente) {
+                f.iaReintento = true;
+                document.querySelectorAll('.sin-ia:not(.ia-pend)').forEach(function (p) { p.outerHTML = PENDIENTE_IA; });
+              }
               ok.fin(d);
             }
           }

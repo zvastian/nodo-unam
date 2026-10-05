@@ -27,7 +27,7 @@ const ESPERA_MAX_GROQ_S = 20;
 const ESPERAS_GROQ_S = [2, 5, 10];
 const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
 // Solo la ruta de cada error de esquema, sin los valores (pueden venir del texto del usuario).
-const sinValores = (errores) => errores.map((e) => e.replace(/«[^»]*»/g, '«…»').slice(0, 120));
+export const sinValores = (errores) => errores.map((e) => e.replace(/«[^»]*»/g, '«…»').slice(0, 120));
 
 const entero = (v, def) => (Number.isFinite(+v) && v !== '' && v !== undefined ? +v : def);
 

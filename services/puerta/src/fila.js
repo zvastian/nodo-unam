@@ -20,7 +20,7 @@
 // El mismo carril completa los análisis en vivo que se quedaron sin IA por falta de cupo; si el cupo
 // del día se acabó, se pausa hasta que se reinicia (06:05 UTC: medianoche de la Ciudad de México).
 
-import { correrIA } from './analisis.js';
+import { correrIA, planIA } from './analisis.js';
 import { clasificarObjetivos } from '../../../prototypes/atlas_vecindario_mvp/compartido/bloom.js';
 import { devolverCuota, entero, hoy, pedirContexto } from './comun.js';
 
@@ -39,23 +39,32 @@ const TAREAS_IA = (lexico) => ['nota', 'preguntas'].concat(lexico.objetivos.leng
 
 /**
  * Completa la IA de un análisis guardado con `ia_pendiente`: solo las secciones que faltan. Si
- * vuelve a faltar algo por cupo, sigue pendiente (y se devuelve agotada); si falta por otra causa
- * (salida inválida tras el reintento), se deja de intentar, para no gastar cupo en un bucle.
+ * vuelve a faltar algo por cupo, sigue pendiente sin contar intento (y se devuelve agotada). Si falta
+ * por otra causa (salida inválida tras el reintento, error del proveedor), cuenta un intento y espera
+ * antes del siguiente; tras el tope, se deja como está (planIA, 1.0.6). Antes, el primer fallo de
+ * este tipo lo dejaba terminado para siempre.
  */
 async function completarIA(env, f) {
   const entrada = JSON.parse(f.entrada), res = JSON.parse(f.resultado) || {};
   const lexico = clasificarObjetivos(entrada.objectives || [], entrada.degree || '');
   const solo = TAREAS_IA(lexico).filter((k) => !(res.ia && res.ia[k]));
-  const fijar = (resultado, pendiente) => env.DB.prepare(
-    `UPDATE analisis SET resultado = ?3, ia_pendiente = ?4 WHERE id = ?1 AND usuario = ?2 AND ia_pendiente = 1`,
-  ).bind(f.id, f.usuario, JSON.stringify(resultado), pendiente ? 1 : 0).run();
-  if (!solo.length || !res.datos) { await fijar(res, false); return { agotada: false }; }
+  const fijar = (resultado, plan) => env.DB.prepare(
+    `UPDATE analisis SET resultado = ?3, ia_pendiente = ?4, ia_intentos = ?5, ia_siguiente = ?6
+     WHERE id = ?1 AND usuario = ?2 AND ia_pendiente = 1`,
+  ).bind(f.id, f.usuario, JSON.stringify(resultado), plan.pendiente ? 1 : 0, plan.intentos, plan.siguiente).run();
+  const previos = f.ia_intentos || 0;
+  if (!solo.length || !res.datos) { await fijar(res, { pendiente: false, intentos: previos, siguiente: null }); return { agotada: false }; }
   const r = await correrIA(env, hoy(), entrada, res.datos, lexico, undefined, solo);
   const ia = { ...(res.ia || {}), ...(r.ia || {}) };
-  const sigue = r.agotada && r.faltan.length > 0;
-  await fijar({ ...res, ia: Object.keys(ia).length ? ia : null }, sigue);
-  console.log(JSON.stringify({ evento: 'ia_completada', secciones: solo.length - r.faltan.length, faltan: r.faltan.length, agotada: sigue }));
-  return { agotada: sigue };
+  // Motivos de fallo: se borran los de las secciones que ya salieron y se suman los nuevos.
+  const fallos = Object.fromEntries(Object.entries({ ...(res.fallos || {}), ...r.fallos }).filter(([k]) => !(k in ia)));
+  const plan = planIA(env, r, previos);
+  const resultado = { ...res, ia: Object.keys(ia).length ? ia : null };
+  if (Object.keys(fallos).length) resultado.fallos = fallos; else delete resultado.fallos;
+  await fijar(resultado, plan);
+  const agotada = r.agotada && r.faltan.length > 0;
+  console.log(JSON.stringify({ evento: 'ia_completada', secciones: solo.length - r.faltan.length, faltan: r.faltan.length, agotada, intentos: plan.intentos, sigue: plan.pendiente }));
+  return { agotada };
 }
 
 /** Habla con la fila. Sin el binding (pruebas unitarias) siempre hay lugar y no hay fila. */
@@ -171,10 +180,18 @@ export class Fila {
     for (;;) {
       if (s.cola.length) return Date.now();                         // primero los datos de quien espera
       if (Date.now() - inicio > TURNO_ALARMA_MS) return Date.now() + 1000;
+      // Solo los que ya pueden reintentarse (ia_siguiente vencido o sin espera, 1.0.6).
       const f = await env.DB.prepare(
-        `SELECT id, usuario, entrada, resultado FROM analisis WHERE ia_pendiente = 1 AND estado = 'listo' ORDER BY creado LIMIT 1`,
+        `SELECT id, usuario, entrada, resultado, ia_intentos FROM analisis WHERE ia_pendiente = 1 AND estado = 'listo'
+         AND (ia_siguiente IS NULL OR ia_siguiente <= strftime('%Y-%m-%dT%H:%M:%SZ', 'now')) ORDER BY creado LIMIT 1`,
       ).first();
-      if (!f) return null;
+      if (!f) {
+        // Nada listo ahora: si hay reintentos en espera, volver cuando venza el primero.
+        const p = await env.DB.prepare(
+          `SELECT min(ia_siguiente) AS t FROM analisis WHERE ia_pendiente = 1 AND estado = 'listo' AND ia_siguiente IS NOT NULL`,
+        ).first();
+        return p && p.t ? Date.parse(p.t) : null;
+      }
       const falta = (s.iaUltima || 0) + intervalo - Date.now();
       if (falta > 0) {
         // Espera interrumpible: si alguien entra a la fila, /formar la despierta.

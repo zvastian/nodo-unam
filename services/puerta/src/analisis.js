@@ -18,7 +18,7 @@ import { fila } from './fila.js';
 import { ESQUEMAS } from './ia/esquemas.js';
 import { contarInyeccion, limpiarEntrada } from './ia/limpieza.js';
 import { entradaUsuario, promptBloom, promptNota, promptPreguntas, senalesCorpus } from './ia/prompts.js';
-import { IAAgotada, IAInvalida, pedirIA, tomarCupoIA } from './ia/proveedores.js';
+import { IAAgotada, IAInvalida, pedirIA, sinValores, tomarCupoIA } from './ia/proveedores.js';
 import { CABECERAS_API } from './seguridad.js';
 
 // --- Revisiones que el esquema no puede expresar ---
@@ -77,11 +77,13 @@ function prepararBloom(d, lexico) {
  * Las 3 llamadas de IA sobre un contexto ya calculado. La usan el análisis en vivo (SSE) y la fila
  * (src/fila.js), para que los dos den exactamente lo mismo. `aviso(evento, datos)` recibe cada
  * sección al terminar. `solo` limita las secciones (para completar las que faltaron).
- * Devuelve { ia: {nota, preguntas, bloom} | null, costos, agotada, faltan }: `agotada` si se acabó el
- * cupo (del sitio o de los proveedores) y `faltan`, las secciones que no salieron.
+ * Devuelve { ia: {nota, preguntas, bloom} | null, costos, agotada, faltan, fallos }: `agotada` si se
+ * acabó el cupo (del sitio o de los proveedores), `faltan`, las secciones que no salieron, y `fallos`,
+ * por sección, el motivo de las que fallaron por otra causa (1.0.6): solo la ruta de cada error, sin
+ * valores del texto del usuario, igual que en los registros.
  */
 export async function correrIA(env, dia, entrada, datos, lexico, aviso = async () => {}, solo = null) {
-  const costos = {}, ia = {};
+  const costos = {}, ia = {}, fallos = {};
   const eu = entradaUsuario(entrada), sen = senalesCorpus(datos);
   let tareas = [
     ['nota', promptNota(eu, sen), () => [], prepararNota],
@@ -92,7 +94,7 @@ export async function correrIA(env, dia, entrada, datos, lexico, aviso = async (
   const nombres = tareas.map(([nombre]) => nombre);
   if (!(await tomarCupoIA(env, dia))) {
     await aviso('ia_agotada', { motivo: 'tope_del_sitio' });
-    return { ia: null, costos, agotada: true, faltan: nombres };
+    return { ia: null, costos, agotada: true, faltan: nombres, fallos };
   }
 
   let agotada = false;
@@ -106,11 +108,28 @@ export async function correrIA(env, dia, entrada, datos, lexico, aviso = async (
       if (e instanceof IAAgotada) { agotada = true; return; }
       const error = e instanceof IAInvalida ? 'salida_invalida' : 'ia_fallo';
       if (!(e instanceof IAInvalida)) console.error(JSON.stringify({ evento: 'ia_error', tarea: nombre, mensaje: String(e.message).slice(0, 200) }));
+      fallos[nombre] = { error, detalle: e instanceof IAInvalida ? sinValores(e.errores || []).slice(0, 8) : [String(e.message).slice(0, 80)], en: new Date().toISOString() };
       await aviso('error', { seccion: nombre, error });
     }
   }));
   if (agotada) await aviso('ia_agotada', { motivo: 'proveedores_agotados' });
-  return { ia: Object.keys(ia).length ? ia : null, costos, agotada, faltan: nombres.filter((n) => !(n in ia)) };
+  return { ia: Object.keys(ia).length ? ia : null, costos, agotada, faltan: nombres.filter((n) => !(n in ia)), fallos };
+}
+
+/**
+ * Reintentos de la IA (1.0.6). Una sección que falta por falta de cupo deja el análisis pendiente
+ * sin contar intento. Una que falta por salida inválida o error del proveedor cuenta un intento y
+ * espera IA_REINTENTO_HORAS (6) antes de volver a probarse, para no repetir en el mismo minuto un
+ * fallo de carga; tras IA_REINTENTOS (2) reintentos, el análisis queda como está.
+ * Devuelve { pendiente, intentos, siguiente } para guardar en D1.
+ */
+export function planIA(env, r, intentosPrevios = 0) {
+  if (!r.faltan.length) return { pendiente: false, intentos: intentosPrevios, siguiente: null };
+  if (r.agotada) return { pendiente: true, intentos: intentosPrevios, siguiente: null };
+  const intentos = intentosPrevios + 1;
+  const pendiente = intentos <= entero(env.IA_REINTENTOS, 2);
+  const siguiente = pendiente ? new Date(Date.now() + entero(env.IA_REINTENTO_HORAS, 6) * 3600 * 1000).toISOString().slice(0, 19) + 'Z' : null;
+  return { pendiente, intentos, siguiente };
 }
 
 /**
@@ -119,14 +138,16 @@ export async function correrIA(env, dia, entrada, datos, lexico, aviso = async (
  * inventado marcado como pendiente y obtendría IA gratis sobre cualquier texto. Con los 2 análisis
  * guardados ya llenos no se guarda (devuelve null), como antes.
  */
-async function guardarDelWorker(env, u, entrada, datos, ia, pendiente) {
+async function guardarDelWorker(env, u, entrada, datos, r, plan) {
   const id = crypto.randomUUID();
-  const r = await env.DB.prepare(
-    `INSERT INTO analisis (id, usuario, titulo, entrada, resultado, estado, ia_pendiente)
-     SELECT ?1, ?2, ?3, ?4, ?5, 'listo', ?7 WHERE (SELECT count(*) FROM analisis WHERE usuario = ?2) < ?6`,
-  ).bind(id, u.id, String(entrada.title).slice(0, 400), JSON.stringify(entrada), JSON.stringify({ datos, ia }),
-    entero(env.MAX_ANALISIS_GUARDADOS, 2), pendiente ? 1 : 0).run();
-  return r.meta.changes ? id : null;
+  const resultado = { datos, ia: r.ia };
+  if (Object.keys(r.fallos).length) resultado.fallos = r.fallos;
+  const g = await env.DB.prepare(
+    `INSERT INTO analisis (id, usuario, titulo, entrada, resultado, estado, ia_pendiente, ia_intentos, ia_siguiente)
+     SELECT ?1, ?2, ?3, ?4, ?5, 'listo', ?7, ?8, ?9 WHERE (SELECT count(*) FROM analisis WHERE usuario = ?2) < ?6`,
+  ).bind(id, u.id, String(entrada.title).slice(0, 400), JSON.stringify(entrada), JSON.stringify(resultado),
+    entero(env.MAX_ANALISIS_GUARDADOS, 2), plan.pendiente ? 1 : 0, plan.intentos, plan.siguiente).run();
+  return g.meta.changes ? id : null;
 }
 
 /**
@@ -182,10 +203,11 @@ export async function analisisSSE(request, env, ctx, u, h) {
       const datos = JSON.parse(datosTexto);
       const r = await correrIA(env, dia, entrada, datos, lexico, enviar);
       costos = r.costos;
-      // Si se acabó el cupo y faltan secciones, queda pendiente: el carril de IA de la fila la completa.
-      const pendiente = r.agotada && r.faltan.length > 0;
-      guardado = await guardarDelWorker(env, u, entrada, datos, r.ia, pendiente);
-      iaPendiente = pendiente && !!guardado;
+      // Si faltan secciones, queda pendiente y el carril de IA de la fila la completa: por falta de
+      // cupo, cuando lo haya; por fallo, tras una espera y con tope de reintentos (planIA, 1.0.6).
+      const plan = planIA(env, r);
+      guardado = await guardarDelWorker(env, u, entrada, datos, r, plan);
+      iaPendiente = plan.pendiente && !!guardado;
       if (iaPendiente) await fila(env, '/ia').catch(() => {});
     } catch (e) {
       console.error(JSON.stringify({ evento: 'analisis_error', nombre: e.name, mensaje: String(e.message).slice(0, 200) }));
