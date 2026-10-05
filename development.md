@@ -4904,3 +4904,10 @@ Pedida por el usuario: imaginar casos maliciosos y bordes, y comprobar que las d
 - **Estado al desplegar:** 164 análisis con la IA pendiente (el más viejo, 2-oct 00:50 UTC); el tope `ia` (55) se llenó del 1 al 4 de octubre. El carril vació el rezago del 1-oct; a ~55 por día y ~35 nuevos, el rezago actual tarda unos 8 días (estimación).
 - **Verificación:** la sentencia de reserva en SQLite (`node:sqlite`): con reservas de 600 y tope de 9,000 entran 15 y la 16.ª se rechaza; una reserva mayor que el tope se rechaza con la tabla vacía. `node --check` y `wrangler deploy --dry-run`. El CI no cubre esta ruta (corre con `TOPE_IA_DIA=0`). En producción: `/api/salud` 200, `/api/yo` 401 sin sesión, pie en 1.0.4.
 - **Publicado:** Worker `nodos-puerta` (versión `1c0bbf68…`) y sitio (`75b11ef7…`, solo cambió `index.html`).
+
+### 1.0.5: «Apoya este proyecto» en el pie del mapa (2026-10-04)
+
+- **Pedido del usuario:** el enlace de apoyo junto a «Contacto» en el pie del mapa; las demás páginas ya lo tenían.
+- **Cambio (`index.html`):** enlace de texto como sus vecinos del pie (sin el icono de taza de los pies grandes, porque este pie es una sola línea compacta), con `data-pendiente="cafe"`; `index.html` ahora carga `compartido/apoyo.js`, que pone el Payment Link de Stripe en un solo lugar. `footer a` con `white-space: nowrap`: en móvil, «Apoya este proyecto» se partía en dos renglones.
+- **Verificación** (`cdp.mjs`, escritorio 1600×900 y móvil 390×844): el enlace apunta a `buy.stripe.com/…` con `target="_blank"`, sin scroll horizontal; en móvil pasa entero al segundo renglón. En producción, `nodosmap.com` sirve 1.0.5 con el enlace y `apoyo.js`.
+- **Publicado:** sitio (`50bb8522…`).
