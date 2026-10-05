@@ -2511,6 +2511,8 @@ El usuario pidió dos cosas:
 
 ## Estado del proyecto y hoja de ruta (2026-09-25)
 
+> **Histórico desde el 5-oct-2026.** La lista viva es ahora «Pendientes post lanzamiento (2026-10-05)», al final de este archivo.
+
 Diagnóstico de todo el proyecto al cierre del 25-sep-2026. **Reemplaza a «Pendientes consolidados (2026-09-23)»** como lista viva de lo que falta; esa sección queda como histórico. Los porcentajes son estimaciones de avance, no métricas.
 
 ### Dónde estamos
@@ -4933,3 +4935,42 @@ Pedida por el usuario: imaginar casos maliciosos y bordes, y comprobar que las d
 - **Pendiente para enviar los correos:** proveedor de envío con capa gratuita, SPF/DKIM/DMARC en `nodosmap.com`, baja de un clic (RFC 8058) y preferencia por cuenta, y el aviso de privacidad con la finalidad y el encargado nuevos.
 - **Verificación:** `node --check`, `wrangler deploy --dry-run`, CI en verde; migración aplicada en producción y conteos por `avisar` en D1; `/api/salud` 200.
 - **Publicado:** migración 0007 y Worker (`a032b474…`); sitio con el pie en 1.0.7.
+
+## Pendientes post lanzamiento (2026-10-05)
+
+Lista viva de lo que falta tras el lanzamiento (1.0.0, 29-sep-2026). **Reemplaza a «Estado del proyecto y hoja de ruta (2026-09-25)»** como lista de pendientes; esa sección queda como histórico del camino al lanzamiento. Orden por prioridad: P0 son promesas ya hechas a usuarios o riesgos de costo; P1, calidad del Laboratorio; P2, mejoras y deuda.
+
+### P0. Promesas a usuarios y costo
+
+- [ ] **Avisos por correo** cuando se complete un análisis que esperó (registro listo en 1.0.7: `analisis.avisar` 1 = seguro, 2 = estimado; `avisado`). Falta:
+  - [ ] elegir proveedor de envío con capa gratuita (candidato: Resend; alternativa: Brevo) y confirmar sus límites;
+  - [ ] SPF, DKIM y DMARC de `nodosmap.com` en Cloudflare DNS;
+  - [ ] baja de correos: preferencia por cuenta en D1, enlace firmado que funcione sin sesión, cabecera `List-Unsubscribe` de un clic (RFC 8058) e interruptor en Mi espacio;
+  - [ ] aviso de privacidad: la finalidad «avisos sobre tus análisis» y el proveedor de correo como encargado, **antes** del primer envío;
+  - [ ] el envío desde el carril al completar (correo leído de Supabase con la clave de servicio, nunca guardado en D1), marcando `avisado`;
+  - [ ] el envío por lotes a los ya marcados (208 con `avisar = 1`, 65 con `avisar = 2`; unas 210 cuentas), respetando el tope diario del proveedor.
+- [ ] **Verificar los reintentos de la 1.0.6** con datos reales: que el carril vacíe los 33 rescatados (`ia_intentos = 1`) y que los que vuelvan a fallar guarden `resultado.fallos`.
+- [ ] **Rezago de IA** (~208 pendientes, 55 por día): medir cuántos días tarda en vaciarse y decidir si hace falta otra fuente de capacidad gratuita.
+- [ ] **Planes de los proveedores:** confirmar que Cloudflare (Workers Free) y Groq estén en capa gratuita y sin tarjeta; en Modal, revisar en las facturas que el almacenamiento del volumen siga en 0 (el límite de uso de 30 USD ya está puesto).
+- [ ] **Usuario con 2 guardados y sin cupo de IA:** su análisis no se guarda y la IA nunca le llega. Decidir qué se le promete y qué se le muestra.
+
+### P1. Calidad del Laboratorio
+
+- [ ] **Revisión humana:** etiquetar los 20 casos de `docs/revision_lab/revision_2026-10-05-03-41-51.md` (fuera de git). Con los veredictos (sin texto de las tesis): rúbrica escrita y reglas nuevas para `revisar()`.
+- [ ] **Bloom más tolerante** (los 15 parciales eran todos de Bloom): con 2 o más objetivos revisados válidos, descartar los inválidos en vez de tirar la sección; si falla la reescritura, mostrar al menos el diagnóstico. Decidir con los motivos reales de `resultado.fallos`.
+- [ ] **Prompts:** identificar el tipo de tesis (empírica, teórica o formal, documental, de diseño) antes de proponer métodos; prohibir que un objetivo revisado baje de nivel; señalar las correcciones en vez de hacerlas en silencio. Medir antes y después con un conjunto fijo de casos.
+- [ ] **Grafo de evaluación:** juez calibrado contra las etiquetas humanas (≥ 80 % de acuerdo), comparación de prompts y aprobación humana antes de desplegar. Cuidar el cupo: el conjunto de prueba compite con los usuarios.
+- [ ] **Entradas mínimas** (título de menos de 10 caracteres, un solo objetivo corto): pedir más contexto antes de gastar IA. Diseño a acordar.
+- [ ] **Campo «programa»:** 37 % vacío y texto libre; autocompletar con el catálogo de programas. Diseño a acordar.
+- [ ] **Invitación a apoyar** en el estado «lectura con IA en espera»: hoy solo aparece si se abre el «?». Diseño a acordar.
+
+### P2. Mejoras y deuda
+
+- [ ] **Privacidad y uso de datos para mejorar el servicio:** el aviso dice «exclusivamente» las finalidades necesarias; agregar estadísticas agregadas y anónimas para mejorar el Laboratorio y, si una IA externa participa en la revisión de casos, a su proveedor como encargado. Revisar en Claude la opción «Help improve Claude».
+- [ ] **Investigación de arquitectura** con `arquitectura_deep_research.md` (dos investigaciones: A1 arquitectura, A2 aprendizaje) y, con su resultado, renovar `architecture.md` (tiene cambios sin subir).
+- [ ] **Calidad del mapa con subagentes:** revisar nombres de campos y temas, la jerarquía y tesis mal ubicadas; detectar asesores duplicados (regla para lo seguro, IA solo para lo dudoso); cada cambio aprobado por el dueño.
+- [ ] **Reporte semanal** (script, no agente): análisis por programa y grado, parciales, rezago, cuotas y crédito de Modal.
+- [ ] **Observabilidad:** los logs del Worker duran 3 días y la sesión de `wrangler` no puede consultarlos por API; decidir si conviene un token con permiso de lectura de observabilidad o guardar en D1 lo mínimo.
+- [ ] El contador interno `workers_ai_neuronas` suma 9,000 con cada error 4006 y exagera el uso (el real está en la API de Cloudflare); cosmético, pero confunde al leerlo.
+- [ ] **ADR:** registrar el cambio a Modal como enmienda a ADR-0015 y marcar ADR-0002 (Docker Compose) como no implementada.
+- [ ] `wrangler` necesita `CLOUDFLARE_ACCOUNT_ID` de la cuenta NodOS para D1 remoto; sin él intenta la cuenta personal y falla con 7403. Documentarlo junto a los comandos de despliegue.

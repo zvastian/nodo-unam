@@ -1,78 +1,153 @@
-# NodOS: insumo para una investigación de arquitectura
+# NodOS: insumo para dos investigaciones profundas
 
-Este archivo tiene dos partes. La **parte A** es la instrucción para el investigador. La **parte B**
-es el contexto: cómo está construido NodOS hoy, leído del código (versión 1.0.7, 5 de octubre de
-2026). Pega el archivo completo en Claude con la función de investigación (Research) activada.
+## Cómo usar este archivo
+
+Sirve para **dos investigaciones distintas**, cada una en un chat nuevo de Claude con Research
+activado. Una investigación profunda rinde más con una pregunta enfocada que con todas a la vez.
+
+1. Completa la **parte C** (tu perfil, 2 minutos).
+2. Chat 1: pega el archivo completo y escribe **«Ejecuta la investigación A1»** (arquitectura).
+3. Chat 2: pega el archivo completo y escribe **«Ejecuta la investigación A2»** (aprendizaje).
+
+Contenido:
+
+- **Parte A.** Las instrucciones: A0 (reglas para las dos), A1 y A2.
+- **Parte B.** Cómo está construido NodOS hoy, leído del código (versión 1.0.7, 5 de octubre de
+  2026).
+- **Parte C.** Quién pregunta y para qué.
 
 ---
 
-# PARTE A. Instrucción de investigación
+# PARTE A. Instrucciones de investigación
 
-## Rol
+## A0. Reglas para las dos investigaciones
 
-Actúa como arquitecto de software sénior con experiencia en documentación formal de arquitectura
-(ISO/IEC/IEEE 42010, modelo C4, plantilla arc42, vistas 4+1), en aplicaciones web *serverless* y
-de borde (*edge*), en sistemas con modelos de lenguaje y en privacidad de datos en México.
+**Aprovecha lo que una investigación profunda hace mejor que una respuesta normal:**
 
-## Objetivo
+- **Fuentes actuales.** Prioriza documentación y publicaciones de 2025 y 2026. Las capas gratuitas,
+  los límites de los proveedores y las prácticas con modelos de lenguaje cambian cada pocos meses:
+  pon la fecha de cada dato que pueda caducar.
+- **Fuentes primarias.** Documentación oficial, normas, artículos y libros reconocidos, blogs de
+  ingeniería de las empresas que operan esos sistemas. Evita resúmenes de terceros cuando exista
+  la fuente original.
+- **Comparar, no listar.** Para cada decisión, al menos tres alternativas reales en una tabla de
+  compromisos (costo, complejidad, riesgo, encaje con las restricciones de la parte B, §2).
+- **Casos reales.** Busca proyectos comparables (mapas semánticos de corpus académicos, sitios
+  estáticos con funciones de borde, aplicaciones de un solo desarrollador en capas gratuitas,
+  productos con LLM en producción) y *postmortems* públicos. Di qué decidieron y qué aprendieron.
+- **Desacuerdos.** Si las fuentes se contradicen, muéstralo y di cuál te parece más sólida y por qué.
+- **Confianza.** Marca cada afirmación importante como alta, media o baja confianza.
 
-Producir el **documento formal de arquitectura de NodOS**, presentable para un proyecto
-profesional o académico, a partir del contexto de la parte B. Debe permitir que una persona
-técnica que nunca vio el proyecto entienda exactamente cómo funciona el sitio, por qué está hecho
-así y dónde están sus riesgos.
+**Reglas de contenido:**
 
-## Entregables
+- **No inventes nada de NodOS.** Todo lo que digas del proyecto debe salir de la parte B. Lo que no
+  esté, márcalo como «supuesto» o «recomendación», nunca como hecho.
+- **Cita las fuentes** de cada estándar, patrón, práctica o dato externo, con enlace.
+- **Respeta las restricciones** de la parte B, §2, en toda recomendación: costo de operación cero,
+  un solo desarrollador, sin compilación en el frontend.
+- **Español formal y claro.** Los términos técnicos en inglés van en cursiva la primera vez, con su
+  traducción, y se explican con un ejemplo de NodOS.
+- **Diagramas en Mermaid que compilen.** En las etiquetas evita «;» y «:» sueltos, que rompen el
+  análisis de Mermaid.
+- Un solo documento con resumen ejecutivo de una página, índice y secciones numeradas.
 
-1. **Clasificación de la arquitectura** con vocabulario de la industria. Investiga y justifica qué
-   estilos y patrones aplica: por ejemplo, sitio estático más funciones de borde (JAMstack),
-   *Backend for Frontend* o *API gateway* (el Worker «puerta»), procesamiento por lotes offline más
-   servicio en línea (*batch* + *online serving*), *serverless*, fila con *Durable Objects*,
-   *Server-Sent Events*, flujo de trabajo con LLM (paralelización, evaluador-optimizador). Para
-   cada patrón: definición con fuente, dónde se ve en NodOS y qué tan fiel es la aplicación.
-2. **Diagramas en Mermaid** (que compilen), con la notación del modelo C4:
-   - Nivel 1, contexto del sistema: personas, NodOS y sistemas externos.
-   - Nivel 2, contenedores: cada pieza desplegable, su tecnología y sus protocolos.
-   - Nivel 3, componentes del Worker «puerta» (la cadena de *middleware*, las rutas, el
-     subsistema de IA, la fila).
-   - Diagrama de despliegue: qué corre en qué proveedor y región.
-   - Diagramas de secuencia de los flujos clave de la parte B (§7): inicio de sesión, análisis en
-     vivo, análisis en la fila y carril de IA con reintentos.
-   - Diagrama de flujo de datos con **fronteras de confianza** (*trust boundaries*).
-   - Máquina de estados del análisis guardado (§7.6).
-3. **Atributos de calidad** con la clasificación de ISO/IEC 25010 (rendimiento, seguridad,
-   fiabilidad, mantenibilidad, portabilidad…): cómo los atiende hoy la arquitectura, con
-   evidencia de la parte B, y escenarios de calidad concretos.
-4. **Análisis de seguridad**: modelado de amenazas STRIDE sobre el diagrama de flujo de datos,
-   contraste con OWASP ASVS y con el OWASP Top 10 para aplicaciones con LLM, y una lista de
-   riesgos ordenada por severidad.
-5. **Privacidad**: contraste con la Ley Federal de Protección de Datos Personales en Posesión de
-   los Particulares (México) y su reglamento; qué cumple, qué falta. Incluye la función que viene
-   (§11): avisos por correo electrónico.
-6. **Diseño recomendado para la función siguiente**, los avisos por correo (§11): opciones de
-   proveedor con capa gratuita, autenticación del dominio (SPF, DKIM, DMARC), baja de un clic
-   (RFC 8058 y la cabecera `List-Unsubscribe`), dónde vive el consentimiento y cómo encaja en la
-   arquitectura actual sin romper sus restricciones (§2).
-7. **Registro de decisiones**: resume las decisiones de la parte B (§10) en formato ADR (contexto,
-   decisión, consecuencias) y señala cuáles conviene revisar.
-8. **Brechas y hoja de ruta**: qué le falta a la arquitectura para considerarse madura (por
-   ejemplo, observabilidad, pruebas, recuperación ante desastres), ordenado por impacto y costo,
-   respetando la restricción de costo cero.
+---
 
-## Reglas
+## A1. Investigación de arquitectura
 
-- **No inventes componentes.** Todo lo que describas de NodOS debe salir de la parte B. Si algo no
-  está, márcalo como «supuesto» o como «recomendación», nunca como hecho.
-- **Cita fuentes** para cada estándar, patrón o práctica de la industria (documentación oficial,
-  normas, publicaciones reconocidas). No hace falta citar la parte B.
-- **Escribe en español**, en registro formal, con oraciones claras. Los nombres técnicos en inglés
-  (p. ej., *trust boundary*) van en cursiva la primera vez, con su traducción.
-- **Diagramas en Mermaid** que compilen; usa `C4Context`, `C4Container`, `C4Component`,
-  `sequenceDiagram`, `stateDiagram-v2` o `flowchart`, según convenga. En las etiquetas, evita «;» y
-  «:» sueltos, que rompen el análisis de Mermaid.
-- **Respeta las restricciones del proyecto** (parte B, §2) en toda recomendación: costo de
-  operación cero, un solo desarrollador, sin paso de compilación en el frontend.
-- Entrega un solo documento con índice, numeración de secciones y un resumen ejecutivo de una
-  página al inicio.
+### Rol
+
+Arquitecto de software sénior con experiencia en documentación formal de arquitectura (ISO/IEC/IEEE
+42010, modelo C4, plantilla arc42, vistas 4+1), en aplicaciones *serverless* y de borde (*edge*),
+en sistemas con modelos de lenguaje y en privacidad de datos en México.
+
+### Objetivo
+
+El **documento formal de arquitectura de NodOS**, presentable para un proyecto profesional o
+académico: que una persona técnica que nunca vio el proyecto entienda cómo funciona, por qué está
+hecho así y dónde están sus riesgos.
+
+### Entregables
+
+1. **Clasificación de la arquitectura.** Qué estilos y patrones aplica, con definición y fuente,
+   dónde se ven en NodOS y qué tan fiel es la aplicación. Candidatos: sitio estático con funciones
+   de borde (JAMstack), *Backend for Frontend* o *API gateway* (el Worker «puerta»), lotes offline
+   más servicio en línea (*batch* + *online serving*), *serverless*, fila con *Durable Objects*,
+   *Server-Sent Events*, flujo de trabajo con LLM (paralelización, evaluador-optimizador).
+2. **Diagramas** con la notación C4: contexto (nivel 1), contenedores (nivel 2), componentes del
+   Worker «puerta» (nivel 3); despliegue (qué corre en qué proveedor); secuencia de los flujos de la
+   parte B, §7 (sesión, análisis en vivo, análisis en la fila, carril de IA con reintentos); flujo de
+   datos con **fronteras de confianza** (*trust boundaries*); y la máquina de estados del análisis
+   guardado (§7.6).
+3. **Atributos de calidad** con la clasificación de ISO/IEC 25010: cómo los atiende hoy la
+   arquitectura, con evidencia de la parte B, y escenarios de calidad concretos.
+4. **Seguridad:** amenazas STRIDE sobre el flujo de datos, contraste con OWASP ASVS y con el OWASP
+   Top 10 para aplicaciones con LLM, y riesgos ordenados por severidad.
+5. **Privacidad:** contraste con la Ley Federal de Protección de Datos Personales en Posesión de los
+   Particulares (México) y su reglamento, incluida la función que viene (avisos por correo).
+6. **La función siguiente, avisos por correo** (parte B, §11): comparación actual de proveedores de
+   envío con capa gratuita (límites y fecha), SPF, DKIM y DMARC, baja de un clic (RFC 8058 y
+   `List-Unsubscribe`), dónde vive el consentimiento y cómo encaja sin romper las restricciones.
+7. **Panorama de capas gratuitas 2026** para cada pieza de NodOS (sitio, cómputo de borde, base de
+   datos, contenedor con 4 GiB, inferencia de LLM, identidad, correo): proveedor actual, dos
+   alternativas, límites con fecha y el costo de mudarse. NodOS ya cambió de proveedor dos veces por
+   cambios en capas gratuitas.
+8. **Proyectos comparables:** cómo resolvieron arquitecturas parecidas otros mapas semánticos de
+   publicaciones o corpus académicos, y qué conviene adoptar.
+9. **Registro de decisiones:** las de la parte B, §10, en formato ADR (contexto, decisión,
+   consecuencias), y cuáles conviene revisar.
+10. **Brechas y hoja de ruta:** qué le falta para considerarse madura (observabilidad, pruebas,
+    recuperación ante desastres, gestión de secretos…), ordenado por impacto y costo.
+
+---
+
+## A2. Investigación de aprendizaje: ser mejor desarrollador con NodOS como laboratorio
+
+### Rol
+
+Mentor de ingeniería de software sénior que diseña planes de aprendizaje a partir del trabajo real
+de la persona, no de temarios genéricos.
+
+### Objetivo
+
+Que quien construyó NodOS (parte C) se vuelva mejor desarrollador **usando su propio proyecto como
+material de estudio**: entender a fondo lo que ya construyó, cerrar las brechas que el proyecto deja
+ver y adquirir los hábitos de un ingeniero sénior.
+
+### Entregables
+
+1. **Mapa de competencias.** A partir de la parte B, qué competencias ya demuestra el proyecto y
+   cuáles faltan, contrastadas con marcos reconocidos (por ejemplo, SWEBOK v4, roadmap.sh, las
+   escalas de carrera públicas de empresas de software). Una tabla: competencia, evidencia en
+   NodOS, nivel estimado, brecha.
+2. **Los conceptos que el proyecto ya usa, explicados con el proyecto.** Para cada uno: qué es, la
+   fuente canónica, dónde aparece en NodOS y un error típico. Al menos: atomicidad y condiciones de
+   carrera (la reserva de cupo de la 1.0.4), idempotencia y reintentos con espera (la 1.0.6), filas
+   y contrapresión (*backpressure*), caché e invalidación, consistencia, autenticación con JWT y
+   PKCE, CSP, arranque en frío, formatos columnares, *embeddings* y búsqueda vectorial, salidas
+   estructuradas de LLM, flujo de trabajo frente a agente.
+3. **Estado del arte 2025-2026 en lo que NodOS necesita ahora:**
+   - **Evaluación de LLM con humanos en el ciclo:** conjuntos de evaluación, rúbricas, LLM como
+     juez y su calibración contra etiquetas humanas, optimización de prompts (por ejemplo DSPy u
+     otras), y cómo hacerlo con un presupuesto de tokens casi nulo.
+   - **Flujos de trabajo y agentes:** cuándo conviene un grafo (LangGraph u otros) y cuándo un
+     script; agentes de programación (como Claude Code) en el desarrollo diario: cómo especificar,
+     verificar y no perder el entendimiento del propio código.
+   - **Pruebas y observabilidad** en *serverless* con capas gratuitas.
+   - **Ingeniería de datos** a escala de un desarrollador: linaje, reproducibilidad, versionado de
+     datos y de modelos.
+4. **Hábitos de un ingeniero sénior**, con fuente y un ejercicio en NodOS para cada uno:
+   documentos de diseño, ADR, *postmortems* sin culpa (ejemplo para practicar: los análisis que
+   quedaban parciales para siempre, parte B §7.6), revisión de código, SLO y presupuestos de error,
+   medir antes de cambiar, versionado y bitácora.
+5. **Plan de 12 semanas.** Cada semana: un concepto, una lectura primaria (capítulo concreto) y un
+   ejercicio sobre el código real de NodOS con un resultado verificable (una prueba, un ADR, una
+   métrica, un diagrama). Ajusta el ritmo a las horas de la parte C.
+6. **Biblioteca curada.** Libros, cursos y documentación, priorizando lo gratuito, con nivel,
+   tiempo estimado y para qué sirve en NodOS. Investiga y valida cuáles son hoy las referencias más
+   recomendadas en diseño de sistemas, arquitectura, SRE, seguridad web y LLM en producción.
+7. **NodOS como caso de portafolio:** cómo presentarlo (estructura de un estudio de caso técnico,
+   qué métricas y decisiones destacar) para un empleo, un posgrado o una beca.
 
 ---
 
@@ -365,3 +440,26 @@ tras 7 días sin actividad). El correo de cada usuario **no** está en D1: vive 
   pendientes.
 - **Taxonomía de Bloom:** clasificación de objetivos de aprendizaje por nivel cognitivo
   (Recordar, Comprender, Aplicar, Analizar, Evaluar, Crear).
+
+---
+
+# PARTE C. Quién pregunta y para qué
+
+**Lo que se sabe por el proyecto:**
+
+- Desarrollador independiente; construyó y opera NodOS solo, en producción desde el 29 de
+  septiembre de 2026, con un asistente de programación (Claude Code) como apoyo diario.
+- Aprende infraestructura e IA en la práctica: conceptos como Docker, contenedores, Workers, grafos
+  y agentes los está aprendiendo mientras los usa. Prefiere explicaciones sencillas con ejemplos de
+  su propio proyecto antes que la jerga.
+- Trabaja con disciplina de registro: bitácora por versión (qué cambió, por qué, cómo se verificó),
+  ADR, CI y revisión visual. Cuida la privacidad y el costo cero.
+- Quiere mantener a un humano en el ciclo: ver los datos crudos, no solo interpretaciones.
+
+**Completa antes de pegar** (borra lo que no aplique):
+
+- Formación y experiencia previa en programación: …
+- Horas por semana para estudiar: …
+- Objetivo profesional (empleo, posgrado, emprender, investigación): …
+- Lenguajes y herramientas que ya dominas: …
+- Lo que más te cuesta hoy: …

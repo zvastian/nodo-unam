@@ -9,8 +9,8 @@ páginas con una sola navegación (Mapa, Laboratorio, Método), cada una en un s
 
 - `PRODUCT.md`: usuarios, propósito y la lista de **25 anti-patrones de UI genérica** acordada
   con el usuario. Ninguno se reintroduce sin una razón de producto escrita.
-- `development.md`: bitácora completa. Lee al menos «Estado del proyecto y hoja de ruta
-  (2026-09-25)», que es la lista viva de pendientes, y la última sección.
+- `development.md`: bitácora completa. Lee al menos «Pendientes post lanzamiento (2026-10-05)»,
+  que es la lista viva de pendientes, y las últimas versiones registradas.
 
 ## Correr la interfaz
 
