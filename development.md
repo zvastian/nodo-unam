@@ -4945,7 +4945,8 @@ Pedida por el usuario: imaginar casos maliciosos y bordes, y comprobar que las d
   2. **La fila de datos corre a lo más 20 análisis por alarma** (`FILA_POR_ALARMA`), y la alarma que corrió datos deja el carril de IA a la siguiente. Antes, un pico de más de 50 en la fila habría dejado sin subpeticiones a `pedirContexto`, que trata el error como «servicio no disponible», borra el análisis y devuelve la cuota. Sin logs de esos días no se sabe si pasó el 5-oct.
   3. **Sin subpeticiones no es un fallo** (`proveedores.js`, `SinSubpeticiones`): se devuelve la reserva de Groq o de Workers AI, no se intenta el respaldo (fallaría igual) y se devuelve el lugar del tope `ia`. `planIA` deja el análisis pendiente sin contar intento ni esperar, salvo que otra sección haya fallado de verdad en la misma corrida.
 - **Verificación:** `pruebas/carril.test.mjs` (7 pruebas, nueva y en el CI): D1 sobre SQLite en memoria con las migraciones reales, con Groq, Workers AI y el servicio simulados, y el tope de 50 subpeticiones por invocación imitado. Con el código anterior fallan 6 de las 7. También pasan Bloom (17), inyección (6), seguridad (8) y `fila.test.mjs` (5) contra `wrangler dev`.
-- **Falta:** desplegar el Worker y, con visto bueno, rescatar en D1 los 6 análisis con fallo por subpeticiones y revisar los 2 que agotaron sus 3 intentos.
+- **Publicado (12-oct, ~00:45 UTC):** Worker (`1ce12826…`) y sitio con el pie en 1.0.8 (`236e82ca…`). `/api/salud` 200 y `prueba_humo.mjs https://nodosmap.com/` sin errores. El carril seguía en pausa hasta las 06:05 UTC del 12-oct: el efecto se mide desde ahí.
+- **Falta:** con visto bueno, rescatar en D1 los 6 análisis con fallo por subpeticiones y revisar los 2 que agotaron sus 3 intentos.
 
 ## Pendientes post lanzamiento (2026-10-05)
 
