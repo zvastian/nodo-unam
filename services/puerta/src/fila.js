@@ -19,6 +19,12 @@
 // fila soltaban 50 llamadas a Groq en el mismo minuto; casi todas caían a Workers AI y agotaban el día.
 // El mismo carril completa los análisis en vivo que se quedaron sin IA por falta de cupo; si el cupo
 // del día se acabó, se pausa hasta que se reinicia (06:05 UTC: medianoche de la Ciudad de México).
+//
+// Subpeticiones (1.0.8, 2026-10-11): el plan gratuito deja 50 por invocación, y cada alarma es una.
+// Antes, una sola alarma de hasta 12 min encadenaba lecturas de IA (de 3 a 9 llamadas cada una) y
+// hacia la octava se quedaba sin subpeticiones: todo lo demás fallaba al instante y el carril se
+// pausaba creyendo agotado el cupo. Ahora cada alarma hace UNA lectura de IA y programa la siguiente,
+// y corre a lo más FILA_POR_ALARMA análisis de datos (una llamada al servicio cada uno).
 
 import { correrIA, planIA } from './analisis.js';
 import { clasificarObjetivos } from '../../../prototypes/atlas_vecindario_mvp/compartido/bloom.js';
@@ -27,6 +33,7 @@ import { devolverCuota, entero, hoy, pedirContexto } from './comun.js';
 const LUGAR_VIVO_MS = 4 * 60 * 1000;         // lugar de un análisis en vivo, si nadie lo suelta
 const LUGAR_FILA_MS = 10 * 60 * 1000;        // lugar de un análisis de la fila
 const TURNO_ALARMA_MS = 12 * 60 * 1000;      // una alarma dura a lo más 15 min: se reprograma antes
+const FILA_POR_ALARMA = 20;                  // análisis de datos por alarma: muy por debajo de 50 subpeticiones
 
 // El cupo de IA se reinicia a las 00:00 UTC (proveedores) y a las 06:00 UTC (tope del sitio, día de
 // la Ciudad de México): el carril pausado vuelve a las 06:05 UTC.
@@ -63,7 +70,7 @@ async function completarIA(env, f) {
   if (Object.keys(fallos).length) resultado.fallos = fallos; else delete resultado.fallos;
   await fijar(resultado, plan);
   const agotada = r.agotada && r.faltan.length > 0;
-  console.log(JSON.stringify({ evento: 'ia_completada', secciones: solo.length - r.faltan.length, faltan: r.faltan.length, agotada, intentos: plan.intentos, sigue: plan.pendiente }));
+  console.log(JSON.stringify({ evento: 'ia_completada', secciones: solo.length - r.faltan.length, faltan: r.faltan.length, agotada, cortada: !!r.cortada, intentos: plan.intentos, sigue: plan.pendiente }));
   return { agotada };
 }
 
@@ -130,6 +137,7 @@ export class Fila {
 
   async alarm() {
     const inicio = Date.now(), s = await this.cargar(), activos = new Set();
+    let corridos = 0;
     // Las alarmas no se enciman: lo que quedó «en curso» de antes es de un objeto que se reinició
     // a mitad de un análisis. Vuelve al frente de la fila.
     const huerfanas = Object.values(s.enCurso);
@@ -137,8 +145,9 @@ export class Fila {
 
     for (;;) {
       await this.cargar();
-      while (this.libres() > 0 && s.cola.length && Date.now() - inicio < TURNO_ALARMA_MS) {
+      while (this.libres() > 0 && s.cola.length && Date.now() - inicio < TURNO_ALARMA_MS && corridos < FILA_POR_ALARMA) {
         const t = s.cola.shift(), lugar = crypto.randomUUID();
+        corridos++;
         s.lugares[lugar] = Date.now() + LUGAR_FILA_MS;
         s.enCurso[t.id] = t;
         await this.guardar();
@@ -160,57 +169,52 @@ export class Fila {
     if (s.cola.length) {
       // Sin lugar (los ocupan análisis en vivo) o se acabó el turno de esta alarma. Soltar un lugar
       // ya programa la alarma; esto es el respaldo si un lugar vence sin que nadie lo suelte.
-      const vencen = Object.values(s.lugares);
-      await this.programar(Date.now() - inicio >= TURNO_ALARMA_MS || !vencen.length ? 0 : Math.max(1000, Math.min(...vencen) - Date.now()));
+      const vencen = Object.values(s.lugares), otraAlarma = Date.now() - inicio >= TURNO_ALARMA_MS || corridos >= FILA_POR_ALARMA;
+      await this.programar(otraAlarma || !vencen.length ? 0 : Math.max(1000, Math.min(...vencen) - Date.now()));
       return;
     }
+    // Esta alarma ya gastó subpeticiones en la fila de datos: el carril de IA va en una nueva.
+    if (corridos) { await this.programar(0); return; }
     // La fila de datos está vacía: turno del carril de IA.
-    const proxima = await this.carrilIA(inicio);
+    const proxima = await this.carrilIA();
     if (proxima !== null) await this.programar(Math.max(0, proxima - Date.now()));
   }
 
   /**
-   * Completa las lecturas de IA pendientes, de una en una y espaciadas. Devuelve cuándo volver
-   * (ms desde la época) o null si no queda nada. Cede en cuanto llega alguien a la fila de datos.
+   * Completa UNA lectura de IA pendiente (1.0.8: una por alarma, cada una con sus propias
+   * subpeticiones). Devuelve cuándo volver (ms desde la época) o null si no queda nada. Si llega
+   * alguien a la fila de datos mientras espera, /formar adelanta la alarma y los datos van primero.
    */
-  async carrilIA(inicio) {
+  async carrilIA() {
     const s = this.s, env = this.env;
     if (s.iaPausaHasta && Date.now() < s.iaPausaHasta) return s.iaPausaHasta;
     const intervalo = entero(env.IA_INTERVALO_S, 45) * 1000;
-    for (;;) {
-      if (s.cola.length) return Date.now();                         // primero los datos de quien espera
-      if (Date.now() - inicio > TURNO_ALARMA_MS) return Date.now() + 1000;
-      // Solo los que ya pueden reintentarse (ia_siguiente vencido o sin espera, 1.0.6).
-      const f = await env.DB.prepare(
-        `SELECT id, usuario, entrada, resultado, ia_intentos FROM analisis WHERE ia_pendiente = 1 AND estado = 'listo'
-         AND (ia_siguiente IS NULL OR ia_siguiente <= strftime('%Y-%m-%dT%H:%M:%SZ', 'now')) ORDER BY creado LIMIT 1`,
+    // Solo los que ya pueden reintentarse (ia_siguiente vencido o sin espera, 1.0.6).
+    const f = await env.DB.prepare(
+      `SELECT id, usuario, entrada, resultado, ia_intentos FROM analisis WHERE ia_pendiente = 1 AND estado = 'listo'
+       AND (ia_siguiente IS NULL OR ia_siguiente <= strftime('%Y-%m-%dT%H:%M:%SZ', 'now')) ORDER BY creado LIMIT 1`,
+    ).first();
+    if (!f) {
+      // Nada listo ahora: si hay reintentos en espera, volver cuando venza el primero.
+      const p = await env.DB.prepare(
+        `SELECT min(ia_siguiente) AS t FROM analisis WHERE ia_pendiente = 1 AND estado = 'listo' AND ia_siguiente IS NOT NULL`,
       ).first();
-      if (!f) {
-        // Nada listo ahora: si hay reintentos en espera, volver cuando venza el primero.
-        const p = await env.DB.prepare(
-          `SELECT min(ia_siguiente) AS t FROM analisis WHERE ia_pendiente = 1 AND estado = 'listo' AND ia_siguiente IS NOT NULL`,
-        ).first();
-        return p && p.t ? Date.parse(p.t) : null;
-      }
-      const falta = (s.iaUltima || 0) + intervalo - Date.now();
-      if (falta > 0) {
-        // Espera interrumpible: si alguien entra a la fila, /formar la despierta.
-        await new Promise((listo) => { this.despertar = listo; setTimeout(listo, falta); });
-        this.despertar = null;
-        continue;
-      }
-      s.iaUltima = Date.now(); await this.guardar();
-      let r;
-      try { r = await completarIA(env, f); } catch (e) {
-        console.error(JSON.stringify({ evento: 'ia_completar_error', nombre: e.name, mensaje: String(e.message).slice(0, 200) }));
-        return Date.now() + intervalo;                              // se reintenta en la siguiente vuelta
-      }
-      if (r.agotada) {
-        s.iaPausaHasta = siguienteReinicio(); await this.guardar();
-        console.log(JSON.stringify({ evento: 'ia_carril_en_pausa', hasta: new Date(s.iaPausaHasta).toISOString() }));
-        return s.iaPausaHasta;
-      }
+      return p && p.t ? Date.parse(p.t) : null;
     }
+    const falta = (s.iaUltima || 0) + intervalo - Date.now();
+    if (falta > 0) return Date.now() + falta;                      // espaciado entre lecturas
+    s.iaUltima = Date.now(); await this.guardar();
+    let r;
+    try { r = await completarIA(env, f); } catch (e) {
+      console.error(JSON.stringify({ evento: 'ia_completar_error', nombre: e.name, mensaje: String(e.message).slice(0, 200) }));
+      return Date.now() + intervalo;                                // se reintenta en la siguiente alarma
+    }
+    if (r.agotada) {
+      s.iaPausaHasta = siguienteReinicio(); await this.guardar();
+      console.log(JSON.stringify({ evento: 'ia_carril_en_pausa', hasta: new Date(s.iaPausaHasta).toISOString() }));
+      return s.iaPausaHasta;
+    }
+    return Date.now() + intervalo;
   }
 
   /** Un análisis de la fila, de principio a fin. Nunca registra el texto. */

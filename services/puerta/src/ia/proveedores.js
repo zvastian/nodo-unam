@@ -18,6 +18,12 @@ import { paraProveedor, validar } from './esquemas.js';
 
 export class IAAgotada extends Error { constructor() { super('ia_agotada'); this.name = 'IAAgotada'; } }
 export class IAInvalida extends Error { constructor(errores) { super('ia_invalida'); this.name = 'IAInvalida'; this.errores = errores; } }
+// El Worker se quedó sin subpeticiones en esta invocación (plan gratuito: 50 por invocación). La
+// llamada no salió, así que no se gasta cupo de los proveedores ni cuenta como intento: el análisis
+// sigue pendiente para la siguiente invocación (1.0.8). Antes caía como un fallo más, la reserva se
+// quedaba y en segundos el carril «gastaba» el cupo del día en llamadas que nunca salieron.
+export class SinSubpeticiones extends Error { constructor() { super('sin_subpeticiones'); this.name = 'SinSubpeticiones'; } }
+const esSinSubpeticiones = (e) => /too many subrequests/i.test(String(e && e.message));
 class Limite429 extends Error {
   constructor(porDia, espera) { super('groq_429'); this.porDia = porDia; this.espera = espera; }
 }
@@ -60,6 +66,10 @@ export async function tomarCupoIA(env, dia) {
      ON CONFLICT (dia, tipo) DO UPDATE SET n = n + 1 WHERE n < ?2 RETURNING n`,
   ).bind(dia, entero(env.TOPE_IA_DIA, 55)).first();
   return !!r;
+}
+/** Devuelve el lugar del tope diario de análisis con IA (un análisis cortado por subpeticiones). */
+export async function devolverCupoIA(env, dia) {
+  await env.DB.prepare(`UPDATE cuota_sitio SET n = n - 1 WHERE dia = ?1 AND tipo = 'ia' AND n > 0`).bind(dia).run();
 }
 
 async function groq(env, mensajes, esquema, nombre) {
@@ -146,6 +156,8 @@ export async function pedirIA(env, _diaMexico, tarea, mensajes, esquema, revisar
           if (respuesta.costo > 0) await sumar(env, dia, 'groq_tokens', respuesta.costo - reserva);
         } catch (e) {
           // Un 429 no gasta tokens: se devuelve la reserva. Otro error (red, 5xx, tiempo) la conserva.
+          // Sin subpeticiones, la llamada no salió: se devuelve y no se intenta Workers AI, que fallaría igual.
+          if (esSinSubpeticiones(e)) { await sumar(env, dia, 'groq_tokens', -reserva); throw new SinSubpeticiones(); }
           if (e instanceof Limite429) await sumar(env, dia, 'groq_tokens', -reserva);
           if (e instanceof Limite429 && e.porDia) {
             await sumar(env, dia, 'groq_tokens', topeGroq);   // agotado hasta mañana
@@ -166,7 +178,13 @@ export async function pedirIA(env, _diaMexico, tarea, mensajes, esquema, revisar
     }
     if (!respuesta) {
       if (!env.AI || !(await reservar(env, dia, 'workers_ai_neuronas', reservaWai, topeWai))) throw new IAAgotada();
-      respuesta = await workersAI(env, conversacion, esquema, dia, topeWai);   // si falla, la reserva se queda
+      try {
+        respuesta = await workersAI(env, conversacion, esquema, dia, topeWai);   // si falla, la reserva se queda…
+      } catch (e) {
+        // …salvo que la llamada no haya salido (sin subpeticiones)
+        if (esSinSubpeticiones(e)) { await sumar(env, dia, 'workers_ai_neuronas', -reservaWai); throw new SinSubpeticiones(); }
+        throw e;
+      }
       proveedor = 'workers_ai';
       if (respuesta.costo > 0) await sumar(env, dia, 'workers_ai_neuronas', respuesta.costo - reservaWai);
     }

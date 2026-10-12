@@ -18,7 +18,7 @@ import { fila } from './fila.js';
 import { ESQUEMAS } from './ia/esquemas.js';
 import { contarInyeccion, limpiarEntrada } from './ia/limpieza.js';
 import { entradaUsuario, promptBloom, promptNota, promptPreguntas, senalesCorpus } from './ia/prompts.js';
-import { IAAgotada, IAInvalida, pedirIA, sinValores, tomarCupoIA } from './ia/proveedores.js';
+import { IAAgotada, IAInvalida, SinSubpeticiones, devolverCupoIA, pedirIA, sinValores, tomarCupoIA } from './ia/proveedores.js';
 import { CABECERAS_API } from './seguridad.js';
 
 // --- Revisiones que el esquema no puede expresar ---
@@ -97,7 +97,7 @@ export async function correrIA(env, dia, entrada, datos, lexico, aviso = async (
     return { ia: null, costos, agotada: true, faltan: nombres, fallos };
   }
 
-  let agotada = false;
+  let agotada = false, cortada = false;
   await Promise.all(tareas.map(async ([nombre, mensajes, revisar, preparar]) => {
     try {
       const r = await pedirIA(env, dia, nombre, mensajes, ESQUEMAS[nombre], revisar, preparar);
@@ -106,6 +106,8 @@ export async function correrIA(env, dia, entrada, datos, lexico, aviso = async (
       await aviso(nombre, r.datos);
     } catch (e) {
       if (e instanceof IAAgotada) { agotada = true; return; }
+      // Sin subpeticiones (1.0.8): no es un fallo de la sección ni del proveedor; se reintenta luego.
+      if (e instanceof SinSubpeticiones) { cortada = true; await aviso('error', { seccion: nombre, error: 'interrumpida' }); return; }
       const error = e instanceof IAInvalida ? 'salida_invalida' : 'ia_fallo';
       if (!(e instanceof IAInvalida)) console.error(JSON.stringify({ evento: 'ia_error', tarea: nombre, mensaje: String(e.message).slice(0, 200) }));
       fallos[nombre] = { error, detalle: e instanceof IAInvalida ? sinValores(e.errores || []).slice(0, 8) : [String(e.message).slice(0, 80)], en: new Date().toISOString() };
@@ -113,12 +115,14 @@ export async function correrIA(env, dia, entrada, datos, lexico, aviso = async (
     }
   }));
   if (agotada) await aviso('ia_agotada', { motivo: 'proveedores_agotados' });
-  return { ia: Object.keys(ia).length ? ia : null, costos, agotada, faltan: nombres.filter((n) => !(n in ia)), fallos };
+  // El reintento tomará su propio lugar del tope diario: este se devuelve.
+  if (cortada) { await devolverCupoIA(env, dia); console.log(JSON.stringify({ evento: 'ia_sin_subpeticiones' })); }
+  return { ia: Object.keys(ia).length ? ia : null, costos, agotada, cortada, faltan: nombres.filter((n) => !(n in ia)), fallos };
 }
 
 /**
- * Reintentos de la IA (1.0.6). Una sección que falta por falta de cupo deja el análisis pendiente
- * sin contar intento. Una que falta por salida inválida o error del proveedor cuenta un intento y
+ * Reintentos de la IA (1.0.6). Una sección que falta por falta de cupo (o, desde 1.0.8, porque el
+ * Worker se quedó sin subpeticiones) deja el análisis pendiente sin contar intento. Una que falta por salida inválida o error del proveedor cuenta un intento y
  * espera IA_REINTENTO_HORAS (6) antes de volver a probarse, para no repetir en el mismo minuto un
  * fallo de carga; tras IA_REINTENTOS (2) reintentos, el análisis queda como está.
  * Devuelve { pendiente, intentos, siguiente } para guardar en D1.
@@ -126,6 +130,9 @@ export async function correrIA(env, dia, entrada, datos, lexico, aviso = async (
 export function planIA(env, r, intentosPrevios = 0) {
   if (!r.faltan.length) return { pendiente: false, intentos: intentosPrevios, siguiente: null };
   if (r.agotada) return { pendiente: true, intentos: intentosPrevios, siguiente: null };
+  // Sin subpeticiones (1.0.8), igual que sin cupo: pendiente sin contar intento ni esperar. Si en la
+  // misma corrida otra sección falló de verdad, sí cuenta, para que nada se reintente sin tope.
+  if (r.cortada && !Object.keys(r.fallos).length) return { pendiente: true, intentos: intentosPrevios, siguiente: null };
   const intentos = intentosPrevios + 1;
   const pendiente = intentos <= entero(env.IA_REINTENTOS, 2);
   const siguiente = pendiente ? new Date(Date.now() + entero(env.IA_REINTENTO_HORAS, 6) * 3600 * 1000).toISOString().slice(0, 19) + 'Z' : null;
