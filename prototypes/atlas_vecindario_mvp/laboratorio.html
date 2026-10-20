@@ -241,6 +241,10 @@
   .revisados { list-style: none; padding: 0; margin: 10px 0 0; font-size: 14px; }
   .revisados li { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 10px; padding: 7px 0; border-top: 1px solid var(--line); }
   .revisados .nv { color: var(--ink-3); }
+  .revisados.notas li { display: block; }
+  .revisados.notas b { font-weight: 600; }
+  .revisados.notas p { margin: 4px 0 0; }
+  .revisados.notas .rot { color: var(--link); }
   .tip { position: fixed; z-index: 40; max-width: 320px; background: var(--paper); border: 1px solid var(--line-strong); padding: 10px 12px; font-size: 13px; line-height: 1.45; pointer-events: none; }
   .tip b { display: block; font-size: 14px; margin-bottom: 4px; }
   .tip p { margin: 6px 0 0; color: var(--ink-2); }
@@ -1374,7 +1378,12 @@
     c.innerHTML = '<p class="riesgo aparece">' + esc(b.main_risk) + '</p>' +
       '<div class="dos-esc">' +
         '<div class="aparece"><h3>Tus objetivos</h3>' + escalera(autor, 'var(--ink)', 'Tus objetivos en la taxonomía de Bloom') +
-          (sinNivel.length ? '<p class="chico ink3">Sin nivel claro: ' + sinNivel.map(function (a) { return '<b>' + esc(a.verbo) + '</b>'; }).join(', ') + '. Elige un verbo que diga qué harás exactamente.</p>' : '') + '</div>' +
+          (sinNivel.length ? '<p class="chico ink3">Sin nivel claro: ' + sinNivel.map(function (a) { return '<b>' + esc(a.verbo) + '</b>'; }).join(', ') + '. Elige un verbo que diga qué harás exactamente.</p>' : '') +
+          '<ol class="revisados notas">' + b.objectives.map(function (o) {
+            return '<li><b>' + esc(o.original) + '</b>' +
+              (o.diagnosis ? '<p><span class="rot">Qué falta.</span> ' + esc(o.diagnosis) + '</p>' : '') +
+              (o.improvement ? '<p><span class="rot">Cómo mejorarlo.</span> ' + esc(o.improvement) + '</p>' : '') + '</li>';
+          }).join('') + '</ol></div>' +
         '<div class="aparece"><h3>Propuesta</h3>' + escalera(prop, 'var(--c)', 'Objetivos propuestos en la taxonomía de Bloom') +
           '<ol class="revisados">' + prop.map(function (r) { return '<li><span class="nv">' + (r.nivel >= 0 ? NIVELES[r.nivel] : '') + '</span><span>' + esc(r.texto) + '</span></li>'; }).join('') + '</ol></div>' +
       '</div>';

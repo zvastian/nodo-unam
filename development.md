@@ -4948,6 +4948,14 @@ Pedida por el usuario: imaginar casos maliciosos y bordes, y comprobar que las d
 - **Publicado (12-oct, ~00:45 UTC):** Worker (`1ce12826…`) y sitio con el pie en 1.0.8 (`236e82ca…`). `/api/salud` 200 y `prueba_humo.mjs https://nodosmap.com/` sin errores. El carril seguía en pausa hasta las 06:05 UTC del 12-oct: el efecto se mide desde ahí.
 - **Falta:** con visto bueno, rescatar en D1 los 6 análisis con fallo por subpeticiones y revisar los 2 que agotaron sus 3 intentos.
 
+### 1.0.9: el diagnóstico y la mejora de cada objetivo se ven sin hover (2026-10-19)
+
+- **Qué cambió:** en «Tus objetivos» del Laboratorio (`renderBloom`), bajo la escalera de Bloom, cada objetivo se lista con dos líneas de texto plano: «Qué falta.» (`diagnosis`) y «Cómo mejorarlo.» (`improvement`). Los rótulos van en azul (`--link`, que se aclara en modo noche); sin caja ni franja. El globo del hover queda igual.
+- **Por qué:** antes solo salían pegados en el globo del hover, y en móvil no hay hover: el estudiante no los veía. Complementan el resultado de la escalera.
+- **Verificación:** `?demo=acuifero` en escritorio (1600x900) y móvil (390x844) con `tools/cdp.mjs`, consola sin errores; `prueba_humo.mjs https://nodosmap.com/` con las 8 páginas en ok.
+- **Publicado (19-oct):** sitio (`791d2aba…`), pie en 1.0.9. El Worker no cambió.
+- **Falta:** decidir si se quita el diagnóstico del globo del hover (ahora aparece dos veces).
+
 ## Pendientes post lanzamiento (2026-10-05)
 
 Lista viva de lo que falta tras el lanzamiento (1.0.0, 29-sep-2026). **Reemplaza a «Estado del proyecto y hoja de ruta (2026-09-25)»** como lista de pendientes; esa sección queda como histórico del camino al lanzamiento. Orden por prioridad: P0 son promesas ya hechas a usuarios o riesgos de costo; P1, calidad del Laboratorio; P2, mejoras y deuda.
