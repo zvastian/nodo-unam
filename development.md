@@ -4954,7 +4954,14 @@ Pedida por el usuario: imaginar casos maliciosos y bordes, y comprobar que las d
 - **Por qué:** antes solo salían pegados en el globo del hover, y en móvil no hay hover: el estudiante no los veía. Complementan el resultado de la escalera.
 - **Verificación:** `?demo=acuifero` en escritorio (1600x900) y móvil (390x844) con `tools/cdp.mjs`, consola sin errores; `prueba_humo.mjs https://nodosmap.com/` con las 8 páginas en ok.
 - **Publicado (19-oct):** sitio (`791d2aba…`), pie en 1.0.9. El Worker no cambió.
-- **Falta:** decidir si se quita el diagnóstico del globo del hover (ahora aparece dos veces).
+- **Falta:** nada; el globo del hover se limpió en 1.0.10.
+
+### 1.0.10: el globo del hover ya no repite el diagnóstico (2026-10-19)
+
+- **Qué cambió:** en «Tus objetivos», el globo al pasar el cursor sobre un verbo muestra solo el objetivo; el diagnóstico y la mejora viven en la lista de abajo (1.0.9).
+- **Por qué:** aparecían dos veces.
+- **Verificación:** `prueba_humo.mjs https://nodosmap.com/` con las 8 páginas en ok; el HTML publicado ya no trae `extra: o.diagnosis`.
+- **Publicado (19-oct):** sitio (`d3fe52cc…`), pie en 1.0.10. El Worker no cambió.
 
 ## Pendientes post lanzamiento (2026-10-05)
 

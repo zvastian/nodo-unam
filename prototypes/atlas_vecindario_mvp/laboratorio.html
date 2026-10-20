@@ -1372,7 +1372,7 @@
   }
   function renderBloom(c) {
     var b = S.ia.bloom;
-    var autor = b.objectives.map(function (o) { var v = verboRector(o.original); return { verbo: v.verbo, nivel: v.nivel, texto: o.original, extra: o.diagnosis + ' ' + o.improvement }; });
+    var autor = b.objectives.map(function (o) { var v = verboRector(o.original); return { verbo: v.verbo, nivel: v.nivel, texto: o.original }; });
     var prop = b.revised.map(function (r) { var v = verboRector(r.text); return { verbo: v.verbo, nivel: v.nivel, texto: r.text }; });
     var sinNivel = autor.filter(function (a) { return a.nivel < 0; });
     c.innerHTML = '<p class="riesgo aparece">' + esc(b.main_risk) + '</p>' +
